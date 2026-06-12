@@ -1,238 +1,220 @@
-import { useEffect, useMemo, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { toast } from "sonner";
-import { shareFeedItemWithTeam } from "@/lib/oracle.functions";
-import { runIntelligenceCheck } from "@/lib/intelligence-monitoring.functions";
+import { ExternalLink } from "lucide-react";
+import { ErrorBanner, EmptyState, SkeletonList, OlympusLink } from "./OracleShared";
 import type { Database } from "@/integrations/supabase/types";
 
 type FeedItem = Database["public"]["Tables"]["intelligence_feed_items"]["Row"];
 
-const CATEGORY_COLOR: Record<string, string> = {
-  federal_policy: "#4A6FA5",
-  state_policy: "#1A7A8C",
-  legislative: "#8E44AD",
-  competitive: "#C0392B",
-  research: "#1A7A4A",
-  news: "#5D6D7E",
+const CATEGORIES: { id: string; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "federal_policy", label: "Federal Policy" },
+  { id: "legislative", label: "Legislation" },
+  { id: "stakeholder", label: "Stakeholder" },
+  { id: "research", label: "Research" },
+  { id: "competitive", label: "Competitor" },
+  { id: "procurement", label: "Procurement" },
+  { id: "regulatory", label: "Regulatory" },
+];
+
+const CATEGORY_COLOR: Record<string, { bg: string; fg: string; border: string }> = {
+  federal_policy: { bg: "rgba(224,74,74,0.12)", fg: "#f08080", border: "rgba(224,74,74,0.3)" },
+  legislative: { bg: "rgba(125,207,125,0.12)", fg: "#7DCF7D", border: "rgba(125,207,125,0.3)" },
+  stakeholder: { bg: "rgba(140,130,230,0.12)", fg: "#a39adf", border: "rgba(140,130,230,0.3)" },
+  research: { bg: "rgba(123,167,212,0.12)", fg: "#7BA7D4", border: "rgba(123,167,212,0.3)" },
+  competitive: { bg: "rgba(239,159,39,0.12)", fg: "#EF9F27", border: "rgba(239,159,39,0.3)" },
+  procurement: { bg: "rgba(196,154,43,0.12)", fg: "#C49A2B", border: "rgba(196,154,43,0.3)" },
+  regulatory: { bg: "rgba(239,191,39,0.12)", fg: "#EFBF27", border: "rgba(239,191,39,0.3)" },
 };
 
-const CATEGORY_LABEL: Record<string, string> = {
-  federal_policy: "Federal Policy",
-  state_policy: "State Policy",
-  legislative: "Legislative",
-  competitive: "Competitive",
-  research: "Research",
-  news: "News",
-};
+const CAT_LABEL: Record<string, string> = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.label]));
 
-export function OracleFeed({ missionId }: { missionId: string }) {
-  const qc = useQueryClient();
-  const [category, setCategory] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("active");
-  const [relevance, setRelevance] = useState<string>("all");
-  const [range, setRange] = useState<string>("7d");
+export function OracleFeed({ missionId, isAdmin }: { missionId: string; isAdmin: boolean }) {
+  const [category, setCategory] = useState("all");
   const [search, setSearch] = useState("");
 
-  const [newIds, setNewIds] = useState<Record<string, number>>({});
-  const [running, setRunning] = useState(false);
-
-  const share = useServerFn(shareFeedItemWithTeam);
-  const runCheck = useServerFn(runIntelligenceCheck);
-
-  const { data: items = [] } = useQuery({
-    queryKey: ["oracle-feed", missionId],
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["oracle-ro-feed", missionId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("intelligence_feed_items")
         .select("*")
         .eq("mission_id", missionId)
-        .order("created_at", { ascending: false });
+        .eq("is_dismissed", false)
+        .order("iris_relevance_score", { ascending: false })
+        .order("published_at", { ascending: false, nullsFirst: false });
+      if (error) throw error;
       return (data ?? []) as FeedItem[];
     },
+    staleTime: 60_000,
   });
-
-  const { data: lastCheckedAt } = useQuery({
-    queryKey: ["oracle-feed-last-checked", missionId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("intelligence_feed_configs")
-        .select("last_checked_at")
-        .eq("mission_id", missionId)
-        .order("last_checked_at", { ascending: false, nullsFirst: false })
-        .limit(1)
-        .maybeSingle();
-      return (data as { last_checked_at: string | null } | null)?.last_checked_at ?? null;
-    },
-    refetchInterval: 30000,
-  });
-
-  // Realtime: surface newly-inserted feed items without a page refresh.
-  useEffect(() => {
-    const channel = supabase
-      .channel(`oracle-feed-${missionId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "intelligence_feed_items", filter: `mission_id=eq.${missionId}` },
-        (payload) => {
-          const row = payload.new as FeedItem;
-          qc.setQueryData<FeedItem[]>(["oracle-feed", missionId], (prev = []) =>
-            prev.some((p) => p.id === row.id) ? prev : [row, ...prev],
-          );
-          setNewIds((m) => ({ ...m, [row.id]: Date.now() }));
-          setTimeout(() => setNewIds((m) => { const { [row.id]: _drop, ...rest } = m; return rest; }), 10000);
-          toast(`IRIS surfaced new intelligence: ${row.headline.slice(0, 60)}${row.headline.length > 60 ? "…" : ""}`);
-        },
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [missionId, qc]);
-
-  const onRunCheck = async () => {
-    setRunning(true);
-    try {
-      const r = await runCheck({ data: { missionId } });
-      toast.success(`Intelligence check complete. ${r.items_created} new items found across ${r.feeds_checked} feeds.`);
-      qc.invalidateQueries({ queryKey: ["oracle-feed", missionId] });
-      qc.invalidateQueries({ queryKey: ["oracle-feed-last-checked", missionId] });
-      qc.invalidateQueries({ queryKey: ["oracle-graph", missionId] });
-    } catch (err) {
-      console.error(err);
-      toast.error("Intelligence check failed. Please try again.");
-    } finally {
-      setRunning(false);
-    }
-  };
 
   const filtered = useMemo(() => {
-    const now = Date.now();
-    const cutoff = range === "7d" ? now - 7 * 86400000 : range === "30d" ? now - 30 * 86400000 : 0;
-    return items.filter((i) => {
+    if (!data) return [];
+    const q = search.trim().toLowerCase();
+    return data.filter((i) => {
       if (category !== "all" && i.category !== category) return false;
-      if (statusFilter === "unreviewed" && (i.is_reviewed || i.is_dismissed)) return false;
-      if (statusFilter === "reviewed" && !i.is_reviewed) return false;
-      if (statusFilter === "dismissed" && !i.is_dismissed) return false;
-      if (statusFilter === "active" && i.is_dismissed) return false;
-      if (relevance === "high" && i.iris_relevance_score < 70) return false;
-      if (relevance === "med" && (i.iris_relevance_score < 40 || i.iris_relevance_score >= 70)) return false;
-      if (relevance === "low" && i.iris_relevance_score >= 40) return false;
-      if (cutoff && new Date(i.created_at).getTime() < cutoff) return false;
-      if (search && !`${i.headline} ${i.iris_assessment ?? ""}`.toLowerCase().includes(search.toLowerCase())) return false;
+      if (q && !`${i.headline} ${i.iris_assessment ?? ""}`.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [items, category, statusFilter, relevance, range, search]);
+  }, [data, category, search]);
 
-  const summary = useMemo(() => {
-    const recent = items.filter((i) => Date.now() - new Date(i.created_at).getTime() < 7 * 86400000 && !i.is_dismissed);
-    const attention = recent.filter((i) => i.iris_relevance_score >= 70).length;
-    const sections = recent.filter((i) => (i.affected_section_ids ?? []).length > 0).length;
-    return { total: recent.length, attention, sections };
-  }, [items]);
-
-  const setField = useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: Partial<FeedItem> }) => {
-      await supabase.from("intelligence_feed_items").update(patch).eq("id", id);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["oracle-feed", missionId] }),
-  });
+  if (isError) return <ErrorBanner>Could not load this intelligence. Try refreshing.</ErrorBanner>;
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-lg border bg-card p-4 text-sm flex items-start justify-between gap-3">
-        <div>
-          In the last 7 days IRIS surfaced <strong>{summary.total}</strong> intelligence items.{" "}
-          <strong>{summary.attention}</strong> require attention. <strong>{summary.sections}</strong> affect sections currently being written.
-          <div className="text-xs text-muted-foreground mt-1">
-            {lastCheckedAt
-              ? <>Feeds last checked: {formatDistanceToNow(new Date(lastCheckedAt), { addSuffix: true })}</>
-              : <>Feeds have not been checked yet.</>}
-          </div>
-        </div>
-        <Button size="sm" onClick={onRunCheck} disabled={running} className="shrink-0">
-          {running
-            ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Checking feeds…</>
-            : <><Sparkles className="h-3 w-3 mr-1" /> Run Intelligence Check</>}
-        </Button>
+    <div className="space-y-3">
+      <Input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search feed…"
+        className="h-8 max-w-md"
+        style={{ fontSize: 12 }}
+      />
+      <div className="flex flex-wrap gap-2 overflow-x-auto">
+        {CATEGORIES.map((c) => {
+          const isActive = category === c.id;
+          return (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => setCategory(c.id)}
+              className="rounded-full transition-colors whitespace-nowrap"
+              style={{
+                padding: "3px 10px",
+                fontSize: 11,
+                color: isActive ? "#C49A2B" : "rgba(255,255,255,0.45)",
+                background: isActive ? "rgba(196,154,43,0.12)" : "transparent",
+                border: `0.5px solid ${isActive ? "rgba(196,154,43,0.3)" : "rgba(255,255,255,0.08)"}`,
+              }}
+            >
+              {c.label}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="flex flex-wrap gap-2 items-center">
-        <select value={category} onChange={(e) => setCategory(e.target.value)} className="text-xs border rounded px-2 py-1 bg-background">
-          <option value="all">All categories</option>
-          {Object.entries(CATEGORY_LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-        </select>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="text-xs border rounded px-2 py-1 bg-background">
-          <option value="active">Active</option>
-          <option value="all">All</option>
-          <option value="unreviewed">Unreviewed</option>
-          <option value="reviewed">Reviewed</option>
-          <option value="dismissed">Dismissed</option>
-        </select>
-        <select value={relevance} onChange={(e) => setRelevance(e.target.value)} className="text-xs border rounded px-2 py-1 bg-background">
-          <option value="all">All relevance</option>
-          <option value="high">High (70+)</option>
-          <option value="med">Medium (40-69)</option>
-          <option value="low">Low (under 40)</option>
-        </select>
-        <select value={range} onChange={(e) => setRange(e.target.value)} className="text-xs border rounded px-2 py-1 bg-background">
-          <option value="7d">Last 7 days</option>
-          <option value="30d">Last 30 days</option>
-          <option value="all">All time</option>
-        </select>
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="h-8 max-w-xs" />
-      </div>
+      {isAdmin && <OlympusLink>Manage sources in Olympus →</OlympusLink>}
 
-      {filtered.length === 0 ? (
-        <div className="rounded border bg-card p-6 text-center text-sm text-muted-foreground">
-          {items.length === 0
-            ? "No intelligence items yet. IRIS will begin surfacing intelligence after BLAST OFF when monitoring feeds are activated."
-            : "All caught up. IRIS will surface new items as your feeds update."}
-        </div>
+      {isLoading ? (
+        <SkeletonList count={3} />
+      ) : filtered.length === 0 ? (
+        <EmptyState>
+          {data && data.length === 0
+            ? "IRIS is monitoring sources. Intelligence items will appear here as they become relevant to this mission."
+            : "No items match this filter."}
+        </EmptyState>
       ) : (
-        <div className="space-y-3">
-          {filtered.map((i) => {
-            const relColor = i.iris_relevance_score >= 70 ? "#C9A55C" : i.iris_relevance_score >= 40 ? "#D4800A" : "#94A3B8";
-            return (
-              <div key={i.id} className={`rounded-lg border bg-card p-4 border-l-4 ${i.is_reviewed ? "opacity-70" : ""}`}
-                style={{ borderLeftColor: CATEGORY_COLOR[i.category] ?? "#888" }}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant="outline" className="text-[10px]">{CATEGORY_LABEL[i.category] ?? i.category}</Badge>
-                      {newIds[i.id] && (
-                        <Badge style={{ background: "#C9A55C", color: "#1A2B4C" }} className="text-[10px] animate-pulse">New</Badge>
-                      )}
-                    </div>
-                    <h4 className="font-semibold mt-1">{i.headline}</h4>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      {i.source_name ?? "Unknown source"} · {i.published_at ? new Date(i.published_at).toLocaleDateString() : ""}
-                    </div>
-                    {i.iris_assessment && <p className="text-sm italic mt-2" style={{ color: "#9C7A2C" }}>{i.iris_assessment}</p>}
-                    {i.recommended_action && <p className="text-xs text-muted-foreground mt-1">{i.recommended_action}</p>}
-                  </div>
-                  <Badge style={{ background: relColor, color: "#fff" }} className="shrink-0 text-[10px]">
-                    Relevance: {i.iris_relevance_score}
-                  </Badge>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-3 justify-end">
-                  {i.source_url && <Button size="sm" variant="outline" asChild><a href={i.source_url} target="_blank" rel="noreferrer">View Source</a></Button>}
-                  <Button size="sm" variant="outline" disabled={i.is_shared_with_team}
-                    onClick={async () => { try { const r = await share({ data: { feedItemId: i.id } }); toast.success(`Shared with ${r.recipients} team members`); qc.invalidateQueries({ queryKey: ["oracle-feed", missionId] }); } catch (e) { toast.error((e as Error).message); } }}>
-                    {i.is_shared_with_team ? "Shared" : "Share with Team"}
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setField.mutate({ id: i.id, patch: { is_dismissed: true } })}>Dismiss</Button>
-                  <Button size="sm" variant="ghost" onClick={() => setField.mutate({ id: i.id, patch: { is_reviewed: true } })}>Mark Reviewed</Button>
-                </div>
-              </div>
-            );
-          })}
+        <div className="space-y-2">
+          {filtered.map((i) => (
+            <FeedCard key={i.id} item={i} />
+          ))}
         </div>
       )}
+
+      <div className="italic text-center pt-2" style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>
+        IRIS monitors continuously. Sources and feeds configured in Olympus.
+      </div>
+    </div>
+  );
+}
+
+function FeedCard({ item }: { item: FeedItem }) {
+  const rel = item.iris_relevance_score ?? 0;
+  const cat = CATEGORY_COLOR[item.category] ?? { bg: "rgba(255,255,255,0.04)", fg: "rgba(255,255,255,0.6)", border: "rgba(255,255,255,0.1)" };
+  const tone =
+    rel >= 85
+      ? { bg: "rgba(224,74,74,0.05)", border: "rgba(224,74,74,0.25)" }
+      : rel >= 70
+        ? { bg: "rgba(74,111,165,0.05)", border: "rgba(74,111,165,0.2)" }
+        : { bg: "rgba(255,255,255,0.02)", border: "rgba(255,255,255,0.07)" };
+
+  const onAsk = () => {
+    window.dispatchEvent(
+      new CustomEvent("atlas:iris:prefill", {
+        detail: `Tell me more about: ${item.headline} — and how it affects this mission.`,
+      }),
+    );
+  };
+
+  return (
+    <div className="rounded-lg p-3" style={{ background: tone.bg, border: `1px solid ${tone.border}` }}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span
+            className="rounded"
+            style={{
+              padding: "2px 8px",
+              fontSize: 10,
+              background: cat.bg,
+              color: cat.fg,
+              border: `0.5px solid ${cat.border}`,
+            }}
+          >
+            {CAT_LABEL[item.category] ?? item.category}
+          </span>
+          {rel >= 60 && (
+            <span style={{ fontSize: 11, fontWeight: 700, color: cat.fg }}>{rel}</span>
+          )}
+        </div>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>
+          {item.published_at ? formatDistanceToNow(new Date(item.published_at), { addSuffix: true }) : ""}
+        </span>
+      </div>
+
+      <div className="mt-2 text-white" style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.4 }}>
+        {item.source_url ? (
+          <a href={item.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:underline">
+            {item.headline}
+            <ExternalLink className="h-3 w-3 opacity-60" />
+          </a>
+        ) : (
+          item.headline
+        )}
+      </div>
+
+      {item.iris_assessment && (
+        <p className="italic mt-1.5" style={{ fontSize: 10, lineHeight: 1.5, color: "rgba(255,255,255,0.55)" }}>
+          <span style={{ color: "rgba(140,130,230,0.9)", fontWeight: 500, fontStyle: "normal" }}>IRIS: </span>
+          {item.iris_assessment}
+        </p>
+      )}
+
+      <div className="flex items-center justify-between gap-2 mt-2 flex-wrap">
+        <div className="flex flex-wrap gap-1">
+          {(item.affected_section_ids ?? []).slice(0, 4).map((s, idx) => (
+            <span
+              key={`${s}-${idx}`}
+              style={{
+                fontSize: 9,
+                padding: "1px 6px",
+                borderRadius: 4,
+                background: "rgba(255,255,255,0.04)",
+                color: "rgba(255,255,255,0.5)",
+                border: "0.5px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              Affects Section {idx + 1}
+            </span>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={onAsk}
+          className="rounded"
+          style={{
+            padding: "3px 10px",
+            fontSize: 10,
+            color: "rgba(200,195,255,0.9)",
+            background: "rgba(127,119,221,0.12)",
+            border: "1px solid rgba(127,119,221,0.3)",
+          }}
+        >
+          Ask IRIS →
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,213 +1,197 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import { enrichStakeholder } from "@/lib/oracle.functions";
-import { ClientIntelligenceTab } from "@/components/mission-command/ClientIntelligenceTab";
+import { ErrorBanner, EmptyState, SkeletonList, OlympusLink } from "./OracleShared";
 import type { Database } from "@/integrations/supabase/types";
 
-type Stakeholder = Database["public"]["Tables"]["stakeholder_profiles"]["Row"];
+type Profile = Database["public"]["Tables"]["stakeholder_profiles"]["Row"];
 
-const STAKEHOLDER_TYPES = [
-  { value: "evaluator", label: "Evaluator" },
-  { value: "influencer", label: "Influencer" },
-  { value: "advocate", label: "Advocate" },
+const TYPES = [
+  { id: "all", label: "All" },
+  { id: "evaluator", label: "Evaluator" },
+  { id: "influencer", label: "Influencer" },
+  { id: "advocacy", label: "Advocacy" },
+  { id: "legislative", label: "Legislative" },
+  { id: "federal", label: "Federal" },
 ];
 
-const SUB_TYPES: Record<string, string[]> = {
-  influencer: ["Governor", "Commissioner", "Program Director", "Budget Office", "Legislator"],
-  advocate: ["Family Organization", "Provider Association", "Trade Association", "Disability Organization", "Coalition"],
-  evaluator: [],
+const CONFIDENCE_RANK: Record<string, number> = { high: 3, medium: 2, inferred: 1, low: 0 };
+const CONFIDENCE_LABEL: Record<string, { label: string; color: string }> = {
+  high: { label: "High confidence", color: "#7DCF7D" },
+  medium: { label: "Medium confidence", color: "#EF9F27" },
+  inferred: { label: "Inferred", color: "rgba(140,130,230,0.9)" },
+  low: { label: "Low", color: "rgba(255,255,255,0.4)" },
 };
 
-export function OracleStakeholders({ missionId }: { missionId: string }) {
-  const qc = useQueryClient();
-  const [addOpen, setAddOpen] = useState(false);
-  const [viewing, setViewing] = useState<Stakeholder | null>(null);
-  const enrich = useServerFn(enrichStakeholder);
+export function OracleStakeholders({ missionId, isAdmin }: { missionId: string; isAdmin: boolean }) {
+  const [type, setType] = useState("all");
 
-  const { data: stakes = [] } = useQuery({
-    queryKey: ["oracle-stakeholders", missionId],
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["oracle-ro-stakeholders", missionId],
     queryFn: async () => {
-      const { data } = await supabase.from("stakeholder_profiles").select("*").eq("mission_id", missionId).order("created_at", { ascending: false });
-      return (data ?? []) as Stakeholder[];
-    },
-  });
-
-  const create = useMutation({
-    mutationFn: async (payload: Partial<Stakeholder>) => {
-      const { data, error } = await supabase.from("stakeholder_profiles").insert({
-        mission_id: missionId,
-        name: payload.name!,
-        title: payload.title ?? null,
-        organization: payload.organization ?? null,
-        stakeholder_type: payload.stakeholder_type!,
-        sub_type: payload.sub_type ?? null,
-        public_priorities: payload.public_priorities ?? null,
-        known_concerns: payload.known_concerns ?? null,
-        is_manually_added: true,
-      }).select("id").single();
+      const { data, error } = await supabase
+        .from("stakeholder_profiles")
+        .select("*")
+        .eq("mission_id", missionId);
       if (error) throw error;
-      try { await enrich({ data: { stakeholderId: data.id } }); } catch (e) { console.error(e); }
+      return (data ?? []) as Profile[];
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["oracle-stakeholders", missionId] });
-      setAddOpen(false);
-      toast.success("Stakeholder added");
-    },
-    onError: (e) => toast.error((e as Error).message),
+    staleTime: 60_000,
   });
 
-  const evaluators = stakes.filter((s) => s.stakeholder_type === "evaluator");
-  const influencers = stakes.filter((s) => s.stakeholder_type === "influencer");
-  const advocates = stakes.filter((s) => s.stakeholder_type === "advocate");
+  const filtered = useMemo(() => {
+    const list = data ?? [];
+    const f = type === "all" ? list : list.filter((s) => (s.stakeholder_type ?? "").toLowerCase() === type);
+    return [...f].sort((a, b) => {
+      const ar = CONFIDENCE_RANK[(a.iris_confidence ?? "").toLowerCase()] ?? 0;
+      const br = CONFIDENCE_RANK[(b.iris_confidence ?? "").toLowerCase()] ?? 0;
+      if (br !== ar) return br - ar;
+      return (a.stakeholder_type ?? "").localeCompare(b.stakeholder_type ?? "");
+    });
+  }, [data, type]);
 
-  const Column = ({ title, items }: { title: string; items: Stakeholder[] }) => (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wider">{title} <span className="text-muted-foreground">({items.length})</span></h3>
-      </div>
-      {items.length === 0 && <div className="text-xs text-muted-foreground italic">None yet</div>}
-      {items.map((s) => (
-        <div key={s.id} className="rounded-lg border bg-card p-3">
-          <div className="font-medium">{s.name}</div>
-          {s.title && <div className="text-xs text-muted-foreground">{s.title}</div>}
-          {s.organization && <div className="text-xs">{s.organization}</div>}
-          {s.sub_type && <Badge variant="outline" className="text-[10px] mt-1">{s.sub_type}</Badge>}
-          {s.public_priorities && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{s.public_priorities}</p>}
-          <Button size="sm" variant="ghost" className="mt-2 h-7 text-xs" onClick={() => setViewing(s)}>View Full Profile</Button>
-        </div>
-      ))}
-    </div>
-  );
+  if (isError) return <ErrorBanner>Could not load this intelligence. Try refreshing.</ErrorBanner>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Stakeholders</h2>
-        <Button size="sm" onClick={() => setAddOpen(true)}>+ Add Stakeholder</Button>
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        {TYPES.map((t) => {
+          const isActive = type === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setType(t.id)}
+              className="rounded-full"
+              style={{
+                padding: "3px 10px",
+                fontSize: 11,
+                color: isActive ? "#C49A2B" : "rgba(255,255,255,0.45)",
+                background: isActive ? "rgba(196,154,43,0.12)" : "transparent",
+                border: `0.5px solid ${isActive ? "rgba(196,154,43,0.3)" : "rgba(255,255,255,0.08)"}`,
+              }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Column title="Evaluators" items={evaluators} />
-        <Column title="Influencers" items={influencers} />
-        <Column title="Advocates" items={advocates} />
-      </div>
+      {isAdmin && <OlympusLink>Manage stakeholders in Olympus →</OlympusLink>}
 
-      <div className="border-t pt-6">
-        <h3 className="text-sm font-semibold uppercase tracking-wider mb-3">Client Intelligence Notes</h3>
-        <ClientIntelligenceTab missionId={missionId} />
-      </div>
-
-      {addOpen && <AddPanel onClose={() => setAddOpen(false)} onSubmit={(v) => create.mutate(v)} />}
-      {viewing && <ProfilePanel s={viewing} onClose={() => setViewing(null)} onUpdated={() => qc.invalidateQueries({ queryKey: ["oracle-stakeholders", missionId] })} />}
-    </div>
-  );
-}
-
-function AddPanel({ onClose, onSubmit }: { onClose: () => void; onSubmit: (v: Partial<Stakeholder>) => void }) {
-  const [form, setForm] = useState<Partial<Stakeholder>>({ stakeholder_type: "evaluator" });
-  return (
-    <div className="fixed inset-0 z-50 bg-black/30" onClick={onClose}>
-      <div className="absolute right-0 top-0 h-full w-full max-w-md bg-card border-l p-5 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <h3 className="font-semibold mb-4">Add Stakeholder</h3>
-        <div className="space-y-3">
-          <Input placeholder="Name" value={form.name ?? ""} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <Input placeholder="Title" value={form.title ?? ""} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-          <Input placeholder="Organization" value={form.organization ?? ""} onChange={(e) => setForm({ ...form, organization: e.target.value })} />
-          <select value={form.stakeholder_type} onChange={(e) => setForm({ ...form, stakeholder_type: e.target.value, sub_type: undefined })} className="w-full border rounded px-2 py-2 bg-background text-sm">
-            {STAKEHOLDER_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-          </select>
-          {(SUB_TYPES[form.stakeholder_type ?? ""] ?? []).length > 0 && (
-            <select value={form.sub_type ?? ""} onChange={(e) => setForm({ ...form, sub_type: e.target.value })} className="w-full border rounded px-2 py-2 bg-background text-sm">
-              <option value="">— Sub-type —</option>
-              {SUB_TYPES[form.stakeholder_type ?? ""].map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-          )}
-          <Textarea placeholder="Public priorities" value={form.public_priorities ?? ""} onChange={(e) => setForm({ ...form, public_priorities: e.target.value })} />
-          <Textarea placeholder="Known concerns" value={form.known_concerns ?? ""} onChange={(e) => setForm({ ...form, known_concerns: e.target.value })} />
-          <div className="flex gap-2 justify-end">
-            <Button variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button disabled={!form.name} onClick={() => onSubmit(form)}>Save</Button>
-          </div>
+      {isLoading ? (
+        <SkeletonList count={2} />
+      ) : filtered.length === 0 ? (
+        <EmptyState>No stakeholder profiles configured. Add them in Olympus.</EmptyState>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {filtered.map((s) => (
+            <StakeholderCard key={s.id} profile={s} />
+          ))}
         </div>
+      )}
+
+      <div className="italic text-center pt-2" style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>
+        Stakeholder profiles built by IRIS from public record. Configured and enriched in Olympus.
       </div>
     </div>
   );
 }
 
-function ProfilePanel({ s, onClose, onUpdated }: { s: Stakeholder; onClose: () => void; onUpdated: () => void }) {
-  const statements = Array.isArray(s.recent_statements) ? (s.recent_statements as { date?: string; text?: string; url?: string }[]) : [];
-  const [newStmt, setNewStmt] = useState({ date: "", text: "", url: "" });
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts[parts.length - 1]?.[0] ?? "")).toUpperCase() || "?";
+}
 
-  const addStatement = async () => {
-    if (!newStmt.text) return;
-    const updated = [...statements, newStmt];
-    await supabase.from("stakeholder_profiles").update({ recent_statements: updated }).eq("id", s.id);
-    setNewStmt({ date: "", text: "", url: "" });
-    onUpdated();
-  };
-
-  const remove = async () => {
-    if (!confirm(`Delete ${s.name}?`)) return;
-    await supabase.from("stakeholder_profiles").delete().eq("id", s.id);
-    onClose(); onUpdated();
-  };
-
+function StakeholderCard({ profile }: { profile: Profile }) {
+  const conf = CONFIDENCE_LABEL[(profile.iris_confidence ?? "").toLowerCase()];
   return (
-    <div className="fixed inset-0 z-50 bg-black/30" onClick={onClose}>
-      <div className="absolute right-0 top-0 h-full w-full max-w-lg bg-card border-l p-5 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="font-semibold text-lg">{s.name}</h3>
-            <div className="text-sm text-muted-foreground">{s.title} {s.organization && `@ ${s.organization}`}</div>
-            <Badge variant="outline" className="mt-1 text-[10px]">{s.stakeholder_type}{s.sub_type ? ` · ${s.sub_type}` : ""}</Badge>
-          </div>
-          <Button size="sm" variant="ghost" onClick={onClose}>Close</Button>
+    <div
+      className="rounded-lg p-3"
+      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className="rounded-full flex items-center justify-center shrink-0"
+          style={{
+            width: 36,
+            height: 36,
+            background: "rgba(196,154,43,0.15)",
+            color: "#C49A2B",
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+          {initials(profile.name ?? "")}
         </div>
-        {s.public_priorities && <Section title="Public Priorities">{s.public_priorities}</Section>}
-        {s.known_concerns && <Section title="Known Concerns">{s.known_concerns}</Section>}
-        {s.relationship_to_athena && <Section title="Relationship to Athena">{s.relationship_to_athena}</Section>}
-        {s.relationship_to_incumbent && <Section title="Relationship to Incumbent">{s.relationship_to_incumbent}</Section>}
-
-        <div className="mt-5">
-          <h4 className="text-xs font-semibold uppercase tracking-wider mb-2">Recent Statements</h4>
-          {statements.length === 0 && <div className="text-xs text-muted-foreground italic">No statements logged.</div>}
-          <div className="space-y-2">
-            {statements.map((st, i) => (
-              <div key={i} className="border-l-2 border-primary/30 pl-2 text-sm">
-                <div className="text-[10px] text-muted-foreground">{st.date}</div>
-                <div>{st.text}</div>
-                {st.url && <a href={st.url} target="_blank" rel="noreferrer" className="text-[10px] underline">source</a>}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-white truncate" style={{ fontSize: 13, fontWeight: 500 }}>
+                {profile.name}
               </div>
-            ))}
-          </div>
-          <div className="mt-3 space-y-1">
-            <Input placeholder="Date" value={newStmt.date} onChange={(e) => setNewStmt({ ...newStmt, date: e.target.value })} />
-            <Textarea placeholder="Statement text" value={newStmt.text} onChange={(e) => setNewStmt({ ...newStmt, text: e.target.value })} />
-            <Input placeholder="Source URL" value={newStmt.url} onChange={(e) => setNewStmt({ ...newStmt, url: e.target.value })} />
-            <Button size="sm" onClick={addStatement}>Add Statement</Button>
+              <div className="truncate" style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
+                {profile.title ?? ""}
+                {profile.organization ? ` · ${profile.organization}` : ""}
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              {profile.stakeholder_type && (
+                <span
+                  className="rounded"
+                  style={{
+                    padding: "1px 6px",
+                    fontSize: 9,
+                    background: "rgba(255,255,255,0.06)",
+                    color: "rgba(255,255,255,0.6)",
+                  }}
+                >
+                  {profile.stakeholder_type}
+                </span>
+              )}
+              {conf && (
+                <span
+                  className="rounded"
+                  style={{
+                    padding: "1px 6px",
+                    fontSize: 9,
+                    background: "rgba(255,255,255,0.04)",
+                    color: conf.color,
+                  }}
+                >
+                  {conf.label}
+                </span>
+              )}
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="mt-6 flex justify-end gap-2">
-          <Button variant="destructive" size="sm" onClick={remove}>Delete</Button>
-        </div>
+      <div className="grid gap-2 mt-3">
+        <SubCard label="Public Priorities" tone="green">
+          {profile.public_priorities || <span className="italic">Not yet profiled.</span>}
+        </SubCard>
+        <SubCard label="Known Concerns" tone="amber">
+          {profile.known_concerns || <span className="italic">Not yet profiled.</span>}
+        </SubCard>
       </div>
     </div>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function SubCard({ label, tone, children }: { label: string; tone: "green" | "amber"; children: React.ReactNode }) {
+  const palette =
+    tone === "green"
+      ? { bg: "rgba(125,207,125,0.05)", border: "rgba(125,207,125,0.18)", fg: "#7DCF7D" }
+      : { bg: "rgba(239,159,39,0.05)", border: "rgba(239,159,39,0.2)", fg: "#EF9F27" };
   return (
-    <div className="mt-4">
-      <h4 className="text-xs font-semibold uppercase tracking-wider mb-1">{title}</h4>
-      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{children}</p>
+    <div className="rounded-md p-2" style={{ background: palette.bg, border: `1px solid ${palette.border}` }}>
+      <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.06em", color: palette.fg, fontWeight: 600 }}>
+        {label}
+      </div>
+      <div className="mt-1" style={{ fontSize: 11, lineHeight: 1.5, color: "rgba(255,255,255,0.65)" }}>
+        {children}
+      </div>
     </div>
   );
 }
