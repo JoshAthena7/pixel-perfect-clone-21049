@@ -250,20 +250,31 @@ export function ThreadPanel({
           recommend experts, and flag conflicting guidance as the discussion develops.
         </div>
 
-        {messages.length === 0 ? (
-          <div
-            style={{
-              color: "rgba(255,255,255,0.4)",
-              fontSize: 12,
-              textAlign: "center",
-              padding: "32px 0",
-            }}
-          >
-            No discussion yet. Be the first to work the question.
-          </div>
-        ) : (
-          messages.map((m) => <MessageRow key={m.id} msg={m} onFindExpert={onRequestFindSME} />)
-        )}
+        {(() => {
+          const pinned = messages.filter((m) => m.message_type === "win_theme_alignment");
+          const rest = messages.filter((m) => m.message_type !== "win_theme_alignment");
+          return (
+            <>
+              {pinned.map((m) => (
+                <WinThemeAlignmentRow key={m.id} msg={m} />
+              ))}
+              {rest.length === 0 && pinned.length === 0 ? (
+                <div
+                  style={{
+                    color: "rgba(255,255,255,0.4)",
+                    fontSize: 12,
+                    textAlign: "center",
+                    padding: "32px 0",
+                  }}
+                >
+                  No discussion yet. Be the first to work the question.
+                </div>
+              ) : (
+                rest.map((m) => <MessageRow key={m.id} msg={m} onFindExpert={onRequestFindSME} />)
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* Composer */}
