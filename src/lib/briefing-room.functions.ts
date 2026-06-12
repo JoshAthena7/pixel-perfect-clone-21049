@@ -78,7 +78,10 @@ export const getSnapshot = createServerFn({ method: "POST" })
     ]);
     const mission = missionRes.data;
     const team = teamRes.data ?? [];
-    const leadRow = team.find((t: any) => t.mission_role === "engagement_lead" || t.mission_role === "lead");
+    const leadRow =
+      team.find((t: any) => t.mission_role === "engagement_lead") ??
+      team.find((t: any) => t.mission_role === "lead") ??
+      team.find((t: any) => t.mission_role === "admin");
     let leadName: string | null = null;
     if (leadRow) {
       const { data: lead } = await supabase
