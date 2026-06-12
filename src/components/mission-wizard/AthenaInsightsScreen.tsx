@@ -88,6 +88,7 @@ export function AthenaInsightsScreen({
       await supabase.from("iris_memories").insert({
         mission_id: missionId,
         category: "strategic_insight",
+        title: i.title,
         content: `${i.title}: ${i.body}`,
         importance: "high",
         source: "athena",
