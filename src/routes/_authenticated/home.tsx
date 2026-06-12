@@ -1,15 +1,9 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { Suspense } from "react";
+import { createFileRoute, Navigate, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { Link } from "@tanstack/react-router";
-import { HomePage } from "@/components/home/HomePage";
 import { supabase } from "@/integrations/supabase/client";
 
 function HomeRoute() {
-  // Decide whether the user has any missions; if so, route them straight into
-  // the most recent one. The "Good morning" home screen is reserved for the
-  // empty state (zero missions).
   const { data, isLoading } = useQuery({
     queryKey: ["home-router-missions"],
     queryFn: async () => {
@@ -37,15 +31,6 @@ function HomeRoute() {
     );
   }
 
-  // Zero-mission empty state
-  return (
-    <Suspense fallback={<div className="p-8 text-sm text-muted-foreground">Loading…</div>}>
-      <EmptyHome />
-    </Suspense>
-  );
-}
-
-function EmptyHome() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-16 text-center">
       <div style={{ color: "white", fontSize: 22, fontWeight: 500 }}>
@@ -62,13 +47,14 @@ function EmptyHome() {
         <Plus className="h-4 w-4" />
         New Mission
       </Link>
-      <div className="mt-12">
-        {/* Keep the rich HomePage as additional context if any data exists at all. */}
-        <HomePage />
-      </div>
     </div>
   );
 }
+
+export const Route = createFileRoute("/_authenticated/home")({
+  component: HomeRoute,
+});
+
 
 export const Route = createFileRoute("/_authenticated/home")({
   component: HomeRoute,
