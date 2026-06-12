@@ -385,7 +385,7 @@ export function Step1BUpload({
         {/* Continue */}
         <div className="mt-12 flex justify-end">
           <button
-            onClick={() => setAnalyzing(true)}
+            onClick={() => setPhase("analyzing")}
             disabled={!hasAnyDone}
             className={cn(
               "inline-flex items-center gap-2 rounded-lg px-6 py-3 text-[14px] font-medium transition-all",
