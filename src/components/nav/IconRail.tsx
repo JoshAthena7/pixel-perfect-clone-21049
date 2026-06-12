@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { Crosshair, LayoutGrid, Shield } from "lucide-react";
+import { Crosshair, Rocket, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const LAST_MISSION_KEY = "atlas_last_mission_id";
@@ -61,7 +61,7 @@ export function IconRail() {
 
   const items = [
     {
-      label: "Mission",
+      label: "Mission Control",
       Icon: Crosshair,
       active: missionActive,
       onClick: handleMissionClick,
@@ -69,12 +69,12 @@ export function IconRail() {
     },
     {
       label: "Launch Pad",
-      Icon: LayoutGrid,
+      Icon: Rocket,
       active: deskActive,
       href: "/olympus/flight-deck",
     },
     {
-      label: "Admin",
+      label: "Olympus",
       Icon: Shield,
       active: adminActive,
       href: "/admin",
