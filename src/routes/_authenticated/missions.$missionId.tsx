@@ -1,5 +1,14 @@
-import { createFileRoute, Outlet, Link, notFound, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, notFound, useRouterState, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronDown, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId")({
   loader: async ({ params }) => {
@@ -25,10 +34,27 @@ const TABS = [
 function MissionLayout() {
   const { missionId } = Route.useParams();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  // Only show the tab strip on the three main content tabs (and the mission index).
+  const navigate = useNavigate();
+
   const tabbedSegments = ["briefing", "oracle", "insights"];
   const seg = pathname.split("/")[3] ?? "";
   const showTabs = tabbedSegments.includes(seg) || seg === "";
+
+  const { data: missions = [] } = useQuery({
+    queryKey: ["mission-switcher"],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("missions")
+        .select("id, name, status, updated_at")
+        .order("updated_at", { ascending: false })
+        .limit(50);
+      return (data ?? []) as { id: string; name: string; status: string | null; updated_at: string }[];
+    },
+  });
+
+  const current = missions.find((m) => m.id === missionId);
+  const currentName = current?.name ?? "Mission";
 
   return (
     <div>
@@ -37,13 +63,38 @@ function MissionLayout() {
           className="sticky top-12 z-30 flex items-center gap-1 px-6 h-10"
           style={{ background: "#070f1c", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
         >
-          <Link
-            to="/home"
-            className="inline-flex items-center mr-3 hover:text-white"
-            style={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }}
-          >
-            ← Missions
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className="inline-flex items-center gap-1.5 mr-3 px-2 py-1 rounded-md hover:bg-white/[0.05] focus:outline-none max-w-[280px]"
+              style={{ color: "white", fontSize: 12, fontWeight: 500 }}
+            >
+              <span className="truncate">{currentName}</span>
+              <ChevronDown className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(255,255,255,0.5)" }} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-72 max-h-96 overflow-y-auto">
+              {missions.map((m) => {
+                const active = m.id === missionId;
+                return (
+                  <DropdownMenuItem
+                    key={m.id}
+                    onSelect={() =>
+                      navigate({ to: "/missions/$missionId/briefing", params: { missionId: m.id } })
+                    }
+                    className="flex items-center justify-between gap-2"
+                  >
+                    <span className="truncate">{m.name}</span>
+                    {active && <Check className="h-3.5 w-3.5 text-[#c9a84c] shrink-0" />}
+                  </DropdownMenuItem>
+                );
+              })}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => navigate({ to: "/home" })}>
+                ← All missions
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <span className="mr-3" style={{ color: "rgba(255,255,255,0.2)", fontSize: 12 }}>·</span>
 
           {TABS.map((t) => {
             const active = seg === t.id || (seg === "" && t.id === "briefing");
