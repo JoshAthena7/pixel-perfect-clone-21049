@@ -18,11 +18,9 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 const TABS = [
   { id: "missions", label: "Missions", to: "/admin" as const, match: (p: string) => p === "/admin" || p === "/admin/" || p.startsWith("/admin/missions") },
-  { id: "team", label: "Team", to: "/admin/team" as const, match: (p: string) => p.startsWith("/admin/team") },
-  { id: "activity", label: "Activity", to: "/admin/activity" as const, match: (p: string) => p.startsWith("/admin/activity") },
+  { id: "staff", label: "Staff", to: "/admin/team" as const, match: (p: string) => p.startsWith("/admin/team") },
   { id: "messaging", label: "Messaging", to: "/admin/messaging" as const, match: (p: string) => p.startsWith("/admin/messaging") },
-  { id: "iris-health", label: "IRIS Health", to: "/admin/iris-health" as const, match: (p: string) => p.startsWith("/admin/iris-health") },
-  { id: "settings", label: "Settings", to: "/admin/settings" as const, match: (p: string) => p.startsWith("/admin/settings") },
+  { id: "insights", label: "Insights", to: "/admin/insights" as const, match: (p: string) => p.startsWith("/admin/insights") },
 ];
 
 function AdminLayout() {
