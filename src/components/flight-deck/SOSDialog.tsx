@@ -12,6 +12,7 @@ type Props = {
   questionId: string | null;
   questionNumber: string | null;
   questionText: string | null;
+  onSubmitted?: () => void;
 };
 
 const SEVERITY_META: Record<
@@ -41,7 +42,7 @@ const SEVERITY_META: Record<
   },
 };
 
-export function SOSDialog({ open, onOpenChange, missionId, questionId, questionNumber, questionText }: Props) {
+export function SOSDialog({ open, onOpenChange, missionId, questionId, questionNumber, questionText, onSubmitted }: Props) {
   const raise = useServerFn(raiseSOS);
   const [severity, setSeverity] = useState<SosSeverity | null>(null);
   const [body, setBody] = useState("");
@@ -73,6 +74,9 @@ export function SOSDialog({ open, onOpenChange, missionId, questionId, questionN
         },
       });
       setDone({ ack: res.irisAcknowledgment });
+      if (severity === "at_risk" || severity === "blocked") {
+        onSubmitted?.();
+      }
     } catch (e) {
       console.error(e);
       toast.error("Could not raise SOS — try again");

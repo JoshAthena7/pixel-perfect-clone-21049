@@ -241,8 +241,11 @@ async function runIrisAnalysis(
 
   const system =
     "You are IRIS. A proposal writer just posted a message in a question Thread. " +
-    "Analyze the message and determine if you should respond with relevant intelligence from the mission context. " +
-    "Be helpful, specific, and brief. If you have nothing genuinely useful to add, return null. Never respond just to respond.";
+    "Default to should_respond=false. Only respond when you can cite a specific piece of mission intelligence, " +
+    "stakeholder fact, or compliance requirement that materially changes how the writer should approach this message. " +
+    "Do NOT respond to acknowledgments, social chatter, generic questions, brainstorming, or anything you cannot " +
+    "ground in the Oracle context below. Thread is a human collaboration space — you are an occasional intelligent " +
+    "contributor, not a chatbot. When in doubt, stay silent.";
 
   const user = [
     `Mission: ${mission?.name ?? "(unknown)"}.`,
