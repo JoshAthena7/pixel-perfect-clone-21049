@@ -61,7 +61,7 @@ export function IconRail() {
 
   const items = [
     {
-      label: "Mission",
+      label: "Mission Control",
       Icon: Crosshair,
       active: missionActive,
       onClick: handleMissionClick,
@@ -69,12 +69,12 @@ export function IconRail() {
     },
     {
       label: "Launch Pad",
-      Icon: LayoutGrid,
+      Icon: Rocket,
       active: deskActive,
       href: "/olympus/flight-deck",
     },
     {
-      label: "Admin",
+      label: "Olympus",
       Icon: Shield,
       active: adminActive,
       href: "/admin",
