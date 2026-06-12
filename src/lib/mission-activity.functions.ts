@@ -476,6 +476,10 @@ export const getActivitySynthesis = createServerFn({ method: "POST" })
       .filter(Boolean)
       .slice(0, 8);
 
+    const conflictRows = (conflictsC.data ?? []) as Array<{ conflict_description: string }>;
+    const unresolvedConflicts = conflictRows.length;
+    const mostRecentConflict = conflictRows[0]?.conflict_description ?? "none";
+
     const facts = {
       mission_name: mission.data?.name ?? "this mission",
       window: data.range,
@@ -487,7 +491,10 @@ export const getActivitySynthesis = createServerFn({ method: "POST" })
       phone_a_friend_requests: consultC.count ?? 0,
       sos_events: sosC.count ?? 0,
       stale_questions_48h: stale,
+      unresolved_conflicts: unresolvedConflicts,
+      most_recent_conflict: mostRecentConflict,
     };
+
 
     const apiKey = process.env.LOVABLE_API_KEY;
     let synthesis = defaultSynthesis(facts);
