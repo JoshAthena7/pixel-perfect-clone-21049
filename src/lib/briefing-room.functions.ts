@@ -473,83 +473,11 @@ export const getRisks = createServerFn({ method: "POST" })
     return { items, canResolve };
   });
 
-// Resolve a conflict from the Briefing Room. Admin or engagement_lead only.
-const ResolveConflictInput = z.object({
-  missionId: z.string().uuid(),
-  conflictId: z.string().uuid(),
-});
+// (Conflict resolution moved to src/lib/iris-conflicts.functions.ts —
+//  resolveConflict is the shared single source of truth used by both
+//  the Briefing Room Risks section and Mission Activity.)
 
-export const resolveBriefingConflict = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => ResolveConflictInput.parse(d))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context as Ctx & { userId: string };
 
-    // Authorize: admin or engagement_lead on this mission.
-    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
-    let allowed = !!isAdmin;
-    if (!allowed) {
-      const { data: team } = await supabase
-        .from("mission_team_members")
-        .select("member_id,mission_role")
-        .eq("mission_id", data.missionId)
-        .in("mission_role", ["engagement_lead", "lead"]);
-      const memberIds = (team ?? []).map((t: any) => t.member_id);
-      if (memberIds.length) {
-        const { data: me } = await supabase
-          .from("atlas_team_members")
-          .select("id")
-          .in("id", memberIds)
-          .eq("user_id", userId)
-          .maybeSingle();
-        allowed = !!me;
-      }
-    }
-    if (!allowed) throw new Error("Forbidden");
-
-    // Load conflict to get the two question ids.
-    const { data: conflict, error: cErr } = await supabase
-      .from("conflict_flags")
-      .select("id,question_id_a,question_id_b,resolved")
-      .eq("id", data.conflictId)
-      .eq("mission_id", data.missionId)
-      .maybeSingle();
-    if (cErr || !conflict) throw new Error("Conflict not found");
-    if (conflict.resolved) return { ok: true, alreadyResolved: true };
-
-    // Resolver name.
-    const { data: me } = await supabase
-      .from("atlas_team_members")
-      .select("display_name,full_name,email")
-      .eq("user_id", userId)
-      .maybeSingle();
-    const resolverName = me?.display_name || me?.full_name || me?.email || "an Engagement Lead";
-
-    // Mark resolved.
-    const { error: uErr } = await supabase
-      .from("conflict_flags")
-      .update({ resolved: true, resolved_at: new Date().toISOString() })
-      .eq("id", data.conflictId);
-    if (uErr) throw uErr;
-
-    // Post IRIS message to both affected question threads.
-    const body = `The decision conflict flagged on this section has been marked resolved by ${resolverName}. Proceed with the aligned approach. If you have questions about the resolution contact your Engagement Lead.`;
-    const inserts = [conflict.question_id_a, conflict.question_id_b]
-      .filter(Boolean)
-      .map((qid: string) => ({
-        mission_id: data.missionId,
-        question_id: qid,
-        sender_id: null,
-        sender_name: "IRIS",
-        message_type: "iris",
-        message_body: body,
-      }));
-    if (inserts.length) {
-      await supabase.from("thread_messages").insert(inserts);
-    }
-
-    return { ok: true };
-  });
 
 
 
