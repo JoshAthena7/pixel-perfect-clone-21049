@@ -128,7 +128,7 @@ export function SectionMissionMap({ missionId, isAdmin }: { missionId: string; i
             </thead>
             <tbody>
               {data.sections.map((s: any) => (
-                <>
+                <Fragment key={s.id}>
                   <tr key={`s-${s.id}`}>
                     <td
                       colSpan={6}
