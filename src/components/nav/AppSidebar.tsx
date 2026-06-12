@@ -149,7 +149,7 @@ export function AppSidebar({
               <Section label="MY WORK" items={MY_WORK_ITEMS} missionId={missionId} pathname={pathname} collapsed={collapsed} disabled={!inMission} />
               <Divider />
               <Section
-                label="ADMIN"
+                label="MISSION TOOLS"
                 items={ADMIN_ITEMS.filter((it) => {
                   if (it.label !== "Activity") return true;
                   const r = (userRole ?? "").toLowerCase();
