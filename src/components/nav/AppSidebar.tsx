@@ -252,7 +252,7 @@ function Section({
             missionId={missionId}
             pathname={pathname}
             collapsed={collapsed}
-            disabled={disabled && item.needsMission}
+            disabled={(disabled && item.needsMission) || item.disabled}
             muted={muted}
           />
         ))}
@@ -276,28 +276,43 @@ function NavRow({
   disabled?: boolean;
   muted?: boolean;
 }) {
-  const { to, label, Icon } = item;
+  const { to, label, Icon, badge } = item;
   const resolved = missionId ? to.replace("$missionId", missionId) : to;
-  const active = pathname === resolved;
-  const baseColor = muted ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.45)";
-  const iconColor = muted ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.3)";
+  const active = pathname === resolved || (to === "/admin" && pathname.startsWith("/admin/missions"));
+  const baseColor = muted ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.55)";
+  const iconColor = muted ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.35)";
 
   const content = (
     <>
       <Icon
         className="h-[15px] w-[15px] shrink-0"
-        style={{ color: active ? "#C49A2B" : iconColor }}
+        style={{ color: active ? "#c9a84c" : iconColor }}
       />
       {!collapsed && (
         <span
-          className="truncate"
+          className="truncate flex-1"
           style={{
             fontSize: 11,
-            color: active ? "#C49A2B" : baseColor,
-            fontWeight: active ? 500 : 400,
+            color: active ? "#c9a84c" : baseColor,
+            fontWeight: active ? 600 : 400,
           }}
         >
           {label}
+        </span>
+      )}
+      {!collapsed && badge && (
+        <span
+          className="rounded-sm shrink-0"
+          style={{
+            fontSize: 8,
+            fontWeight: 600,
+            padding: "1px 4px",
+            background: "rgba(255,255,255,0.06)",
+            color: "rgba(255,255,255,0.4)",
+            letterSpacing: "0.05em",
+          }}
+        >
+          {badge}
         </span>
       )}
     </>
@@ -311,7 +326,7 @@ function NavRow({
             "flex items-center gap-2 px-2.5 py-1.5 rounded-md mx-1.5 mb-0.5 opacity-40 cursor-not-allowed",
             collapsed && "mx-1 px-2 justify-center",
           )}
-          title={collapsed ? `${label} (mission required)` : "Select a mission to enable"}
+          title={collapsed ? `${label}${badge ? ` (${badge})` : ""}` : badge ? `Coming in ${badge}` : "Select a mission to enable"}
         >
           {content}
         </div>
@@ -325,14 +340,15 @@ function NavRow({
         to={to as never}
         params={missionId ? ({ missionId } as never) : undefined}
         className={cn(
-          "flex items-center gap-2 px-2.5 py-1.5 rounded-md mx-1.5 mb-0.5 transition-colors hover:bg-white/[0.05]",
+          "flex items-center gap-2 px-2.5 py-1.5 rounded-md mx-1.5 mb-0.5 transition-colors hover:bg-white/[0.05] relative",
           collapsed && "mx-1 px-2 justify-center",
         )}
         style={
           active
             ? {
-                background: "rgba(196,154,43,0.10)",
-                border: "0.5px solid rgba(196,154,43,0.2)",
+                background: "rgba(201,168,76,0.10)",
+                borderLeft: "2px solid #c9a84c",
+                paddingLeft: "calc(0.625rem - 2px)",
               }
             : undefined
         }
