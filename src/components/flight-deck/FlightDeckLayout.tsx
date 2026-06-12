@@ -49,7 +49,7 @@ export function FlightDeckLayout({
   activeMissionId,
   activeMissionName,
   activeMissionStatus,
-  onPrefillIris,
+  onPrefillIris: _onPrefillIris,
 }: Props) {
   const [active, setActive] = useState<ActiveCtx>({
     questionId: null,
@@ -62,7 +62,6 @@ export function FlightDeckLayout({
   return (
     <div className="space-y-6">
       <FlightDeckHeader name={activeMissionName} status={activeMissionStatus} />
-      <HorizontalAssistsBar missionId={activeMissionId} onPrefillIris={onPrefillIris} />
 
       <div className="grid grid-cols-1 lg:grid-cols-[35%_1fr] gap-6">
         <FlightStatusPanel memberId={memberId} />
