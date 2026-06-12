@@ -204,7 +204,15 @@ function AdminMissionDetail() {
           <OverviewTab form={form} update={update} />
         )}
         {tab === "team" && <TeamTab missionId={missionId} />}
-        {tab === "journey" && <JourneyTab missionId={missionId} />}
+        {tab === "journey" && (
+          <JourneyTab
+            missionId={missionId}
+            setDirty={setDirty}
+            registerSaver={(fn) => {
+              journeySaverRef.current = fn;
+            }}
+          />
+        )}
         {tab === "compliance" && <ComplianceTab missionId={missionId} />}
         {tab === "reports" && <ReportsTab missionId={missionId} />}
       </div>
