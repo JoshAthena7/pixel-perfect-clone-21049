@@ -62,7 +62,6 @@ export function FlightDeckLayout({
   return (
     <div className="space-y-6">
       <FlightDeckHeader name={activeMissionName} status={activeMissionStatus} />
-      <HorizontalAssistsBar missionId={activeMissionId} onPrefillIris={onPrefillIris} />
 
       <div className="grid grid-cols-1 lg:grid-cols-[35%_1fr] gap-6">
         <FlightStatusPanel memberId={memberId} />
@@ -87,6 +86,9 @@ export function FlightDeckLayout({
     </div>
   );
 }
+
+// Suppress unused-warning for the prefill prop now that the in-page assists row is removed.
+void onPrefillIris_unused;
 
 /* ---------------- Header ---------------- */
 function FlightDeckHeader({ name, status }: { name: string; status: string | null }) {
