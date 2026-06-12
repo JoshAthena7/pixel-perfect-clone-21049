@@ -72,9 +72,14 @@ export const getSnapshot = createServerFn({ method: "POST" })
   .inputValidator((d) => MissionIdInput.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase } = context as Ctx;
-    const [missionRes, teamRes] = await Promise.all([
+    const [missionRes, teamRes, conflictsRes] = await Promise.all([
       supabase.from("missions").select("*").eq("id", data.missionId).maybeSingle(),
       supabase.from("mission_team_members").select("member_id,mission_role").eq("mission_id", data.missionId),
+      supabase
+        .from("conflict_flags")
+        .select("id", { count: "exact", head: true })
+        .eq("mission_id", data.missionId)
+        .eq("resolved", false),
     ]);
     const mission = missionRes.data;
     const team = teamRes.data ?? [];
@@ -99,8 +104,10 @@ export const getSnapshot = createServerFn({ method: "POST" })
       writers,
       smes,
       daysToDeadline: daysBetween(mission?.submission_deadline),
+      openConflicts: conflictsRes.count ?? 0,
     };
   });
+
 
 // ============================================================
 // 3. Why This Mission Matters
