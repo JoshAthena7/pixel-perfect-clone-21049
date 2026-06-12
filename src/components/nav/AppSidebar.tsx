@@ -382,6 +382,13 @@ function MissionContextBlock({
       className="px-3 pt-3 pb-2.5"
       style={{ borderBottom: "0.5px solid rgba(255,255,255,0.06)" }}
     >
+      <Link
+        to="/home"
+        className="inline-flex items-center gap-1 mb-2 hover:text-white"
+        style={{ color: "rgba(255,255,255,0.45)", fontSize: 10 }}
+      >
+        ← Missions
+      </Link>
       <div
         className="truncate"
         style={{ color: "white", fontSize: 11, fontWeight: 500 }}
@@ -389,6 +396,7 @@ function MissionContextBlock({
       >
         {meta.name}
       </div>
+
       {days !== null && (
         <div className="mt-1" style={{ color: dayColor, fontSize: 10 }}>
           {days < 0 ? `${Math.abs(days)}d past` : `${days} days`} · {phase}
