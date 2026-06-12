@@ -218,7 +218,37 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
 
   return (
     <div className="space-y-6">
-
+      {/* Header: current phase + submission countdown */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          {currentPhase ? (
+            <>
+              <div style={{ color: "white", fontSize: 16, fontWeight: 500 }}>{currentPhase.name}</div>
+              <div className="text-muted-foreground" style={{ fontSize: 12 }}>
+                {currentPhase.start_date ? format(new Date(currentPhase.start_date), "MMM d") : "—"}
+                {" – "}
+                {currentPhase.end_date ? format(new Date(currentPhase.end_date), "MMM d") : "—"}
+              </div>
+            </>
+          ) : (
+            <div className="text-muted-foreground" style={{ fontSize: 13 }}>No active phase</div>
+          )}
+        </div>
+        {deadline && (
+          <div className="rounded-lg border p-3 text-right">
+            <div style={{ color: "white", fontSize: 13, fontWeight: 500 }}>
+              Submission: {format(new Date(deadline), "MMMM d, yyyy")}
+            </div>
+            <div className={countdownColor} style={{ fontSize: 22, fontWeight: 600, lineHeight: 1.1, marginTop: 2 }}>
+              {daysToDeadline == null
+                ? "—"
+                : daysToDeadline < 0
+                  ? `${Math.abs(daysToDeadline)} days past`
+                  : `${daysToDeadline} days remaining`}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Timeline */}
       {timelineBounds && (
