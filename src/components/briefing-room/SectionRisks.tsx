@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getRisks, resolveBriefingConflict } from "@/lib/briefing-room.functions";
+import { toast } from "sonner";
+import { getRisks } from "@/lib/briefing-room.functions";
+import { resolveConflict } from "@/lib/iris-conflicts.functions";
 import { SectionCard } from "./SectionCard";
 
 type RiskItem = {
