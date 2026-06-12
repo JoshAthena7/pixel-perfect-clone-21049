@@ -75,6 +75,9 @@ function withTimeout<T>(promise: PromiseLike<T>, ms: number, fallback: T): Promi
 
 // Paths a non-admin is allowed to view outside the V1 shell.
 const NON_ADMIN_ALLOWED_PREFIXES = [
+  "/home",
+  "/welcome",
+  "/onboarding",
   "/my-work",
   "/portfolio",
   "/flight-deck",
@@ -99,7 +102,14 @@ function AuthenticatedLayout() {
   const isWizard =
     path === "/olympus/missions/new" ||
     /^\/olympus\/missions\/[^/]+\/wizard$/.test(path);
-  if (isWizard) {
+  // Hide nav chrome (sidebar + global bar) for onboarding/welcome surfaces.
+  const isChromeless =
+    isWizard ||
+    path === "/welcome" ||
+    path === "/onboarding" ||
+    path.startsWith("/welcome/") ||
+    path.startsWith("/onboarding/");
+  if (isChromeless) {
     return <Outlet />;
   }
 
@@ -123,15 +133,10 @@ function AuthenticatedLayout() {
     try {
       localStorage.setItem("atlas_role_home", homeInfo.home);
     } catch { /* ignore */ }
-    const landingPaths = new Set(["/", "/home", "/atrium", "/olympus", "/v1", "/flight-deck"]);
+    // /home is the canonical post-login landing; render MissionsListPage there.
+    const landingPaths = new Set(["/", "/atrium", "/olympus", "/v1", "/flight-deck"]);
     if (landingPaths.has(path)) {
-      const target =
-        homeInfo.home === "my-work"
-          ? "/my-work"
-          : homeInfo.home === "portfolio"
-            ? "/portfolio"
-            : "/olympus/missions";
-      navigate({ to: target as never, replace: true });
+      navigate({ to: "/home", replace: true });
       return;
     }
     if (path.startsWith("/portfolio") && homeInfo.home !== "portfolio" && !isAdmin) {
