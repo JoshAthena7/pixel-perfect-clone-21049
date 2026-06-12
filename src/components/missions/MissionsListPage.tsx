@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { MissionCardMenu } from "@/components/missions/MissionCardMenu";
 import { MissionEditPanel } from "@/components/missions/MissionEditPanel";
+import { useIsAdmin } from "@/hooks/useAccess";
 
 
 import { IntelligenceCompletenessChip } from "@/components/mission-command/IntelligenceCompletenessChip";
