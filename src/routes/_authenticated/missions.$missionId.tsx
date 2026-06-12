@@ -1,21 +1,6 @@
 import { createFileRoute, Outlet, Link, notFound } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/_authenticated/missions/$missionId")({
-  loader: async ({ params }) => {
-    const { data, error } = await supabase
-      .from("missions")
-      .select("id")
-      .eq("id", params.missionId)
-      .maybeSingle();
-    if (error || !data) throw notFound();
-    return { missionId: params.missionId };
-  },
-  component: () => <Outlet />,
-  errorComponent: MissionError,
-  notFoundComponent: MissionNotFound,
-});
-
 function MissionNotFound() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
@@ -38,10 +23,20 @@ function MissionNotFound() {
   );
 }
 
-function MissionError({ error }: { error: Error }) {
-  // Treat any load failure as not-found for a clean UX.
-  if (typeof window !== "undefined") {
-    console.error("[mission route]", error);
-  }
-  return <MissionNotFound />;
-}
+export const Route = createFileRoute("/_authenticated/missions/$missionId")({
+  loader: async ({ params }) => {
+    const { data, error } = await supabase
+      .from("missions")
+      .select("id")
+      .eq("id", params.missionId)
+      .maybeSingle();
+    if (error || !data) throw notFound();
+    return { missionId: params.missionId };
+  },
+  component: () => <Outlet />,
+  errorComponent: ({ error }) => {
+    if (typeof window !== "undefined") console.error("[mission route]", error);
+    return <MissionNotFound />;
+  },
+  notFoundComponent: () => <MissionNotFound />,
+});
