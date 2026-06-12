@@ -133,28 +133,38 @@ export function SectionNorthStar({ missionId, isAdmin }: { missionId: string; is
           )}
         </div>
 
-        {/* Things to Avoid */}
+        {/* Things to Avoid — red-tinted warning card */}
         <div
           className="rounded-lg p-4"
           style={{
-            background: "rgba(224,74,74,0.04)",
-            border: "0.5px solid rgba(224,74,74,0.15)",
+            background: "rgba(224,74,74,0.08)",
+            border: "1px solid rgba(224,74,74,0.3)",
+            borderLeft: "3px solid #E04A4A",
           }}
         >
-          <div className="mb-2" style={{ color: "rgba(240,128,128,0.7)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Things We Must Avoid
+          <div
+            className="mb-2"
+            style={{
+              color: "#f08080",
+              fontSize: 10,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              fontWeight: 600,
+            }}
+          >
+            ⚠ Things We Must Avoid
           </div>
           {data.thingsToAvoid.length === 0 ? (
-            <MutedItalic>Win strategy risks will be set in Olympus.</MutedItalic>
+            <MutedItalic>Will be added in Olympus</MutedItalic>
           ) : (
             <ul className="space-y-1.5">
               {data.thingsToAvoid.map((t: any, i: number) => (
                 <li key={i} className="flex items-start gap-2">
                   <span
                     className="mt-1.5 shrink-0 rounded-full"
-                    style={{ width: 4, height: 4, background: "#f08080" }}
+                    style={{ width: 6, height: 6, background: "#E04A4A" }}
                   />
-                  <span style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, lineHeight: 1.5 }}>{asText(t)}</span>
+                  <span style={{ color: "rgba(255,220,220,0.85)", fontSize: 11, lineHeight: 1.5 }}>{asText(t)}</span>
                 </li>
               ))}
             </ul>
