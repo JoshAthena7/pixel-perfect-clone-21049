@@ -149,14 +149,6 @@ export function GlobalCommandBar({ email, isAdmin: _isAdmin = false }: { email?:
         <div className="ml-auto flex items-center gap-2 shrink-0">
           <button
             type="button"
-            onClick={() => window.dispatchEvent(new CustomEvent("atlas:iris:prefill", { detail: "Score my draft" }))}
-            className="hidden sm:inline-flex items-center gap-1 rounded-md text-[11px] font-medium px-2.5 py-1 transition-colors"
-            style={{ background: "rgba(196,154,43,0.15)", border: "1px solid rgba(196,154,43,0.4)", color: "#C49A2B" }}
-          >
-            Score Draft
-          </button>
-          <button
-            type="button"
             onClick={() => window.dispatchEvent(new CustomEvent("atlas:iris:open"))}
             className="hidden sm:inline-flex items-center gap-1 rounded-md text-[11px] font-medium px-2.5 py-1 transition-colors"
             style={{ background: "rgba(127,119,221,0.12)", border: "1px solid rgba(127,119,221,0.3)", color: "rgba(200,195,255,0.9)" }}
