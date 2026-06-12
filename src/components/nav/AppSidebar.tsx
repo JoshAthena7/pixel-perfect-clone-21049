@@ -134,11 +134,11 @@ export function AppSidebar({
         <div className="flex-1 overflow-y-auto py-2">
           {inAdmin ? (
             <Section label="ADMIN" items={ADMIN_AREA_ITEMS} missionId={undefined} pathname={pathname} collapsed={collapsed} />
-          ) : (
-            <Section label="MISSION" items={MISSION_ITEMS} missionId={missionId} pathname={pathname} collapsed={collapsed} disabled={!inMission} />
-          )}
-
+          ) : !inMission ? (
+            <Section label="MISSION" items={MISSION_ITEMS} missionId={missionId} pathname={pathname} collapsed={collapsed} disabled={true} />
+          ) : null}
         </div>
+
 
 
         {/* Footer */}
