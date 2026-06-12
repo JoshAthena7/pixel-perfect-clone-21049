@@ -563,28 +563,8 @@ function MyWorkColumn({
         </div>
       </div>
 
-      {/* My Status */}
-      <div className="rounded-lg p-3 border border-border bg-background/40">
-        <div className="text-[10px] text-muted-foreground">My status</div>
-        <textarea
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          rows={2}
-          placeholder="What changed? What do you need? What is the current state of this response?"
-          className="mt-2 w-full bg-black/30 border border-white/10 rounded-md p-2 text-[12px] text-white"
-          style={{ fontFamily: "inherit", resize: "vertical" }}
-        />
-        <div className="mt-2 flex justify-end">
-          <button
-            onClick={postUpdate}
-            disabled={!status.trim() || posting}
-            className="px-3 py-1.5 rounded text-[12px] font-medium disabled:opacity-50"
-            style={{ background: "#C49A2B", color: "#0a1420", cursor: status.trim() && !posting ? "pointer" : "not-allowed" }}
-          >
-            {posting ? "Posting..." : "Post Update"}
-          </button>
-        </div>
-      </div>
+      {/* Status updates live in Thread (question-level) and Mission Pulse (mission-level).
+          See the assist bar at the bottom of the page. */}
 
       {/* Confidence */}
       <div className="rounded-lg p-3 border border-border bg-background/40">
