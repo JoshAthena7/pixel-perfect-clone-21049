@@ -51,7 +51,7 @@ export const listMissionPulse = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     const { data: rows, error } = await supabase
-      .from("team_updates" as never)
+      .from("team_updates" as any)
       .select("*")
       .eq("mission_id", data.missionId)
       .order("created_at", { ascending: false })
@@ -125,7 +125,7 @@ export const submitMissionSignal = createServerFn({ method: "POST" })
     const updateType = SIGNAL_TO_TYPE[data.signalType];
 
     const { data: inserted, error } = await supabaseAdmin
-      .from("team_updates" as never)
+      .from("team_updates" as any)
       .insert({
         mission_id: data.missionId,
         question_id: null,
@@ -141,7 +141,7 @@ export const submitMissionSignal = createServerFn({ method: "POST" })
 
     // Log to signal_patterns
     const topic = extractTopic(data.body);
-    await supabaseAdmin.from("signal_patterns" as never).insert({
+    await supabaseAdmin.from("signal_patterns" as any).insert({
       mission_id: data.missionId,
       signal_type: updateType,
       signal_topic: topic,
@@ -228,7 +228,7 @@ export const submitMissionSignal = createServerFn({ method: "POST" })
     }
 
     if (publicResponse) {
-      await supabaseAdmin.from("team_updates" as never).insert({
+      await supabaseAdmin.from("team_updates" as any).insert({
         mission_id: data.missionId,
         sender_id: null,
         sender_name: "IRIS",
@@ -241,7 +241,7 @@ export const submitMissionSignal = createServerFn({ method: "POST" })
     // Pattern detection
     const since48 = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const { data: recent } = await supabaseAdmin
-      .from("team_updates" as never)
+      .from("team_updates" as any)
       .select("update_type, body")
       .eq("mission_id", data.missionId)
       .gte("created_at", since48);
@@ -267,7 +267,7 @@ export const submitMissionSignal = createServerFn({ method: "POST" })
       // Throttle: only one emerging_risk in the last 6h
       const since6 = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
       const { data: existing } = await supabaseAdmin
-        .from("team_updates" as never)
+        .from("team_updates" as any)
         .select("id")
         .eq("mission_id", data.missionId)
         .eq("update_type", "emerging_risk")
@@ -281,7 +281,7 @@ export const submitMissionSignal = createServerFn({ method: "POST" })
           : Math.max(typeCounts.get("risk_alert") ?? 0, typeCounts.get("blocker") ?? 0);
         const bodyText = `Emerging pattern detected: ${count} team members have flagged concerns about ${topic} in the past 48 hours. Leadership review recommended.`;
 
-        await supabaseAdmin.from("team_updates" as never).insert({
+        await supabaseAdmin.from("team_updates" as any).insert({
           mission_id: data.missionId,
           sender_id: null,
           sender_name: "IRIS",
