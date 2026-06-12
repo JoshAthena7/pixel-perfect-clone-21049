@@ -1,20 +1,256 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { WizardShell, WizardStepHeading } from "@/components/mission-wizard/WizardShell";
-import { Step1Basics } from "@/components/mission-wizard/Step1Basics";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { IrisMark } from "@/components/iris/IrisMark";
+import { logAuditEvent } from "@/lib/mission-audit";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/olympus/missions/new")({
-  component: NewMissionWizard,
+  component: MeetIrisIntro,
 });
 
-function NewMissionWizard() {
+function MeetIrisIntro() {
   const navigate = useNavigate();
+  const [firstName, setFirstName] = useState<string>("");
+  const [name, setName] = useState("");
+  const [client, setClient] = useState("");
+  const [agency, setAgency] = useState("");
+  const [deadline, setDeadline] = useState("");
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data.user?.id;
+      if (!uid) return;
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", uid)
+        .maybeSingle();
+      const fn = (prof?.display_name || data.user?.email || "").split(/[\s@]/)[0];
+      setFirstName(fn ? fn.charAt(0).toUpperCase() + fn.slice(1) : "");
+    })();
+  }, []);
+
+  const valid =
+    name.trim() && client.trim() && agency.trim() && deadline.trim();
+
+  async function handleSubmit() {
+    const err: Record<string, boolean> = {};
+    if (!name.trim()) err.name = true;
+    if (!client.trim()) err.client = true;
+    if (!agency.trim()) err.agency = true;
+    if (!deadline.trim()) err.deadline = true;
+    if (Object.keys(err).length) {
+      setErrors(err);
+      return;
+    }
+    setSaving(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      const { data, error } = await supabase
+        .from("missions")
+        .insert({
+          name: name.trim(),
+          client_name: client.trim(),
+          agency_name: agency.trim(),
+          submission_deadline: new Date(deadline).toISOString(),
+          status: "setup",
+          created_by: uid,
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      void logAuditEvent(data.id, "Mission created", uid, null, {
+        mission_name: name.trim(),
+        client_name: client.trim(),
+      });
+      navigate({
+        to: "/olympus/missions/$missionId/wizard",
+        params: { missionId: data.id },
+        search: { step: 1 },
+      });
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to brief IRIS. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const greet = firstName ? `Hi ${firstName}.` : "Hi there.";
+
   return (
-    <WizardShell step={1} onBack={() => navigate({ to: "/olympus/missions" })}>
-      <WizardStepHeading
-        title="Name this mission."
-        subtitle="Give it a name and the basics. Next, you'll upload the RFP and IRIS will take it from there."
+    <div
+      className="min-h-screen flex items-center justify-center px-4 py-10"
+      style={{ background: "#0A1628", color: "white" }}
+    >
+      <div className="w-full max-w-[640px]">
+        {/* IRIS header */}
+        <div className="flex items-start gap-4 mb-8">
+          <div
+            className="shrink-0 rounded-full flex items-center justify-center"
+            style={{
+              width: 56,
+              height: 56,
+              background: "rgba(127,119,221,0.12)",
+              border: "1px solid rgba(167,139,250,0.35)",
+              boxShadow: "0 0 24px rgba(167,139,250,0.25)",
+            }}
+          >
+            <IrisMark size={32} glow />
+          </div>
+          <div className="pt-1">
+            <div
+              className="text-[11px] uppercase tracking-[0.22em]"
+              style={{ color: "#C49A2B" }}
+            >
+              IRIS · Mission Intelligence Officer
+            </div>
+            <div className="text-white/55 text-[13px] mt-0.5">Online</div>
+          </div>
+        </div>
+
+        {/* Card */}
+        <div
+          className="rounded-2xl p-8 sm:p-10"
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            boxShadow:
+              "0 30px 80px -30px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)",
+          }}
+        >
+          <h1 className="text-white text-[26px] sm:text-[30px] font-medium leading-snug">
+            {greet} I'm <span style={{ color: "#C49A2B" }}>IRIS</span>.
+          </h1>
+          <p className="mt-3 text-[15px] leading-relaxed text-white/65">
+            Let's set up a new mission together. Tell me the basics and I'll
+            take it from there — read the RFP, map the agency, and build the
+            intelligence picture before you write a word.
+          </p>
+
+          <div className="mt-8 space-y-5">
+            <ChatField
+              label="What should we call this mission?"
+              placeholder="e.g. NJ CSOC RFP"
+              value={name}
+              onChange={(v) => {
+                setName(v);
+                if (errors.name) setErrors((e) => ({ ...e, name: false }));
+              }}
+              error={errors.name}
+            />
+            <ChatField
+              label="Who's the client?"
+              placeholder="Full name of the procuring entity"
+              value={client}
+              onChange={(v) => {
+                setClient(v);
+                if (errors.client) setErrors((e) => ({ ...e, client: false }));
+              }}
+              error={errors.client}
+            />
+            <ChatField
+              label="Which state and agency?"
+              placeholder="e.g. Texas — HHSC"
+              value={agency}
+              onChange={(v) => {
+                setAgency(v);
+                if (errors.agency) setErrors((e) => ({ ...e, agency: false }));
+              }}
+              error={errors.agency}
+            />
+            <ChatField
+              label="When is it due?"
+              placeholder=""
+              type="datetime-local"
+              value={deadline}
+              onChange={(v) => {
+                setDeadline(v);
+                if (errors.deadline)
+                  setErrors((e) => ({ ...e, deadline: false }));
+              }}
+              error={errors.deadline}
+            />
+          </div>
+
+          <div className="mt-10 flex justify-end">
+            <button
+              onClick={handleSubmit}
+              disabled={saving}
+              className={cn(
+                "inline-flex items-center gap-2 rounded-lg px-6 py-3 text-[14px] font-medium transition-all",
+                saving && "opacity-50 cursor-not-allowed",
+                !valid && !saving && "opacity-70",
+              )}
+              style={{
+                background: "#C49A2B",
+                color: "#0A1628",
+                boxShadow: valid
+                  ? "0 8px 24px -8px rgba(196,154,43,0.55)"
+                  : "none",
+              }}
+            >
+              {saving ? "Briefing IRIS…" : "Brief IRIS →"}
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => navigate({ to: "/olympus/missions" })}
+            className="text-[12px] text-white/40 hover:text-white/70 transition-colors"
+          >
+            ← Back to missions
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ChatField({
+  label,
+  placeholder,
+  value,
+  onChange,
+  error,
+  type = "text",
+}: {
+  label: string;
+  placeholder?: string;
+  value: string;
+  onChange: (v: string) => void;
+  error?: boolean;
+  type?: string;
+}) {
+  return (
+    <div>
+      <label className="block text-[13px] text-white/70 mb-2">{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-lg px-4 py-3 text-[15px] text-white placeholder:text-white/30 transition-colors focus:outline-none"
+        style={{
+          background: "rgba(255,255,255,0.04)",
+          border: `1px solid ${error ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.1)"}`,
+        }}
+        onFocus={(e) => {
+          if (!error)
+            e.currentTarget.style.borderColor = "rgba(196,154,43,0.55)";
+        }}
+        onBlur={(e) => {
+          if (!error)
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+        }}
       />
-      <Step1Basics />
-    </WizardShell>
+    </div>
   );
 }
