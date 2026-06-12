@@ -354,9 +354,7 @@ function MissionContextBlock({
         className="px-3 py-3 text-center"
         style={{ borderBottom: "0.5px solid rgba(255,255,255,0.06)" }}
       >
-        <div className="mx-auto" style={{ color: "#C49A2B", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-          ATLAS
-        </div>
+        <img src={atlasWordmark.url} alt="ATLAS" draggable={false} className="mx-auto" style={{ height: 16, width: "auto", objectFit: "contain" }} />
         <div className="mt-1" style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>
           Select a mission
         </div>
