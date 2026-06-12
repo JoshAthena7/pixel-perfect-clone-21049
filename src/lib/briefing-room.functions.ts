@@ -346,7 +346,7 @@ export const getRisks = createServerFn({ method: "POST" })
   .inputValidator((d) => MissionIdInput.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase } = context as Ctx;
-    const [risksRes, qRiskRes, feedRes, sosRes] = await Promise.all([
+    const [risksRes, qRiskRes, sosRes] = await Promise.all([
       supabase
         .from("mission_risks")
         .select("id,title,description,severity,status,created_at")
@@ -358,13 +358,6 @@ export const getRisks = createServerFn({ method: "POST" })
         .select("id,question_number,question_text,health_status")
         .eq("mission_id", data.missionId)
         .in("health_status", ["at_risk", "watch"]),
-      supabase
-        .from("intelligence_feed_items")
-        .select("id,headline,iris_assessment,recommended_action,published_at")
-        .eq("mission_id", data.missionId)
-        .not("recommended_action", "is", null)
-        .order("published_at", { ascending: false })
-        .limit(5),
       supabase
         .from("reality_updates")
         .select("id,details,user_name,created_at")
@@ -392,15 +385,6 @@ export const getRisks = createServerFn({ method: "POST" })
         title: `Q${q.question_number ?? ""} — ${String(q.question_text ?? "").slice(0, 100)}`,
         description: q.health_status === "at_risk" ? "Flagged at risk." : "On watch list.",
         createdAt: new Date().toISOString(),
-      });
-    }
-    for (const f of feedRes.data ?? []) {
-      items.push({
-        id: `f-${f.id}`,
-        level: "WATCH",
-        title: f.headline,
-        description: f.recommended_action ?? f.iris_assessment ?? "",
-        createdAt: f.published_at ?? new Date().toISOString(),
       });
     }
     for (const s of sosRes.data ?? []) {
