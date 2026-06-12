@@ -38,6 +38,8 @@ const CAT_LABEL: Record<string, string> = Object.fromEntries(CATEGORIES.map((c) 
 export function OracleFeed({ missionId, isAdmin }: { missionId: string; isAdmin: boolean }) {
   const [category, setCategory] = useState("all");
   const [search, setSearch] = useState("");
+  const qc = useQueryClient();
+  const sweepFn = useServerFn(runIrisSweep);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["oracle-ro-feed", missionId],
@@ -53,6 +55,16 @@ export function OracleFeed({ missionId, isAdmin }: { missionId: string; isAdmin:
       return (data ?? []) as FeedItem[];
     },
     staleTime: 60_000,
+  });
+
+  const sweep = useMutation({
+    mutationFn: () => sweepFn({ data: { missionId } }),
+    onSuccess: (r) => {
+      toast.success(`IRIS sweep complete — ${r.inserted} items added`);
+      if (r.failures.length) toast.warning(`${r.failures.length} category(ies) had issues`);
+      qc.invalidateQueries({ queryKey: ["oracle-ro-feed", missionId] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "IRIS sweep failed"),
   });
 
   const filtered = useMemo(() => {
