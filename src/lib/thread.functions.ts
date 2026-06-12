@@ -135,6 +135,18 @@ export const postThreadMessage = createServerFn({ method: "POST" })
       console.error("[thread] IRIS analysis failed", e);
     }
 
+    // Cross-reference search — fire-and-forget. Only triggers for question-like
+    // messages so IRIS does not flood the Thread on every status update.
+    const looksLikeQuestion =
+      data.body.includes("?") || (data.body.trim().length > 0 && data.body.trim().length < 150);
+    if (looksLikeQuestion) {
+      void runCrossReferenceSearch({
+        missionId: data.missionId,
+        questionId: data.questionId,
+        body: data.body,
+      }).catch((e: unknown) => console.error("[thread] cross-reference search failed", e));
+    }
+
     return { ok: true, message: inserted };
   });
 
@@ -476,4 +488,184 @@ async function runIrisAnalysis(
       /* non-fatal */
     }
   }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Cross-reference search: when a writer asks a question, look for relevant
+// decisions made in other sections' Threads and surface the best one.
+// ──────────────────────────────────────────────────────────────────────────
+
+const STOP_WORDS = new Set([
+  "i","the","a","an","is","are","we","our","this","that","what","does","has",
+  "have","do","can","should","would","will","be","been","of","to","in","on",
+  "for","with","and","or","but","if","at","by","from","as","it","its","my",
+  "me","you","your","they","them","their","not","no","so","than","then","here",
+  "there","just","also","about","into","over","any","some","when","where",
+  "how","why","who","which","was","were","could","might","may","much",
+]);
+
+function extractKeywords(body: string): string[] {
+  const tokens = body
+    .toLowerCase()
+    .replace(/[^a-z0-9\s']/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length > 3 && !STOP_WORDS.has(w));
+  const unique = Array.from(new Set(tokens));
+  return unique.sort((a, b) => b.length - a.length).slice(0, 5);
+}
+
+async function runCrossReferenceSearch(args: {
+  missionId: string;
+  questionId: string;
+  body: string;
+}): Promise<void> {
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey) return;
+
+  const keywords = extractKeywords(args.body);
+  if (keywords.length === 0) return;
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  // Duplicate-guard prefetch: existing cross_reference messages on this Thread.
+  const { data: existingXrefs } = await supabaseAdmin
+    .from("thread_messages")
+    .select("metadata")
+    .eq("question_id", args.questionId)
+    .eq("message_type", "cross_reference");
+  const alreadyReferencedQuestionIds = new Set<string>();
+  for (const r of (existingXrefs ?? []) as Array<{ metadata: Record<string, unknown> | null }>) {
+    const oqid = r.metadata?.["original_question_id"];
+    if (typeof oqid === "string") alreadyReferencedQuestionIds.add(oqid);
+  }
+
+  // Search for decision messages from OTHER questions, last 30 days, matching any keyword.
+  const sinceISO = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const orFilter = keywords.map((k) => `message_body.ilike.%${k}%`).join(",");
+  const { data: candidates } = await supabaseAdmin
+    .from("thread_messages")
+    .select("id, question_id, message_body, created_at")
+    .eq("mission_id", args.missionId)
+    .neq("question_id", args.questionId)
+    .eq("message_type", "decision")
+    .gte("created_at", sinceISO)
+    .or(orFilter)
+    .order("created_at", { ascending: false })
+    .limit(3);
+
+  const candRows = ((candidates ?? []) as Array<{ id: string; question_id: string; message_body: string; created_at: string }>)
+    .filter((c) => !alreadyReferencedQuestionIds.has(c.question_id));
+  if (candRows.length === 0) return;
+
+  const otherQIds = Array.from(new Set(candRows.map((c) => c.question_id)));
+  const [{ data: otherQs }, { data: currentQ }] = await Promise.all([
+    supabaseAdmin
+      .from("mission_questions")
+      .select("id, question_number, mission_sections(name)")
+      .in("id", otherQIds),
+    supabaseAdmin
+      .from("mission_questions")
+      .select("question_text, mission_sections(name)")
+      .eq("id", args.questionId)
+      .maybeSingle(),
+  ]);
+  type QRow = { id: string; question_number: string | null; mission_sections: { name: string | null } | null };
+  const qById = new Map<string, QRow>(((otherQs ?? []) as unknown as QRow[]).map((q) => [q.id, q]));
+  const sectionLabelFor = (qid: string): string => {
+    const q = qById.get(qid);
+    return q?.mission_sections?.name ?? (q?.question_number ? `Q${q.question_number}` : "Section");
+  };
+  const currentSection = (currentQ as { mission_sections?: { name?: string | null } | null } | null)?.mission_sections?.name ?? "";
+  const currentQuestionText = (currentQ as { question_text?: string | null } | null)?.question_text ?? "";
+
+  const system =
+    "You are IRIS. A proposal writer asked a question in their Thread. You found decisions from other sections' Threads that may be relevant. " +
+    "Determine if any of these decisions are genuinely relevant to the writer's question — not superficially similar, but actually useful. " +
+    "If yes return the single most relevant one. If none are genuinely relevant return null. " +
+    "Be conservative — only surface something if it would materially help the writer.";
+  const userMsg = JSON.stringify({
+    writer_question: args.body.slice(0, 800),
+    current_question_context: {
+      question_text: currentQuestionText.slice(0, 400),
+      section_name: currentSection,
+    },
+    candidate_decisions: candRows.map((c) => ({
+      question_id: c.question_id,
+      section_name: sectionLabelFor(c.question_id),
+      message_body: c.message_body.slice(0, 600),
+      created_at: c.created_at,
+    })),
+    instructions:
+      'Return JSON: { "should_surface": boolean, "best_match": { "question_id": "uuid", "section_name": "string", "decision_text": "string", "why_relevant": "string max 100 chars" } | null }',
+  });
+
+  let parsed: {
+    should_surface?: boolean;
+    best_match?: {
+      question_id?: string;
+      section_name?: string;
+      decision_text?: string;
+      why_relevant?: string;
+    } | null;
+  } = {};
+  try {
+    const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        response_format: { type: "json_object" },
+        max_tokens: 400,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: userMsg },
+        ],
+      }),
+    });
+    if (!r.ok) return;
+    const j = (await r.json()) as { choices?: Array<{ message?: { content?: string } }> };
+    const content = j.choices?.[0]?.message?.content ?? "";
+    const match = content.match(/\{[\s\S]*\}/);
+    if (!match) return;
+    parsed = JSON.parse(match[0]);
+  } catch (e) {
+    console.error("[cross-reference] AI failure", e);
+    return;
+  }
+
+  if (!parsed.should_surface || !parsed.best_match) return;
+  const bm = parsed.best_match;
+  if (!bm.question_id || !otherQIds.includes(bm.question_id)) return;
+  if (alreadyReferencedQuestionIds.has(bm.question_id)) return;
+
+  const sourceRow = candRows.find((c) => c.question_id === bm.question_id);
+  if (!sourceRow) return;
+
+  const sectionName = bm.section_name || sectionLabelFor(bm.question_id);
+  const decisionText = (bm.decision_text || sourceRow.message_body).slice(0, 1200);
+  const whyRelevant = (bm.why_relevant ?? "").slice(0, 120);
+  const formattedDate = new Date(sourceRow.created_at).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+  const body = `The team made a relevant decision in ${sectionName}'s Thread on ${formattedDate}. Here is what was decided:`;
+
+  const metadata = {
+    original_question_id: bm.question_id,
+    section_name: sectionName,
+    decision_text: decisionText,
+    why_relevant: whyRelevant,
+    original_created_at: sourceRow.created_at,
+  };
+
+  const { error } = await supabaseAdmin.from("thread_messages").insert({
+    mission_id: args.missionId,
+    question_id: args.questionId,
+    sender_id: null,
+    sender_name: "IRIS",
+    message_type: "cross_reference",
+    message_body: body,
+    metadata,
+  });
+  if (error) console.error("[cross-reference] insert failed:", error.message);
 }

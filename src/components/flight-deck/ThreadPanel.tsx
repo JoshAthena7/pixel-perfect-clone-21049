@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { formatDistanceToNow } from "date-fns";
-import { X, Eye, Send, Flag, Star } from "lucide-react";
+import { X, Eye, Send, Flag, Star, ArrowLeftRight } from "lucide-react";
 import {
   listThreadMessages,
   postThreadMessage,
@@ -30,7 +30,7 @@ type ThreadMsg = {
   sender_id: string | null;
   sender_name: string;
   message_body: string;
-  message_type: "regular" | "decision" | "iris" | "system" | "iris_decision" | "win_theme_alignment";
+  message_type: "regular" | "decision" | "iris" | "system" | "iris_decision" | "win_theme_alignment" | "cross_reference";
   iris_action: "recommend_expert" | "surface_intelligence" | "flag_conflict" | null;
   metadata: Record<string, unknown> | null;
   created_at: string;
@@ -270,7 +270,17 @@ export function ThreadPanel({
                   No discussion yet. Be the first to work the question.
                 </div>
               ) : (
-                rest.map((m) => <MessageRow key={m.id} msg={m} onFindExpert={onRequestFindSME} />)
+                rest.map((m) =>
+                  m.message_type === "cross_reference" ? (
+                    <CrossReferenceRow
+                      key={m.id}
+                      msg={m}
+                      onNote={(body) => sendMutation.mutate({ body, messageType: "regular" })}
+                    />
+                  ) : (
+                    <MessageRow key={m.id} msg={m} onFindExpert={onRequestFindSME} />
+                  ),
+                )
               )}
             </>
           );
@@ -587,6 +597,160 @@ function WinThemeAlignmentRow({ msg }: { msg: ThreadMsg }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function CrossReferenceRow({ msg, onNote }: { msg: ThreadMsg; onNote: (body: string) => void }) {
+  const meta = (msg.metadata ?? {}) as {
+    original_question_id?: string;
+    section_name?: string;
+    decision_text?: string;
+    why_relevant?: string;
+    original_created_at?: string;
+  };
+  const sectionName = meta.section_name ?? "Section";
+  const decisionText = meta.decision_text ?? "";
+  const whyRelevant = meta.why_relevant ?? "";
+  const ago = meta.original_created_at
+    ? formatDistanceToNow(new Date(meta.original_created_at), { addSuffix: true })
+    : "";
+  const BLUE = "#7BA7D4";
+
+  const openSource = () => {
+    if (!meta.original_question_id) return;
+    try {
+      window.dispatchEvent(
+        new CustomEvent("atlas:thread:open", { detail: { questionId: meta.original_question_id } }),
+      );
+      // eslint-disable-next-line no-console
+      console.log("[atlas:thread:open] dispatched", { questionId: meta.original_question_id });
+    } catch (e) {
+      console.error("[atlas:thread:open] dispatch failed", e);
+    }
+  };
+
+  const noteThis = () => {
+    if (!decisionText) return;
+    onNote(`Referenced from ${sectionName}: ${decisionText}`);
+  };
+
+  return (
+    <div
+      style={{
+        background: "rgba(74,111,165,0.07)",
+        border: "0.5px solid rgba(74,111,165,0.25)",
+        borderRadius: 8,
+        padding: "10px 12px",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+        <div
+          aria-hidden
+          style={{
+            width: 18,
+            height: 18,
+            borderRadius: "50%",
+            background: "rgba(74,111,165,0.18)",
+            color: BLUE,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ArrowLeftRight size={10} />
+        </div>
+        <span style={{ color: "rgba(200,220,245,0.95)", fontSize: 11 }}>IRIS</span>
+        <span
+          style={{
+            fontSize: 9,
+            fontWeight: 600,
+            color: BLUE,
+            background: "rgba(74,111,165,0.18)",
+            border: `1px solid ${BLUE}55`,
+            padding: "1px 6px",
+            borderRadius: 4,
+            letterSpacing: "0.06em",
+            marginLeft: 2,
+          }}
+        >
+          CROSS-REFERENCE
+        </span>
+      </div>
+      <div style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, lineHeight: 1.6 }}>
+        {msg.message_body}
+      </div>
+
+      <div
+        style={{
+          marginTop: 8,
+          background: "rgba(255,255,255,0.04)",
+          border: "0.5px solid rgba(255,255,255,0.08)",
+          borderRadius: 6,
+          padding: "8px 10px",
+        }}
+      >
+        <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 9, marginBottom: 4 }}>
+          {sectionName}
+          {ago ? ` · ${ago}` : ""}
+        </div>
+        <div
+          style={{
+            color: "white",
+            fontSize: 11,
+            fontWeight: 500,
+            lineHeight: 1.6,
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {decisionText}
+        </div>
+        {whyRelevant ? (
+          <div
+            style={{
+              marginTop: 4,
+              color: "rgba(255,255,255,0.55)",
+              fontSize: 10,
+              fontStyle: "italic",
+            }}
+          >
+            {whyRelevant}
+          </div>
+        ) : null}
+      </div>
+
+      <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
+        <button
+          onClick={noteThis}
+          style={{
+            background: "transparent",
+            border: `1px solid ${BLUE}66`,
+            color: "rgba(200,220,245,0.95)",
+            fontSize: 10,
+            padding: "3px 9px",
+            borderRadius: 6,
+            cursor: "pointer",
+          }}
+        >
+          Note this in my Thread
+        </button>
+        {meta.original_question_id ? (
+          <button
+            onClick={openSource}
+            style={{
+              background: `${BLUE}22`,
+              border: `1px solid ${BLUE}66`,
+              color: "rgba(200,220,245,0.95)",
+              fontSize: 10,
+              padding: "3px 9px",
+              borderRadius: 6,
+              cursor: "pointer",
+            }}
+          >
+            Go to {sectionName} Thread →
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
