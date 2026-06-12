@@ -41,7 +41,6 @@ function BriefingPage() {
         health={header.health}
         missionId={missionId}
         isAdmin={!!isAdmin}
-        title="Mission Briefing"
       />
 
       <div className="space-y-4">
