@@ -260,7 +260,9 @@ function ActivityPage() {
                   onToggle={() => toggleExpand(item.id)}
                   isAdmin={!!isAdmin}
                   onResolve={() => handleResolve(item.id.replace(/^sos:/, ""))}
+                  onResolveConflict={() => handleResolveConflict(item)}
                 />
+
               ))}
             </ol>
           )}
