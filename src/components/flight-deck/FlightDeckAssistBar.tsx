@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MessageSquare, PhoneCall, Target, Activity, AlertTriangle } from "lucide-react";
 import { SOSDialog } from "@/components/iris/AssistsDialogs";
-import { DailyPulseModal } from "@/components/iris/DailyPulseModal";
+import { MissionPulsePanel } from "./MissionPulsePanel";
 import { ScoreMeDialog } from "./ScoreMeDialog";
 import { PhoneAFriendDialog } from "./PhoneAFriendDialog";
 import { ThreadPanel } from "./ThreadPanel";
