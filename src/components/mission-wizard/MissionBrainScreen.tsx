@@ -63,8 +63,6 @@ export function MissionBrainScreen({
         { key: "snapshot", label: "Mission snapshot — name, client, state, deadline", weight: 6,
           status: status(!!m.name && !!m.client_name && !!m.state && !!m.submission_deadline,
                           !!m.name || !!m.client_name) },
-          status: status(!!m.name && !!m.client_name && !!m.state && !!m.submission_deadline,
-                          !!m.name || !!m.client_name) },
         { key: "rfp", label: "RFP read and parsed into sections", weight: 12,
           status: status((sections.count ?? 0) > 0) },
         { key: "questions", label: "Questions extracted", weight: 12,
