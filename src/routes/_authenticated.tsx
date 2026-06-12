@@ -99,7 +99,14 @@ function AuthenticatedLayout() {
   const isWizard =
     path === "/olympus/missions/new" ||
     /^\/olympus\/missions\/[^/]+\/wizard$/.test(path);
-  if (isWizard) {
+  // Hide nav chrome (sidebar + global bar) for onboarding/welcome surfaces.
+  const isChromeless =
+    isWizard ||
+    path === "/welcome" ||
+    path === "/onboarding" ||
+    path.startsWith("/welcome/") ||
+    path.startsWith("/onboarding/");
+  if (isChromeless) {
     return <Outlet />;
   }
 
