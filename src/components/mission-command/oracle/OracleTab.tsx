@@ -207,12 +207,12 @@ export function OracleTab({ missionId }: { missionId: string }) {
         )}
         {visited.has("stakeholders") && (
           <div style={{ display: active === "stakeholders" ? "block" : "none" }}>
-            <OracleStakeholders missionId={missionId} isAdmin={isAdmin} />
+            <OracleStakeholders missionId={missionId} isAdmin={isAdmin} ctx={ctx} />
           </div>
         )}
         {visited.has("competitors") && (
           <div style={{ display: active === "competitors" ? "block" : "none" }}>
-            <OracleCompetitors missionId={missionId} isAdmin={isAdmin} />
+            <OracleCompetitors missionId={missionId} isAdmin={isAdmin} ctx={ctx} />
           </div>
         )}
         {visited.has("research") && (
