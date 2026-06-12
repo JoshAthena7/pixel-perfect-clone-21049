@@ -130,15 +130,10 @@ function AuthenticatedLayout() {
     try {
       localStorage.setItem("atlas_role_home", homeInfo.home);
     } catch { /* ignore */ }
-    const landingPaths = new Set(["/", "/home", "/atrium", "/olympus", "/v1", "/flight-deck"]);
+    // /home is the canonical post-login landing; render MissionsListPage there.
+    const landingPaths = new Set(["/", "/atrium", "/olympus", "/v1", "/flight-deck"]);
     if (landingPaths.has(path)) {
-      const target =
-        homeInfo.home === "my-work"
-          ? "/my-work"
-          : homeInfo.home === "portfolio"
-            ? "/portfolio"
-            : "/olympus/missions";
-      navigate({ to: target as never, replace: true });
+      navigate({ to: "/home", replace: true });
       return;
     }
     if (path.startsWith("/portfolio") && homeInfo.home !== "portfolio" && !isAdmin) {
