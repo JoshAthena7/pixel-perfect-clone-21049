@@ -2,12 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { formatDistanceToNow } from "date-fns";
-import { X, Eye, Send, Flag } from "lucide-react";
+import { X, Eye, Send, Flag, Star } from "lucide-react";
 import {
   listThreadMessages,
   postThreadMessage,
   listMissionTeam,
   maybePostInactivityCheckIn,
+  maybePostWinThemeAlignment,
 } from "@/lib/thread.functions";
 
 type Props = {
@@ -29,7 +30,7 @@ type ThreadMsg = {
   sender_id: string | null;
   sender_name: string;
   message_body: string;
-  message_type: "regular" | "decision" | "iris" | "system";
+  message_type: "regular" | "decision" | "iris" | "system" | "iris_decision" | "win_theme_alignment";
   iris_action: "recommend_expert" | "surface_intelligence" | "flag_conflict" | null;
   metadata: Record<string, unknown> | null;
   created_at: string;
@@ -61,6 +62,7 @@ export function ThreadPanel({
   const post = useServerFn(postThreadMessage);
   const team = useServerFn(listMissionTeam);
   const inactivityCheck = useServerFn(maybePostInactivityCheckIn);
+  const winThemeCheck = useServerFn(maybePostWinThemeAlignment);
 
   const enabled = open && !!questionId && !!missionId;
 
@@ -87,6 +89,12 @@ export function ThreadPanel({
         if (r.posted) qc.invalidateQueries({ queryKey: ["thread", questionId] });
       })
       .catch(() => {});
+    // Win Theme Alignment one-time orientation post (idempotent server-side).
+    winThemeCheck({ data: { missionId: missionId!, questionId: questionId! } })
+      .then((r) => {
+        if (r.posted) qc.invalidateQueries({ queryKey: ["thread", questionId] });
+      })
+      .catch((e) => console.error("[ThreadPanel] win theme alignment check failed", e));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, questionId]);
 
