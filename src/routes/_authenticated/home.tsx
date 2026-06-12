@@ -54,8 +54,3 @@ function HomeRoute() {
 export const Route = createFileRoute("/_authenticated/home")({
   component: HomeRoute,
 });
-
-
-export const Route = createFileRoute("/_authenticated/home")({
-  component: HomeRoute,
-});
