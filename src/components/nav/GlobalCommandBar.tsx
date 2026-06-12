@@ -92,7 +92,7 @@ export function GlobalCommandBar({ email, isAdmin: _isAdmin = false }: { email?:
           aria-label="ATLAS"
         >
           <img
-            src={atlasWordmark}
+            src={atlasWordmark.url}
             alt="ATLAS"
             draggable={false}
             style={{ height: 18, width: "auto", objectFit: "contain" }}
