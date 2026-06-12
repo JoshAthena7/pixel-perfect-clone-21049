@@ -339,7 +339,7 @@ export async function createFeedItem(
         Date.now() - new Date(generatedAt).getTime() > 7 * 86_400_000;
       if (isStale) {
         const { triggerEvaluatorPictureRebuild } = await import("@/lib/iris-evaluator.server");
-        triggerEvaluatorPictureRebuild(missionId).catch((e) =>
+        triggerEvaluatorPictureRebuild(missionId).catch((e: unknown) =>
           console.error("[monitor] triggerEvaluatorPictureRebuild failed", e),
         );
       }
