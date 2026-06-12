@@ -168,11 +168,42 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
     if (!phases?.length) return null;
     const starts = phases.map((p) => p.start_date ? new Date(p.start_date).getTime() : Infinity);
     const ends = phases.map((p) => p.end_date ? new Date(p.end_date).getTime() : -Infinity);
-    const min = Math.min(...starts);
-    const max = Math.max(...ends);
+    let min = Math.min(...starts);
+    let max = Math.max(...ends);
+    if (deadline) {
+      const d = new Date(deadline).getTime();
+      if (isFinite(d) && d > max) max = d;
+    }
     if (!isFinite(min) || !isFinite(max) || max <= min) return null;
     return { min, max };
+  }, [phases, deadline]);
+
+  const currentPhase = useMemo(() => {
+    if (!phases?.length) return null;
+    const now = Date.now();
+    return (
+      phases.find((p) => {
+        if (p.kind !== "phase") return false;
+        const s = p.start_date ? new Date(p.start_date).getTime() : null;
+        const e = p.end_date ? new Date(p.end_date).getTime() : null;
+        return s != null && e != null && now >= s && now <= e;
+      }) ?? null
+    );
   }, [phases]);
+
+  const daysToDeadline = useMemo(() => {
+    if (!deadline) return null;
+    return Math.ceil((new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  }, [deadline]);
+
+  const countdownColor =
+    daysToDeadline == null
+      ? "text-muted-foreground"
+      : daysToDeadline < 14
+        ? "text-red-500"
+        : daysToDeadline < 30
+          ? "text-amber-500"
+          : "text-[#C49A2B]";
 
   if (isError) return <ErrorState message="Couldn't load the journey." onRetry={() => refetch()} />;
   if (isLoading) return <SkeletonRows rows={5} height="h-20" />;
