@@ -140,8 +140,8 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
   const moduleAnswers = answers[currentModule] || [];
 
   const greetedScript = useMemo(() => {
-    if (currentModule === 1) {
-      return script.replace("Welcome to ATLAS.", `Welcome to ATLAS, ${firstName}.`);
+    if (currentModule === 1 && firstName && firstName !== "operator") {
+      return script.replace("Hello.", `Hello, ${firstName}.`);
     }
     return script;
   }, [currentModule, script, firstName]);
