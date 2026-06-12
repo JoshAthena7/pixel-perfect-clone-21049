@@ -58,12 +58,24 @@ export function OracleTab({ missionId }: { missionId: string }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("missions")
-        .select("id,name,intelligence_graph_completeness")
+        .select("id,name,intelligence_graph_completeness,client_name,agency_name,agency_code,program_type,submission_deadline")
         .eq("id", missionId)
         .single();
       return data;
     },
   });
+
+  const ctx = {
+    client: mission?.client_name ?? null,
+    agency: mission?.agency_name ?? null,
+    agencyCode: mission?.agency_code ?? null,
+    program: mission?.program_type ?? null,
+  };
+  const clientLabel = ctx.client ?? ctx.agency ?? mission?.name ?? "this mission";
+  const programLabel = ctx.program ?? null;
+  const subtitle = programLabel
+    ? `IRIS's intelligence layer for ${clientLabel} — ${programLabel}`
+    : `IRIS's intelligence layer for ${clientLabel}`;
 
   const { data: counts } = useQuery({
     queryKey: ["oracle-counts", missionId],
