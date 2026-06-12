@@ -607,7 +607,7 @@ function TeamTab({ missionId }: { missionId: string }) {
                     )}
                   </div>
                   <select
-                    value={MISSION_ROLES.includes(row.mission_role as any) ? (row.mission_role as string) : "Analyst"}
+                    value={normalizeRole(row.mission_role)}
                     onChange={(e) => updateRole(row.id, e.target.value)}
                     style={{
                       background: "rgba(201,168,76,0.08)",
