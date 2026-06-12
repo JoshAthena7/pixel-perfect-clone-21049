@@ -30,7 +30,7 @@ type ThreadMsg = {
   sender_id: string | null;
   sender_name: string;
   message_body: string;
-  message_type: "regular" | "decision" | "iris" | "system" | "iris_decision" | "win_theme_alignment";
+  message_type: "regular" | "decision" | "iris" | "system" | "iris_decision" | "win_theme_alignment" | "cross_reference";
   iris_action: "recommend_expert" | "surface_intelligence" | "flag_conflict" | null;
   metadata: Record<string, unknown> | null;
   created_at: string;
