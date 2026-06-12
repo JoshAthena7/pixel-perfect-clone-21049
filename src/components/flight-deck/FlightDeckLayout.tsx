@@ -83,7 +83,18 @@ export function FlightDeckLayout({
     return qs;
   }, [data?.qs]);
 
-  const effectiveId = selectedId ?? sortedQs[0]?.id ?? null;
+  // Default to first at-risk assignment, else first by section/question order.
+  const defaultId = useMemo(() => {
+    const atRisk = sortedQs.find(
+      (q: any) =>
+        q.health_status === "at_risk" ||
+        q.health_status === "blocked" ||
+        q.health_status === "critical",
+    );
+    return atRisk?.id ?? sortedQs[0]?.id ?? null;
+  }, [sortedQs]);
+
+  const effectiveId = selectedId ?? defaultId;
   const activeQ = effectiveId ? sortedQs.find((q: any) => q.id === effectiveId) : null;
   const activeAsg = (data?.asgs ?? []).find((a: any) => a.question_id === effectiveId);
   const idx = sortedQs.findIndex((q: any) => q.id === effectiveId);
@@ -172,6 +183,21 @@ export function FlightDeckLayout({
         questionText={activeQ?.question_text ?? null}
         dueDate={activeAsg?.due_date ?? activeQ?.due_date ?? null}
         confidence={activeAsg?.writer_confidence ?? null}
+        onHealthChanged={() => {
+          // optimistic local update + cache invalidation
+          if (activeQ) {
+            qc.setQueryData(["fd-assignments", memberId, activeMissionId], (prev: any) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                qs: prev.qs.map((q: any) =>
+                  q.id === activeQ.id ? { ...q, health_status: "at_risk" } : q,
+                ),
+              };
+            });
+          }
+          qc.invalidateQueries({ queryKey: ["fd-assignments"] });
+        }}
       />
     </div>
   );
@@ -488,50 +514,13 @@ function MyWorkColumn({
   writerConfidence: string | null;
   onChanged: () => void;
 }) {
-  const [status, setStatus] = useState("");
-  const [posting, setPosting] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
   const [confidence, setConfidence] = useState<string | null>(writerConfidence);
 
   useEffect(() => setConfidence(writerConfidence), [writerConfidence]);
 
-  async function postUpdate() {
-    if (!status.trim() || !missionId) return;
-    setPosting(true);
-    try {
-      const { data: u } = await supabase.auth.getUser();
-      const { data: prof } = u.user
-        ? await supabase.from("profiles").select("display_name,email").eq("id", u.user.id).maybeSingle()
-        : { data: null };
-      const senderName = prof?.display_name || prof?.email || "Writer";
-
-      await Promise.all([
-        supabase.from("thread_messages").insert({
-          mission_id: missionId,
-          question_id: questionId,
-          sender_id: u.user?.id ?? null,
-          sender_name: senderName,
-          message_body: status.trim(),
-          message_type: "status_update",
-        } as any),
-        supabase.from("team_updates" as any).insert({
-          mission_id: missionId,
-          question_id: questionId,
-          sender_id: u.user?.id ?? null,
-          sender_name: senderName,
-          update_type: "writer_update",
-          body: status.trim(),
-        }),
-      ]);
-      setStatus("");
-      toast.success("Update posted to the team and the thread.");
-    } catch (e) {
-      console.error(e);
-      toast.error("Could not post update");
-    } finally {
-      setPosting(false);
-    }
-  }
+  // Status updates live in Thread (question-level) and Mission Pulse (mission-level).
+  // There is no third "Post Update" surface here on purpose.
 
   async function pickConfidence(c: "low" | "medium" | "high") {
     setConfidence(c); // optimistic
@@ -574,28 +563,8 @@ function MyWorkColumn({
         </div>
       </div>
 
-      {/* My Status */}
-      <div className="rounded-lg p-3 border border-border bg-background/40">
-        <div className="text-[10px] text-muted-foreground">My status</div>
-        <textarea
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          rows={2}
-          placeholder="What changed? What do you need? What is the current state of this response?"
-          className="mt-2 w-full bg-black/30 border border-white/10 rounded-md p-2 text-[12px] text-white"
-          style={{ fontFamily: "inherit", resize: "vertical" }}
-        />
-        <div className="mt-2 flex justify-end">
-          <button
-            onClick={postUpdate}
-            disabled={!status.trim() || posting}
-            className="px-3 py-1.5 rounded text-[12px] font-medium disabled:opacity-50"
-            style={{ background: "#C49A2B", color: "#0a1420", cursor: status.trim() && !posting ? "pointer" : "not-allowed" }}
-          >
-            {posting ? "Posting..." : "Post Update"}
-          </button>
-        </div>
-      </div>
+      {/* Status updates live in Thread (question-level) and Mission Pulse (mission-level).
+          See the assist bar at the bottom of the page. */}
 
       {/* Confidence */}
       <div className="rounded-lg p-3 border border-border bg-background/40">
