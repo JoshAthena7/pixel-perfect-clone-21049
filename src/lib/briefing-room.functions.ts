@@ -355,8 +355,8 @@ export const getRisks = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => MissionIdInput.parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context as Ctx;
-    const [risksRes, qRiskRes, sosRes] = await Promise.all([
+    const { supabase, userId } = context as Ctx & { userId: string };
+    const [risksRes, qRiskRes, sosRes, conflictsRes, isAdminRes, teamRoleRes] = await Promise.all([
       supabase
         .from("mission_risks")
         .select("id,title,description,severity,status,created_at")
@@ -375,14 +375,56 @@ export const getRisks = createServerFn({ method: "POST" })
         .eq("signal_type", "sos")
         .eq("resolved", false)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("conflict_flags")
+        .select("id,conflict_description,detected_from,severity,created_at,question_id_a,question_id_b")
+        .eq("mission_id", data.missionId)
+        .eq("resolved", false)
+        .order("severity", { ascending: true })
+        .order("created_at", { ascending: false }),
+      supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+      supabase
+        .from("mission_team_members")
+        .select("mission_role,member_id")
+        .eq("mission_id", data.missionId),
     ]);
 
-    type Risk = { id: string; level: "HIGH" | "WATCH"; title: string; description: string; createdAt: string };
+    // Determine if user is admin or engagement_lead on this mission.
+    const isAdmin = !!isAdminRes.data;
+    let isEL = false;
+    if (!isAdmin) {
+      const memberIds = (teamRoleRes.data ?? [])
+        .filter((t: any) => t.mission_role === "engagement_lead" || t.mission_role === "lead")
+        .map((t: any) => t.member_id);
+      if (memberIds.length) {
+        const { data: me } = await supabase
+          .from("atlas_team_members")
+          .select("id")
+          .in("id", memberIds)
+          .eq("user_id", userId)
+          .maybeSingle();
+        isEL = !!me;
+      }
+    }
+    const canResolve = isAdmin || isEL;
+
+    type Risk = {
+      id: string;
+      level: "HIGH" | "WATCH";
+      kind: "risk" | "question" | "sos" | "conflict";
+      title: string;
+      description: string;
+      createdAt: string;
+      conflictId?: string;
+      detectedFrom?: string | null;
+      canResolve?: boolean;
+    };
     const items: Risk[] = [];
     for (const r of risksRes.data ?? []) {
       items.push({
         id: r.id,
         level: r.severity === "high" || r.severity === "critical" ? "HIGH" : "WATCH",
+        kind: "risk",
         title: r.title,
         description: r.description ?? "",
         createdAt: r.created_at,
@@ -392,6 +434,7 @@ export const getRisks = createServerFn({ method: "POST" })
       items.push({
         id: `q-${q.id}`,
         level: q.health_status === "at_risk" ? "HIGH" : "WATCH",
+        kind: "question",
         title: `Q${q.question_number ?? ""} — ${String(q.question_text ?? "").slice(0, 100)}`,
         description: q.health_status === "at_risk" ? "Flagged at risk." : "On watch list.",
         createdAt: new Date().toISOString(),
@@ -401,9 +444,25 @@ export const getRisks = createServerFn({ method: "POST" })
       items.push({
         id: `s-${s.id}`,
         level: "HIGH",
+        kind: "sos",
         title: `SOS — ${s.user_name ?? "Team member"}`,
         description: s.details ?? "",
         createdAt: s.created_at,
+      });
+    }
+    for (const c of conflictsRes.data ?? []) {
+      const desc = String(c.conflict_description ?? "");
+      const title = `Conflict: ${desc.length > 80 ? desc.slice(0, 80) + "..." : desc}`;
+      items.push({
+        id: `c-${c.id}`,
+        level: "WATCH",
+        kind: "conflict",
+        title,
+        description: desc,
+        createdAt: c.created_at,
+        conflictId: c.id,
+        detectedFrom: c.detected_from ?? null,
+        canResolve,
       });
     }
 
@@ -411,8 +470,88 @@ export const getRisks = createServerFn({ method: "POST" })
       if (a.level !== b.level) return a.level === "HIGH" ? -1 : 1;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-    return { items };
+    return { items, canResolve };
   });
+
+// Resolve a conflict from the Briefing Room. Admin or engagement_lead only.
+const ResolveConflictInput = z.object({
+  missionId: z.string().uuid(),
+  conflictId: z.string().uuid(),
+});
+
+export const resolveBriefingConflict = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => ResolveConflictInput.parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as Ctx & { userId: string };
+
+    // Authorize: admin or engagement_lead on this mission.
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+    let allowed = !!isAdmin;
+    if (!allowed) {
+      const { data: team } = await supabase
+        .from("mission_team_members")
+        .select("member_id,mission_role")
+        .eq("mission_id", data.missionId)
+        .in("mission_role", ["engagement_lead", "lead"]);
+      const memberIds = (team ?? []).map((t: any) => t.member_id);
+      if (memberIds.length) {
+        const { data: me } = await supabase
+          .from("atlas_team_members")
+          .select("id")
+          .in("id", memberIds)
+          .eq("user_id", userId)
+          .maybeSingle();
+        allowed = !!me;
+      }
+    }
+    if (!allowed) throw new Error("Forbidden");
+
+    // Load conflict to get the two question ids.
+    const { data: conflict, error: cErr } = await supabase
+      .from("conflict_flags")
+      .select("id,question_id_a,question_id_b,resolved")
+      .eq("id", data.conflictId)
+      .eq("mission_id", data.missionId)
+      .maybeSingle();
+    if (cErr || !conflict) throw new Error("Conflict not found");
+    if (conflict.resolved) return { ok: true, alreadyResolved: true };
+
+    // Resolver name.
+    const { data: me } = await supabase
+      .from("atlas_team_members")
+      .select("display_name,full_name,email")
+      .eq("user_id", userId)
+      .maybeSingle();
+    const resolverName = me?.display_name || me?.full_name || me?.email || "an Engagement Lead";
+
+    // Mark resolved.
+    const { error: uErr } = await supabase
+      .from("conflict_flags")
+      .update({ resolved: true, resolved_at: new Date().toISOString() })
+      .eq("id", data.conflictId);
+    if (uErr) throw uErr;
+
+    // Post IRIS message to both affected question threads.
+    const body = `The decision conflict flagged on this section has been marked resolved by ${resolverName}. Proceed with the aligned approach. If you have questions about the resolution contact your Engagement Lead.`;
+    const inserts = [conflict.question_id_a, conflict.question_id_b]
+      .filter(Boolean)
+      .map((qid: string) => ({
+        mission_id: data.missionId,
+        question_id: qid,
+        sender_id: null,
+        sender_name: "IRIS",
+        message_type: "iris",
+        message_body: body,
+      }));
+    if (inserts.length) {
+      await supabase.from("thread_messages").insert(inserts);
+    }
+
+    return { ok: true };
+  });
+
+
 
 // ============================================================
 // 9. Documents
