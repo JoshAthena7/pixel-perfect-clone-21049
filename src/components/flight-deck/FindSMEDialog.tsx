@@ -29,30 +29,33 @@ export function FindSMEDialog({
       const [stakeRes, teamRes] = await Promise.all([
         supabase
           .from("stakeholder_profiles")
-          .select("id,name,role,expertise_areas")
+          .select("id,name,title,organization,public_priorities")
           .eq("mission_id", missionId!)
           .limit(20),
         supabase
           .from("mission_team_members")
-          .select("member_id,mission_role,atlas_team_members(display_name,expertise_areas)")
+          .select("member_id,mission_role,atlas_team_members(first_name,last_name,job_title,skills)")
           .eq("mission_id", missionId!)
           .ilike("mission_role", "%sme%"),
       ]);
       const out: Sme[] = [];
       (stakeRes.data ?? []).forEach((s: any) => {
+        const pri = Array.isArray(s.public_priorities) ? s.public_priorities : [];
         out.push({
           id: s.id,
           name: s.name ?? "Unnamed stakeholder",
-          expertise: Array.isArray(s.expertise_areas) ? s.expertise_areas : [],
+          expertise: pri.map((p: any) => (typeof p === "string" ? p : p?.text ?? "")).filter(Boolean),
           source: "stakeholder",
         });
       });
       (teamRes.data ?? []).forEach((t: any) => {
         const m = t.atlas_team_members ?? {};
+        const name = [m.first_name, m.last_name].filter(Boolean).join(" ").trim() || "Team member";
+        const skills = Array.isArray(m.skills) ? m.skills : [];
         out.push({
           id: t.member_id,
-          name: m.display_name ?? "Team member",
-          expertise: Array.isArray(m.expertise_areas) ? m.expertise_areas : [],
+          name,
+          expertise: skills.map((s: any) => (typeof s === "string" ? s : s?.name ?? "")).filter(Boolean),
           source: "team",
         });
       });
