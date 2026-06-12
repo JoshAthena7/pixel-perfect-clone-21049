@@ -199,7 +199,7 @@ function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolea
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email, isAdmin]);
 
-  const onDesk = path.startsWith("/olympus/flight-deck");
+  const onDesk = pathname.startsWith("/olympus/flight-deck");
   const sidebarWidth = onDesk ? 0 : (isMobile ? 48 : 200);
   const railWidth = 48;
 
