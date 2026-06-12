@@ -402,12 +402,28 @@ function SectionCard({ title, children }: { title: string; children: React.React
 }
 
 const MISSION_ROLES = [
-  "Mission Lead",
-  "Analyst",
-  "Advisor",
+  "Lead Writer",
+  "Section Writer",
   "Reviewer",
-  "Copy Editor",
+  "SME",
+  "Proposal Manager",
+  "Compliance Officer",
+  "Analyst",
+  "Coordinator",
 ] as const;
+
+const LEGACY_ROLE_MAP: Record<string, string> = {
+  engagement_lead: "Proposal Manager",
+  writer: "Section Writer",
+  sme: "SME",
+  reviewer: "Reviewer",
+};
+
+function normalizeRole(r: string | null | undefined): string {
+  if (!r) return "Section Writer";
+  if ((MISSION_ROLES as readonly string[]).includes(r)) return r;
+  return LEGACY_ROLE_MAP[r] ?? "Section Writer";
+}
 
 const AVATAR_COLORS = [
   "#7c5cff", "#c9a84c", "#3b82f6", "#10b981", "#ef4444",
