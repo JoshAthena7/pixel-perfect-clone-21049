@@ -28,7 +28,7 @@ type ButtonSpec = {
   onClick: () => void;
 };
 
-export function FlightDeckAssistBar({ missionId, questionId }: Props) {
+export function FlightDeckAssistBar({ missionId, questionId, questionNumber, questionText }: Props) {
   const [threadOpen, setThreadOpen] = useState(false);
   const [smeOpen, setSmeOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
