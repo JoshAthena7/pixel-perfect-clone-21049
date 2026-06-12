@@ -85,6 +85,26 @@ export function MissionPulsePanel({ open, onOpenChange, missionId, prefill, onPr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, missionId]);
 
+  // Apply prefill when modal opens with one queued
+  useEffect(() => {
+    if (!open || !prefill) return;
+    const valid = (SIGNAL_TYPES as readonly string[]).includes(prefill.signalType)
+      ? (prefill.signalType as SignalType)
+      : "risk_alert";
+    setSignalType(valid);
+    setBody(prefill.body);
+    const t = setTimeout(() => {
+      const ta = document.querySelector<HTMLTextAreaElement>("[data-mission-pulse-textarea]");
+      if (ta) {
+        ta.focus();
+        ta.setSelectionRange(ta.value.length, ta.value.length);
+      }
+    }, 150);
+    onPrefillConsumed?.();
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, prefill]);
+
   async function handleSubmit() {
     if (!missionId || !body.trim() || sending) return;
     setSending(true);
