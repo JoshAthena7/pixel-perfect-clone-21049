@@ -92,7 +92,7 @@ export const getMissionActivity = createServerFn({ method: "POST" })
 
     const filterSince = (q: any) => (since ? q.gte("created_at", since) : q);
 
-    const [threadRes, consultRes, scoreRes, pulseRes, sosRes] = await Promise.all([
+    const [threadRes, consultRes, scoreRes, pulseRes, sosRes, conflictRes] = await Promise.all([
       filterSince(
         supabaseAdmin
           .from("thread_messages")
@@ -135,6 +135,15 @@ export const getMissionActivity = createServerFn({ method: "POST" })
           .order("created_at", { ascending: false })
           .limit(100),
       ),
+      filterSince(
+        supabaseAdmin
+          .from("conflict_flags")
+          .select("id,conflict_description,detected_from,severity,resolved,created_at,question_id_a,question_id_b")
+          .eq("mission_id", data.missionId)
+          .eq("resolved", false)
+          .order("created_at", { ascending: false })
+          .limit(100),
+      ),
     ]);
 
     // Resolve requester display names for expert_consults
@@ -155,6 +164,7 @@ export const getMissionActivity = createServerFn({ method: "POST" })
         profileMap.set(p.id, p.display_name || p.email || "Team member"),
       );
     }
+
 
     const items: ActivityItem[] = [];
 
