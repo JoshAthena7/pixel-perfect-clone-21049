@@ -95,7 +95,6 @@ export function GlobalCommandBar({ email, isAdmin: _isAdmin = false }: { email?:
         </Link>
         <span className="hidden sm:inline-block h-5 w-px shrink-0" style={{ background: "rgba(255,255,255,0.08)" }} />
 
-        <PrimaryNav />
 
         {/* Contextual breadcrumb tail — only when inside a mission */}
         {missionId && (
