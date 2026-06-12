@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { MessageSquare, PhoneCall, Target, Activity, AlertTriangle } from "lucide-react";
-import { UpdateRealityDialog, SOSDialog } from "@/components/iris/AssistsDialogs";
+import { SOSDialog } from "@/components/iris/AssistsDialogs";
 import { DailyPulseModal } from "@/components/iris/DailyPulseModal";
 import { ScoreDraftPanel } from "@/components/my-work/ScoreDraftPanel";
 import { FindSMEDialog } from "./FindSMEDialog";
+import { ThreadPanel } from "./ThreadPanel";
 import { supabase } from "@/integrations/supabase/client";
 
 type Props = {
