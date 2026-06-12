@@ -39,7 +39,7 @@ const CATEGORY_COLOR: Record<string, { bg: string; fg: string; border: string }>
 
 const CAT_LABEL: Record<string, string> = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.label]));
 
-export function OracleFeed({ missionId, isAdmin }: { missionId: string; isAdmin: boolean }) {
+export function OracleFeed({ missionId, isAdmin, highlightId }: { missionId: string; isAdmin: boolean; highlightId?: string | null }) {
   const [category, setCategory] = useState("all");
   const [search, setSearch] = useState("");
   const qc = useQueryClient();
