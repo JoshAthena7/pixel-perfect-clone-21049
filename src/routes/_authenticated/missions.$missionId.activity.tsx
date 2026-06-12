@@ -129,6 +129,30 @@ function ActivityPage() {
     }
   }
 
+  async function handleResolveConflict(item: ActivityItem) {
+    if (!item.conflict_id) return;
+    const cid = item.conflict_id;
+    // Optimistic remove
+    setHiddenConflicts((s) => new Set(s).add(cid));
+    try {
+      const result = await resolveConflictFn({
+        data: { missionId, conflictId: cid },
+      });
+      if (!result?.success) throw new Error(result?.error ?? "Resolve failed");
+      toast.success("Conflict marked resolved");
+      refetch();
+    } catch (e: any) {
+      setHiddenConflicts((s) => {
+        const n = new Set(s);
+        n.delete(cid);
+        return n;
+      });
+      toast.error("Could not mark resolved. Try again.");
+      console.error("[mission-activity] resolveConflict failed", e);
+    }
+  }
+
+
   return (
     <div className="mx-auto max-w-[1400px] px-4 sm:px-6 py-6" style={{ color: "white" }}>
       {/* Header */}
