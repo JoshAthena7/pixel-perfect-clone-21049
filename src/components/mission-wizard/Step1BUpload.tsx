@@ -257,40 +257,106 @@ export function Step1BUpload({
     }
   }
 
+  const PHASE_STEP: Record<typeof phase, number> = {
+    upload: 2,
+    analyzing: 3,
+    results: 4,
+    memory: 5,
+    intel: 6,
+    team: 7,
+    brain: 8,
+    insights: 9,
+    launch: 10,
+  };
+  const PHASE_ORDER: Array<typeof phase> = [
+    "upload",
+    "analyzing",
+    "results",
+    "memory",
+    "intel",
+    "team",
+    "brain",
+    "insights",
+    "launch",
+  ];
+  const goBack = () => {
+    const idx = PHASE_ORDER.indexOf(phase);
+    if (idx > 0) setPhase(PHASE_ORDER[idx - 1]);
+    else navigate({ to: "/olympus/missions" });
+  };
+
+  const chrome = <MissionWizardChrome step={PHASE_STEP[phase]} onBack={goBack} />;
+
   if (phase === "analyzing") {
-    return <MissionAnalysisAnimation onComplete={() => setPhase("results")} />;
+    return (
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <MissionAnalysisAnimation onComplete={() => setPhase("results")} />
+      </div>
+    );
   }
   if (phase === "results") {
-    return <MissionAnalysisResults missionId={missionId} onContinue={() => setPhase("memory")} />;
+    return (
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <MissionAnalysisResults missionId={missionId} onContinue={() => setPhase("memory")} />
+      </div>
+    );
   }
   if (phase === "memory") {
-    return <MissionMemoryChat missionId={missionId} onContinue={() => setPhase("intel")} />;
+    return (
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <MissionMemoryChat missionId={missionId} onContinue={() => setPhase("intel")} />
+      </div>
+    );
   }
   if (phase === "intel") {
-    return <MissionIntelDropScreen missionId={missionId} onContinue={() => setPhase("team")} />;
+    return (
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <MissionIntelDropScreen missionId={missionId} onContinue={() => setPhase("team")} />
+      </div>
+    );
   }
   if (phase === "team") {
-    return <MissionTeamAssignScreen missionId={missionId} onContinue={() => setPhase("brain")} />;
+    return (
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <MissionTeamAssignScreen missionId={missionId} onContinue={() => setPhase("brain")} />
+      </div>
+    );
   }
   if (phase === "brain") {
     return (
-      <MissionBrainScreen
-        missionId={missionId}
-        onContinue={() => setPhase("insights")}
-        onJumpToPhase={(p) => setPhase(p as typeof phase)}
-      />
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <MissionBrainScreen
+          missionId={missionId}
+          onContinue={() => setPhase("insights")}
+          onJumpToPhase={(p) => setPhase(p as typeof phase)}
+        />
+      </div>
     );
   }
   if (phase === "insights") {
-    return <AthenaInsightsScreen missionId={missionId} onContinue={() => setPhase("launch")} />;
+    return (
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <AthenaInsightsScreen missionId={missionId} onContinue={() => setPhase("launch")} />
+      </div>
+    );
   }
   if (phase === "launch") {
     return (
-      <MissionLaunchScreen
-        missionId={missionId}
-        onLaunched={onAdvance}
-        onJumpToPhase={(p) => setPhase(p as typeof phase)}
-      />
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <MissionLaunchScreen
+          missionId={missionId}
+          onLaunched={onAdvance}
+          onJumpToPhase={(p) => setPhase(p as typeof phase)}
+        />
+      </div>
     );
   }
 
