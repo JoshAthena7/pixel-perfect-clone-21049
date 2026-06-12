@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { IrisMark } from "@/components/iris/IrisMark";
 import { MissionAnalysisAnimation } from "@/components/mission-wizard/MissionAnalysisAnimation";
 import { MissionAnalysisResults } from "@/components/mission-wizard/MissionAnalysisResults";
+import { MissionMemoryChat } from "@/components/mission-wizard/MissionMemoryChat";
 import { cn } from "@/lib/utils";
 
 const BUCKET = "atlas-rfp-documents";
@@ -89,7 +90,7 @@ export function Step1BUpload({
   const [rows, setRows] = useState<Row[]>([]);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [phase, setPhase] = useState<"upload" | "analyzing" | "results">("upload");
+  const [phase, setPhase] = useState<"upload" | "analyzing" | "results" | "memory">("upload");
 
   useEffect(() => {
     (async () => {
@@ -254,7 +255,10 @@ export function Step1BUpload({
     return <MissionAnalysisAnimation onComplete={() => setPhase("results")} />;
   }
   if (phase === "results") {
-    return <MissionAnalysisResults missionId={missionId} onContinue={onAdvance} />;
+    return <MissionAnalysisResults missionId={missionId} onContinue={() => setPhase("memory")} />;
+  }
+  if (phase === "memory") {
+    return <MissionMemoryChat missionId={missionId} onContinue={onAdvance} />;
   }
 
   return (
