@@ -15,11 +15,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import {
   ChevronDown, Eye, CheckSquare, Star, Activity, Compass,
-  ArrowLeft, Sparkles, ExternalLink, X as XIcon, Search,
+  ArrowLeft, Sparkles, ExternalLink, X as XIcon, Search, GitBranch,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { IrisIntelligenceBrief } from "@/components/iris/IrisIntelligenceBrief";
 import { EvaluatorPicturePanel } from "@/components/flight-deck/EvaluatorPicturePanel";
+import { LineOfSightBlock } from "@/components/flight-deck/LineOfSightBlock";
 import { cn } from "@/lib/utils";
 
 const GOLD = "#C9A55C";
@@ -85,7 +86,7 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
       const raw = typeof window !== "undefined" ? localStorage.getItem(storageKey) : null;
       if (raw) return JSON.parse(raw);
     } catch {}
-    return { athena: true, iris: true, evaluator: true, reqs: true, themes: true, live: true };
+    return { athena: true, iris: true, lineofsight: true, evaluator: true, reqs: true, themes: true, live: true };
   });
 
   useEffect(() => {
@@ -148,6 +149,48 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
           </div>
         )}
       </Section>
+
+      {props.missionId && props.questionId && (
+        <Section
+          id="lineofsight"
+          open={open.lineofsight}
+          onToggle={() => toggle("lineofsight")}
+          header={
+            <>
+              <GitBranch className="h-3.5 w-3.5" style={{ color: IRIS_PURPLE }} />
+              <span className="text-xs font-medium text-foreground">Line of Sight</span>
+              <span
+                className="ml-auto text-[9px] uppercase tracking-wider italic"
+                style={{ color: "rgba(255,255,255,0.45)" }}
+              >
+                Decisions · Intelligence · Alignment
+              </span>
+            </>
+          }
+        >
+          <LineOfSightBlock
+            missionId={props.missionId}
+            questionId={props.questionId}
+            onOpenConnectedThread={(qid) => {
+              window.dispatchEvent(
+                new CustomEvent("atlas:thread:open", { detail: { questionId: qid } }),
+              );
+            }}
+            onOpenOracleItem={(feedId) => {
+              window.dispatchEvent(
+                new CustomEvent("atlas:oracle:open", { detail: { feedItemId: feedId } }),
+              );
+            }}
+            onFlagInPulse={(desc) => {
+              window.dispatchEvent(
+                new CustomEvent("atlas:pulse:prefill", {
+                  detail: { type: "risk_alert", body: desc },
+                }),
+              );
+            }}
+          />
+        </Section>
+      )}
 
       <Section
         id="evaluator"
