@@ -7524,6 +7524,30 @@ export type Database = {
           },
         ]
       }
+      question_views: {
+        Row: {
+          id: string
+          mission_id: string
+          question_id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          mission_id: string
+          question_id: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          mission_id?: string
+          question_id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: []
+      }
       questions: {
         Row: {
           admin_notes: string | null
