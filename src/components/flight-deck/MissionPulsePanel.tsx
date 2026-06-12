@@ -253,6 +253,7 @@ export function MissionPulsePanel({ open, onOpenChange, missionId, prefill, onPr
                 })}
               </div>
               <textarea
+                data-mission-pulse-textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 placeholder="What does the mission need to know?"
