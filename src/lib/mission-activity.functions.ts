@@ -517,7 +517,7 @@ export const getActivitySynthesis = createServerFn({ method: "POST" })
               },
               {
                 role: "user",
-                content: `Activity facts for ${facts.mission_name} in the last ${facts.window}:\n${JSON.stringify(facts, null, 2)}`,
+                content: `Activity facts for ${facts.mission_name} in the last ${facts.window}:\n${JSON.stringify(facts, null, 2)}\n\nUnresolved conflicts detected by IRIS: ${facts.unresolved_conflicts}. Most recent: ${facts.most_recent_conflict}.`,
               },
             ],
           }),
