@@ -74,6 +74,8 @@ function ActivityPage() {
   const activityFn = useServerFn(getMissionActivity);
   const synthFn = useServerFn(getActivitySynthesis);
   const resolveFn = useServerFn(resolveSos);
+  const resolveConflictFn = useServerFn(resolveConflict);
+  const [hiddenConflicts, setHiddenConflicts] = useState<Set<string>>(new Set());
 
   const {
     data,
@@ -92,8 +94,11 @@ function ActivityPage() {
   });
 
   const filtered = useMemo<ActivityItem[]>(() => {
-    return (data?.items ?? []).filter((i) => enabled.has(i.stream));
-  }, [data, enabled]);
+    return (data?.items ?? [])
+      .filter((i) => enabled.has(i.stream))
+      .filter((i) => !(i.stream === "conflict" && i.conflict_id && hiddenConflicts.has(i.conflict_id)));
+  }, [data, enabled, hiddenConflicts]);
+
 
   function toggleStream(s: ActivityStream) {
     setEnabled((prev) => {
