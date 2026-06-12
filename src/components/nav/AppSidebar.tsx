@@ -107,8 +107,9 @@ export function AppSidebar({
       )}
 
       <aside
-        className="fixed left-0 z-[58] flex flex-col"
+        className="fixed z-[58] flex flex-col"
         style={{
+          left: 48,
           top: 48,
           bottom: 0,
           width,
@@ -117,6 +118,7 @@ export function AppSidebar({
           transition: "width 150ms ease",
         }}
       >
+
         {/* Mobile close button when overlay */}
         {isMobile && overlayOpen && (
           <button
