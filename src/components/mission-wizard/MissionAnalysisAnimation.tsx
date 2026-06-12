@@ -63,7 +63,7 @@ export function MissionAnalysisAnimation({
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{ background: "#0A1628", color: "white" }}
+      style={{ background: "#080c14", color: "white" }}
     >
       <style>{`
         @keyframes mission-task-in {
@@ -94,10 +94,10 @@ export function MissionAnalysisAnimation({
           style={{
             width: `${overall}%`,
             background:
-              "linear-gradient(90deg, rgba(196,154,43,0.4) 0%, #C49A2B 50%, rgba(196,154,43,0.4) 100%)",
+              "linear-gradient(90deg, rgba(201,168,76,0.4) 0%, #c9a84c 50%, rgba(201,168,76,0.4) 100%)",
             backgroundSize: "200% 100%",
             animation: "mission-bar-shimmer 2.2s linear infinite",
-            boxShadow: "0 0 12px rgba(196,154,43,0.6)",
+            boxShadow: "0 0 12px rgba(201,168,76,0.6)",
           }}
         />
       </div>
@@ -129,7 +129,7 @@ export function MissionAnalysisAnimation({
             <div className="pt-2 flex-1">
               <div
                 className="text-[11px] uppercase tracking-[0.22em]"
-                style={{ color: "#C49A2B" }}
+                style={{ color: "#c9a84c" }}
               >
                 IRIS · Analyzing your mission
               </div>
@@ -194,10 +194,10 @@ export function MissionAnalysisAnimation({
                   key={task}
                   className="rounded-lg overflow-hidden"
                   style={{
-                    background: "rgba(196,154,43,0.06)",
-                    border: "1px solid rgba(196,154,43,0.35)",
+                    background: "rgba(201,168,76,0.06)",
+                    border: "1px solid rgba(201,168,76,0.35)",
                     animation: "mission-task-in 0.35s ease-out",
-                    boxShadow: "0 0 24px -8px rgba(196,154,43,0.35)",
+                    boxShadow: "0 0 24px -8px rgba(201,168,76,0.35)",
                   }}
                 >
                   <div className="flex items-center gap-3 px-4 py-3">
@@ -205,13 +205,13 @@ export function MissionAnalysisAnimation({
                       <span
                         className="absolute h-2.5 w-2.5 rounded-full"
                         style={{
-                          background: "#C49A2B",
+                          background: "#c9a84c",
                           animation: "mission-dot-pulse 1.2s ease-in-out infinite",
                         }}
                       />
                       <Loader2
                         className="h-5 w-5 animate-spin"
-                        style={{ color: "rgba(196,154,43,0.6)" }}
+                        style={{ color: "rgba(201,168,76,0.6)" }}
                         strokeWidth={1.4}
                       />
                     </div>
@@ -227,14 +227,14 @@ export function MissionAnalysisAnimation({
                   </div>
                   <div
                     className="h-[2px] w-full"
-                    style={{ background: "rgba(196,154,43,0.15)" }}
+                    style={{ background: "rgba(201,168,76,0.15)" }}
                   >
                     <div
                       className="h-full transition-[width] duration-100"
                       style={{
                         width: `${pulse}%`,
-                        background: "#C49A2B",
-                        boxShadow: "0 0 8px rgba(196,154,43,0.7)",
+                        background: "#c9a84c",
+                        boxShadow: "0 0 8px rgba(201,168,76,0.7)",
                       }}
                     />
                   </div>

@@ -141,12 +141,12 @@ export function MissionTeamAssignScreen({
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#0A1628", color: "#E8EEF7" }}>
+    <div className="min-h-screen flex flex-col" style={{ background: "#080c14", color: "#E8EEF7" }}>
       {/* Header */}
       <div className="flex items-start gap-3 px-6 pt-6 pb-4 border-b border-white/5">
         <IrisMark size={36} />
         <div className="flex-1">
-          <div className="text-[12px] uppercase tracking-[0.14em]" style={{ color: "#C49A2B" }}>IRIS</div>
+          <div className="text-[12px] uppercase tracking-[0.14em]" style={{ color: "#c9a84c" }}>IRIS</div>
           <div className="text-[15px] text-white/90 mt-1 max-w-[680px] leading-relaxed">
             {mode === "choose"
               ? "Let's get the right people on this. Upload your assignment spreadsheet and I'll map it — or build the team manually."
@@ -156,7 +156,7 @@ export function MissionTeamAssignScreen({
         <button
           onClick={onContinue}
           className="text-[13px] px-4 py-2 rounded-md transition hover:opacity-90"
-          style={{ background: assignments.length ? "#C49A2B" : "transparent", color: assignments.length ? "#0D1B3E" : "#9AA7BD", border: assignments.length ? "none" : "1px solid rgba(255,255,255,0.18)" }}
+          style={{ background: assignments.length ? "#c9a84c" : "transparent", color: assignments.length ? "#0D1B3E" : "#9AA7BD", border: assignments.length ? "none" : "1px solid rgba(255,255,255,0.18)" }}
         >
           {assignments.length ? "Continue →" : "Skip →"}
         </button>
@@ -169,11 +169,11 @@ export function MissionTeamAssignScreen({
             <button
               onClick={() => fileRef.current?.click()}
               className="text-left rounded-2xl p-6 transition hover:opacity-95"
-              style={{ background: "#0F1E36", border: "1px solid rgba(196,154,43,0.30)" }}
+              style={{ background: "#0F1E36", border: "1px solid rgba(201,168,76,0.30)" }}
             >
               <div className="flex items-center gap-2 mb-3">
-                <Upload className="h-4 w-4" style={{ color: "#C49A2B" }} />
-                <div className="text-[12px] uppercase tracking-wider" style={{ color: "#C49A2B" }}>Path 1</div>
+                <Upload className="h-4 w-4" style={{ color: "#c9a84c" }} />
+                <div className="text-[12px] uppercase tracking-wider" style={{ color: "#c9a84c" }}>Path 1</div>
               </div>
               <div className="text-[17px] font-medium text-white mb-1.5">Upload assignment spreadsheet</div>
               <div className="text-[13px] text-white/55 leading-relaxed">
@@ -215,7 +215,7 @@ export function MissionTeamAssignScreen({
           {/* Staff list */}
           <div className="rounded-xl flex flex-col min-h-0" style={{ background: "#0F1E36", border: "1px solid rgba(255,255,255,0.08)" }}>
             <div className="p-3 border-b border-white/5">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "#0A1628", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "#080c14", border: "1px solid rgba(255,255,255,0.08)" }}>
                 <Search className="h-4 w-4 text-white/40" />
                 <input
                   value={search}
@@ -272,14 +272,14 @@ export function MissionTeamAssignScreen({
             <div className="rounded-xl p-4" style={{ background: "#0F1E36", border: "1px solid rgba(255,255,255,0.08)" }}>
               <div className="flex items-center justify-between mb-2">
                 <div className="text-[12px] uppercase tracking-wider text-white/55">Question Coverage</div>
-                <div className="text-[13px] font-medium" style={{ color: coveragePct >= 100 ? "#7BC47F" : "#C49A2B" }}>
+                <div className="text-[13px] font-medium" style={{ color: coveragePct >= 100 ? "#7BC47F" : "#c9a84c" }}>
                   {assignedCount} of {questionsCount} questions assigned
                 </div>
               </div>
               <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
                 <div
                   className="h-full transition-all"
-                  style={{ width: `${Math.min(100, coveragePct)}%`, background: coveragePct >= 100 ? "#7BC47F" : "#C49A2B" }}
+                  style={{ width: `${Math.min(100, coveragePct)}%`, background: coveragePct >= 100 ? "#7BC47F" : "#c9a84c" }}
                 />
               </div>
               {gaps.length > 0 && (
@@ -289,9 +289,9 @@ export function MissionTeamAssignScreen({
                       key={i}
                       className="text-[11px] px-2 py-1 rounded-full inline-flex items-center gap-1.5"
                       style={{
-                        background: g.tone === "red" ? "rgba(229,115,115,0.10)" : "rgba(196,154,43,0.10)",
+                        background: g.tone === "red" ? "rgba(229,115,115,0.10)" : "rgba(201,168,76,0.10)",
                         color: g.tone === "red" ? "#F2A6A6" : "#E8C26B",
-                        border: `1px solid ${g.tone === "red" ? "rgba(229,115,115,0.30)" : "rgba(196,154,43,0.30)"}`,
+                        border: `1px solid ${g.tone === "red" ? "rgba(229,115,115,0.30)" : "rgba(201,168,76,0.30)"}`,
                       }}
                     >
                       <AlertTriangle className="h-3 w-3" />
@@ -302,7 +302,7 @@ export function MissionTeamAssignScreen({
               )}
               {uploadStatus && (
                 <div className="mt-3 text-[12px] text-white/60 flex items-center gap-2">
-                  <Sparkles className="h-3 w-3" style={{ color: "#C49A2B" }} />
+                  <Sparkles className="h-3 w-3" style={{ color: "#c9a84c" }} />
                   {uploadStatus}
                 </div>
               )}
@@ -315,9 +315,9 @@ export function MissionTeamAssignScreen({
                 const empty = list.length === 0;
                 const tone = empty ? (b.required ? "red" : "amber") : "ok";
                 const border =
-                  hoverBucket === b.key ? "rgba(196,154,43,0.7)"
+                  hoverBucket === b.key ? "rgba(201,168,76,0.7)"
                   : tone === "red" ? "rgba(229,115,115,0.40)"
-                  : tone === "amber" ? "rgba(196,154,43,0.30)"
+                  : tone === "amber" ? "rgba(201,168,76,0.30)"
                   : "rgba(255,255,255,0.10)";
                 return (
                   <div
@@ -330,7 +330,7 @@ export function MissionTeamAssignScreen({
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <b.icon className="h-4 w-4" style={{ color: empty && b.required ? "#F2A6A6" : "#C49A2B" }} />
+                        <b.icon className="h-4 w-4" style={{ color: empty && b.required ? "#F2A6A6" : "#c9a84c" }} />
                         <div className="text-[13px] font-medium text-white">{b.label}</div>
                       </div>
                       <div className="text-[11px] text-white/45">{list.length}</div>
@@ -341,7 +341,7 @@ export function MissionTeamAssignScreen({
                         style={{
                           border: "1px dashed rgba(255,255,255,0.10)",
                           color: tone === "red" ? "#F2A6A6" : "#E8C26B",
-                          background: hoverBucket === b.key ? "rgba(196,154,43,0.06)" : "transparent",
+                          background: hoverBucket === b.key ? "rgba(201,168,76,0.06)" : "transparent",
                         }}
                       >
                         {b.required ? "Required · drag a person here" : "Drag a person here"}

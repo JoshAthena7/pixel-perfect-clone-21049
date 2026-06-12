@@ -296,7 +296,7 @@ export function Step1BUpload({
   return (
     <div
       className="min-h-screen flex flex-col px-4 py-10"
-      style={{ background: "#0A1628", color: "white" }}
+      style={{ background: "#080c14", color: "white" }}
     >
       <style>{`
         @keyframes feed-shimmer {
@@ -323,7 +323,7 @@ export function Step1BUpload({
           <div className="pt-1 flex-1">
             <div
               className="text-[11px] uppercase tracking-[0.22em]"
-              style={{ color: "#C49A2B" }}
+              style={{ color: "#c9a84c" }}
             >
               IRIS · Mission Intelligence Officer
             </div>
@@ -353,17 +353,17 @@ export function Step1BUpload({
           )}
           style={{
             background: dragging
-              ? "rgba(196,154,43,0.08)"
+              ? "rgba(201,168,76,0.08)"
               : "rgba(255,255,255,0.025)",
-            border: `2px dashed ${dragging ? "#C49A2B" : "rgba(196,154,43,0.4)"}`,
+            border: `2px dashed ${dragging ? "#c9a84c" : "rgba(201,168,76,0.4)"}`,
             boxShadow: dragging
-              ? "inset 0 0 0 1px rgba(196,154,43,0.35), 0 0 40px -10px rgba(196,154,43,0.35)"
+              ? "inset 0 0 0 1px rgba(201,168,76,0.35), 0 0 40px -10px rgba(201,168,76,0.35)"
               : "inset 0 1px 0 rgba(255,255,255,0.03)",
           }}
         >
           <UploadCloud
             className="h-12 w-12"
-            style={{ color: "#C49A2B" }}
+            style={{ color: "#c9a84c" }}
             strokeWidth={1.4}
           />
           <div className="space-y-1.5">
@@ -428,10 +428,10 @@ export function Step1BUpload({
               !hasAnyDone && "opacity-40 cursor-not-allowed",
             )}
             style={{
-              background: "#C49A2B",
-              color: "#0A1628",
+              background: "#c9a84c",
+              color: "#080c14",
               boxShadow: hasAnyDone
-                ? "0 8px 24px -8px rgba(196,154,43,0.55)"
+                ? "0 8px 24px -8px rgba(201,168,76,0.55)"
                 : "none",
             }}
           >
@@ -475,7 +475,7 @@ function FileRow({ row, onRemove }: { row: Row; onRemove: () => void }) {
           <div className="mt-1.5 h-[3px] w-full rounded-full overflow-hidden bg-white/8">
             <div
               className="h-full transition-all duration-200"
-              style={{ width: `${row.progress}%`, background: "#C49A2B" }}
+              style={{ width: `${row.progress}%`, background: "#c9a84c" }}
             />
           </div>
         )}
@@ -510,8 +510,8 @@ function FileRow({ row, onRemove }: { row: Row; onRemove: () => void }) {
           <span
             className="text-[11px] shrink-0 px-2.5 py-1 rounded-full font-medium"
             style={{
-              color: "#0A1628",
-              background: "#C49A2B",
+              color: "#080c14",
+              background: "#c9a84c",
             }}
           >
             {row.label}

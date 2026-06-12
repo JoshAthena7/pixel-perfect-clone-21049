@@ -167,12 +167,12 @@ export function MissionMemoryChat({
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#0A1628", color: "#E8EEF7" }}>
+    <div className="min-h-screen flex flex-col" style={{ background: "#080c14", color: "#E8EEF7" }}>
       {/* Top bar */}
       <div className="flex items-center gap-3 px-6 pt-5 pb-3 border-b border-white/5">
         <IrisMark size={32} />
         <div>
-          <div className="text-[13px] font-medium" style={{ color: "#C49A2B" }}>IRIS</div>
+          <div className="text-[13px] font-medium" style={{ color: "#c9a84c" }}>IRIS</div>
           <div className="text-[11px] text-white/55">Mission Intelligence Officer</div>
         </div>
         <div className="ml-auto text-[11px] text-white/45">
@@ -189,7 +189,7 @@ export function MissionMemoryChat({
                 <div className="mt-0.5"><IrisMark size={28} /></div>
                 <div
                   className="px-4 py-3 rounded-2xl rounded-tl-sm text-[14.5px] leading-relaxed max-w-[520px]"
-                  style={{ background: "rgba(196,154,43,0.08)", border: "1px solid rgba(196,154,43,0.18)" }}
+                  style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.18)" }}
                 >
                   {m.text}
                 </div>
@@ -201,7 +201,7 @@ export function MissionMemoryChat({
                   style={{ background: "#13243F", border: "1px solid rgba(255,255,255,0.08)" }}
                 >
                   {m.attachment && (
-                    <div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: "#C49A2B" }}>
+                    <div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: "#c9a84c" }}>
                       {m.attachment.endsWith(".webm") ? "Voice note" : "Attachment"}
                     </div>
                   )}
@@ -216,13 +216,13 @@ export function MissionMemoryChat({
               <div
                 className="rounded-2xl p-6"
                 style={{
-                  background: "linear-gradient(180deg, rgba(196,154,43,0.10), rgba(196,154,43,0.04))",
-                  border: "1px solid rgba(196,154,43,0.35)",
+                  background: "linear-gradient(180deg, rgba(201,168,76,0.10), rgba(201,168,76,0.04))",
+                  border: "1px solid rgba(201,168,76,0.35)",
                 }}
               >
                 <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="h-4 w-4" style={{ color: "#C49A2B" }} />
-                  <div className="text-[13px] uppercase tracking-[0.14em]" style={{ color: "#C49A2B" }}>
+                  <Sparkles className="h-4 w-4" style={{ color: "#c9a84c" }} />
+                  <div className="text-[13px] uppercase tracking-[0.14em]" style={{ color: "#c9a84c" }}>
                     Mission Memory — Saved
                   </div>
                 </div>
@@ -244,7 +244,7 @@ export function MissionMemoryChat({
                 <button
                   onClick={onContinue}
                   className="mt-6 w-full px-5 py-3 rounded-md text-[14px] font-medium transition hover:opacity-90"
-                  style={{ background: "#C49A2B", color: "#0D1B3E" }}
+                  style={{ background: "#c9a84c", color: "#0D1B3E" }}
                 >
                   Continue →
                 </button>
@@ -313,7 +313,7 @@ export function MissionMemoryChat({
                 onClick={() => draft.trim() && submitAnswer(draft.trim())}
                 disabled={!draft.trim() || saving}
                 className="p-2 rounded-lg transition disabled:opacity-40"
-                style={{ background: draft.trim() ? "#C49A2B" : "transparent", color: draft.trim() ? "#0D1B3E" : "#9AA7BD" }}
+                style={{ background: draft.trim() ? "#c9a84c" : "transparent", color: draft.trim() ? "#0D1B3E" : "#9AA7BD" }}
                 title="Send"
               >
                 <Send className="h-4 w-4" />

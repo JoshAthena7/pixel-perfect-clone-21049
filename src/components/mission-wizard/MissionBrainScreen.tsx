@@ -140,12 +140,12 @@ export function MissionBrainScreen({
   const remaining = gaps.filter((g) => g.status !== "understand");
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#0A1628", color: "#E8EEF7" }}>
+    <div className="min-h-screen flex flex-col" style={{ background: "#080c14", color: "#E8EEF7" }}>
       {/* Header */}
       <div className="flex items-start gap-3 px-6 pt-6 pb-4 border-b border-white/5">
         <IrisMark size={36} />
         <div className="flex-1">
-          <div className="text-[12px] uppercase tracking-[0.14em]" style={{ color: "#C49A2B" }}>IRIS · Mission Brain</div>
+          <div className="text-[12px] uppercase tracking-[0.14em]" style={{ color: "#c9a84c" }}>IRIS · Mission Brain</div>
           <div className="text-[15px] text-white/90 mt-1 max-w-[680px] leading-relaxed">
             Here's my current understanding of this mission. Help me fill the gaps.
           </div>
@@ -153,7 +153,7 @@ export function MissionBrainScreen({
         <button
           onClick={onContinue}
           className="text-[13px] px-4 py-2 rounded-md transition hover:opacity-90"
-          style={{ background: "#C49A2B", color: "#0D1B3E" }}
+          style={{ background: "#c9a84c", color: "#0D1B3E" }}
         >
           Continue →
         </button>
@@ -167,8 +167,8 @@ export function MissionBrainScreen({
               <svg width="320" height="320" className="overflow-visible">
                 <defs>
                   <radialGradient id="brain-glow" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="rgba(196,154,43,0.25)" />
-                    <stop offset="100%" stopColor="rgba(196,154,43,0)" />
+                    <stop offset="0%" stopColor="rgba(201,168,76,0.25)" />
+                    <stop offset="100%" stopColor="rgba(201,168,76,0)" />
                   </radialGradient>
                   <filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%">
                     <feGaussianBlur stdDeviation="4" result="b" />
@@ -224,7 +224,7 @@ export function MissionBrainScreen({
           {/* Gap list */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="h-4 w-4" style={{ color: "#C49A2B" }} />
+              <Sparkles className="h-4 w-4" style={{ color: "#c9a84c" }} />
               <div className="text-[12px] uppercase tracking-[0.14em] text-white/55">
                 {loading ? "Reading my notes…" : remaining.length === 0 ? "Nothing left to fill" : `${remaining.length} item${remaining.length === 1 ? "" : "s"} to fill`}
               </div>
@@ -274,7 +274,7 @@ function GapRow({ gap, onFix }: { gap: Gap; onFix?: (phase: string) => void }) {
         <button
           onClick={() => onFix(gap.fixTo!)}
           className="text-[12px] inline-flex items-center gap-1 px-2 py-1 rounded-md transition hover:bg-white/5"
-          style={{ color: "#C49A2B" }}
+          style={{ color: "#c9a84c" }}
         >
           Fix this <ArrowRight className="h-3 w-3" />
         </button>
