@@ -140,8 +140,8 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
   const moduleAnswers = answers[currentModule] || [];
 
   const greetedScript = useMemo(() => {
-    if (currentModule === 1) {
-      return script.replace("Welcome to ATLAS.", `Welcome to ATLAS, ${firstName}.`);
+    if (currentModule === 1 && firstName && firstName !== "operator") {
+      return script.replace("Hello.", `Hello, ${firstName}.`);
     }
     return script;
   }, [currentModule, script, firstName]);
@@ -339,7 +339,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     const cleared = currentModule;
     await logModuleCleared(cleared);
 
-    if (cleared >= 7) {
+    if (cleared >= 6) {
       const hash = await sha256(`${userId}:${sessionId}:${Date.now()}`);
       await supabase
         .from("iris_onboarding_sessions")
@@ -414,7 +414,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     await playModuleLine(currentModule, greetedScript, { force: true });
   }
 
-  const isFinal = currentModule >= 7;
+  const isFinal = currentModule >= 6;
 
   return (
     <div
@@ -488,7 +488,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       {/* Step indicator */}
       <div className="px-8 pb-6">
         <div className="mx-auto flex w-full max-w-3xl items-center gap-1.5">
-          {[1, 2, 3, 4, 5, 6, 7].map((n) => {
+          {[1, 2, 3, 4, 5, 6].map((n) => {
             const state = n < currentModule ? "complete" : n === currentModule ? "active" : "upcoming";
             return (
               <div
@@ -511,7 +511,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
           className="mx-auto mt-3 flex w-full max-w-3xl items-center justify-between"
           style={{ fontSize: 11, color: "var(--muted-foreground)", letterSpacing: 1.5 }}
         >
-          <span>MODULE {String(currentModule).padStart(2, "0")} / 07</span>
+          <span>MODULE {String(currentModule).padStart(2, "0")} / 06</span>
           <span>{moduleName.toUpperCase()}</span>
         </div>
       </div>
@@ -722,7 +722,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       >
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between">
           <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
-            {isFinal ? "Briefing complete. You're cleared to operate." : `Step ${currentModule} of 7`}
+            {isFinal ? "Briefing complete. You're cleared to operate." : `Step ${currentModule} of 6`}
           </div>
           <button
             type="button"

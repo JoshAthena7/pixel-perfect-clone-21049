@@ -14,6 +14,7 @@ import { Route as OlympusRouteImport } from './routes/olympus'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WelcomeTokenRouteImport } from './routes/welcome.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as CheckinTokenRouteImport } from './routes/checkin.$token'
 import { Route as AuthenticatedWelcomeRouteImport } from './routes/_authenticated/welcome'
@@ -90,6 +91,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WelcomeTokenRoute = WelcomeTokenRouteImport.update({
+  id: '/welcome/$token',
+  path: '/welcome/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
@@ -410,6 +416,7 @@ export interface FileRoutesByFullPath {
   '/welcome': typeof AuthenticatedWelcomeRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/welcome/$token': typeof WelcomeTokenRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
   '/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
@@ -468,6 +475,7 @@ export interface FileRoutesByTo {
   '/welcome': typeof AuthenticatedWelcomeRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/welcome/$token': typeof WelcomeTokenRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
   '/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
@@ -528,6 +536,7 @@ export interface FileRoutesById {
   '/_authenticated/welcome': typeof AuthenticatedWelcomeRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
+  '/welcome/$token': typeof WelcomeTokenRoute
   '/_authenticated/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
@@ -589,6 +598,7 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/checkin/$token'
     | '/email/unsubscribe'
+    | '/welcome/$token'
     | '/admin/iris-health'
     | '/admin/team'
     | '/missions/$missionId'
@@ -647,6 +657,7 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/checkin/$token'
     | '/email/unsubscribe'
+    | '/welcome/$token'
     | '/admin/iris-health'
     | '/admin/team'
     | '/olympus/$'
@@ -706,6 +717,7 @@ export interface FileRouteTypes {
     | '/_authenticated/welcome'
     | '/checkin/$token'
     | '/email/unsubscribe'
+    | '/welcome/$token'
     | '/_authenticated/admin/iris-health'
     | '/_authenticated/admin/team'
     | '/_authenticated/missions/$missionId'
@@ -758,6 +770,7 @@ export interface RootRouteChildren {
   UnsubscribeRoute: typeof UnsubscribeRoute
   CheckinTokenRoute: typeof CheckinTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
+  WelcomeTokenRoute: typeof WelcomeTokenRoute
   ApiChatIrisRoute: typeof ApiChatIrisRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksGenerateDailyBriefsRoute: typeof ApiPublicHooksGenerateDailyBriefsRoute
@@ -809,6 +822,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/welcome/$token': {
+      id: '/welcome/$token'
+      path: '/welcome/$token'
+      fullPath: '/welcome/$token'
+      preLoaderRoute: typeof WelcomeTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/email/unsubscribe': {
@@ -1327,6 +1347,7 @@ const rootRouteChildren: RootRouteChildren = {
   UnsubscribeRoute: UnsubscribeRoute,
   CheckinTokenRoute: CheckinTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
+  WelcomeTokenRoute: WelcomeTokenRoute,
   ApiChatIrisRoute: ApiChatIrisRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksGenerateDailyBriefsRoute:
