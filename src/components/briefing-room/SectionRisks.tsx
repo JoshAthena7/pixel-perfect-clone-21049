@@ -20,7 +20,7 @@ type RiskItem = {
 
 export function SectionRisks({ missionId, isAdmin }: { missionId: string; isAdmin: boolean }) {
   const fn = useServerFn(getRisks);
-  const resolveFn = useServerFn(resolveBriefingConflict);
+  const resolveFn = useServerFn(resolveConflict);
   const qc = useQueryClient();
   const { data } = useSuspenseQuery({
     queryKey: ["briefing", "risks", missionId],
@@ -35,22 +35,28 @@ export function SectionRisks({ missionId, isAdmin }: { missionId: string; isAdmi
 
   async function onResolve(item: RiskItem) {
     if (!item.conflictId) return;
+    // Optimistic remove
     setHidden((s) => new Set(s).add(item.id));
     setConfirmingId(null);
     try {
-      await resolveFn({ data: { missionId, conflictId: item.conflictId } });
+      const result = await resolveFn({
+        data: { missionId, conflictId: item.conflictId },
+      });
+      if (!result?.success) throw new Error(result?.error ?? "Resolve failed");
       qc.invalidateQueries({ queryKey: ["briefing", "risks", missionId] });
       qc.invalidateQueries({ queryKey: ["briefing", "snapshot", missionId] });
     } catch (e) {
-      // rollback
+      // Rollback + error toast
       setHidden((s) => {
         const n = new Set(s);
         n.delete(item.id);
         return n;
       });
+      toast.error("Could not resolve conflict. Try again.");
       console.error("Failed to resolve conflict", e);
     }
   }
+
 
   return (
     <SectionCard
