@@ -117,8 +117,8 @@ export const getWhyMatters = createServerFn({ method: "POST" })
       .maybeSingle();
     return {
       whyClientPursuing: ws?.client_priorities ?? null,
-      whyMattersToAthena: ws?.mission_significance ?? null,
-      whatIsAtStake: ws?.value_proposition ?? null,
+      whyMattersToAthena: ws?.value_proposition ?? null,
+      whatIsAtStake: ws?.mission_significance ?? null,
       keyMarketDynamics: ws?.executive_summary ?? null,
     };
   });
