@@ -17,6 +17,7 @@ import { OracleEvaluatorPicture } from "./OracleEvaluatorPicture";
 import { OracleCompetitors } from "./OracleCompetitors";
 import { OracleProcurementEvolution } from "./OracleProcurementEvolution";
 import { IntelligenceLibraryTab } from "@/components/mission-command/IntelligenceLibraryTab";
+import { useIsAdmin } from "@/hooks/useAccess";
 
 const SUB_TABS = [
   { id: "graph", label: "Graph", hint: "Intelligence network map" },
