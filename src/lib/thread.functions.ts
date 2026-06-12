@@ -185,6 +185,118 @@ export const maybePostInactivityCheckIn = createServerFn({ method: "POST" })
     return { posted: true };
   });
 
+/**
+ * Posts a one-time IRIS "Win Theme Alignment" orientation message in the
+ * Thread feed if (a) win_theme_alignment connections exist for this question
+ * and (b) no win_theme_alignment message has been posted before. Idempotent.
+ */
+export const maybePostWinThemeAlignment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({ missionId: z.string().uuid(), questionId: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+
+    // Condition 2 first (cheaper): idempotency guard.
+    const { data: prior } = await supabase
+      .from("thread_messages")
+      .select("id")
+      .eq("question_id", data.questionId)
+      .eq("message_type", "win_theme_alignment")
+      .limit(1);
+    if (prior && prior.length > 0) return { posted: false, reason: "already_posted" };
+
+    // Condition 1: win_theme_alignment connections for this question.
+    const { data: conns } = await supabase
+      .from("question_connections")
+      .select("question_id_a, question_id_b, iris_rationale")
+      .eq("mission_id", data.missionId)
+      .eq("connection_type", "win_theme_alignment")
+      .or(`question_id_a.eq.${data.questionId},question_id_b.eq.${data.questionId}`);
+    const connRows = (conns ?? []) as Array<{ question_id_a: string; question_id_b: string; iris_rationale: string | null }>;
+    if (connRows.length === 0) return { posted: false, reason: "no_connections" };
+
+    const otherIds = Array.from(
+      new Set(
+        connRows.map((c) => (c.question_id_a === data.questionId ? c.question_id_b : c.question_id_a)),
+      ),
+    );
+
+    // Lookup other question section names / numbers.
+    const { data: otherQs } = await supabase
+      .from("mission_questions")
+      .select("id, section_id, question_number, mission_sections(name)")
+      .in("id", otherIds);
+    type OQ = { id: string; section_id: string | null; question_number: string | null; mission_sections: { name: string | null } | null };
+    const oqRows = (otherQs ?? []) as unknown as OQ[];
+    const labelById = new Map<string, { label: string; rationale: string | null }>();
+    for (const oq of oqRows) {
+      const sectionLabel = oq.mission_sections?.name ?? (oq.question_number ? `Q${oq.question_number}` : "Section");
+      const conn = connRows.find(
+        (c) => c.question_id_a === oq.id || c.question_id_b === oq.id,
+      );
+      labelById.set(oq.id, { label: sectionLabel, rationale: conn?.iris_rationale ?? null });
+    }
+
+    // Win theme names (best-effort).
+    const { data: strategy } = await supabase
+      .from("mission_win_strategy")
+      .select("win_themes")
+      .eq("mission_id", data.missionId)
+      .maybeSingle();
+    const wt = (strategy as { win_themes: unknown } | null)?.win_themes;
+    let themeNames: string[] = [];
+    if (Array.isArray(wt)) {
+      themeNames = wt
+        .map((t) => (typeof t === "string" ? t : (t as { name?: string; theme?: string })?.name || (t as { theme?: string })?.theme || ""))
+        .filter(Boolean)
+        .slice(0, 3);
+    }
+    const themeText = themeNames.length ? themeNames.join(", ") : "this mission's Win Themes";
+
+    const visible = oqRows.slice(0, 3);
+    const overflow = oqRows.length - visible.length;
+    const sectionList = visible.map((q) => labelById.get(q.id)?.label ?? "Section").join(", ");
+    const bullets = visible
+      .map((q) => {
+        const entry = labelById.get(q.id);
+        return `• ${entry?.label ?? "Section"} — ${entry?.rationale ?? "Shared win theme."}`;
+      })
+      .join("\n");
+    const overflowLine = overflow > 0 ? `\n…and ${overflow} more section${overflow === 1 ? "" : "s"}. View all in Line of Sight.` : "";
+
+    const body =
+      `Win Theme Alignment — This section connects to ${themeText}. ${oqRows.length} other section${oqRows.length === 1 ? "" : "s"} on this mission ${oqRows.length === 1 ? "is" : "are"} carrying the same theme: ${sectionList}. ` +
+      `Before writing, check their Threads to see how the team is framing this theme. Consistency across sections strengthens the whole proposal. Each section's approach is shown below.\n\n` +
+      `${bullets}${overflowLine}`;
+
+    const metadata = {
+      connected_questions: oqRows.map((q) => ({
+        question_id: q.id,
+        label: labelById.get(q.id)?.label ?? "Section",
+        rationale: labelById.get(q.id)?.rationale ?? null,
+      })),
+      themes: themeNames,
+    };
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("thread_messages").insert({
+      mission_id: data.missionId,
+      question_id: data.questionId,
+      sender_id: null,
+      sender_name: "IRIS",
+      message_type: "win_theme_alignment",
+      message_body: body,
+      metadata,
+    });
+    if (error) {
+      console.error("[maybePostWinThemeAlignment] insert failed:", error.message);
+      return { posted: false, reason: "insert_failed" };
+    }
+    return { posted: true };
+  });
+
 // ──────────────────────────────────────────────────────────────────────────
 // IRIS analysis (server-only helper, called from postThreadMessage handler)
 // ──────────────────────────────────────────────────────────────────────────
