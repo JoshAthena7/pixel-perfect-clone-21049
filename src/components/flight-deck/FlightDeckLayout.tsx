@@ -556,10 +556,10 @@ function MyWorkColumn({
   }
 
   const prompts = [
-    "Draft a response for me",
-    "What evidence is strongest?",
-    "What is the evaluator afraid of?",
-    "Am I missing anything?",
+    "Explain what evaluators are really asking",
+    "Recommend proof points for this section",
+    "What risks should I watch for?",
+    "What does the scoring panel care most about here?",
   ];
 
   return (
@@ -637,7 +637,7 @@ function MyWorkColumn({
           <Target className="h-3.5 w-3.5" /> Score My Response
         </div>
         <div className="mt-1 text-[11px] text-muted-foreground">
-          Paste your draft — IRIS coaches it before anyone else sees it.
+          Paste your draft from the client environment — IRIS coaches it before anyone else sees it.
         </div>
       </button>
 
