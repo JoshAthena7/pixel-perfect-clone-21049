@@ -11,6 +11,7 @@ import { MissionTeamAssignScreen } from "@/components/mission-wizard/MissionTeam
 import { MissionBrainScreen } from "@/components/mission-wizard/MissionBrainScreen";
 import { AthenaInsightsScreen } from "@/components/mission-wizard/AthenaInsightsScreen";
 import { MissionLaunchScreen } from "@/components/mission-wizard/MissionLaunchScreen";
+import { MissionWizardChrome } from "@/components/mission-wizard/MissionWizardChrome";
 import { cn } from "@/lib/utils";
 
 const BUCKET = "atlas-rfp-documents";
