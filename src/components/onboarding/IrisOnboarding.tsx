@@ -339,7 +339,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     const cleared = currentModule;
     await logModuleCleared(cleared);
 
-    if (cleared >= 7) {
+    if (cleared >= 6) {
       const hash = await sha256(`${userId}:${sessionId}:${Date.now()}`);
       await supabase
         .from("iris_onboarding_sessions")
