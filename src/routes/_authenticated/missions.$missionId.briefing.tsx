@@ -38,6 +38,8 @@ function BriefingPage() {
         missionName={header.mission?.name ?? "Mission"}
         clientName={header.mission?.client_name ?? null}
         health={header.health}
+        missionId={missionId}
+        isAdmin={!!isAdmin}
       />
 
       <div className="space-y-4">
