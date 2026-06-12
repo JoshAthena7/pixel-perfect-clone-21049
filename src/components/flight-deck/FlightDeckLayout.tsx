@@ -26,6 +26,7 @@ import { FlightDeckAssistBar } from "@/components/flight-deck/FlightDeckAssistBa
 import { ScoreMeDialog } from "@/components/flight-deck/ScoreMeDialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useIsAdmin } from "@/hooks/useAccess";
 
 type Props = {
   memberId: string | null;
@@ -211,9 +212,7 @@ export function FlightDeckLayout({
       />
 
       {!activeQ ? (
-        <div className="rounded-xl border border-border bg-surface/30 p-8 text-center text-sm text-muted-foreground">
-          You have no assigned questions yet.
-        </div>
+        <NoAssignmentState missionId={activeMissionId} />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-4 items-start">
           <IntelligenceColumn
@@ -284,6 +283,56 @@ function FlightDeckHeader({ name, status }: { name: string; status: string | nul
     </div>
   );
 }
+
+/* -------------------- No-Assignment Empty State -------------------- */
+function NoAssignmentState({ missionId }: { missionId: string | null }) {
+  const { isAdmin } = useIsAdmin();
+  return (
+    <div className="rounded-xl border border-border bg-surface/30 px-6 py-12">
+      <div className="mx-auto flex max-w-[440px] flex-col items-center text-center">
+        <Eye className="h-8 w-8" style={{ color: "#C8C3FF" }} />
+        <div className="mt-4 text-[16px] font-medium text-white">No questions assigned yet.</div>
+        <div
+          className="mt-2 text-[13px] text-muted-foreground"
+          style={{ lineHeight: 1.6 }}
+        >
+          Your Engagement Lead will assign questions when the mission is ready for writing.
+        </div>
+        {missionId && (
+          <Link
+            to="/missions/$missionId/briefing"
+            params={{ missionId }}
+            className="mt-5 inline-flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-[12px] font-medium"
+            style={{
+              background: "rgba(196,154,43,0.06)",
+              border: "1px solid rgba(196,154,43,0.4)",
+              color: "#C49A2B",
+            }}
+          >
+            View Mission Brief →
+          </Link>
+        )}
+        {isAdmin && missionId && (
+          <>
+            <div className="mt-4 text-[10px] italic text-muted-foreground/70">
+              You are viewing as admin. Writers will see their assigned questions here.
+            </div>
+            <Link
+              to="/missions/$missionId/team"
+              params={{ missionId }}
+              className="mt-1 text-[11px] hover:underline"
+              style={{ color: "#C49A2B" }}
+            >
+              Go to Team to assign questions →
+            </Link>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 
 /* -------------------- Question Nav Strip -------------------- */
 function NavStrip({
@@ -609,9 +658,9 @@ function MyWorkColumn({
   }
 
   const prompts = [
-    "Explain what evaluators are really asking",
-    "Recommend proof points for this section",
-    "What risks should I watch for?",
+    "Explain what evaluators are really asking in this section",
+    "Recommend proof points for this question",
+    "What risks should I watch for in this section?",
     "What does the scoring panel care most about here?",
   ];
 

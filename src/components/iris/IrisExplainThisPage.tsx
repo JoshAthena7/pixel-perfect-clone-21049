@@ -31,7 +31,7 @@ const EXPLANATIONS: Array<{ match: (p: string) => boolean; text: string }> = [
   {
     match: (p) => /^\/missions\/[^/]+\/flight-deck/.test(p) || p === "/flight-deck" || p.startsWith("/flight-deck/") || p === "/olympus/flight-deck",
     text:
-      "This is your workspace. The intelligence panel on the left shows you everything I know about this section. Read the Athena Insight first — it is the strategic lens for this specific section. Then read my brief below it. Your work is on the right. Update your status when something changes — the team sees it immediately. When you have a draft use Score Draft before anyone else sees it. I will tell you exactly what to fix. Not what sounds better. What would actually move an evaluator.",
+      "This is your workspace. Everything in the Flight Deck serves one of two objectives — build a better answer, or keep the mission healthy. Nothing else made it in. The intelligence panel on the left shows everything I know about this section. Read the Athena Insight first. Then the IRIS Brief. Your work is on the right. Five buttons at the bottom. Thread is for working the question with your team. Phone a Friend is for finding expertise. Score Me is for coaching your draft before anyone else sees it. Mission Pulse is the mission heartbeat. SOS is for when something requires leadership immediately. If you are not sure which button — ask yourself if the issue is about your question or about the mission. Question goes in Thread. Mission goes in Mission Pulse. Immediate intervention goes in SOS.",
   },
   {
     match: (p) => /^\/missions\/[^/]+\/win-strategy$/.test(p),
