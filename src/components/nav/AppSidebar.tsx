@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { useMissionMeta, useMissionAtRiskCount } from "@/hooks/useMissionMeta";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
+import atlasWordmark from "@/assets/atlas-wordmark.png.asset.json";
 
 type IconType = typeof FileText;
 
@@ -336,8 +337,9 @@ function MissionContextBlock({
         className="px-3 py-3"
         style={{ borderBottom: "0.5px solid rgba(255,255,255,0.06)" }}
       >
-        <div style={{ color: "#c9a84c", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em" }}>
-          ATLAS · ADMIN
+        <div className="flex items-center gap-2">
+          <img src={atlasWordmark.url} alt="ATLAS" draggable={false} style={{ height: 14, width: "auto", objectFit: "contain" }} />
+          <span style={{ color: "#c9a84c", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em" }}>· ADMIN</span>
         </div>
         <div className="mt-0.5" style={{ color: "rgba(255,255,255,0.35)", fontSize: 9 }}>
           Platform administration
@@ -352,9 +354,7 @@ function MissionContextBlock({
         className="px-3 py-3 text-center"
         style={{ borderBottom: "0.5px solid rgba(255,255,255,0.06)" }}
       >
-        <div className="mx-auto" style={{ color: "#C49A2B", fontSize: 11, fontWeight: 700, letterSpacing: "0.08em" }}>
-          ATLAS
-        </div>
+        <img src={atlasWordmark.url} alt="ATLAS" draggable={false} className="mx-auto" style={{ height: 16, width: "auto", objectFit: "contain" }} />
         <div className="mt-1" style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>
           Select a mission
         </div>
