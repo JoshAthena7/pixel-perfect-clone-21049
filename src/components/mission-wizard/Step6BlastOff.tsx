@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { buildIntelligenceGraph } from "@/lib/oracle.functions";
 import { seedTerritoryIntelligence } from "@/lib/iris-territory.functions";
+import { buildLineOfSight } from "@/lib/iris-line-of-sight.functions";
 import { buildAthenaInsight } from "@/lib/athena-insights.functions";
 import { buildEvaluatorPicture } from "@/lib/iris-evaluator.functions";
 import { supabase as supabaseClient } from "@/integrations/supabase/client";
@@ -162,6 +163,7 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
   const seedTerritory = useServerFn(seedTerritoryIntelligence);
   const buildInsight = useServerFn(buildAthenaInsight);
   const buildEvalPicture = useServerFn(buildEvaluatorPicture);
+  const buildLOS = useServerFn(buildLineOfSight);
 
   const fireSectionInsights = async () => {
     try {
@@ -245,6 +247,7 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
       buildGraph({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] buildIntelligenceGraph failed:", e));
       buildEvalPicture({ data: { missionId, forceRegenerate: false } }).catch((e) => console.error("[BLAST OFF] buildEvaluatorPicture failed:", e));
       fireSectionInsights();
+      buildLOS({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] buildLineOfSight failed:", e));
       await new Promise((r) => setTimeout(r, 900));
 
       setPhase("done");
@@ -267,6 +270,7 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
       buildGraph({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] buildIntelligenceGraph failed:", e));
       buildEvalPicture({ data: { missionId, forceRegenerate: false } }).catch((e) => console.error("[BLAST OFF] buildEvaluatorPicture failed:", e));
       fireSectionInsights();
+      buildLOS({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] buildLineOfSight failed:", e));
       await new Promise((r) => setTimeout(r, 900));
 
       navigate({
