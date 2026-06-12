@@ -148,10 +148,11 @@ export function ScoreMeDialog({
             }}
           >
             <span style={{ color: IRIS_PURPLE, fontWeight: 600 }}>IRIS · </span>
-            Paste your draft here. I am not checking grammar. I am checking whether a risk-averse
-            career program manager — under political pressure, reading this in ninety seconds —
-            would feel confident enough to recommend an award. That is a different bar than writing
-            well. It is a higher one. I have seen worse. I have also seen better. Paste it in.
+            Paste your draft from the client environment. I am not checking grammar. I am checking
+            whether a risk-averse career program manager — under political pressure, reading this in
+            ninety seconds — would feel confident enough to recommend an award. That is a different
+            bar than writing well. It is a higher one. I have seen worse. I have also seen better.
+            Paste it in.
           </div>
 
           {!result && (
@@ -160,7 +161,7 @@ export function ScoreMeDialog({
                 <textarea
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  placeholder="Paste your draft response here..."
+                  placeholder="Paste your draft from Word, SharePoint, Loopio, or wherever you are working..."
                   disabled={loading}
                   className="w-full rounded-lg p-3 text-white text-[13px] resize-y outline-none"
                   style={{
