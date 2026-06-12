@@ -250,8 +250,11 @@ export function Step1BUpload({
     }
   }
 
-  if (analyzing) {
-    return <MissionAnalysisAnimation onComplete={onAdvance} />;
+  if (phase === "analyzing") {
+    return <MissionAnalysisAnimation onComplete={() => setPhase("results")} />;
+  }
+  if (phase === "results") {
+    return <MissionAnalysisResults missionId={missionId} onContinue={onAdvance} />;
   }
 
   return (
