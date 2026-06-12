@@ -95,16 +95,25 @@ function AdminMissionDetail() {
       updated_at: new Date().toISOString(),
     };
     const { error } = await (supabase.from("missions").update(payload as any) as any).eq("id", missionId);
-    setSaving(false);
     if (error) {
+      setSaving(false);
       toast.error(`Save failed: ${error.message}`);
       return;
     }
+    try {
+      await journeySaverRef.current?.();
+    } catch (e: any) {
+      setSaving(false);
+      toast.error(`Journey save failed: ${e?.message ?? "unknown"}`);
+      return;
+    }
+    setSaving(false);
     toast.success("Saved & cascaded to all linked records");
     setDirty(false);
     setCascaded(true);
     qc.invalidateQueries({ queryKey: ["admin-mission", missionId] });
     qc.invalidateQueries({ queryKey: ["admin-missions-list"] });
+    qc.invalidateQueries({ queryKey: ["admin-mission-journey", missionId] });
   }
 
   return (
