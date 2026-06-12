@@ -1424,6 +1424,7 @@ export type Database = {
           atlas_resume_url: string | null
           atlas_role: string
           avatar_url: string | null
+          clearance_status: string
           created_at: string
           email: string
           first_name: string | null
@@ -1461,6 +1462,7 @@ export type Database = {
           atlas_resume_url?: string | null
           atlas_role?: string
           avatar_url?: string | null
+          clearance_status?: string
           created_at?: string
           email: string
           first_name?: string | null
@@ -1498,6 +1500,7 @@ export type Database = {
           atlas_resume_url?: string | null
           atlas_role?: string
           avatar_url?: string | null
+          clearance_status?: string
           created_at?: string
           email?: string
           first_name?: string | null
