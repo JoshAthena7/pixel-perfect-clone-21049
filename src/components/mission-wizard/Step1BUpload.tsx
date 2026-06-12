@@ -88,7 +88,7 @@ export function Step1BUpload({
   const [rows, setRows] = useState<Row[]>([]);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [analyzing, setAnalyzing] = useState(false);
+  const [phase, setPhase] = useState<"upload" | "analyzing" | "results">("upload");
 
   useEffect(() => {
     (async () => {
