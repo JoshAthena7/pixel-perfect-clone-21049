@@ -511,7 +511,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
           className="mx-auto mt-3 flex w-full max-w-3xl items-center justify-between"
           style={{ fontSize: 11, color: "var(--muted-foreground)", letterSpacing: 1.5 }}
         >
-          <span>MODULE {String(currentModule).padStart(2, "0")} / 07</span>
+          <span>MODULE {String(currentModule).padStart(2, "0")} / 06</span>
           <span>{moduleName.toUpperCase()}</span>
         </div>
       </div>
