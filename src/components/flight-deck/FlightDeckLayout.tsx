@@ -556,10 +556,10 @@ function MyWorkColumn({
   }
 
   const prompts = [
-    "Draft a response for me",
-    "What evidence is strongest?",
-    "What is the evaluator afraid of?",
-    "Am I missing anything?",
+    "Explain what evaluators are really asking",
+    "Recommend proof points for this section",
+    "What risks should I watch for?",
+    "What does the scoring panel care most about here?",
   ];
 
   return (
