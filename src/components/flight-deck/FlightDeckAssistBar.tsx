@@ -192,7 +192,7 @@ export function FlightDeckAssistBar({ missionId, questionId, questionNumber, que
         questionNumber={questionNumber}
         questionText={questionText}
       />
-      <DailyPulseModal open={pulseOpen} onOpenChange={setPulseOpen} missionId={missionId} />
+      <MissionPulsePanel open={pulseOpen} onOpenChange={setPulseOpen} missionId={missionId} />
       <SOSDialog
         open={sosOpen}
         onOpenChange={async (v) => {
