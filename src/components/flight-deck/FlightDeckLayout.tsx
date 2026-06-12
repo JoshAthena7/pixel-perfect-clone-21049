@@ -13,7 +13,7 @@
  *  ─ FlightDeckAssistBar (pinned bottom) ─
  */
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
@@ -42,8 +42,12 @@ export function FlightDeckLayout({
   activeMissionStatus,
 }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [threadOpen, setThreadOpen] = useState(false);
+  const [pulseOpen, setPulseOpen] = useState(false);
+  const [pulsePrefill, setPulsePrefill] = useState<{ signalType: string; body: string } | null>(null);
   const iris = useIris();
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   // Fetch this writer's assignments + question rows
   const { data } = useQuery({
@@ -139,6 +143,60 @@ export function FlightDeckLayout({
     return () => { cancelled = true; };
   }, [activeQ?.id, activeMissionId]);
 
+  // ---- Atlas window event listeners (Line of Sight wiring) ----
+  useEffect(() => {
+    const VALID_SIGNALS = [
+      "risk_alert", "new_intelligence", "client_signal", "blocker",
+      "opportunity", "resource_concern", "decision_needed", "observation",
+    ];
+
+    const handleThreadOpen = (e: Event) => {
+      const detail = ((e as CustomEvent).detail ?? {}) as { questionId?: string; sectionName?: string };
+      if (!detail.questionId) return;
+      setSelectedId(detail.questionId);
+      setThreadOpen(true);
+      toast(`Opening ${detail.sectionName ?? "section"} Thread…`, {
+        duration: 2000,
+        style: {
+          background: "rgba(196,154,43,0.95)",
+          color: "white",
+          border: "none",
+          fontSize: 11,
+          fontWeight: 500,
+        },
+      });
+    };
+
+    const handleOracleOpen = (e: Event) => {
+      const detail = ((e as CustomEvent).detail ?? {}) as { feedItemId?: string };
+      if (!detail.feedItemId || !activeMissionId) return;
+      navigate({
+        to: "/missions/$missionId/oracle",
+        params: { missionId: activeMissionId },
+        search: { highlight: detail.feedItemId, tab: "feed" } as any,
+      });
+    };
+
+    const handlePulsePrefill = (e: Event) => {
+      const detail = ((e as CustomEvent).detail ?? {}) as { signalType?: string; body?: string };
+      if (!detail.body) return;
+      const signalType = detail.signalType && VALID_SIGNALS.includes(detail.signalType)
+        ? detail.signalType
+        : "risk_alert";
+      setPulsePrefill({ signalType, body: detail.body });
+      setPulseOpen(true);
+    };
+
+    window.addEventListener("atlas:thread:open", handleThreadOpen);
+    window.addEventListener("atlas:oracle:open", handleOracleOpen);
+    window.addEventListener("atlas:pulse:prefill", handlePulsePrefill);
+    return () => {
+      window.removeEventListener("atlas:thread:open", handleThreadOpen);
+      window.removeEventListener("atlas:oracle:open", handleOracleOpen);
+      window.removeEventListener("atlas:pulse:prefill", handlePulsePrefill);
+    };
+  }, [activeMissionId, navigate]);
+
   return (
     <div className="space-y-4">
       <FlightDeckHeader name={activeMissionName} status={activeMissionStatus} />
@@ -183,6 +241,12 @@ export function FlightDeckLayout({
         questionText={activeQ?.question_text ?? null}
         dueDate={activeAsg?.due_date ?? activeQ?.due_date ?? null}
         confidence={activeAsg?.writer_confidence ?? null}
+        threadOpen={threadOpen}
+        onThreadOpenChange={setThreadOpen}
+        pulseOpen={pulseOpen}
+        onPulseOpenChange={(v) => { setPulseOpen(v); if (!v) setPulsePrefill(null); }}
+        pulsePrefill={pulsePrefill}
+        onPulsePrefillConsumed={() => setPulsePrefill(null)}
         onHealthChanged={() => {
           // optimistic local update + cache invalidation
           if (activeQ) {

@@ -184,7 +184,7 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
             onFlagInPulse={(desc) => {
               window.dispatchEvent(
                 new CustomEvent("atlas:pulse:prefill", {
-                  detail: { type: "risk_alert", body: desc },
+                  detail: { signalType: "risk_alert", body: desc },
                 }),
               );
             }}

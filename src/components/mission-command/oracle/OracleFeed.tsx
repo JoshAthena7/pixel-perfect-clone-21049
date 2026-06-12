@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,7 +39,7 @@ const CATEGORY_COLOR: Record<string, { bg: string; fg: string; border: string }>
 
 const CAT_LABEL: Record<string, string> = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.label]));
 
-export function OracleFeed({ missionId, isAdmin }: { missionId: string; isAdmin: boolean }) {
+export function OracleFeed({ missionId, isAdmin, highlightId }: { missionId: string; isAdmin: boolean; highlightId?: string | null }) {
   const [category, setCategory] = useState("all");
   const [search, setSearch] = useState("");
   const qc = useQueryClient();
@@ -80,6 +80,27 @@ export function OracleFeed({ missionId, isAdmin }: { missionId: string; isAdmin:
       return true;
     });
   }, [data, category, search]);
+
+  // Scroll-to + brief gold highlight when ?highlight= matches a feed item
+  const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!highlightId || !data || data.length === 0) return;
+    const match = data.find((i) => i.id === highlightId);
+    if (!match) return;
+    // make sure search/category don't hide it
+    setSearch("");
+    setCategory("all");
+    const t1 = setTimeout(() => {
+      const el = document.getElementById(`feed-item-${highlightId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        setHighlightedItemId(highlightId);
+        const t2 = setTimeout(() => setHighlightedItemId(null), 3000);
+        return () => clearTimeout(t2);
+      }
+    }, 500);
+    return () => clearTimeout(t1);
+  }, [highlightId, data]);
 
   if (isError) return <ErrorBanner>Could not load this intelligence. Try refreshing.</ErrorBanner>;
 
@@ -149,7 +170,7 @@ export function OracleFeed({ missionId, isAdmin }: { missionId: string; isAdmin:
       ) : (
         <div className="space-y-2">
           {filtered.map((i) => (
-            <FeedCard key={i.id} item={i} />
+            <FeedCard key={i.id} item={i} highlighted={highlightedItemId === i.id} />
           ))}
         </div>
       )}
@@ -161,7 +182,7 @@ export function OracleFeed({ missionId, isAdmin }: { missionId: string; isAdmin:
   );
 }
 
-function FeedCard({ item }: { item: FeedItem }) {
+function FeedCard({ item, highlighted }: { item: FeedItem; highlighted?: boolean }) {
   const rel = item.iris_relevance_score ?? 0;
   const cat = CATEGORY_COLOR[item.category] ?? { bg: "rgba(255,255,255,0.04)", fg: "rgba(255,255,255,0.6)", border: "rgba(255,255,255,0.1)" };
   const tone =
@@ -180,7 +201,15 @@ function FeedCard({ item }: { item: FeedItem }) {
   };
 
   return (
-    <div className="rounded-lg p-3" style={{ background: tone.bg, border: `1px solid ${tone.border}` }}>
+    <div
+      id={`feed-item-${item.id}`}
+      className="rounded-lg p-3"
+      style={{
+        background: highlighted ? "rgba(196,154,43,0.08)" : tone.bg,
+        border: `1px solid ${highlighted ? "rgba(196,154,43,0.6)" : tone.border}`,
+        transition: "background-color 1s ease, border-color 1s ease",
+      }}
+    >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span

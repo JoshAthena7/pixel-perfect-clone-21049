@@ -16,6 +16,8 @@ type Props = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   missionId: string | null;
+  prefill?: { signalType: string; body: string } | null;
+  onPrefillConsumed?: () => void;
 };
 
 const TYPE_META: Record<
@@ -42,7 +44,7 @@ function timeAgo(iso: string) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-export function MissionPulsePanel({ open, onOpenChange, missionId }: Props) {
+export function MissionPulsePanel({ open, onOpenChange, missionId, prefill, onPrefillConsumed }: Props) {
   const list = useServerFn(listMissionPulse);
   const submit = useServerFn(submitMissionSignal);
 
@@ -82,6 +84,26 @@ export function MissionPulsePanel({ open, onOpenChange, missionId }: Props) {
       .then(({ data }) => data?.name && setMissionName(data.name));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, missionId]);
+
+  // Apply prefill when modal opens with one queued
+  useEffect(() => {
+    if (!open || !prefill) return;
+    const valid = (SIGNAL_TYPES as readonly string[]).includes(prefill.signalType)
+      ? (prefill.signalType as SignalType)
+      : "risk_alert";
+    setSignalType(valid);
+    setBody(prefill.body);
+    const t = setTimeout(() => {
+      const ta = document.querySelector<HTMLTextAreaElement>("[data-mission-pulse-textarea]");
+      if (ta) {
+        ta.focus();
+        ta.setSelectionRange(ta.value.length, ta.value.length);
+      }
+    }, 150);
+    onPrefillConsumed?.();
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, prefill]);
 
   async function handleSubmit() {
     if (!missionId || !body.trim() || sending) return;
@@ -231,6 +253,7 @@ export function MissionPulsePanel({ open, onOpenChange, missionId }: Props) {
                 })}
               </div>
               <textarea
+                data-mission-pulse-textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 placeholder="What does the mission need to know?"
