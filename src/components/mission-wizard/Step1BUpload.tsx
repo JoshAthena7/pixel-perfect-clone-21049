@@ -11,6 +11,7 @@ import { MissionTeamAssignScreen } from "@/components/mission-wizard/MissionTeam
 import { MissionBrainScreen } from "@/components/mission-wizard/MissionBrainScreen";
 import { AthenaInsightsScreen } from "@/components/mission-wizard/AthenaInsightsScreen";
 import { MissionLaunchScreen } from "@/components/mission-wizard/MissionLaunchScreen";
+import { MissionWizardChrome } from "@/components/mission-wizard/MissionWizardChrome";
 import { cn } from "@/lib/utils";
 
 const BUCKET = "atlas-rfp-documents";
@@ -256,48 +257,116 @@ export function Step1BUpload({
     }
   }
 
+  const PHASE_STEP: Record<typeof phase, number> = {
+    upload: 2,
+    analyzing: 3,
+    results: 4,
+    memory: 5,
+    intel: 6,
+    team: 7,
+    brain: 8,
+    insights: 9,
+    launch: 10,
+  };
+  const PHASE_ORDER: Array<typeof phase> = [
+    "upload",
+    "analyzing",
+    "results",
+    "memory",
+    "intel",
+    "team",
+    "brain",
+    "insights",
+    "launch",
+  ];
+  const goBack = () => {
+    const idx = PHASE_ORDER.indexOf(phase);
+    if (idx > 0) setPhase(PHASE_ORDER[idx - 1]);
+    else navigate({ to: "/olympus/missions" });
+  };
+
+  const chrome = <MissionWizardChrome step={PHASE_STEP[phase]} onBack={goBack} />;
+
   if (phase === "analyzing") {
-    return <MissionAnalysisAnimation onComplete={() => setPhase("results")} />;
+    return (
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <MissionAnalysisAnimation onComplete={() => setPhase("results")} />
+      </div>
+    );
   }
   if (phase === "results") {
-    return <MissionAnalysisResults missionId={missionId} onContinue={() => setPhase("memory")} />;
+    return (
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <MissionAnalysisResults missionId={missionId} onContinue={() => setPhase("memory")} />
+      </div>
+    );
   }
   if (phase === "memory") {
-    return <MissionMemoryChat missionId={missionId} onContinue={() => setPhase("intel")} />;
+    return (
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <MissionMemoryChat missionId={missionId} onContinue={() => setPhase("intel")} />
+      </div>
+    );
   }
   if (phase === "intel") {
-    return <MissionIntelDropScreen missionId={missionId} onContinue={() => setPhase("team")} />;
+    return (
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <MissionIntelDropScreen missionId={missionId} onContinue={() => setPhase("team")} />
+      </div>
+    );
   }
   if (phase === "team") {
-    return <MissionTeamAssignScreen missionId={missionId} onContinue={() => setPhase("brain")} />;
+    return (
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <MissionTeamAssignScreen missionId={missionId} onContinue={() => setPhase("brain")} />
+      </div>
+    );
   }
   if (phase === "brain") {
     return (
-      <MissionBrainScreen
-        missionId={missionId}
-        onContinue={() => setPhase("insights")}
-        onJumpToPhase={(p) => setPhase(p as typeof phase)}
-      />
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <MissionBrainScreen
+          missionId={missionId}
+          onContinue={() => setPhase("insights")}
+          onJumpToPhase={(p) => setPhase(p as typeof phase)}
+        />
+      </div>
     );
   }
   if (phase === "insights") {
-    return <AthenaInsightsScreen missionId={missionId} onContinue={() => setPhase("launch")} />;
+    return (
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <AthenaInsightsScreen missionId={missionId} onContinue={() => setPhase("launch")} />
+      </div>
+    );
   }
   if (phase === "launch") {
     return (
-      <MissionLaunchScreen
-        missionId={missionId}
-        onLaunched={onAdvance}
-        onJumpToPhase={(p) => setPhase(p as typeof phase)}
-      />
+      <div style={{ background: "#080c14", minHeight: "100vh" }}>
+        {chrome}
+        <MissionLaunchScreen
+          missionId={missionId}
+          onLaunched={onAdvance}
+          onJumpToPhase={(p) => setPhase(p as typeof phase)}
+        />
+      </div>
     );
   }
 
   return (
     <div
-      className="min-h-screen flex flex-col px-4 py-10"
-      style={{ background: "#0A1628", color: "white" }}
+      className="min-h-screen flex flex-col"
+      style={{ background: "#080c14", color: "white" }}
     >
+      {chrome}
+      <div className="flex-1 px-4 py-10">
       <style>{`
         @keyframes feed-shimmer {
           0% { background-position: -200% 0; }
@@ -323,7 +392,7 @@ export function Step1BUpload({
           <div className="pt-1 flex-1">
             <div
               className="text-[11px] uppercase tracking-[0.22em]"
-              style={{ color: "#C49A2B" }}
+              style={{ color: "#c9a84c" }}
             >
               IRIS · Mission Intelligence Officer
             </div>
@@ -353,17 +422,17 @@ export function Step1BUpload({
           )}
           style={{
             background: dragging
-              ? "rgba(196,154,43,0.08)"
+              ? "rgba(201,168,76,0.08)"
               : "rgba(255,255,255,0.025)",
-            border: `2px dashed ${dragging ? "#C49A2B" : "rgba(196,154,43,0.4)"}`,
+            border: `2px dashed ${dragging ? "#c9a84c" : "rgba(201,168,76,0.4)"}`,
             boxShadow: dragging
-              ? "inset 0 0 0 1px rgba(196,154,43,0.35), 0 0 40px -10px rgba(196,154,43,0.35)"
+              ? "inset 0 0 0 1px rgba(201,168,76,0.35), 0 0 40px -10px rgba(201,168,76,0.35)"
               : "inset 0 1px 0 rgba(255,255,255,0.03)",
           }}
         >
           <UploadCloud
             className="h-12 w-12"
-            style={{ color: "#C49A2B" }}
+            style={{ color: "#c9a84c" }}
             strokeWidth={1.4}
           />
           <div className="space-y-1.5">
@@ -428,10 +497,10 @@ export function Step1BUpload({
               !hasAnyDone && "opacity-40 cursor-not-allowed",
             )}
             style={{
-              background: "#C49A2B",
-              color: "#0A1628",
+              background: "#c9a84c",
+              color: "#080c14",
               boxShadow: hasAnyDone
-                ? "0 8px 24px -8px rgba(196,154,43,0.55)"
+                ? "0 8px 24px -8px rgba(201,168,76,0.55)"
                 : "none",
             }}
           >
@@ -447,6 +516,7 @@ export function Step1BUpload({
             ← Back to missions
           </button>
         </div>
+      </div>
       </div>
     </div>
   );
@@ -475,7 +545,7 @@ function FileRow({ row, onRemove }: { row: Row; onRemove: () => void }) {
           <div className="mt-1.5 h-[3px] w-full rounded-full overflow-hidden bg-white/8">
             <div
               className="h-full transition-all duration-200"
-              style={{ width: `${row.progress}%`, background: "#C49A2B" }}
+              style={{ width: `${row.progress}%`, background: "#c9a84c" }}
             />
           </div>
         )}
@@ -510,8 +580,8 @@ function FileRow({ row, onRemove }: { row: Row; onRemove: () => void }) {
           <span
             className="text-[11px] shrink-0 px-2.5 py-1 rounded-full font-medium"
             style={{
-              color: "#0A1628",
-              background: "#C49A2B",
+              color: "#080c14",
+              background: "#c9a84c",
             }}
           >
             {row.label}

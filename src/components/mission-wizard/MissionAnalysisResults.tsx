@@ -154,7 +154,7 @@ export function MissionAnalysisResults({
   return (
     <div
       className="min-h-screen px-4 py-10"
-      style={{ background: "#0A1628", color: "white" }}
+      style={{ background: "#080c14", color: "white" }}
     >
       <div className="w-full max-w-[1100px] mx-auto">
         {/* IRIS header */}
@@ -174,7 +174,7 @@ export function MissionAnalysisResults({
           <div className="pt-1 flex-1">
             <div
               className="text-[11px] uppercase tracking-[0.22em]"
-              style={{ color: "#C49A2B" }}
+              style={{ color: "#c9a84c" }}
             >
               IRIS · Mission Analysis Complete
             </div>
@@ -214,9 +214,9 @@ export function MissionAnalysisResults({
             onClick={onContinue}
             className="inline-flex items-center gap-2 rounded-lg px-6 py-3 text-[14px] font-medium transition-all"
             style={{
-              background: "#C49A2B",
-              color: "#0A1628",
-              boxShadow: "0 8px 24px -8px rgba(196,154,43,0.55)",
+              background: "#c9a84c",
+              color: "#080c14",
+              boxShadow: "0 8px 24px -8px rgba(201,168,76,0.55)",
             }}
           >
             Looks good — continue →
@@ -244,7 +244,7 @@ export function MissionAnalysisResults({
               <div>
                 <div
                   className="text-[11px] uppercase tracking-[0.22em]"
-                  style={{ color: "#C49A2B" }}
+                  style={{ color: "#c9a84c" }}
                 >
                   Edit · {cards.find((c) => c.key === editing)?.title}
                 </div>
@@ -280,7 +280,7 @@ export function MissionAnalysisResults({
               <button
                 onClick={saveEdit}
                 className="px-4 py-2 rounded-md text-[13px] font-medium"
-                style={{ background: "#C49A2B", color: "#0A1628" }}
+                style={{ background: "#c9a84c", color: "#080c14" }}
               >
                 Save
               </button>
@@ -324,8 +324,8 @@ function Card({
         <span
           className="absolute top-3 right-3 inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full"
           style={{
-            background: "rgba(196,154,43,0.18)",
-            border: "1px solid rgba(196,154,43,0.5)",
+            background: "rgba(201,168,76,0.18)",
+            border: "1px solid rgba(201,168,76,0.5)",
             color: "#F5E6B8",
           }}
         >
@@ -351,11 +351,11 @@ function Card({
         <div
           className="h-8 w-8 rounded-md flex items-center justify-center shrink-0"
           style={{
-            background: "rgba(196,154,43,0.1)",
-            border: "1px solid rgba(196,154,43,0.3)",
+            background: "rgba(201,168,76,0.1)",
+            border: "1px solid rgba(201,168,76,0.3)",
           }}
         >
-          <Icon className="h-4 w-4" style={{ color: "#C49A2B" }} />
+          <Icon className="h-4 w-4" style={{ color: "#c9a84c" }} />
         </div>
         <div className="text-[11px] uppercase tracking-[0.18em] text-white/55">
           {def.title}
@@ -416,8 +416,8 @@ function ActionButton({
         }
       : tone === "active-gold"
         ? {
-            background: "rgba(196,154,43,0.15)",
-            border: "1px solid rgba(196,154,43,0.5)",
+            background: "rgba(201,168,76,0.15)",
+            border: "1px solid rgba(201,168,76,0.5)",
             color: "#F5E6B8",
           }
         : {

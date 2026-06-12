@@ -127,7 +127,7 @@ export function MissionLaunchScreen({
     : "—";
 
   return (
-    <div className="min-h-screen px-4 py-10" style={{ background: "#0A1628", color: "white" }}>
+    <div className="min-h-screen px-4 py-10" style={{ background: "#080c14", color: "white" }}>
       <div className="max-w-[920px] mx-auto">
         {/* IRIS header */}
         <div className="flex items-start gap-4 mb-8">
@@ -144,7 +144,7 @@ export function MissionLaunchScreen({
             <IrisMark size={32} glow />
           </div>
           <div className="pt-1 flex-1">
-            <div className="text-[11px] uppercase tracking-[0.22em]" style={{ color: "#C49A2B" }}>
+            <div className="text-[11px] uppercase tracking-[0.22em]" style={{ color: "#c9a84c" }}>
               IRIS · Mission Dossier
             </div>
             <div className="text-white text-[18px] mt-1 leading-snug">
@@ -183,7 +183,7 @@ export function MissionLaunchScreen({
                   <button
                     onClick={() => onJumpToPhase(c.fixTo!)}
                     className="text-[12px] font-medium"
-                    style={{ color: "#C49A2B" }}
+                    style={{ color: "#c9a84c" }}
                   >
                     Complete now →
                   </button>
@@ -208,7 +208,7 @@ export function MissionLaunchScreen({
           {themes.length ? (
             <ul className="space-y-2">
               {themes.map((t, i) => (
-                <li key={i} className="text-[13.5px] text-white/80 leading-relaxed pl-3 border-l-2" style={{ borderColor: "#C49A2B" }}>
+                <li key={i} className="text-[13.5px] text-white/80 leading-relaxed pl-3 border-l-2" style={{ borderColor: "#c9a84c" }}>
                   {t}
                 </li>
               ))}
@@ -288,12 +288,12 @@ export function MissionLaunchScreen({
                   key={i}
                   className="text-[13.5px] rounded-lg px-3 py-2.5"
                   style={{
-                    background: "rgba(196,154,43,0.06)",
-                    border: "1px solid rgba(196,154,43,0.25)",
+                    background: "rgba(201,168,76,0.06)",
+                    border: "1px solid rgba(201,168,76,0.25)",
                     color: "rgba(255,255,255,0.85)",
                   }}
                 >
-                  <span style={{ color: "#C49A2B", fontWeight: 600 }}>{m.title}. </span>
+                  <span style={{ color: "#c9a84c", fontWeight: 600 }}>{m.title}. </span>
                   {m.content}
                 </li>
               ))}
@@ -316,9 +316,9 @@ export function MissionLaunchScreen({
               (launching || loading) && "opacity-70 cursor-not-allowed",
             )}
             style={{
-              background: "linear-gradient(180deg, #D9B04A 0%, #C49A2B 50%, #A37E1F 100%)",
-              color: "#0A1628",
-              boxShadow: "0 16px 50px -12px rgba(196,154,43,0.65), inset 0 1px 0 rgba(255,255,255,0.35)",
+              background: "linear-gradient(180deg, #D9B04A 0%, #c9a84c 50%, #A37E1F 100%)",
+              color: "#080c14",
+              boxShadow: "0 16px 50px -12px rgba(201,168,76,0.65), inset 0 1px 0 rgba(255,255,255,0.35)",
             }}
           >
             <Rocket className="h-5 w-5" />
@@ -353,7 +353,7 @@ function Section({
       }}
     >
       <div className="flex items-center gap-2 mb-4">
-        <span style={{ color: "#C49A2B" }}>{icon}</span>
+        <span style={{ color: "#c9a84c" }}>{icon}</span>
         <h3 className="text-[13px] uppercase tracking-[0.18em] text-white/75 font-medium">
           {title}
         </h3>

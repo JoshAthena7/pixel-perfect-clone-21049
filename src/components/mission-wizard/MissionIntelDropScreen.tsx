@@ -15,7 +15,7 @@ type Entry = {
 };
 
 const TAG_COLORS: Record<Tag, { bg: string; fg: string; border: string }> = {
-  Stakeholder:  { bg: "rgba(196,154,43,0.12)", fg: "#E8C26B", border: "rgba(196,154,43,0.35)" },
+  Stakeholder:  { bg: "rgba(201,168,76,0.12)", fg: "#E8C26B", border: "rgba(201,168,76,0.35)" },
   Competitor:   { bg: "rgba(229,115,115,0.12)", fg: "#F2A6A6", border: "rgba(229,115,115,0.35)" },
   Political:    { bg: "rgba(123,150,229,0.12)", fg: "#B5C7F2", border: "rgba(123,150,229,0.35)" },
   Relationship: { bg: "rgba(140,200,150,0.12)", fg: "#B7E0BF", border: "rgba(140,200,150,0.35)" },
@@ -124,12 +124,12 @@ export function MissionIntelDropScreen({
   const removeEntry = (id: string) => setEntries((prev) => prev.filter((e) => e.id !== id));
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#0A1628", color: "#E8EEF7" }}>
+    <div className="min-h-screen flex flex-col" style={{ background: "#080c14", color: "#E8EEF7" }}>
       {/* Header */}
       <div className="flex items-start gap-3 px-6 pt-6 pb-4 border-b border-white/5">
         <IrisMark size={36} />
         <div className="flex-1">
-          <div className="text-[12px] uppercase tracking-[0.14em]" style={{ color: "#C49A2B" }}>IRIS</div>
+          <div className="text-[12px] uppercase tracking-[0.14em]" style={{ color: "#c9a84c" }}>IRIS</div>
           <div className="text-[15px] text-white/90 mt-1 max-w-[680px] leading-relaxed">
             What else should I know? Drop anything — stakeholder intel, political context, competitor notes,
             relationship history, capture strategy. I'll figure out where it belongs.
@@ -138,7 +138,7 @@ export function MissionIntelDropScreen({
         <button
           onClick={onContinue}
           className="text-[13px] px-4 py-2 rounded-md transition hover:opacity-90"
-          style={{ background: entries.length ? "#C49A2B" : "transparent", color: entries.length ? "#0D1B3E" : "#9AA7BD", border: entries.length ? "none" : "1px solid rgba(255,255,255,0.18)" }}
+          style={{ background: entries.length ? "#c9a84c" : "transparent", color: entries.length ? "#0D1B3E" : "#9AA7BD", border: entries.length ? "none" : "1px solid rgba(255,255,255,0.18)" }}
         >
           {entries.length ? "Continue →" : "Skip →"}
         </button>
@@ -166,9 +166,9 @@ export function MissionIntelDropScreen({
                     {isClassifying ? (
                       <span
                         className="text-[10.5px] uppercase tracking-wider px-2 py-0.5 rounded-full inline-flex items-center gap-1.5"
-                        style={{ background: "rgba(196,154,43,0.10)", color: "#C49A2B", border: "1px solid rgba(196,154,43,0.30)" }}
+                        style={{ background: "rgba(201,168,76,0.10)", color: "#c9a84c", border: "1px solid rgba(201,168,76,0.30)" }}
                       >
-                        <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: "#C49A2B" }} />
+                        <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: "#c9a84c" }} />
                         Classifying…
                       </span>
                     ) : (
@@ -256,7 +256,7 @@ export function MissionIntelDropScreen({
               onClick={() => draft.trim() && addEntry(draft, "text")}
               disabled={!draft.trim()}
               className="p-2 rounded-lg transition disabled:opacity-40"
-              style={{ background: draft.trim() ? "#C49A2B" : "transparent", color: draft.trim() ? "#0D1B3E" : "#9AA7BD" }}
+              style={{ background: draft.trim() ? "#c9a84c" : "transparent", color: draft.trim() ? "#0D1B3E" : "#9AA7BD" }}
               title="Add"
             >
               <Send className="h-4 w-4" />
@@ -264,7 +264,7 @@ export function MissionIntelDropScreen({
           </div>
           <div className="mt-2 flex items-center justify-between text-[11px] text-white/35">
             <div className="flex items-center gap-1.5">
-              <Sparkles className="h-3 w-3" style={{ color: "#C49A2B" }} />
+              <Sparkles className="h-3 w-3" style={{ color: "#c9a84c" }} />
               <span>IRIS auto-classifies each entry</span>
             </div>
             <div>⌘/Ctrl + Enter to add</div>

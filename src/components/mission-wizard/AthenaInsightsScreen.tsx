@@ -115,7 +115,7 @@ export function AthenaInsightsScreen({
   return (
     <div
       className="min-h-screen px-4 py-10"
-      style={{ background: "#0A1628", color: "white" }}
+      style={{ background: "#080c14", color: "white" }}
     >
       <div className="max-w-[1240px] mx-auto">
         {/* IRIS header */}
@@ -135,7 +135,7 @@ export function AthenaInsightsScreen({
           <div className="pt-1 flex-1">
             <div
               className="text-[11px] uppercase tracking-[0.22em]"
-              style={{ color: "#C49A2B" }}
+              style={{ color: "#c9a84c" }}
             >
               IRIS · Athena Insights
             </div>
@@ -184,16 +184,16 @@ export function AthenaInsightsScreen({
           <aside
             className="rounded-xl p-5 h-fit lg:sticky lg:top-6"
             style={{
-              background: "rgba(196,154,43,0.04)",
-              border: "1px solid rgba(196,154,43,0.25)",
-              boxShadow: "0 0 40px -20px rgba(196,154,43,0.35)",
+              background: "rgba(201,168,76,0.04)",
+              border: "1px solid rgba(201,168,76,0.25)",
+              boxShadow: "0 0 40px -20px rgba(201,168,76,0.35)",
             }}
           >
             <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="h-4 w-4" style={{ color: "#C49A2B" }} />
+              <Sparkles className="h-4 w-4" style={{ color: "#c9a84c" }} />
               <div
                 className="text-[11px] uppercase tracking-[0.22em]"
-                style={{ color: "#C49A2B" }}
+                style={{ color: "#c9a84c" }}
               >
                 Mission Guidance
               </div>
@@ -214,11 +214,11 @@ export function AthenaInsightsScreen({
                     key={i.id}
                     className="rounded-lg px-3 py-2.5 text-[12.5px] text-white/85 leading-snug"
                     style={{
-                      background: "rgba(196,154,43,0.08)",
-                      border: "1px solid rgba(196,154,43,0.3)",
+                      background: "rgba(201,168,76,0.08)",
+                      border: "1px solid rgba(201,168,76,0.3)",
                     }}
                   >
-                    <span style={{ color: "#C49A2B", fontWeight: 600 }}>
+                    <span style={{ color: "#c9a84c", fontWeight: 600 }}>
                       {i.title}.
                     </span>{" "}
                     {i.body}
@@ -235,9 +235,9 @@ export function AthenaInsightsScreen({
             onClick={onContinue}
             className="inline-flex items-center gap-2 rounded-lg px-6 py-3 text-[14px] font-medium transition-all"
             style={{
-              background: "#C49A2B",
-              color: "#0A1628",
-              boxShadow: "0 8px 24px -8px rgba(196,154,43,0.55)",
+              background: "#c9a84c",
+              color: "#080c14",
+              boxShadow: "0 8px 24px -8px rgba(201,168,76,0.55)",
             }}
           >
             Continue →
@@ -261,7 +261,7 @@ export function AthenaInsightsScreen({
             <button
               onClick={undoReject}
               className="inline-flex items-center gap-1.5 text-[12.5px] font-medium px-2.5 py-1 rounded"
-              style={{ color: "#C49A2B" }}
+              style={{ color: "#c9a84c" }}
             >
               <Undo2 className="h-3.5 w-3.5" />
               Undo
@@ -307,13 +307,13 @@ function InsightCard({
       )}
       style={{
         background: isAccepted
-          ? "rgba(196,154,43,0.06)"
+          ? "rgba(201,168,76,0.06)"
           : "rgba(255,255,255,0.03)",
         border: isAccepted
-          ? "1px solid #C49A2B"
+          ? "1px solid #c9a84c"
           : "1px solid rgba(255,255,255,0.08)",
         boxShadow: isAccepted
-          ? "0 0 24px -10px rgba(196,154,43,0.6)"
+          ? "0 0 24px -10px rgba(201,168,76,0.6)"
           : "none",
       }}
     >
@@ -322,7 +322,7 @@ function InsightCard({
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full bg-transparent border-b border-white/15 pb-1.5 text-[15px] font-medium text-white focus:outline-none focus:border-[#C49A2B]"
+            className="w-full bg-transparent border-b border-white/15 pb-1.5 text-[15px] font-medium text-white focus:outline-none focus:border-[#c9a84c]"
           />
           <textarea
             value={body}
@@ -341,7 +341,7 @@ function InsightCard({
             <button
               onClick={() => onSaveEdit(title.trim() || insight.title, body.trim() || insight.body)}
               className="px-3 py-1.5 text-[12.5px] font-medium rounded"
-              style={{ background: "#C49A2B", color: "#0A1628" }}
+              style={{ background: "#c9a84c", color: "#080c14" }}
             >
               Save
             </button>
@@ -358,9 +358,9 @@ function InsightCard({
                 <span
                   className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded"
                   style={{
-                    color: "#C49A2B",
-                    background: "rgba(196,154,43,0.12)",
-                    border: "1px solid rgba(196,154,43,0.3)",
+                    color: "#c9a84c",
+                    background: "rgba(201,168,76,0.12)",
+                    border: "1px solid rgba(201,168,76,0.3)",
                   }}
                 >
                   Edited
@@ -369,7 +369,7 @@ function InsightCard({
               {isAccepted && (
                 <span
                   className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded font-medium"
-                  style={{ color: "#0A1628", background: "#C49A2B" }}
+                  style={{ color: "#080c14", background: "#c9a84c" }}
                 >
                   <Check className="h-2.5 w-2.5" />
                   Guidance
