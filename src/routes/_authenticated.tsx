@@ -75,6 +75,9 @@ function withTimeout<T>(promise: PromiseLike<T>, ms: number, fallback: T): Promi
 
 // Paths a non-admin is allowed to view outside the V1 shell.
 const NON_ADMIN_ALLOWED_PREFIXES = [
+  "/home",
+  "/welcome",
+  "/onboarding",
   "/my-work",
   "/portfolio",
   "/flight-deck",
