@@ -413,7 +413,9 @@ export const getMissionActivity = createServerFn({ method: "POST" })
       score_me: (scoreRes.data ?? []).length,
       mission_pulse: (pulseRes.data ?? []).length,
       sos: (sosRes.data ?? []).filter((r: any) => r.update_type === "sos").length,
+      conflict: (conflictRes.data ?? []).length,
     };
+
 
     return { items, rail, counts, range: data.range };
   });
