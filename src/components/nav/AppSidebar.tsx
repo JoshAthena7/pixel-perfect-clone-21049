@@ -34,7 +34,7 @@ const MISSION_ITEMS: NavItem[] = [
 const MY_WORK_ITEMS: NavItem[] = [
   { to: "/missions/$missionId/flight-deck", label: "Flight Deck", Icon: LayoutDashboard, needsMission: true },
   { to: "/missions/$missionId/qa", label: "Q&A Log", Icon: MessageSquare, needsMission: true },
-  { to: "/missions/$missionId/scores", label: "My Scores", Icon: Target, needsMission: true },
+  
 ];
 
 const ADMIN_ITEMS: NavItem[] = [
