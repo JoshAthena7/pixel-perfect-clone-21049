@@ -68,7 +68,7 @@ export function IconRail() {
       href: activeMissionId ? `/missions/${activeMissionId}/briefing` : "/home",
     },
     {
-      label: "Desk",
+      label: "Launch Pad",
       Icon: LayoutGrid,
       active: deskActive,
       href: "/olympus/flight-deck",
