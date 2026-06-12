@@ -241,6 +241,12 @@ export function FlightDeckLayout({
         questionText={activeQ?.question_text ?? null}
         dueDate={activeAsg?.due_date ?? activeQ?.due_date ?? null}
         confidence={activeAsg?.writer_confidence ?? null}
+        threadOpen={threadOpen}
+        onThreadOpenChange={setThreadOpen}
+        pulseOpen={pulseOpen}
+        onPulseOpenChange={(v) => { setPulseOpen(v); if (!v) setPulsePrefill(null); }}
+        pulsePrefill={pulsePrefill}
+        onPulsePrefillConsumed={() => setPulsePrefill(null)}
         onHealthChanged={() => {
           // optimistic local update + cache invalidation
           if (activeQ) {
