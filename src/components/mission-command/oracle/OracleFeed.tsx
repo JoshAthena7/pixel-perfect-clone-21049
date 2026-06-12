@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { formatDistanceToNow } from "date-fns";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Loader2, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { ErrorBanner, EmptyState, SkeletonList, OlympusLink } from "./OracleShared";
+import { runIrisSweep } from "@/lib/iris-sweep.functions";
 import type { Database } from "@/integrations/supabase/types";
 
 type FeedItem = Database["public"]["Tables"]["intelligence_feed_items"]["Row"];
@@ -12,22 +15,26 @@ type FeedItem = Database["public"]["Tables"]["intelligence_feed_items"]["Row"];
 const CATEGORIES: { id: string; label: string }[] = [
   { id: "all", label: "All" },
   { id: "federal_policy", label: "Federal Policy" },
+  { id: "state_policy", label: "State Policy" },
   { id: "legislative", label: "Legislation" },
   { id: "stakeholder", label: "Stakeholder" },
   { id: "research", label: "Research" },
   { id: "competitive", label: "Competitor" },
   { id: "procurement", label: "Procurement" },
   { id: "regulatory", label: "Regulatory" },
+  { id: "mission_risk", label: "Mission Risk" },
 ];
 
 const CATEGORY_COLOR: Record<string, { bg: string; fg: string; border: string }> = {
   federal_policy: { bg: "rgba(224,74,74,0.12)", fg: "#f08080", border: "rgba(224,74,74,0.3)" },
+  state_policy: { bg: "rgba(224,128,74,0.12)", fg: "#f0a070", border: "rgba(224,128,74,0.3)" },
   legislative: { bg: "rgba(125,207,125,0.12)", fg: "#7DCF7D", border: "rgba(125,207,125,0.3)" },
   stakeholder: { bg: "rgba(140,130,230,0.12)", fg: "#a39adf", border: "rgba(140,130,230,0.3)" },
   research: { bg: "rgba(123,167,212,0.12)", fg: "#7BA7D4", border: "rgba(123,167,212,0.3)" },
   competitive: { bg: "rgba(239,159,39,0.12)", fg: "#EF9F27", border: "rgba(239,159,39,0.3)" },
   procurement: { bg: "rgba(196,154,43,0.12)", fg: "#C49A2B", border: "rgba(196,154,43,0.3)" },
   regulatory: { bg: "rgba(239,191,39,0.12)", fg: "#EFBF27", border: "rgba(239,191,39,0.3)" },
+  mission_risk: { bg: "rgba(224,74,74,0.15)", fg: "#f08080", border: "rgba(224,74,74,0.4)" },
 };
 
 const CAT_LABEL: Record<string, string> = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.label]));
@@ -35,6 +42,8 @@ const CAT_LABEL: Record<string, string> = Object.fromEntries(CATEGORIES.map((c) 
 export function OracleFeed({ missionId, isAdmin }: { missionId: string; isAdmin: boolean }) {
   const [category, setCategory] = useState("all");
   const [search, setSearch] = useState("");
+  const qc = useQueryClient();
+  const sweepFn = useServerFn(runIrisSweep);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["oracle-ro-feed", missionId],
@@ -50,6 +59,16 @@ export function OracleFeed({ missionId, isAdmin }: { missionId: string; isAdmin:
       return (data ?? []) as FeedItem[];
     },
     staleTime: 60_000,
+  });
+
+  const sweep = useMutation({
+    mutationFn: () => sweepFn({ data: { missionId } }),
+    onSuccess: (r) => {
+      toast.success(`IRIS sweep complete — ${r.inserted} items added`);
+      if (r.failures.length) toast.warning(`${r.failures.length} category(ies) had issues`);
+      qc.invalidateQueries({ queryKey: ["oracle-ro-feed", missionId] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "IRIS sweep failed"),
   });
 
   const filtered = useMemo(() => {
@@ -96,7 +115,28 @@ export function OracleFeed({ missionId, isAdmin }: { missionId: string; isAdmin:
         })}
       </div>
 
-      {isAdmin && <OlympusLink>Manage sources in Olympus →</OlympusLink>}
+      {isAdmin && (
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => sweep.mutate()}
+            disabled={sweep.isPending}
+            className="inline-flex items-center gap-1.5 rounded transition-colors disabled:opacity-50"
+            style={{
+              padding: "4px 10px",
+              fontSize: 11,
+              color: "#C49A2B",
+              background: "rgba(196,154,43,0.10)",
+              border: "1px solid rgba(196,154,43,0.35)",
+            }}
+            title="Ask IRIS to research Legislation, Stakeholder, Competitor, Procurement, and Regulatory items for this mission"
+          >
+            {sweep.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+            {sweep.isPending ? "IRIS is researching…" : "Run IRIS Sweep"}
+          </button>
+          <OlympusLink>Manage sources in Olympus →</OlympusLink>
+        </div>
+      )}
 
       {isLoading ? (
         <SkeletonList count={3} />
