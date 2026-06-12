@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_messages: {
+        Row: {
+          attachment_url: string | null
+          body: string
+          created_at: string
+          id: string
+          opened_count: number
+          recipient_ids: string[]
+          recipient_scope: string
+          sender_id: string
+          sent_at: string | null
+          status: string
+          subject: string
+          total_recipients: number
+          updated_at: string
+        }
+        Insert: {
+          attachment_url?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          opened_count?: number
+          recipient_ids?: string[]
+          recipient_scope?: string
+          sender_id: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          total_recipients?: number
+          updated_at?: string
+        }
+        Update: {
+          attachment_url?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          opened_count?: number
+          recipient_ids?: string[]
+          recipient_scope?: string
+          sender_id?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          total_recipients?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       alignment_conflicts: {
         Row: {
           conflict_type: string
