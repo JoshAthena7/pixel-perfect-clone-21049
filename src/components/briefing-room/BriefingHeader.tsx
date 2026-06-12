@@ -23,7 +23,9 @@ export function HealthBadge({ health, size = "lg" }: { health: "green" | "amber"
 }
 
 import { Link } from "@tanstack/react-router";
-import { Wand2 } from "lucide-react";
+import { Wand2, Pencil } from "lucide-react";
+import { useState } from "react";
+import { MissionEditPanel } from "@/components/missions/MissionEditPanel";
 
 export function BriefingHeader({
   missionName,
@@ -38,8 +40,12 @@ export function BriefingHeader({
   missionId?: string;
   isAdmin?: boolean;
 }) {
+  const [editOpen, setEditOpen] = useState(false);
   return (
     <header className="mb-6">
+      {isAdmin && missionId && (
+        <MissionEditPanel missionId={missionId} open={editOpen} onOpenChange={setEditOpen} />
+      )}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 style={{ color: "white", fontSize: 18, fontWeight: 500 }} className="truncate">
@@ -53,13 +59,22 @@ export function BriefingHeader({
         </div>
         <div className="flex items-center gap-2">
           {isAdmin && missionId && (
-            <Link
-              to="/olympus/missions/$missionId/wizard"
-              params={{ missionId }}
-              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--athena-gold)]/40 bg-[var(--athena-gold)]/10 px-2.5 py-1 text-[11px] font-medium text-[var(--athena-gold)] hover:bg-[var(--athena-gold)]/20 transition-colors"
-            >
-              <Wand2 className="h-3 w-3" /> Enhance in Olympus
-            </Link>
+            <>
+              <button
+                type="button"
+                onClick={() => setEditOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-surface/60 px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-surface transition-colors"
+              >
+                <Pencil className="h-3 w-3" /> Edit Mission
+              </button>
+              <Link
+                to="/olympus/missions/$missionId/wizard"
+                params={{ missionId }}
+                className="inline-flex items-center gap-1.5 rounded-md border border-[var(--athena-gold)]/40 bg-[var(--athena-gold)]/10 px-2.5 py-1 text-[11px] font-medium text-[var(--athena-gold)] hover:bg-[var(--athena-gold)]/20 transition-colors"
+              >
+                <Wand2 className="h-3 w-3" /> Enhance in Olympus
+              </Link>
+            </>
           )}
           <HealthBadge health={health} />
         </div>
