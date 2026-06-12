@@ -100,7 +100,7 @@ export function OracleStakeholders({ missionId, isAdmin, ctx }: { missionId: str
       {isLoading ? (
         <SkeletonList count={2} />
       ) : filtered.length === 0 ? (
-        <EmptyState>No stakeholder profiles configured. Add them in Olympus.</EmptyState>
+        <EmptyState>{agencyTag ? `No stakeholder profiles for ${agencyTag} yet. Add them in Olympus.` : "No stakeholder profiles configured. Add them in Olympus."}</EmptyState>
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {filtered.map((s) => (
