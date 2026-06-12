@@ -290,36 +290,49 @@ export const getMissionMap = createServerFn({ method: "POST" })
     const qaByQ: Record<string, any> = {};
     for (const a of qaRes.data ?? []) qaByQ[a.question_id] = a;
 
-    const sections = (sectionsRes.data ?? []).map((s: any) => {
-      const qs = (questionsRes.data ?? [])
-        .filter((q: any) => q.section_id === s.id)
-        .sort((a: any, b: any) => String(a.question_number ?? "").localeCompare(String(b.question_number ?? "")))
-        .map((q: any) => {
-          const a = assignmentByQ[q.id];
-          const qa = qaByQ[q.id];
-          const writer = a?.assigned_writer_id ? writerNames[a.assigned_writer_id] : qa?.writer_name ?? null;
-          const sme = qa?.athena_sme_name ?? qa?.client_sme_name ?? null;
-          return {
-            id: q.id,
-            number: q.question_number,
-            text: q.question_text,
-            status: q.status,
-            health: q.health_status,
-            confidence: q.iris_confidence,
-            writer,
-            sme,
-          };
-        });
-      return { id: s.id, name: s.name, number: s.section_number, questions: qs };
-    });
+    const mapQ = (q: any) => {
+      const a = assignmentByQ[q.id];
+      const qa = qaByQ[q.id];
+      const writer = a?.assigned_writer_id ? writerNames[a.assigned_writer_id] : qa?.writer_name ?? null;
+      const sme = qa?.athena_sme_name ?? qa?.client_sme_name ?? null;
+      return {
+        id: q.id,
+        number: q.question_number,
+        text: q.question_text,
+        status: q.status,
+        health: q.health_status,
+        confidence: q.iris_confidence,
+        writer,
+        sme,
+      };
+    };
 
     const allQs = questionsRes.data ?? [];
+    const sortQs = (qs: any[]) =>
+      qs.sort((a: any, b: any) => String(a.question_number ?? "").localeCompare(String(b.question_number ?? "")));
+
+    const sections = (sectionsRes.data ?? [])
+      .map((s: any) => ({
+        id: s.id,
+        name: s.name,
+        number: s.section_number,
+        questions: sortQs(allQs.filter((q: any) => q.section_id === s.id)).map(mapQ),
+      }))
+      // hide sections with no questions when there is nothing to show
+      .filter((s: any) => s.questions.length > 0);
+
+    const unassigned = sortQs(allQs.filter((q: any) => !q.section_id)).map(mapQ);
+    if (unassigned.length > 0) {
+      sections.push({ id: "__unassigned__", name: "Unassigned", number: null, questions: unassigned });
+    }
+
     return {
       sections,
       totals: {
         total: allQs.length,
         complete: allQs.filter((q: any) => q.status === "complete").length,
         inProgress: allQs.filter((q: any) => q.status === "in_progress").length,
+        notStarted: allQs.filter((q: any) => q.status === "not_started" || !q.status).length,
         atRisk: allQs.filter((q: any) => q.health_status === "at_risk").length,
       },
     };
