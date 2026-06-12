@@ -504,3 +504,71 @@ export const getSignals = createServerFn({ method: "POST" })
     signals.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return { signals: signals.slice(0, 10) };
   });
+
+// ============================================================
+// 11. Timeline (read-only Journey summary)
+// ============================================================
+export const getTimeline = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => MissionIdInput.parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context as Ctx;
+    const [missionRes, phasesRes] = await Promise.all([
+      supabase
+        .from("missions")
+        .select("submission_deadline")
+        .eq("id", data.missionId)
+        .maybeSingle(),
+      supabase
+        .from("mission_journey_phases")
+        .select("id,name,kind,start_date,end_date,order_index,is_cleared")
+        .eq("mission_id", data.missionId)
+        .eq("is_cleared", false)
+        .order("order_index", { ascending: true }),
+    ]);
+    const phases = (phasesRes.data ?? []).filter((p: any) => p.kind !== "milestone" ? true : true);
+    const now = Date.now();
+    const allPhases = phasesRes.data ?? [];
+    const phaseRows = allPhases.filter((p: any) => p.kind === "phase");
+    const current = phaseRows.find((p: any) => {
+      const s = p.start_date ? new Date(p.start_date).getTime() : null;
+      const e = p.end_date ? new Date(p.end_date).getTime() : null;
+      return s != null && e != null && now >= s && now <= e;
+    }) ?? null;
+
+    // Phase rail: all phase-kind rows in order, with status.
+    const rail = phaseRows.map((p: any) => {
+      const s = p.start_date ? new Date(p.start_date).getTime() : null;
+      const e = p.end_date ? new Date(p.end_date).getTime() : null;
+      let status: "completed" | "current" | "upcoming" = "upcoming";
+      if (e != null && e < now) status = "completed";
+      else if (s != null && e != null && now >= s && now <= e) status = "current";
+      return { id: p.id, name: p.name, status };
+    });
+
+    // Upcoming "milestones" = gates/pens_down/milestone-kind due within 7 days.
+    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+    const milestones = (phasesRes.data ?? [])
+      .filter((p: any) => p.kind === "gate" || p.kind === "milestone" || p.kind === "pens_down")
+      .map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        dueDate: p.end_date ?? p.start_date ?? null,
+      }))
+      .filter((m: any) => m.dueDate)
+      .map((m: any) => {
+        const due = new Date(m.dueDate).getTime();
+        return { ...m, daysUntil: Math.ceil((due - now) / (1000 * 60 * 60 * 24)) };
+      })
+      .filter((m: any) => m.daysUntil <= 7)
+      .sort((a: any, b: any) => a.daysUntil - b.daysUntil);
+
+    return {
+      currentPhase: current
+        ? { name: current.name, startDate: current.start_date, endDate: current.end_date }
+        : null,
+      rail,
+      milestones,
+      submissionDeadline: missionRes.data?.submission_deadline ?? null,
+    };
+  });

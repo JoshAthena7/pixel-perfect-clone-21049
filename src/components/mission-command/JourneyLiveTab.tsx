@@ -168,11 +168,42 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
     if (!phases?.length) return null;
     const starts = phases.map((p) => p.start_date ? new Date(p.start_date).getTime() : Infinity);
     const ends = phases.map((p) => p.end_date ? new Date(p.end_date).getTime() : -Infinity);
-    const min = Math.min(...starts);
-    const max = Math.max(...ends);
+    let min = Math.min(...starts);
+    let max = Math.max(...ends);
+    if (deadline) {
+      const d = new Date(deadline).getTime();
+      if (isFinite(d) && d > max) max = d;
+    }
     if (!isFinite(min) || !isFinite(max) || max <= min) return null;
     return { min, max };
+  }, [phases, deadline]);
+
+  const currentPhase = useMemo(() => {
+    if (!phases?.length) return null;
+    const now = Date.now();
+    return (
+      phases.find((p) => {
+        if (p.kind !== "phase") return false;
+        const s = p.start_date ? new Date(p.start_date).getTime() : null;
+        const e = p.end_date ? new Date(p.end_date).getTime() : null;
+        return s != null && e != null && now >= s && now <= e;
+      }) ?? null
+    );
   }, [phases]);
+
+  const daysToDeadline = useMemo(() => {
+    if (!deadline) return null;
+    return Math.ceil((new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  }, [deadline]);
+
+  const countdownColor =
+    daysToDeadline == null
+      ? "text-muted-foreground"
+      : daysToDeadline < 14
+        ? "text-red-500"
+        : daysToDeadline < 30
+          ? "text-amber-500"
+          : "text-[#C49A2B]";
 
   if (isError) return <ErrorState message="Couldn't load the journey." onRetry={() => refetch()} />;
   if (isLoading) return <SkeletonRows rows={5} height="h-20" />;
@@ -187,7 +218,37 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
 
   return (
     <div className="space-y-6">
-
+      {/* Header: current phase + submission countdown */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          {currentPhase ? (
+            <>
+              <div style={{ color: "white", fontSize: 16, fontWeight: 500 }}>{currentPhase.name}</div>
+              <div className="text-muted-foreground" style={{ fontSize: 12 }}>
+                {currentPhase.start_date ? format(new Date(currentPhase.start_date), "MMM d") : "—"}
+                {" – "}
+                {currentPhase.end_date ? format(new Date(currentPhase.end_date), "MMM d") : "—"}
+              </div>
+            </>
+          ) : (
+            <div className="text-muted-foreground" style={{ fontSize: 13 }}>No active phase</div>
+          )}
+        </div>
+        {deadline && (
+          <div className="rounded-lg border p-3 text-right">
+            <div style={{ color: "white", fontSize: 13, fontWeight: 500 }}>
+              Submission: {format(new Date(deadline), "MMMM d, yyyy")}
+            </div>
+            <div className={countdownColor} style={{ fontSize: 22, fontWeight: 600, lineHeight: 1.1, marginTop: 2 }}>
+              {daysToDeadline == null
+                ? "—"
+                : daysToDeadline < 0
+                  ? `${Math.abs(daysToDeadline)} days past`
+                  : `${daysToDeadline} days remaining`}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Timeline */}
       {timelineBounds && (
@@ -227,6 +288,24 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
                 <span className="absolute -top-5 left-1 text-[10px] text-primary">Today</span>
               </div>
             )}
+            {/* Submission marker */}
+            {deadline && (() => {
+              const d = new Date(deadline).getTime();
+              if (d < timelineBounds.min || d > timelineBounds.max) return null;
+              const left = ((d - timelineBounds.min) / (timelineBounds.max - timelineBounds.min)) * 100;
+              return (
+                <div
+                  className="absolute top-0 h-20 border-l-2 border-red-500"
+                  style={{ left: `${left}%` }}
+                >
+                  <span
+                    className="absolute -top-5 right-0 text-[10px] text-red-500 whitespace-nowrap font-semibold tracking-wide"
+                  >
+                    SUBMISSION · {format(new Date(deadline), "MMM d")}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
