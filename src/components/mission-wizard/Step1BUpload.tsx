@@ -6,6 +6,7 @@ import { IrisMark } from "@/components/iris/IrisMark";
 import { MissionAnalysisAnimation } from "@/components/mission-wizard/MissionAnalysisAnimation";
 import { MissionAnalysisResults } from "@/components/mission-wizard/MissionAnalysisResults";
 import { MissionMemoryChat } from "@/components/mission-wizard/MissionMemoryChat";
+import { MissionIntelDropScreen } from "@/components/mission-wizard/MissionIntelDropScreen";
 import { cn } from "@/lib/utils";
 
 const BUCKET = "atlas-rfp-documents";
@@ -90,7 +91,7 @@ export function Step1BUpload({
   const [rows, setRows] = useState<Row[]>([]);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [phase, setPhase] = useState<"upload" | "analyzing" | "results" | "memory">("upload");
+  const [phase, setPhase] = useState<"upload" | "analyzing" | "results" | "memory" | "intel">("upload");
 
   useEffect(() => {
     (async () => {
@@ -258,7 +259,10 @@ export function Step1BUpload({
     return <MissionAnalysisResults missionId={missionId} onContinue={() => setPhase("memory")} />;
   }
   if (phase === "memory") {
-    return <MissionMemoryChat missionId={missionId} onContinue={onAdvance} />;
+    return <MissionMemoryChat missionId={missionId} onContinue={() => setPhase("intel")} />;
+  }
+  if (phase === "intel") {
+    return <MissionIntelDropScreen missionId={missionId} onContinue={onAdvance} />;
   }
 
   return (
