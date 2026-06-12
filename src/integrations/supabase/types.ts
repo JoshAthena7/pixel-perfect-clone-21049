@@ -2360,6 +2360,70 @@ export type Database = {
         }
         Relationships: []
       }
+      conflict_flags: {
+        Row: {
+          conflict_description: string
+          created_at: string
+          detected_from: string | null
+          id: string
+          mission_id: string
+          question_id_a: string
+          question_id_b: string
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+        }
+        Insert: {
+          conflict_description: string
+          created_at?: string
+          detected_from?: string | null
+          id?: string
+          mission_id: string
+          question_id_a: string
+          question_id_b: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+        }
+        Update: {
+          conflict_description?: string
+          created_at?: string
+          detected_from?: string | null
+          id?: string
+          mission_id?: string
+          question_id_a?: string
+          question_id_b?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conflict_flags_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conflict_flags_question_id_a_fkey"
+            columns: ["question_id_a"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conflict_flags_question_id_b_fkey"
+            columns: ["question_id_b"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contributions: {
         Row: {
           created_at: string
@@ -5410,11 +5474,13 @@ export type Database = {
           health_status: string
           id: string
           iris_confidence: string | null
+          iris_intel_note: string | null
           is_withdrawn: boolean
           mission_id: string
           page_limit: number | null
           question_number: string | null
           question_text: string | null
+          relevant_feed_item_ids: Json
           reviewed_by_admin: boolean
           section_id: string | null
           status: string
@@ -5429,11 +5495,13 @@ export type Database = {
           health_status?: string
           id?: string
           iris_confidence?: string | null
+          iris_intel_note?: string | null
           is_withdrawn?: boolean
           mission_id: string
           page_limit?: number | null
           question_number?: string | null
           question_text?: string | null
+          relevant_feed_item_ids?: Json
           reviewed_by_admin?: boolean
           section_id?: string | null
           status?: string
@@ -5448,11 +5516,13 @@ export type Database = {
           health_status?: string
           id?: string
           iris_confidence?: string | null
+          iris_intel_note?: string | null
           is_withdrawn?: boolean
           mission_id?: string
           page_limit?: number | null
           question_number?: string | null
           question_text?: string | null
+          relevant_feed_item_ids?: Json
           reviewed_by_admin?: boolean
           section_id?: string | null
           status?: string
@@ -7210,6 +7280,61 @@ export type Database = {
             columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      question_connections: {
+        Row: {
+          confidence: string
+          connection_type: string
+          created_at: string
+          id: string
+          iris_rationale: string | null
+          mission_id: string
+          question_id_a: string
+          question_id_b: string
+        }
+        Insert: {
+          confidence?: string
+          connection_type: string
+          created_at?: string
+          id?: string
+          iris_rationale?: string | null
+          mission_id: string
+          question_id_a: string
+          question_id_b: string
+        }
+        Update: {
+          confidence?: string
+          connection_type?: string
+          created_at?: string
+          id?: string
+          iris_rationale?: string | null
+          mission_id?: string
+          question_id_a?: string
+          question_id_b?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_connections_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_connections_question_id_a_fkey"
+            columns: ["question_id_a"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_connections_question_id_b_fkey"
+            columns: ["question_id_b"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
             referencedColumns: ["id"]
           },
         ]
