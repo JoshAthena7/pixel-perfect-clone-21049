@@ -201,7 +201,8 @@ function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolea
 
   const onDesk = pathname.startsWith("/olympus/flight-deck");
   const inMission = /^\/(?:olympus\/)?missions\/[^/]+/.test(pathname);
-  const hideSidebar = onDesk || inMission;
+  const inAdmin = pathname.startsWith("/admin");
+  const hideSidebar = onDesk || inMission || inAdmin;
   const sidebarWidth = hideSidebar ? 0 : (isMobile ? 48 : 200);
   const railWidth = 48;
 
