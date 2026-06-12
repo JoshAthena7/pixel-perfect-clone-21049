@@ -1,13 +1,17 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getNorthStar } from "@/lib/briefing-room.functions";
-import { SectionCard, Empty } from "./SectionCard";
+import { SectionCard } from "./SectionCard";
+import { extractListText } from "./format";
 
 function asText(v: any): string {
-  if (typeof v === "string") return v;
-  if (v && typeof v === "object" && "text" in v) return String(v.text);
-  return String(v ?? "");
+  return extractListText(v);
 }
+
+const MutedItalic = ({ children }: { children: React.ReactNode }) => (
+  <div style={{ color: "rgba(255,255,255,0.4)", fontStyle: "italic", fontSize: 12 }}>{children}</div>
+);
+
 
 export function SectionNorthStar({ missionId, isAdmin }: { missionId: string; isAdmin: boolean }) {
   const fn = useServerFn(getNorthStar);
