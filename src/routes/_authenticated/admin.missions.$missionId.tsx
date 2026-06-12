@@ -44,6 +44,7 @@ function AdminMissionDetail() {
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [cascaded, setCascaded] = useState(false);
+  const journeySaverRef = useRef<null | (() => Promise<void>)>(null);
 
   const { data: mission } = useQuery({
     queryKey: ["admin-mission", missionId],
