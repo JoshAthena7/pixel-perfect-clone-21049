@@ -81,6 +81,27 @@ export function OracleFeed({ missionId, isAdmin, highlightId }: { missionId: str
     });
   }, [data, category, search]);
 
+  // Scroll-to + brief gold highlight when ?highlight= matches a feed item
+  const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!highlightId || !data || data.length === 0) return;
+    const match = data.find((i) => i.id === highlightId);
+    if (!match) return;
+    // make sure search/category don't hide it
+    setSearch("");
+    setCategory("all");
+    const t1 = setTimeout(() => {
+      const el = document.getElementById(`feed-item-${highlightId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        setHighlightedItemId(highlightId);
+        const t2 = setTimeout(() => setHighlightedItemId(null), 3000);
+        return () => clearTimeout(t2);
+      }
+    }, 500);
+    return () => clearTimeout(t1);
+  }, [highlightId, data]);
+
   if (isError) return <ErrorBanner>Could not load this intelligence. Try refreshing.</ErrorBanner>;
 
   return (
