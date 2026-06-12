@@ -60,7 +60,7 @@ export const raiseSOS = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (insErr) throw insErr;
-    const sosId = (inserted as { id: string }).id;
+    const sosId = (inserted as unknown as { id: string }).id;
 
     // Step 2 — escalate question health
     if (data.questionId && (data.severity === "at_risk" || data.severity === "blocked")) {
