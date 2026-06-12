@@ -637,7 +637,7 @@ function MyWorkColumn({
           <Target className="h-3.5 w-3.5" /> Score My Response
         </div>
         <div className="mt-1 text-[11px] text-muted-foreground">
-          Paste your draft — IRIS coaches it before anyone else sees it.
+          Paste your draft from the client environment — IRIS coaches it before anyone else sees it.
         </div>
       </button>
 
