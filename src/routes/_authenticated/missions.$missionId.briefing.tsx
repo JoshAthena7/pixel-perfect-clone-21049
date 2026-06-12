@@ -54,6 +54,10 @@ function BriefingPage() {
         <Suspense fallback={<SectionSkeleton height={160} />}><SectionRisks {...props} /></Suspense>
         <Suspense fallback={<SectionSkeleton height={160} />}><SectionDocuments {...props} /></Suspense>
         <Suspense fallback={<SectionSkeleton height={180} />}><SectionSignals {...props} /></Suspense>
+        <Suspense fallback={<SectionSkeleton height={180} />}><SectionSignals {...props} /></Suspense>
+        <div className="pt-2">
+          <WinStrategyLiveTab missionId={missionId} missionName={header.mission?.name ?? "Mission"} />
+        </div>
       </div>
     </div>
   );
