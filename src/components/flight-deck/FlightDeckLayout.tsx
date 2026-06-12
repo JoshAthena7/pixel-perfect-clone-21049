@@ -16,13 +16,14 @@ import {
   AlertTriangle, Bell, PencilLine, Phone, Sparkles, MessagesSquare,
   Clock, ShieldAlert, AtSign, LifeBuoy, ShieldCheck, UserCheck,
   Eye, ExternalLink, Calendar, FileText, Users, Target,
-  ChevronRight, MessageCircle,
+  ChevronRight, ChevronLeft, MessageCircle, ArrowLeft,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIris } from "@/components/iris/IrisContext";
 import { UpdateRealityDialog, SOSDialog } from "@/components/iris/AssistsDialogs";
 import { DailyPulseModal } from "@/components/iris/DailyPulseModal";
 import { IntelligencePanel } from "@/components/flight-deck/IntelligencePanel";
+import { FlightDeckAssistBar } from "@/components/flight-deck/FlightDeckAssistBar";
 import { cn } from "@/lib/utils";
 
 const GOLD = "#C9A55C";
