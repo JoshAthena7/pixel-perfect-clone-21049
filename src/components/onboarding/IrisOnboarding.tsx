@@ -722,7 +722,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
       >
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between">
           <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
-            {isFinal ? "Briefing complete. You're cleared to operate." : `Step ${currentModule} of 7`}
+            {isFinal ? "Briefing complete. You're cleared to operate." : `Step ${currentModule} of 6`}
           </div>
           <button
             type="button"
