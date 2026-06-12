@@ -149,6 +149,26 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
       </Section>
 
       <Section
+        id="evaluator"
+        open={open.evaluator}
+        onToggle={() => toggle("evaluator")}
+        header={
+          <>
+            <Search className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-xs font-medium text-foreground">How They're Thinking</span>
+            <span
+              className="ml-auto text-[10px] uppercase tracking-wider font-semibold text-muted-foreground"
+            >
+              Evaluator Picture
+            </span>
+          </>
+        }
+      >
+        <EvaluatorPicturePanel missionId={props.missionId} sectionId={props.sectionId} />
+      </Section>
+
+
+      <Section
         id="reqs"
         open={open.reqs}
         onToggle={() => toggle("reqs")}
