@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -21,6 +21,9 @@ export const Route = createFileRoute("/_authenticated/missions/$missionId/briefi
   component: BriefingPage,
 });
 
+const GOLD = "#C49A2B";
+type SubTab = "brief" | "strategy";
+
 function BriefingPage() {
   const { missionId } = Route.useParams();
   const { isAdmin } = Route.useRouteContext() as { isAdmin?: boolean };
@@ -31,6 +34,7 @@ function BriefingPage() {
     staleTime: 60_000,
   });
 
+  const [tab, setTab] = useState<SubTab>("brief");
   const props = { missionId, isAdmin: !!isAdmin };
 
   return (
@@ -43,22 +47,52 @@ function BriefingPage() {
         isAdmin={!!isAdmin}
       />
 
-      <div className="space-y-4">
-        <Suspense fallback={<SectionSkeleton height={220} />}><SectionSnapshot {...props} /></Suspense>
-        <Suspense fallback={<SectionSkeleton height={200} />}><SectionTimeline {...props} /></Suspense>
-        <Suspense fallback={<SectionSkeleton height={180} />}><SectionWhyMatters {...props} /></Suspense>
-        <Suspense fallback={<SectionSkeleton height={260} />}><SectionNorthStar {...props} /></Suspense>
-        <Suspense fallback={<SectionSkeleton height={300} />}><SectionIntelligence {...props} /></Suspense>
-        <Suspense fallback={<SectionSkeleton height={220} />}><SectionClientStory {...props} /></Suspense>
-        <Suspense fallback={<SectionSkeleton height={300} />}><SectionMissionMap {...props} /></Suspense>
-        <Suspense fallback={<SectionSkeleton height={160} />}><SectionRisks {...props} /></Suspense>
-        <Suspense fallback={<SectionSkeleton height={160} />}><SectionDocuments {...props} /></Suspense>
-        <Suspense fallback={<SectionSkeleton height={180} />}><SectionSignals {...props} /></Suspense>
-        <Suspense fallback={<SectionSkeleton height={180} />}><SectionSignals {...props} /></Suspense>
-        <div className="pt-2">
-          <WinStrategyLiveTab missionId={missionId} missionName={header.mission?.name ?? "Mission"} />
-        </div>
+      <div className="flex items-center gap-2 mb-4 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+        {([
+          { id: "brief", label: "BRIEF" },
+          { id: "strategy", label: "STRATEGY" },
+        ] as { id: SubTab; label: string }[]).map((t) => {
+          const isActive = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTab(t.id)}
+              className="transition-colors"
+              style={{
+                padding: "8px 14px",
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "0.08em",
+                color: isActive ? GOLD : "rgba(255,255,255,0.45)",
+                borderBottom: `2px solid ${isActive ? GOLD : "transparent"}`,
+                background: "transparent",
+                marginBottom: -1,
+              }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
       </div>
+
+      {tab === "brief" ? (
+        <div className="space-y-4">
+          <Suspense fallback={<SectionSkeleton height={220} />}><SectionSnapshot {...props} /></Suspense>
+          <Suspense fallback={<SectionSkeleton height={200} />}><SectionTimeline {...props} /></Suspense>
+          <Suspense fallback={<SectionSkeleton height={180} />}><SectionWhyMatters {...props} /></Suspense>
+          <Suspense fallback={<SectionSkeleton height={260} />}><SectionNorthStar {...props} /></Suspense>
+          <Suspense fallback={<SectionSkeleton height={300} />}><SectionIntelligence {...props} /></Suspense>
+          <Suspense fallback={<SectionSkeleton height={220} />}><SectionClientStory {...props} /></Suspense>
+          <Suspense fallback={<SectionSkeleton height={300} />}><SectionMissionMap {...props} /></Suspense>
+          <Suspense fallback={<SectionSkeleton height={160} />}><SectionRisks {...props} /></Suspense>
+          <Suspense fallback={<SectionSkeleton height={160} />}><SectionDocuments {...props} /></Suspense>
+          <Suspense fallback={<SectionSkeleton height={180} />}><SectionSignals {...props} /></Suspense>
+          <Suspense fallback={<SectionSkeleton height={180} />}><SectionSignals {...props} /></Suspense>
+        </div>
+      ) : (
+        <WinStrategyLiveTab missionId={missionId} missionName={header.mission?.name ?? "Mission"} />
+      )}
     </div>
   );
 }
