@@ -297,6 +297,9 @@ function FlightDeck() {
           activeMissionId={data.assignments[0]?.mission_id ?? null}
           activeMissionName={data.assignments[0] ? (data.missions.find((m) => m.id === data.assignments[0].mission_id)?.name ?? "Flight Deck") : "Flight Deck"}
           activeMissionStatus={null}
+          onPrefillIris={(t) =>
+            window.dispatchEvent(new CustomEvent("atlas:iris:prefill", { detail: t }))
+          }
         />
       </div>
 
