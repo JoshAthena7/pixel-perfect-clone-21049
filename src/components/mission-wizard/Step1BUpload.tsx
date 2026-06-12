@@ -517,6 +517,7 @@ export function Step1BUpload({
           </button>
         </div>
       </div>
+      </div>
     </div>
   );
 }
