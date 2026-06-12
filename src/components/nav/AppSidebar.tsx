@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { differenceInCalendarDays } from "date-fns";
 import {
   FileText, Brain, Lightbulb, LayoutDashboard, MessageSquare, Target,
-  Trophy, Users, Route as RouteIcon, ListChecks, BarChart3, Settings,
+  Users, Route as RouteIcon, ListChecks, BarChart3, Settings,
   ArrowLeft, LogOut, Menu, X, Activity as ActivityIcon, Icon as LucideIcon,
   Flag, Megaphone,
 } from "lucide-react";
