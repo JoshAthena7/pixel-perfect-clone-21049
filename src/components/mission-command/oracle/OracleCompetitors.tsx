@@ -6,7 +6,20 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Competitor = Database["public"]["Tables"]["competitor_profiles"]["Row"];
 
-export function OracleCompetitors({ missionId, isAdmin }: { missionId: string; isAdmin: boolean }) {
+type OracleCtx = {
+  client: string | null;
+  agency: string | null;
+  agencyCode: string | null;
+  program: string | null;
+};
+
+export function OracleCompetitors({ missionId, isAdmin, ctx }: { missionId: string; isAdmin: boolean; ctx?: OracleCtx }) {
+  const contextTag = ctx?.program
+    ? `${ctx.agencyCode || ctx.agency || ctx.client || ""} ${ctx.program}`.trim()
+    : ctx?.agencyCode || ctx?.agency || ctx?.client || null;
+  const emptyMsg = contextTag
+    ? `No competitor profiles for ${contextTag} yet. Add them in Olympus.`
+    : "No competitor profiles added yet. Add them in Olympus.";
   const { data, isLoading, isError } = useQuery({
     queryKey: ["oracle-ro-competitors", missionId],
     queryFn: async () => {
