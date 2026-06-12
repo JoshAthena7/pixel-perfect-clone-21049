@@ -42,8 +42,12 @@ export function FlightDeckLayout({
   activeMissionStatus,
 }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [threadOpen, setThreadOpen] = useState(false);
+  const [pulseOpen, setPulseOpen] = useState(false);
+  const [pulsePrefill, setPulsePrefill] = useState<{ signalType: string; body: string } | null>(null);
   const iris = useIris();
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   // Fetch this writer's assignments + question rows
   const { data } = useQuery({
