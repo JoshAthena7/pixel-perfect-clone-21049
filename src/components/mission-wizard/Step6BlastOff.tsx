@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { buildIntelligenceGraph } from "@/lib/oracle.functions";
 import { seedTerritoryIntelligence } from "@/lib/iris-territory.functions";
 import { buildAthenaInsight } from "@/lib/athena-insights.functions";
+import { buildEvaluatorPicture } from "@/lib/iris-evaluator.functions";
 import { supabase as supabaseClient } from "@/integrations/supabase/client";
 import { InputSourceBadge, IrisInfoCard, StepMetaIndicator, type InputSource } from "@/components/InputSourceBadge";
 
