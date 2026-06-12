@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, redirect, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -16,7 +16,51 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
+const TABS = [
+  { id: "missions", label: "Missions", to: "/admin" as const, match: (p: string) => p === "/admin" || p === "/admin/" || p.startsWith("/admin/missions") },
+  { id: "team", label: "Team", to: "/admin/team" as const, match: (p: string) => p.startsWith("/admin/team") },
+  { id: "activity", label: "Activity", to: "/admin/activity" as const, match: (p: string) => p.startsWith("/admin/activity") },
+  { id: "messaging", label: "Messaging", to: "/admin/messaging" as const, match: (p: string) => p.startsWith("/admin/messaging") },
+  { id: "iris-health", label: "IRIS Health", to: "/admin/iris-health" as const, match: (p: string) => p.startsWith("/admin/iris-health") },
+  { id: "settings", label: "Settings", to: "/admin/settings" as const, match: (p: string) => p.startsWith("/admin/settings") },
+];
+
 function AdminLayout() {
-  // Tab strip removed — navigation lives in the left sidebar (Admin section).
-  return <Outlet />;
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  return (
+    <div>
+      <div
+        className="sticky top-12 z-30 flex items-center gap-1 px-6 h-10"
+        style={{ background: "#070f1c", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        <span
+          className="mr-3"
+          style={{ color: "white", fontSize: 12, fontWeight: 500 }}
+        >
+          Admin
+        </span>
+        <span className="mr-3" style={{ color: "rgba(255,255,255,0.2)", fontSize: 12 }}>·</span>
+        {TABS.map((t) => {
+          const active = t.match(pathname);
+          return (
+            <Link
+              key={t.id}
+              to={t.to}
+              className="px-3 py-1.5 rounded-md transition-colors hover:bg-white/[0.05]"
+              style={{
+                fontSize: 12,
+                color: active ? "#c9a84c" : "rgba(255,255,255,0.55)",
+                fontWeight: active ? 600 : 400,
+                borderBottom: active ? "2px solid #c9a84c" : "2px solid transparent",
+              }}
+            >
+              {t.label}
+            </Link>
+          );
+        })}
+      </div>
+      <Outlet />
+    </div>
+  );
 }
