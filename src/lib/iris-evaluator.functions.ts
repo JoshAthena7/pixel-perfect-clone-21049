@@ -314,7 +314,7 @@ What is the single most important thing a writer should know about how this pane
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: upserted, error: upsertErr } = await supabaseAdmin
       .from("evaluator_pictures")
-      .upsert(upsertPayload, { onConflict: "mission_id" })
+      .upsert(upsertPayload as never, { onConflict: "mission_id" })
       .select("*")
       .single();
     if (upsertErr) {
