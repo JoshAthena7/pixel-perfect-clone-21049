@@ -43,7 +43,6 @@ const MY_WORK_ITEMS: NavItem[] = [
 
 const ADMIN_ITEMS: NavItem[] = [
   { to: "/missions/$missionId/win-strategy", label: "Win Strategy", Icon: Trophy, needsMission: true },
-  { to: "/missions/$missionId/activity", label: "Activity", Icon: ActivityIcon, needsMission: true },
 ];
 
 
@@ -51,6 +50,7 @@ const ADMIN_AREA_ITEMS: NavItem[] = [
   { to: "/admin", label: "Missions", Icon: Flag },
   { to: "/admin/team", label: "Staff", Icon: Users },
   { to: "/admin/messaging", label: "Messaging", Icon: Megaphone },
+  { to: "/admin/activity", label: "Activity", Icon: ActivityIcon },
   { to: "/admin/insights", label: "Insights", Icon: BarChart3, disabled: true, badge: "V2" },
   { to: "/admin/settings", label: "Settings", Icon: Settings },
 ];
