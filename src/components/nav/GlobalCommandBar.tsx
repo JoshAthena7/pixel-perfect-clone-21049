@@ -87,11 +87,15 @@ export function GlobalCommandBar({ email, isAdmin: _isAdmin = false }: { email?:
         {/* LEFT — Wordmark + primary nav */}
         <Link
           to="/olympus/missions"
-          className="shrink-0 text-white font-semibold select-none"
-          style={{ fontSize: 14, letterSpacing: "0.06em" }}
+          className="shrink-0 inline-flex items-center select-none"
           aria-label="ATLAS"
         >
-          ATLAS
+          <img
+            src={atlasWordmark}
+            alt="ATLAS"
+            draggable={false}
+            style={{ height: 18, width: "auto", objectFit: "contain" }}
+          />
         </Link>
         <span className="hidden sm:inline-block h-5 w-px shrink-0" style={{ background: "rgba(255,255,255,0.08)" }} />
 
