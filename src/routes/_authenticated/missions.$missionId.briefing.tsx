@@ -15,6 +15,7 @@ import { SectionRisks } from "@/components/briefing-room/SectionRisks";
 import { SectionDocuments } from "@/components/briefing-room/SectionDocuments";
 import { SectionSignals } from "@/components/briefing-room/SectionSignals";
 import { SectionTimeline } from "@/components/briefing-room/SectionTimeline";
+import { WinStrategyLiveTab } from "@/components/mission-command/WinStrategyLiveTab";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/briefing")({
   component: BriefingPage,
