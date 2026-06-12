@@ -547,32 +547,79 @@ function TimelineRow({
               lineHeight: 1.6,
             }}
           >
-            {item.detail || "(no additional detail)"}
-            {isSos && item.update_type === "sos" && !item.resolved && isAdmin && (
-              <div className="mt-3">
-                <button
-                  onClick={onResolve}
-                  style={{
-                    fontSize: 10,
-                    padding: "4px 10px",
-                    background: "rgba(26,122,74,0.15)",
-                    border: "0.5px solid rgba(26,122,74,0.4)",
-                    color: "#7FD4A8",
-                    borderRadius: 4,
-                    cursor: "pointer",
-                  }}
-                >
-                  Mark resolved
-                </button>
-              </div>
-            )}
-            {isSos && item.resolved && (
-              <div className="mt-2" style={{ color: "#7FD4A8", fontSize: 10 }}>
-                ✓ Resolved
-              </div>
+            {isConflict ? (
+              <>
+                <div style={{ color: "white", fontSize: 12, lineHeight: 1.6 }}>
+                  {item.conflict_description || item.detail || "(no description)"}
+                </div>
+                {item.detected_from && (
+                  <div
+                    className="mt-2"
+                    style={{
+                      color: "rgba(255,255,255,0.4)",
+                      fontSize: 10,
+                      fontStyle: "italic",
+                    }}
+                  >
+                    Detected from: {item.detected_from}
+                  </div>
+                )}
+                {(item.section_a_label || item.section_b_label) && (
+                  <div
+                    className="mt-2"
+                    style={{ color: "rgba(255,255,255,0.55)", fontSize: 11 }}
+                  >
+                    Section {item.section_a_label ?? "—"} ↔ Section {item.section_b_label ?? "—"}
+                  </div>
+                )}
+                <div className="mt-3">
+                  <button
+                    onClick={onResolveConflict}
+                    style={{
+                      fontSize: 11,
+                      padding: "5px 12px",
+                      background: "transparent",
+                      border: "0.5px solid rgba(239,159,39,0.4)",
+                      color: "#EF9F27",
+                      borderRadius: 5,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Mark Resolved
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {item.detail || "(no additional detail)"}
+                {isSos && item.update_type === "sos" && !item.resolved && isAdmin && (
+                  <div className="mt-3">
+                    <button
+                      onClick={onResolve}
+                      style={{
+                        fontSize: 10,
+                        padding: "4px 10px",
+                        background: "rgba(26,122,74,0.15)",
+                        border: "0.5px solid rgba(26,122,74,0.4)",
+                        color: "#7FD4A8",
+                        borderRadius: 4,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Mark resolved
+                    </button>
+                  </div>
+                )}
+                {isSos && item.resolved && (
+                  <div className="mt-2" style={{ color: "#7FD4A8", fontSize: 10 }}>
+                    ✓ Resolved
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
+
       </div>
     </li>
   );
