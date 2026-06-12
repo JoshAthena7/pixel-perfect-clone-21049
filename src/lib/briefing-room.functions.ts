@@ -417,10 +417,28 @@ export const getDocuments = createServerFn({ method: "POST" })
       .select("id,document_type,title,file_url,source_url,is_amendment,created_at")
       .eq("mission_id", data.missionId)
       .order("created_at", { ascending: false });
-    const order = ["rfp", "amendment", "qa", "compliance", "style"];
+
+    // Infer group key from explicit type, amendment flag, or document title.
+    function inferKey(d: any): string {
+      if (d.is_amendment) return "amendment";
+      const t = String(d.document_type ?? "").toLowerCase();
+      if (t === "primary_rfp" || t === "rfp" || t === "amendment" || t === "qa" || t === "compliance" || t === "style") {
+        return t === "primary_rfp" ? "rfp" : t;
+      }
+      const title = String(d.title ?? "").toLowerCase();
+      if (/amendment/.test(title)) return "amendment";
+      if (/style\s*guide/.test(title)) return "style";
+      if (/\b(rfp|solicitation|bid|t1932)\b/.test(title)) return "rfp";
+      if (/\b(canon|intel|research)\b/.test(title)) return "intelligence";
+      if (/q\s*&\s*a|q\s*and\s*a|prior\s*q&a/.test(title)) return "qa";
+      if (/compliance/.test(title)) return "compliance";
+      return "other";
+    }
+
+    const order = ["rfp", "amendment", "qa", "compliance", "style", "intelligence", "other"];
     const groups: Record<string, any[]> = {};
     for (const d of docs ?? []) {
-      const key = d.is_amendment ? "amendment" : (d.document_type || "other");
+      const key = inferKey(d);
       (groups[key] ??= []).push(d);
     }
     const sortedKeys = Object.keys(groups).sort((a, b) => {
