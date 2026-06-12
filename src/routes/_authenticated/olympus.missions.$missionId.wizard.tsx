@@ -141,13 +141,13 @@ function ResumeWizardPage() {
 
   if (step === 1) {
     return (
-      <WizardShell step={1} onBack={back} irisStatus={irisStatus}>
-        <WizardStepHeading
-          title="Upload the RFP."
-          subtitle="IRIS will read it and extract every section and question automatically. You review nothing in this step — just upload and continue."
-        />
-        <Step1BUpload missionId={missionId} onAdvance={() => { qc.invalidateQueries({ queryKey: ["mission-wizard", missionId] }); go(2); }} />
-      </WizardShell>
+      <Step1BUpload
+        missionId={missionId}
+        onAdvance={() => {
+          qc.invalidateQueries({ queryKey: ["mission-wizard", missionId] });
+          go(2);
+        }}
+      />
     );
   }
 
