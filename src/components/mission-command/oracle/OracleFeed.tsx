@@ -182,7 +182,7 @@ export function OracleFeed({ missionId, isAdmin, highlightId }: { missionId: str
   );
 }
 
-function FeedCard({ item }: { item: FeedItem }) {
+function FeedCard({ item, highlighted }: { item: FeedItem; highlighted?: boolean }) {
   const rel = item.iris_relevance_score ?? 0;
   const cat = CATEGORY_COLOR[item.category] ?? { bg: "rgba(255,255,255,0.04)", fg: "rgba(255,255,255,0.6)", border: "rgba(255,255,255,0.1)" };
   const tone =
@@ -201,7 +201,15 @@ function FeedCard({ item }: { item: FeedItem }) {
   };
 
   return (
-    <div className="rounded-lg p-3" style={{ background: tone.bg, border: `1px solid ${tone.border}` }}>
+    <div
+      id={`feed-item-${item.id}`}
+      className="rounded-lg p-3"
+      style={{
+        background: highlighted ? "rgba(196,154,43,0.08)" : tone.bg,
+        border: `1px solid ${highlighted ? "rgba(196,154,43,0.6)" : tone.border}`,
+        transition: "background-color 1s ease, border-color 1s ease",
+      }}
+    >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span
