@@ -2,7 +2,7 @@ import { useState } from "react";
 import { MessageSquare, PhoneCall, Target, Activity, AlertTriangle } from "lucide-react";
 import { SOSDialog } from "@/components/iris/AssistsDialogs";
 import { DailyPulseModal } from "@/components/iris/DailyPulseModal";
-import { ScoreDraftPanel } from "@/components/my-work/ScoreDraftPanel";
+import { ScoreMeDialog } from "./ScoreMeDialog";
 import { PhoneAFriendDialog } from "./PhoneAFriendDialog";
 import { ThreadPanel } from "./ThreadPanel";
 import { supabase } from "@/integrations/supabase/client";
@@ -184,12 +184,13 @@ export function FlightDeckAssistBar({ missionId, questionId, questionNumber, que
         questionNumber={questionNumber}
         questionText={questionText}
       />
-      <ScoreDraftPanel
+      <ScoreMeDialog
         open={scoreOpen}
         onOpenChange={setScoreOpen}
         missionId={missionId}
         questionId={questionId}
-        lockQuestion={!!questionId}
+        questionNumber={questionNumber}
+        questionText={questionText}
       />
       <DailyPulseModal open={pulseOpen} onOpenChange={setPulseOpen} missionId={missionId} />
       <SOSDialog
