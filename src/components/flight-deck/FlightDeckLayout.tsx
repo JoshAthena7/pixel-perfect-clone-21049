@@ -514,50 +514,13 @@ function MyWorkColumn({
   writerConfidence: string | null;
   onChanged: () => void;
 }) {
-  const [status, setStatus] = useState("");
-  const [posting, setPosting] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
   const [confidence, setConfidence] = useState<string | null>(writerConfidence);
 
   useEffect(() => setConfidence(writerConfidence), [writerConfidence]);
 
-  async function postUpdate() {
-    if (!status.trim() || !missionId) return;
-    setPosting(true);
-    try {
-      const { data: u } = await supabase.auth.getUser();
-      const { data: prof } = u.user
-        ? await supabase.from("profiles").select("display_name,email").eq("id", u.user.id).maybeSingle()
-        : { data: null };
-      const senderName = prof?.display_name || prof?.email || "Writer";
-
-      await Promise.all([
-        supabase.from("thread_messages").insert({
-          mission_id: missionId,
-          question_id: questionId,
-          sender_id: u.user?.id ?? null,
-          sender_name: senderName,
-          message_body: status.trim(),
-          message_type: "status_update",
-        } as any),
-        supabase.from("team_updates" as any).insert({
-          mission_id: missionId,
-          question_id: questionId,
-          sender_id: u.user?.id ?? null,
-          sender_name: senderName,
-          update_type: "writer_update",
-          body: status.trim(),
-        }),
-      ]);
-      setStatus("");
-      toast.success("Update posted to the team and the thread.");
-    } catch (e) {
-      console.error(e);
-      toast.error("Could not post update");
-    } finally {
-      setPosting(false);
-    }
-  }
+  // Status updates live in Thread (question-level) and Mission Pulse (mission-level).
+  // There is no third "Post Update" surface here on purpose.
 
   async function pickConfidence(c: "low" | "medium" | "high") {
     setConfidence(c); // optimistic
