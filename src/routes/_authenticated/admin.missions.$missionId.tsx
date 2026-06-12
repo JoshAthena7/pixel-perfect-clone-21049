@@ -30,6 +30,10 @@ type Mission = {
   state: string | null;
   primary_contact_name: string | null;
   primary_contact_email: string | null;
+  procurement_type: string | null;
+  program_type: string | null;
+  blast_off_at: string | null;
+  iris_disclaimer: string | null;
 };
 
 function AdminMissionDetail() {
@@ -39,13 +43,14 @@ function AdminMissionDetail() {
   const [form, setForm] = useState<Partial<Mission>>({});
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [cascaded, setCascaded] = useState(false);
 
   const { data: mission } = useQuery({
     queryKey: ["admin-mission", missionId],
     queryFn: async (): Promise<Mission | null> => {
       const { data } = await supabase
         .from("missions")
-        .select("id,name,client_name,status,submission_deadline,contract_value,agency_name,state,primary_contact_name,primary_contact_email")
+        .select("id,name,client_name,status,submission_deadline,contract_value,agency_name,state,primary_contact_name,primary_contact_email,procurement_type,program_type,blast_off_at,iris_disclaimer")
         .eq("id", missionId)
         .maybeSingle();
       return data as Mission | null;
@@ -58,6 +63,12 @@ function AdminMissionDetail() {
       setDirty(false);
     }
   }, [mission]);
+
+  useEffect(() => {
+    if (!cascaded) return;
+    const t = setTimeout(() => setCascaded(false), 3000);
+    return () => clearTimeout(t);
+  }, [cascaded]);
 
   function update<K extends keyof Mission>(key: K, value: Mission[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -76,6 +87,10 @@ function AdminMissionDetail() {
       state: form.state ?? null,
       primary_contact_name: form.primary_contact_name ?? null,
       primary_contact_email: form.primary_contact_email ?? null,
+      procurement_type: form.procurement_type ?? null,
+      program_type: form.program_type ?? null,
+      blast_off_at: form.blast_off_at ?? null,
+      iris_disclaimer: form.iris_disclaimer ?? null,
       updated_at: new Date().toISOString(),
     };
     const { error } = await (supabase.from("missions").update(payload as any) as any).eq("id", missionId);
@@ -86,6 +101,7 @@ function AdminMissionDetail() {
     }
     toast.success("Saved & cascaded to all linked records");
     setDirty(false);
+    setCascaded(true);
     qc.invalidateQueries({ queryKey: ["admin-mission", missionId] });
     qc.invalidateQueries({ queryKey: ["admin-missions-list"] });
   }
