@@ -1,9 +1,16 @@
+import { useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getWhyMatters } from "@/lib/briefing-room.functions";
 import { SectionCard } from "./SectionCard";
 
+const LIMIT = 400;
+
 function Card({ label, body }: { label: string; body: string | null }) {
+  const [open, setOpen] = useState(false);
+  const text = (body ?? "").trim();
+  const needsTrunc = text.length > LIMIT;
+  const shown = !text ? "" : open || !needsTrunc ? text : `${text.slice(0, LIMIT).trimEnd()}…`;
   return (
     <div
       className="rounded-lg p-4"
@@ -13,15 +20,25 @@ function Card({ label, body }: { label: string; body: string | null }) {
         {label}
       </div>
       <div
-        className="mt-2"
+        className="mt-2 whitespace-pre-line"
         style={
-          body
+          text
             ? { color: "rgba(255,255,255,0.7)", fontSize: 12, lineHeight: 1.7 }
             : { color: "rgba(255,255,255,0.35)", fontSize: 12, fontStyle: "italic" }
         }
       >
-        {body || "Not yet set — configure in Olympus."}
+        {text ? shown : "Will be added in Olympus."}
       </div>
+      {needsTrunc && (
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="mt-2 hover:underline"
+          style={{ color: "#C49A2B", fontSize: 11, background: "transparent", border: 0, padding: 0, cursor: "pointer" }}
+        >
+          {open ? "Show less" : "Read more"}
+        </button>
+      )}
     </div>
   );
 }
