@@ -3,7 +3,7 @@ import { MessageSquare, PhoneCall, Target, Activity, AlertTriangle } from "lucid
 import { SOSDialog } from "@/components/iris/AssistsDialogs";
 import { DailyPulseModal } from "@/components/iris/DailyPulseModal";
 import { ScoreDraftPanel } from "@/components/my-work/ScoreDraftPanel";
-import { FindSMEDialog } from "./FindSMEDialog";
+import { PhoneAFriendDialog } from "./PhoneAFriendDialog";
 import { ThreadPanel } from "./ThreadPanel";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -176,7 +176,14 @@ export function FlightDeckAssistBar({ missionId, questionId, questionNumber, que
           setSmeOpen(true);
         }}
       />
-      <FindSMEDialog open={smeOpen} onOpenChange={setSmeOpen} missionId={missionId} />
+      <PhoneAFriendDialog
+        open={smeOpen}
+        onOpenChange={setSmeOpen}
+        missionId={missionId}
+        questionId={questionId}
+        questionNumber={questionNumber}
+        questionText={questionText}
+      />
       <ScoreDraftPanel
         open={scoreOpen}
         onOpenChange={setScoreOpen}
