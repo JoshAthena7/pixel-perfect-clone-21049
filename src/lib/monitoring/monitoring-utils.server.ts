@@ -323,6 +323,30 @@ export async function createFeedItem(
       console.error("promoteFeedItemToResearchNode failed", e);
     }
   }
+
+  // Very high relevance: regenerate the evaluator picture if it's stale.
+  // Threshold 80; only fires when the existing picture is older than 7 days.
+  if (assessment.relevance_score >= 80) {
+    try {
+      const { data: existing } = await supabase
+        .from("evaluator_pictures")
+        .select("generated_at")
+        .eq("mission_id", missionId)
+        .maybeSingle();
+      const generatedAt = (existing as { generated_at?: string } | null)?.generated_at;
+      const isStale =
+        !generatedAt ||
+        Date.now() - new Date(generatedAt).getTime() > 7 * 86_400_000;
+      if (isStale) {
+        const { triggerEvaluatorPictureRebuild } = await import("@/lib/iris-evaluator.server");
+        triggerEvaluatorPictureRebuild(missionId).catch((e) =>
+          console.error("[monitor] triggerEvaluatorPictureRebuild failed", e),
+        );
+      }
+    } catch (e) {
+      console.error("[monitor] evaluator picture stale-check failed", e);
+    }
+  }
 }
 
 
