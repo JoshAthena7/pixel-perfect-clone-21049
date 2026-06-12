@@ -279,7 +279,37 @@ export const getMissionActivity = createServerFn({ method: "POST" })
       });
     });
 
+    (conflictRes.data ?? []).forEach((r: any) => {
+      const desc = (r.conflict_description ?? "").toString();
+      const qa = r.question_id_a ? qMap.get(r.question_id_a) : null;
+      const qb = r.question_id_b ? qMap.get(r.question_id_b) : null;
+      const labelFor = (q: any) =>
+        q
+          ? `Q${q.question_number ?? "—"}${q.question_text ? ` — ${String(q.question_text).slice(0, 40)}` : ""}`
+          : null;
+      items.push({
+        id: `conflict:${r.id}`,
+        stream: "conflict",
+        created_at: r.created_at,
+        actor: "IRIS",
+        question_id: r.question_id_a ?? null,
+        question_number: qa?.question_number ?? null,
+        question_text: qa?.question_text ?? null,
+        summary: `IRIS detected a decision conflict: ${desc.slice(0, 80)}${desc.length > 80 ? "…" : ""}`,
+        detail: desc,
+        severity: r.severity,
+        conflict_id: r.id,
+        conflict_description: desc,
+        detected_from: r.detected_from ?? null,
+        question_id_a: r.question_id_a,
+        question_id_b: r.question_id_b,
+        section_a_label: labelFor(qa),
+        section_b_label: labelFor(qb),
+      });
+    });
+
     items.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+
 
     // Attention rail
     const now = Date.now();
