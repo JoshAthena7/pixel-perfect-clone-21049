@@ -261,6 +261,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
       {active === "graph" && <OracleGraph missionId={missionId} completeness={completeness} />}
       {active === "feed" && <OracleFeed missionId={missionId} />}
       {active === "stakeholders" && <OracleStakeholders missionId={missionId} />}
+      {active === "evaluator-picture" && <OracleEvaluatorPicture missionId={missionId} isAdmin={isAdmin} />}
       {active === "competitors" && <OracleCompetitors missionId={missionId} />}
       {active === "evolution" && <OracleProcurementEvolution missionId={missionId} />}
       {active === "research-library" && (
