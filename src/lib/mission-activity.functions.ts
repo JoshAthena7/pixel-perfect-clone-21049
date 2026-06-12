@@ -429,7 +429,7 @@ export const getActivitySynthesis = createServerFn({ method: "POST" })
     const since = sinceISO(data.range);
 
     const filterSince = (q: any) => (since ? q.gte("created_at", since) : q);
-    const [threadC, consultC, scoreC, pulseC, sosC, mission, questions] = await Promise.all([
+    const [threadC, consultC, scoreC, pulseC, sosC, mission, questions, conflictsC] = await Promise.all([
       filterSince(supabaseAdmin.from("thread_messages").select("id,question_id", { count: "exact", head: false }).eq("mission_id", data.missionId)),
       filterSince(supabaseAdmin.from("expert_consults").select("id", { count: "exact", head: true }).eq("mission_id", data.missionId)),
       filterSince(supabaseAdmin.from("score_me_history").select("score", { count: "exact" }).eq("mission_id", data.missionId)),
@@ -437,7 +437,14 @@ export const getActivitySynthesis = createServerFn({ method: "POST" })
       filterSince(supabaseAdmin.from("team_updates").select("id", { count: "exact", head: true }).eq("mission_id", data.missionId).eq("update_type", "sos")),
       supabaseAdmin.from("missions").select("name").eq("id", data.missionId).maybeSingle(),
       supabaseAdmin.from("mission_questions").select("id,question_number,status").eq("mission_id", data.missionId),
+      supabaseAdmin
+        .from("conflict_flags")
+        .select("conflict_description,created_at")
+        .eq("mission_id", data.missionId)
+        .eq("resolved", false)
+        .order("created_at", { ascending: false }),
     ]);
+
 
     const threadRows = (threadC.data ?? []) as Array<{ question_id: string }>;
     const threadCount = threadRows.length;
