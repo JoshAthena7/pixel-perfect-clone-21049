@@ -135,6 +135,18 @@ export const postThreadMessage = createServerFn({ method: "POST" })
       console.error("[thread] IRIS analysis failed", e);
     }
 
+    // Cross-reference search — fire-and-forget. Only triggers for question-like
+    // messages so IRIS does not flood the Thread on every status update.
+    const looksLikeQuestion =
+      data.body.includes("?") || (data.body.trim().length > 0 && data.body.trim().length < 150);
+    if (looksLikeQuestion) {
+      void runCrossReferenceSearch({
+        missionId: data.missionId,
+        questionId: data.questionId,
+        body: data.body,
+      }).catch((e) => console.error("[thread] cross-reference search failed", e));
+    }
+
     return { ok: true, message: inserted };
   });
 
