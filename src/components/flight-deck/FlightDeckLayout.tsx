@@ -211,9 +211,7 @@ export function FlightDeckLayout({
       />
 
       {!activeQ ? (
-        <div className="rounded-xl border border-border bg-surface/30 p-8 text-center text-sm text-muted-foreground">
-          You have no assigned questions yet.
-        </div>
+        <NoAssignmentState missionId={activeMissionId} />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-4 items-start">
           <IntelligenceColumn
