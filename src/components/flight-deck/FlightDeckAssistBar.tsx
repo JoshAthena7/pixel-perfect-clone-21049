@@ -17,6 +17,12 @@ type Props = {
   dueDate: string | null;
   confidence: string | null;
   onHealthChanged?: () => void;
+  threadOpen?: boolean;
+  onThreadOpenChange?: (v: boolean) => void;
+  pulseOpen?: boolean;
+  onPulseOpenChange?: (v: boolean) => void;
+  pulsePrefill?: { signalType: string; body: string } | null;
+  onPulsePrefillConsumed?: () => void;
 };
 
 type ButtonSpec = {
@@ -47,12 +53,29 @@ export function FlightDeckAssistBar({
   questionNumber,
   questionText,
   onHealthChanged,
+  threadOpen: threadOpenProp,
+  onThreadOpenChange,
+  pulseOpen: pulseOpenProp,
+  onPulseOpenChange,
+  pulsePrefill,
+  onPulsePrefillConsumed,
 }: Props) {
-  const [threadOpen, setThreadOpen] = useState(false);
+  const [threadOpenLocal, setThreadOpenLocal] = useState(false);
   const [smeOpen, setSmeOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
-  const [pulseOpen, setPulseOpen] = useState(false);
+  const [pulseOpenLocal, setPulseOpenLocal] = useState(false);
   const [sosOpen, setSosOpen] = useState(false);
+
+  const threadOpen = threadOpenProp ?? threadOpenLocal;
+  const setThreadOpen = (v: boolean) => {
+    if (onThreadOpenChange) onThreadOpenChange(v);
+    else setThreadOpenLocal(v);
+  };
+  const pulseOpen = pulseOpenProp ?? pulseOpenLocal;
+  const setPulseOpen = (v: boolean) => {
+    if (onPulseOpenChange) onPulseOpenChange(v);
+    else setPulseOpenLocal(v);
+  };
 
   // tick to force re-read of localStorage timestamps after open/close
   const [tick, setTick] = useState(0);
