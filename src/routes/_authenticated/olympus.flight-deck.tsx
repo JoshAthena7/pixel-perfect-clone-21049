@@ -25,11 +25,79 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { QaLogTab } from "@/components/mission-command/QaLogTab";
 
 
 export const Route = createFileRoute("/_authenticated/olympus/flight-deck")({
-  component: FlightDeck,
+  component: DeskPage,
 });
+
+function DeskPage() {
+  const [tab, setTab] = useState<"deck" | "qa">("deck");
+  return (
+    <div>
+      <div
+        className="sticky top-12 z-30 flex items-center gap-1 px-6 h-10"
+        style={{ background: "#070f1c", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        {[
+          { id: "deck" as const, label: "Flight Deck" },
+          { id: "qa" as const, label: "Q&A Log" },
+        ].map((t) => {
+          const active = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTab(t.id)}
+              className="px-3 py-1.5 rounded-md transition-colors hover:bg-white/[0.05]"
+              style={{
+                fontSize: 12,
+                color: active ? "#c9a84c" : "rgba(255,255,255,0.55)",
+                fontWeight: active ? 600 : 400,
+                borderBottom: active ? "2px solid #c9a84c" : "2px solid transparent",
+              }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+      {tab === "deck" ? <FlightDeck /> : <DeskQaPanel />}
+    </div>
+  );
+}
+
+function DeskQaPanel() {
+  const { data: missionId, isLoading } = useQuery({
+    queryKey: ["desk-qa-mission"],
+    queryFn: async () => {
+      const { data: m } = await supabase.rpc("current_atlas_member_id");
+      if (!m) return null;
+      const { data: asgs } = await supabase
+        .from("mission_assignments")
+        .select("mission_id")
+        .eq("assigned_writer_id", m as string)
+        .limit(1);
+      return (asgs?.[0]?.mission_id as string) ?? null;
+    },
+    staleTime: 60_000,
+  });
+  if (isLoading) return <div className="p-8"><Skeleton className="h-40" /></div>;
+  if (!missionId) {
+    return (
+      <div className="mx-auto max-w-3xl p-8 text-sm text-muted-foreground">
+        No mission Q&A available — you have no active assignments.
+      </div>
+    );
+  }
+  return (
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+      <QaLogTab missionId={missionId} />
+    </div>
+  );
+}
+
 
 type Assignment = {
   id: string;
