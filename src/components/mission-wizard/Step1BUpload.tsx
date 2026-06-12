@@ -7,6 +7,7 @@ import { MissionAnalysisAnimation } from "@/components/mission-wizard/MissionAna
 import { MissionAnalysisResults } from "@/components/mission-wizard/MissionAnalysisResults";
 import { MissionMemoryChat } from "@/components/mission-wizard/MissionMemoryChat";
 import { MissionIntelDropScreen } from "@/components/mission-wizard/MissionIntelDropScreen";
+import { MissionTeamAssignScreen } from "@/components/mission-wizard/MissionTeamAssignScreen";
 import { cn } from "@/lib/utils";
 
 const BUCKET = "atlas-rfp-documents";
@@ -91,7 +92,7 @@ export function Step1BUpload({
   const [rows, setRows] = useState<Row[]>([]);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [phase, setPhase] = useState<"upload" | "analyzing" | "results" | "memory" | "intel">("upload");
+  const [phase, setPhase] = useState<"upload" | "analyzing" | "results" | "memory" | "intel" | "team">("upload");
 
   useEffect(() => {
     (async () => {
@@ -262,7 +263,10 @@ export function Step1BUpload({
     return <MissionMemoryChat missionId={missionId} onContinue={() => setPhase("intel")} />;
   }
   if (phase === "intel") {
-    return <MissionIntelDropScreen missionId={missionId} onContinue={onAdvance} />;
+    return <MissionIntelDropScreen missionId={missionId} onContinue={() => setPhase("team")} />;
+  }
+  if (phase === "team") {
+    return <MissionTeamAssignScreen missionId={missionId} onContinue={onAdvance} />;
   }
 
   return (
