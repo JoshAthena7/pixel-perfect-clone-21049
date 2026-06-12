@@ -249,6 +249,10 @@ export function Step1BUpload({
     }
   }
 
+  if (analyzing) {
+    return <MissionAnalysisAnimation onComplete={onAdvance} />;
+  }
+
   return (
     <div
       className="min-h-screen flex flex-col px-4 py-10"
