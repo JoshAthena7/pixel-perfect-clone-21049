@@ -36,6 +36,14 @@ type Props = {
   onPrefillIris?: (text: string) => void;
 };
 
+type ActiveCtx = {
+  questionId: string | null;
+  questionNumber: string | null;
+  questionText: string | null;
+  dueDate: string | null;
+  confidence: string | null;
+};
+
 export function FlightDeckLayout({
   memberId,
   activeMissionId,
@@ -43,6 +51,14 @@ export function FlightDeckLayout({
   activeMissionStatus,
   onPrefillIris,
 }: Props) {
+  const [active, setActive] = useState<ActiveCtx>({
+    questionId: null,
+    questionNumber: null,
+    questionText: null,
+    dueDate: null,
+    confidence: null,
+  });
+
   return (
     <div className="space-y-6">
       <FlightDeckHeader name={activeMissionName} status={activeMissionStatus} />
@@ -53,8 +69,21 @@ export function FlightDeckLayout({
         <MissionRadarPanel memberId={memberId} missionId={activeMissionId} />
       </div>
 
-      <QuestionWorkspacePanel memberId={memberId} missionId={activeMissionId} />
+      <QuestionWorkspacePanel
+        memberId={memberId}
+        missionId={activeMissionId}
+        onActiveChange={setActive}
+      />
       <AirTrafficControlPanel missionId={activeMissionId} />
+
+      <FlightDeckAssistBar
+        missionId={activeMissionId}
+        questionId={active.questionId}
+        questionNumber={active.questionNumber}
+        questionText={active.questionText}
+        dueDate={active.dueDate}
+        confidence={active.confidence}
+      />
     </div>
   );
 }
