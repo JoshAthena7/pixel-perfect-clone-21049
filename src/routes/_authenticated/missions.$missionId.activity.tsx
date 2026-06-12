@@ -20,6 +20,7 @@ import {
   type ActivityStream,
   type ActivityRange,
 } from "@/lib/mission-activity.functions";
+import { resolveConflict } from "@/lib/iris-conflicts.functions";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/activity")({
   component: ActivityPage,
@@ -43,7 +44,9 @@ const STREAMS: {
   { key: "score_me", label: "Score Me", color: "#C49A2B", Icon: Target },
   { key: "mission_pulse", label: "Mission Pulse", color: "rgba(200,195,255,0.85)", Icon: ActivityIcon },
   { key: "sos", label: "SOS", color: "#f08080", Icon: AlertTriangle },
+  { key: "conflict", label: "Conflicts", color: "#EF9F27", Icon: AlertTriangle },
 ];
+
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
