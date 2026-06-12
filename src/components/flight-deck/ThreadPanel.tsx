@@ -270,7 +270,17 @@ export function ThreadPanel({
                   No discussion yet. Be the first to work the question.
                 </div>
               ) : (
-                rest.map((m) => <MessageRow key={m.id} msg={m} onFindExpert={onRequestFindSME} />)
+                rest.map((m) =>
+                  m.message_type === "cross_reference" ? (
+                    <CrossReferenceRow
+                      key={m.id}
+                      msg={m}
+                      onNote={(body) => sendMutation.mutate({ body, messageType: "regular" })}
+                    />
+                  ) : (
+                    <MessageRow key={m.id} msg={m} onFindExpert={onRequestFindSME} />
+                  ),
+                )
               )}
             </>
           );
