@@ -83,7 +83,7 @@ export function SectionMissionMap({ missionId, isAdmin }: { missionId: string; i
                 {s.number ? `${s.number} · ` : ""}{s.name}
               </div>
               {s.questions.length === 0 ? (
-                <Empty>No questions yet.</Empty>
+                <div style={{ color: "rgba(255,255,255,0.4)", fontStyle: "italic", fontSize: 11 }}>Will be added in Olympus.</div>
               ) : (
                 <ul className="space-y-2">
                   {s.questions.map((q: any) => (
@@ -140,8 +140,8 @@ export function SectionMissionMap({ missionId, isAdmin }: { missionId: string; i
                   </tr>
                   {s.questions.length === 0 ? (
                     <tr key={`s-${s.id}-empty`}>
-                      <td colSpan={6} className="py-2 pl-8" style={{ color: "rgba(255,255,255,0.35)", fontStyle: "italic" }}>
-                        No questions in this section.
+                      <td colSpan={6} className="py-2 pl-8" style={{ color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>
+                        Will be added in Olympus.
                       </td>
                     </tr>
                   ) : (
@@ -171,7 +171,7 @@ export function SectionMissionMap({ missionId, isAdmin }: { missionId: string; i
         </div>
       )}
       <div className="mt-4 pt-3" style={{ borderTop: "0.5px solid rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.4)", fontSize: 11 }}>
-        {data.totals.total} total questions · {data.totals.complete} complete · {data.totals.inProgress} in progress · {data.totals.atRisk} at risk
+        {data.totals.total} total · {data.totals.complete} complete · {data.totals.inProgress} in progress · {data.totals.notStarted} not started · {data.totals.atRisk} at risk
       </div>
     </SectionCard>
   );

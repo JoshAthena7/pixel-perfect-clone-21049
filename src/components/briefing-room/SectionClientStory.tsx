@@ -40,7 +40,9 @@ export function SectionClientStory({ missionId, isAdmin }: { missionId: string; 
                 Client Strengths
               </div>
               {data.strengths.length === 0 ? (
-                <Empty>None recorded.</Empty>
+                <div style={{ color: "rgba(255,255,255,0.4)", fontStyle: "italic", fontSize: 11 }}>
+                  Will be added in Olympus.
+                </div>
               ) : (
                 <ul className="space-y-1.5">
                   {data.strengths.map((s: any, i: number) => (
@@ -60,7 +62,9 @@ export function SectionClientStory({ missionId, isAdmin }: { missionId: string; 
                 Key Differentiators
               </div>
               {data.differentiators.length === 0 ? (
-                <Empty>None recorded.</Empty>
+                <div style={{ color: "rgba(255,255,255,0.4)", fontStyle: "italic", fontSize: 11 }}>
+                  Will be added in Olympus.
+                </div>
               ) : (
                 <ul className="space-y-1.5">
                   {data.differentiators.map((d: any, i: number) => (

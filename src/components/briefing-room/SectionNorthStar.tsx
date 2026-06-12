@@ -95,7 +95,7 @@ export function SectionNorthStar({ missionId, isAdmin }: { missionId: string; is
             Evaluator Priorities
           </div>
           {evalPriorities.length === 0 ? (
-            <Empty>None recorded yet.</Empty>
+            <MutedItalic>Evaluator priorities will be configured in Olympus before BLAST OFF.</MutedItalic>
           ) : (
             <ul className="space-y-1.5">
               {evalPriorities.slice(0, 8).map((p, i) => (
@@ -123,7 +123,7 @@ export function SectionNorthStar({ missionId, isAdmin }: { missionId: string; is
             Things We Must Avoid
           </div>
           {data.thingsToAvoid.length === 0 ? (
-            <Empty>No risks recorded.</Empty>
+            <MutedItalic>Win strategy risks will be set in Olympus.</MutedItalic>
           ) : (
             <ul className="space-y-1.5">
               {data.thingsToAvoid.map((t: any, i: number) => (
