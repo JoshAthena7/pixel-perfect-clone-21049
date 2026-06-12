@@ -78,7 +78,10 @@ export const getSnapshot = createServerFn({ method: "POST" })
     ]);
     const mission = missionRes.data;
     const team = teamRes.data ?? [];
-    const leadRow = team.find((t: any) => t.mission_role === "engagement_lead" || t.mission_role === "lead");
+    const leadRow =
+      team.find((t: any) => t.mission_role === "engagement_lead") ??
+      team.find((t: any) => t.mission_role === "lead") ??
+      team.find((t: any) => t.mission_role === "admin");
     let leadName: string | null = null;
     if (leadRow) {
       const { data: lead } = await supabase
@@ -290,36 +293,49 @@ export const getMissionMap = createServerFn({ method: "POST" })
     const qaByQ: Record<string, any> = {};
     for (const a of qaRes.data ?? []) qaByQ[a.question_id] = a;
 
-    const sections = (sectionsRes.data ?? []).map((s: any) => {
-      const qs = (questionsRes.data ?? [])
-        .filter((q: any) => q.section_id === s.id)
-        .sort((a: any, b: any) => String(a.question_number ?? "").localeCompare(String(b.question_number ?? "")))
-        .map((q: any) => {
-          const a = assignmentByQ[q.id];
-          const qa = qaByQ[q.id];
-          const writer = a?.assigned_writer_id ? writerNames[a.assigned_writer_id] : qa?.writer_name ?? null;
-          const sme = qa?.athena_sme_name ?? qa?.client_sme_name ?? null;
-          return {
-            id: q.id,
-            number: q.question_number,
-            text: q.question_text,
-            status: q.status,
-            health: q.health_status,
-            confidence: q.iris_confidence,
-            writer,
-            sme,
-          };
-        });
-      return { id: s.id, name: s.name, number: s.section_number, questions: qs };
-    });
+    const mapQ = (q: any) => {
+      const a = assignmentByQ[q.id];
+      const qa = qaByQ[q.id];
+      const writer = a?.assigned_writer_id ? writerNames[a.assigned_writer_id] : qa?.writer_name ?? null;
+      const sme = qa?.athena_sme_name ?? qa?.client_sme_name ?? null;
+      return {
+        id: q.id,
+        number: q.question_number,
+        text: q.question_text,
+        status: q.status,
+        health: q.health_status,
+        confidence: q.iris_confidence,
+        writer,
+        sme,
+      };
+    };
 
     const allQs = questionsRes.data ?? [];
+    const sortQs = (qs: any[]) =>
+      qs.sort((a: any, b: any) => String(a.question_number ?? "").localeCompare(String(b.question_number ?? "")));
+
+    const sections = (sectionsRes.data ?? [])
+      .map((s: any) => ({
+        id: s.id,
+        name: s.name,
+        number: s.section_number,
+        questions: sortQs(allQs.filter((q: any) => q.section_id === s.id)).map(mapQ),
+      }))
+      // hide sections with no questions when there is nothing to show
+      .filter((s: any) => s.questions.length > 0);
+
+    const unassigned = sortQs(allQs.filter((q: any) => !q.section_id)).map(mapQ);
+    if (unassigned.length > 0) {
+      sections.push({ id: "__unassigned__", name: "Unassigned", number: null, questions: unassigned });
+    }
+
     return {
       sections,
       totals: {
         total: allQs.length,
         complete: allQs.filter((q: any) => q.status === "complete").length,
         inProgress: allQs.filter((q: any) => q.status === "in_progress").length,
+        notStarted: allQs.filter((q: any) => q.status === "not_started" || !q.status).length,
         atRisk: allQs.filter((q: any) => q.health_status === "at_risk").length,
       },
     };
@@ -333,7 +349,7 @@ export const getRisks = createServerFn({ method: "POST" })
   .inputValidator((d) => MissionIdInput.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase } = context as Ctx;
-    const [risksRes, qRiskRes, feedRes, sosRes] = await Promise.all([
+    const [risksRes, qRiskRes, sosRes] = await Promise.all([
       supabase
         .from("mission_risks")
         .select("id,title,description,severity,status,created_at")
@@ -345,13 +361,6 @@ export const getRisks = createServerFn({ method: "POST" })
         .select("id,question_number,question_text,health_status")
         .eq("mission_id", data.missionId)
         .in("health_status", ["at_risk", "watch"]),
-      supabase
-        .from("intelligence_feed_items")
-        .select("id,headline,iris_assessment,recommended_action,published_at")
-        .eq("mission_id", data.missionId)
-        .not("recommended_action", "is", null)
-        .order("published_at", { ascending: false })
-        .limit(5),
       supabase
         .from("reality_updates")
         .select("id,details,user_name,created_at")
@@ -379,15 +388,6 @@ export const getRisks = createServerFn({ method: "POST" })
         title: `Q${q.question_number ?? ""} — ${String(q.question_text ?? "").slice(0, 100)}`,
         description: q.health_status === "at_risk" ? "Flagged at risk." : "On watch list.",
         createdAt: new Date().toISOString(),
-      });
-    }
-    for (const f of feedRes.data ?? []) {
-      items.push({
-        id: `f-${f.id}`,
-        level: "WATCH",
-        title: f.headline,
-        description: f.recommended_action ?? f.iris_assessment ?? "",
-        createdAt: f.published_at ?? new Date().toISOString(),
       });
     }
     for (const s of sosRes.data ?? []) {
@@ -420,10 +420,28 @@ export const getDocuments = createServerFn({ method: "POST" })
       .select("id,document_type,title,file_url,source_url,is_amendment,created_at")
       .eq("mission_id", data.missionId)
       .order("created_at", { ascending: false });
-    const order = ["rfp", "amendment", "qa", "compliance", "style"];
+
+    // Infer group key from explicit type, amendment flag, or document title.
+    function inferKey(d: any): string {
+      if (d.is_amendment) return "amendment";
+      const t = String(d.document_type ?? "").toLowerCase();
+      if (t === "primary_rfp" || t === "rfp" || t === "amendment" || t === "qa" || t === "compliance" || t === "style") {
+        return t === "primary_rfp" ? "rfp" : t;
+      }
+      const title = String(d.title ?? "").toLowerCase();
+      if (/amendment/.test(title)) return "amendment";
+      if (/style\s*guide/.test(title)) return "style";
+      if (/\b(rfp|solicitation|bid|t1932)\b/.test(title)) return "rfp";
+      if (/\b(canon|intel|research)\b/.test(title)) return "intelligence";
+      if (/q\s*&\s*a|q\s*and\s*a|prior\s*q&a/.test(title)) return "qa";
+      if (/compliance/.test(title)) return "compliance";
+      return "other";
+    }
+
+    const order = ["rfp", "amendment", "qa", "compliance", "style", "intelligence", "other"];
     const groups: Record<string, any[]> = {};
     for (const d of docs ?? []) {
-      const key = d.is_amendment ? "amendment" : (d.document_type || "other");
+      const key = inferKey(d);
       (groups[key] ??= []).push(d);
     }
     const sortedKeys = Object.keys(groups).sort((a, b) => {

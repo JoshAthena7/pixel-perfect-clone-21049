@@ -9,7 +9,8 @@ const GROUP_LABEL: Record<string, string> = {
   amendment: "Amendments",
   qa: "Q&A",
   compliance: "Compliance",
-  style: "Style Guides",
+  style: "Style Guide",
+  intelligence: "Intelligence",
   other: "Other",
 };
 
