@@ -86,7 +86,7 @@ export function EvaluatorPicturePanel({
         </ul>
       )}
       <Link
-        to="/olympus/missions/$missionId"
+        to="/missions/$missionId/oracle"
         params={{ missionId }}
         className="inline-block text-[11px] hover:underline"
         style={{ color: GOLD }}
