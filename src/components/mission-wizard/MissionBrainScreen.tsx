@@ -46,7 +46,12 @@ export function MissionBrainScreen({
         supabase.from("iris_memories").select("id", { count: "exact", head: true }).eq("mission_id", missionId).contains("tags", ["intel_drop"]),
       ]);
 
-      const m = mission.data ?? {};
+      const m = (mission.data ?? {}) as {
+        name?: string | null;
+        client_name?: string | null;
+        state?: string | null;
+        submission_deadline?: string | null;
+      };
       const teamRows = (team.data ?? []) as { mission_role: string | null }[];
       const memRows = (memory.data ?? []) as { category: string | null; tags: string[] | null }[];
       const memoryKeys = new Set(memRows.flatMap((r) => r.tags ?? []));
@@ -56,6 +61,8 @@ export function MissionBrainScreen({
 
       const built: Gap[] = [
         { key: "snapshot", label: "Mission snapshot — name, client, state, deadline", weight: 6,
+          status: status(!!m.name && !!m.client_name && !!m.state && !!m.submission_deadline,
+                          !!m.name || !!m.client_name) },
           status: status(!!m.name && !!m.client_name && !!m.state && !!m.submission_deadline,
                           !!m.name || !!m.client_name) },
         { key: "rfp", label: "RFP read and parsed into sections", weight: 12,
