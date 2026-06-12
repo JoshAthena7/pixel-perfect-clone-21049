@@ -65,6 +65,7 @@ import { Route as AuthenticatedMissionsMissionIdInsightsRouteImport } from './ro
 import { Route as AuthenticatedMissionsMissionIdFlightDeckRouteImport } from './routes/_authenticated/missions.$missionId.flight-deck'
 import { Route as AuthenticatedMissionsMissionIdComplianceRouteImport } from './routes/_authenticated/missions.$missionId.compliance'
 import { Route as AuthenticatedMissionsMissionIdBriefingRouteImport } from './routes/_authenticated/missions.$missionId.briefing'
+import { Route as AuthenticatedMissionsMissionIdActivityRouteImport } from './routes/_authenticated/missions.$missionId.activity'
 import { Route as AuthenticatedAdminTeamMemberIdRouteImport } from './routes/_authenticated/admin.team.$memberId'
 import { Route as AuthenticatedOlympusMissionsMissionIdIndexRouteImport } from './routes/_authenticated/olympus.missions.$missionId.index'
 import { Route as AuthenticatedOlympusMissionsMissionIdWizardRouteImport } from './routes/_authenticated/olympus.missions.$missionId.wizard'
@@ -381,6 +382,12 @@ const AuthenticatedMissionsMissionIdBriefingRoute =
     path: '/briefing',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedMissionsMissionIdActivityRoute =
+  AuthenticatedMissionsMissionIdActivityRouteImport.update({
+    id: '/activity',
+    path: '/activity',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
 const AuthenticatedAdminTeamMemberIdRoute =
   AuthenticatedAdminTeamMemberIdRouteImport.update({
     id: '/$memberId',
@@ -430,6 +437,7 @@ export interface FileRoutesByFullPath {
   '/missions/': typeof AuthenticatedMissionsIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
+  '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/compliance': typeof AuthenticatedMissionsMissionIdComplianceRoute
   '/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
@@ -488,6 +496,7 @@ export interface FileRoutesByTo {
   '/missions': typeof AuthenticatedMissionsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
+  '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/missions/$missionId/compliance': typeof AuthenticatedMissionsMissionIdComplianceRoute
   '/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
@@ -550,6 +559,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
+  '/_authenticated/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
   '/_authenticated/missions/$missionId/compliance': typeof AuthenticatedMissionsMissionIdComplianceRoute
   '/_authenticated/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
@@ -612,6 +622,7 @@ export interface FileRouteTypes {
     | '/missions/'
     | '/profile/'
     | '/admin/team/$memberId'
+    | '/missions/$missionId/activity'
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/compliance'
     | '/missions/$missionId/flight-deck'
@@ -670,6 +681,7 @@ export interface FileRouteTypes {
     | '/missions'
     | '/profile'
     | '/admin/team/$memberId'
+    | '/missions/$missionId/activity'
     | '/missions/$missionId/briefing'
     | '/missions/$missionId/compliance'
     | '/missions/$missionId/flight-deck'
@@ -731,6 +743,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/'
     | '/_authenticated/profile/'
     | '/_authenticated/admin/team/$memberId'
+    | '/_authenticated/missions/$missionId/activity'
     | '/_authenticated/missions/$missionId/briefing'
     | '/_authenticated/missions/$missionId/compliance'
     | '/_authenticated/missions/$missionId/flight-deck'
@@ -1181,6 +1194,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdBriefingRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/missions/$missionId/activity': {
+      id: '/_authenticated/missions/$missionId/activity'
+      path: '/activity'
+      fullPath: '/missions/$missionId/activity'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdActivityRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
     '/_authenticated/admin/team/$memberId': {
       id: '/_authenticated/admin/team/$memberId'
       path: '/$memberId'
@@ -1235,6 +1255,7 @@ const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedMissionsMissionIdRouteChildren {
+  AuthenticatedMissionsMissionIdActivityRoute: typeof AuthenticatedMissionsMissionIdActivityRoute
   AuthenticatedMissionsMissionIdBriefingRoute: typeof AuthenticatedMissionsMissionIdBriefingRoute
   AuthenticatedMissionsMissionIdComplianceRoute: typeof AuthenticatedMissionsMissionIdComplianceRoute
   AuthenticatedMissionsMissionIdFlightDeckRoute: typeof AuthenticatedMissionsMissionIdFlightDeckRoute
@@ -1252,6 +1273,8 @@ interface AuthenticatedMissionsMissionIdRouteChildren {
 
 const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionIdRouteChildren =
   {
+    AuthenticatedMissionsMissionIdActivityRoute:
+      AuthenticatedMissionsMissionIdActivityRoute,
     AuthenticatedMissionsMissionIdBriefingRoute:
       AuthenticatedMissionsMissionIdBriefingRoute,
     AuthenticatedMissionsMissionIdComplianceRoute:

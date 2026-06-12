@@ -4,8 +4,9 @@ import { differenceInCalendarDays } from "date-fns";
 import {
   FileText, Brain, Lightbulb, LayoutDashboard, MessageSquare, Target,
   Trophy, Users, Route as RouteIcon, ListChecks, BarChart3, Settings,
-  ArrowLeft, LogOut, Menu, X, Icon as LucideIcon,
+  ArrowLeft, LogOut, Menu, X, Activity as ActivityIcon, Icon as LucideIcon,
 } from "lucide-react";
+
 import { owl } from "@lucide/lab";
 
 const Owl = (props: Omit<React.ComponentProps<typeof LucideIcon>, "iconNode">) => (
@@ -40,11 +41,13 @@ const MY_WORK_ITEMS: NavItem[] = [
 const ADMIN_ITEMS: NavItem[] = [
   { to: "/missions/$missionId/win-strategy", label: "Win Strategy", Icon: Trophy, needsMission: true },
   { to: "/missions/$missionId/team", label: "Team", Icon: Users, needsMission: true },
+  { to: "/missions/$missionId/activity", label: "Activity", Icon: ActivityIcon, needsMission: true },
   { to: "/missions/$missionId/journey", label: "Journey", Icon: RouteIcon, needsMission: true },
   { to: "/missions/$missionId/compliance", label: "Compliance", Icon: ListChecks, needsMission: true },
   { to: "/missions/$missionId/reports", label: "Reports", Icon: BarChart3, needsMission: true },
   { to: "/missions/$missionId/settings", label: "Settings", Icon: Settings, needsMission: true },
 ];
+
 
 const ADMIN_AREA_ITEMS: NavItem[] = [
   { to: "/admin", label: "Overview", Icon: LayoutDashboard },
@@ -141,8 +144,21 @@ export function AppSidebar({
               <Divider />
               <Section label="MY WORK" items={MY_WORK_ITEMS} missionId={missionId} pathname={pathname} collapsed={collapsed} disabled={!inMission} />
               <Divider />
-              <Section label="ADMIN" items={ADMIN_ITEMS} missionId={missionId} pathname={pathname} collapsed={collapsed} disabled={!inMission} muted />
+              <Section
+                label="ADMIN"
+                items={ADMIN_ITEMS.filter((it) => {
+                  if (it.label !== "Activity") return true;
+                  const r = (userRole ?? "").toLowerCase();
+                  return r === "admin" || r === "engagement_lead" || r === "lead";
+                })}
+                missionId={missionId}
+                pathname={pathname}
+                collapsed={collapsed}
+                disabled={!inMission}
+                muted
+              />
             </>
+
           )}
           <Divider />
           <div className={cn("px-1.5", collapsed && "px-0")}>
