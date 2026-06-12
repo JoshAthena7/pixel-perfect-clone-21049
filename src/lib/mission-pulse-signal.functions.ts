@@ -276,7 +276,7 @@ export const submitMissionSignal = createServerFn({ method: "POST" })
         .limit(1);
 
       if (!existing || existing.length === 0) {
-        const topic = trendingTopic ?? (typeCounts.get("blocker") ?? 0) >= 2 ? "blockers" : "risk areas";
+        const topic = trendingTopic ?? ((typeCounts.get("blocker") ?? 0) >= 2 ? "blockers" : "risk areas");
         const count = trendingTopic
           ? topicCounts.get(trendingTopic)
           : Math.max(typeCounts.get("risk_alert") ?? 0, typeCounts.get("blocker") ?? 0);
