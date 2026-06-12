@@ -604,7 +604,7 @@ function QuestionWorkspacePanel({
 
   return (
     <section className="rounded-xl border border-border bg-surface/30 p-4">
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-3 gap-3">
         <PanelHeader title="QUESTION WORKSPACE" subtitle="Your mission operations hub. You do the writing in the client environment." />
         {missionId && (
           <Link
@@ -616,6 +616,57 @@ function QuestionWorkspacePanel({
           </Link>
         )}
       </div>
+
+      {/* Question header strip: All Questions + prev/next + active question label */}
+      {activeQ && (
+        <div className="flex flex-wrap items-center gap-2 mb-3 pb-3 border-b border-border">
+          {missionId ? (
+            <Link
+              to="/missions/$missionId/briefing"
+              params={{ missionId }}
+              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              All Questions
+            </Link>
+          ) : (
+            <Link
+              to="/my-work"
+              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              All Questions
+            </Link>
+          )}
+          <span className="text-muted-foreground/40">·</span>
+          <span className="font-mono text-[11px] text-[color:var(--athena-gold)]">
+            {activeQ.question_number}
+          </span>
+          <span className="text-[11px] text-foreground/80 truncate max-w-md">
+            {activeQ.question_text}
+          </span>
+          <div className="ml-auto flex items-center gap-1">
+            {prevQ && (
+              <button
+                onClick={() => setSelectedId(prevQ.id)}
+                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground rounded px-2 py-1 hover:bg-surface/50"
+              >
+                <ChevronLeft className="h-3 w-3" />
+                prev
+              </button>
+            )}
+            {nextQ && (
+              <button
+                onClick={() => setSelectedId(nextQ.id)}
+                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground rounded px-2 py-1 hover:bg-surface/50"
+              >
+                next
+                <ChevronRight className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Mobile tab toggle */}
       <div className="md:hidden mb-3 sticky top-0 z-10 -mx-4 px-4 py-2 bg-surface/80 backdrop-blur border-b border-border">
