@@ -526,7 +526,7 @@ function TeamTab({ missionId }: { missionId: string }) {
   async function addMember(memberId: string) {
     const { error } = await supabase
       .from("mission_team_members")
-      .insert({ mission_id: missionId, member_id: memberId, mission_role: "Analyst" } as any);
+      .insert({ mission_id: missionId, member_id: memberId, mission_role: "Section Writer" } as any);
     if (error) return toast.error(error.message);
     toast.success("Added to mission");
     qc.invalidateQueries({ queryKey: ["admin-mission-team", missionId] });
