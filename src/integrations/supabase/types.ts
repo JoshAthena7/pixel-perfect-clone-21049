@@ -6600,6 +6600,58 @@ export type Database = {
         }
         Relationships: []
       }
+      oracle_thread_queries: {
+        Row: {
+          created_at: string
+          id: string
+          mission_id: string
+          oracle_items_returned: Json
+          query_topic: string
+          question_id: string
+          thread_message_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mission_id: string
+          oracle_items_returned?: Json
+          query_topic: string
+          question_id: string
+          thread_message_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mission_id?: string
+          oracle_items_returned?: Json
+          query_topic?: string
+          question_id?: string
+          thread_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_thread_queries_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_thread_queries_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_thread_queries_thread_message_id_fkey"
+            columns: ["thread_message_id"]
+            isOneToOne: false
+            referencedRelation: "thread_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       phi_rejection_log: {
         Row: {
           actor_user_id: string | null
@@ -8154,6 +8206,60 @@ export type Database = {
           reason?: string
         }
         Relationships: []
+      }
+      thread_messages: {
+        Row: {
+          created_at: string
+          id: string
+          iris_action: string | null
+          message_body: string
+          message_type: string
+          metadata: Json
+          mission_id: string
+          question_id: string
+          sender_id: string | null
+          sender_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          iris_action?: string | null
+          message_body: string
+          message_type?: string
+          metadata?: Json
+          mission_id: string
+          question_id: string
+          sender_id?: string | null
+          sender_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          iris_action?: string | null
+          message_body?: string
+          message_type?: string
+          metadata?: Json
+          mission_id?: string
+          question_id?: string
+          sender_id?: string | null
+          sender_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_messages_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thread_messages_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       threads: {
         Row: {

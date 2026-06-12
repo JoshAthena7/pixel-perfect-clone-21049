@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { MessageSquare, PhoneCall, Target, Activity, AlertTriangle } from "lucide-react";
-import { UpdateRealityDialog, SOSDialog } from "@/components/iris/AssistsDialogs";
+import { SOSDialog } from "@/components/iris/AssistsDialogs";
 import { DailyPulseModal } from "@/components/iris/DailyPulseModal";
 import { ScoreDraftPanel } from "@/components/my-work/ScoreDraftPanel";
 import { FindSMEDialog } from "./FindSMEDialog";
+import { ThreadPanel } from "./ThreadPanel";
 import { supabase } from "@/integrations/supabase/client";
 
 type Props = {
@@ -27,7 +28,7 @@ type ButtonSpec = {
   onClick: () => void;
 };
 
-export function FlightDeckAssistBar({ missionId, questionId }: Props) {
+export function FlightDeckAssistBar({ missionId, questionId, questionNumber, questionText }: Props) {
   const [threadOpen, setThreadOpen] = useState(false);
   const [smeOpen, setSmeOpen] = useState(false);
   const [scoreOpen, setScoreOpen] = useState(false);
@@ -163,11 +164,17 @@ export function FlightDeckAssistBar({ missionId, questionId }: Props) {
         ))}
       </div>
 
-      <UpdateRealityDialog
+      <ThreadPanel
         open={threadOpen}
-        onOpenChange={setThreadOpen}
+        onClose={() => setThreadOpen(false)}
         missionId={missionId}
-        onSent={() => {}}
+        questionId={questionId}
+        questionNumber={questionNumber}
+        questionText={questionText}
+        onRequestFindSME={(_topic) => {
+          setThreadOpen(false);
+          setSmeOpen(true);
+        }}
       />
       <FindSMEDialog open={smeOpen} onOpenChange={setSmeOpen} missionId={missionId} />
       <ScoreDraftPanel
