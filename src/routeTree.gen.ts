@@ -38,6 +38,7 @@ import { Route as AuthenticatedOlympusSplatRouteImport } from './routes/_authent
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions.$missionId'
 import { Route as AuthenticatedMissionNewRouteImport } from './routes/_authenticated/mission.new'
 import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated/admin.team'
+import { Route as AuthenticatedAdminMessagingRouteImport } from './routes/_authenticated/admin.messaging'
 import { Route as AuthenticatedAdminIrisHealthRouteImport } from './routes/_authenticated/admin.iris-health'
 import { Route as AuthenticatedOlympusMissionsIndexRouteImport } from './routes/_authenticated/olympus.missions.index'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions.$missionId.index'
@@ -68,6 +69,7 @@ import { Route as AuthenticatedMissionsMissionIdComplianceRouteImport } from './
 import { Route as AuthenticatedMissionsMissionIdBriefingRouteImport } from './routes/_authenticated/missions.$missionId.briefing'
 import { Route as AuthenticatedMissionsMissionIdActivityRouteImport } from './routes/_authenticated/missions.$missionId.activity'
 import { Route as AuthenticatedAdminTeamMemberIdRouteImport } from './routes/_authenticated/admin.team.$memberId'
+import { Route as AuthenticatedAdminMissionsMissionIdRouteImport } from './routes/_authenticated/admin.missions.$missionId'
 import { Route as AuthenticatedOlympusMissionsMissionIdIndexRouteImport } from './routes/_authenticated/olympus.missions.$missionId.index'
 import { Route as AuthenticatedOlympusMissionsMissionIdWizardRouteImport } from './routes/_authenticated/olympus.missions.$missionId.wizard'
 
@@ -222,6 +224,12 @@ const AuthenticatedAdminTeamRoute = AuthenticatedAdminTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminMessagingRoute =
+  AuthenticatedAdminMessagingRouteImport.update({
+    id: '/messaging',
+    path: '/messaging',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminIrisHealthRoute =
   AuthenticatedAdminIrisHealthRouteImport.update({
     id: '/iris-health',
@@ -400,6 +408,12 @@ const AuthenticatedAdminTeamMemberIdRoute =
     path: '/$memberId',
     getParentRoute: () => AuthenticatedAdminTeamRoute,
   } as any)
+const AuthenticatedAdminMissionsMissionIdRoute =
+  AuthenticatedAdminMissionsMissionIdRouteImport.update({
+    id: '/missions/$missionId',
+    path: '/missions/$missionId',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedOlympusMissionsMissionIdIndexRoute =
   AuthenticatedOlympusMissionsMissionIdIndexRouteImport.update({
     id: '/olympus/missions/$missionId/',
@@ -431,6 +445,7 @@ export interface FileRoutesByFullPath {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/welcome/$token': typeof WelcomeTokenRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
+  '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/mission/new': typeof AuthenticatedMissionNewRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
@@ -443,6 +458,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/missions/': typeof AuthenticatedMissionsIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
+  '/admin/missions/$missionId': typeof AuthenticatedAdminMissionsMissionIdRoute
   '/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -492,6 +508,7 @@ export interface FileRoutesByTo {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/welcome/$token': typeof WelcomeTokenRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
+  '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/mission/new': typeof AuthenticatedMissionNewRoute
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
@@ -503,6 +520,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/missions': typeof AuthenticatedMissionsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
+  '/admin/missions/$missionId': typeof AuthenticatedAdminMissionsMissionIdRoute
   '/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -555,6 +573,7 @@ export interface FileRoutesById {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/welcome/$token': typeof WelcomeTokenRoute
   '/_authenticated/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
+  '/_authenticated/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/_authenticated/mission/new': typeof AuthenticatedMissionNewRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
@@ -567,6 +586,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
+  '/_authenticated/admin/missions/$missionId': typeof AuthenticatedAdminMissionsMissionIdRoute
   '/_authenticated/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
   '/_authenticated/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -619,6 +639,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/welcome/$token'
     | '/admin/iris-health'
+    | '/admin/messaging'
     | '/admin/team'
     | '/mission/new'
     | '/missions/$missionId'
@@ -631,6 +652,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/missions/'
     | '/profile/'
+    | '/admin/missions/$missionId'
     | '/admin/team/$memberId'
     | '/missions/$missionId/activity'
     | '/missions/$missionId/briefing'
@@ -680,6 +702,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/welcome/$token'
     | '/admin/iris-health'
+    | '/admin/messaging'
     | '/admin/team'
     | '/mission/new'
     | '/olympus/$'
@@ -691,6 +714,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/missions'
     | '/profile'
+    | '/admin/missions/$missionId'
     | '/admin/team/$memberId'
     | '/missions/$missionId/activity'
     | '/missions/$missionId/briefing'
@@ -742,6 +766,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/welcome/$token'
     | '/_authenticated/admin/iris-health'
+    | '/_authenticated/admin/messaging'
     | '/_authenticated/admin/team'
     | '/_authenticated/mission/new'
     | '/_authenticated/missions/$missionId'
@@ -754,6 +779,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/missions/'
     | '/_authenticated/profile/'
+    | '/_authenticated/admin/missions/$missionId'
     | '/_authenticated/admin/team/$memberId'
     | '/_authenticated/missions/$missionId/activity'
     | '/_authenticated/missions/$missionId/briefing'
@@ -1017,6 +1043,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTeamRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/messaging': {
+      id: '/_authenticated/admin/messaging'
+      path: '/messaging'
+      fullPath: '/admin/messaging'
+      preLoaderRoute: typeof AuthenticatedAdminMessagingRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/iris-health': {
       id: '/_authenticated/admin/iris-health'
       path: '/iris-health'
@@ -1227,6 +1260,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTeamMemberIdRouteImport
       parentRoute: typeof AuthenticatedAdminTeamRoute
     }
+    '/_authenticated/admin/missions/$missionId': {
+      id: '/_authenticated/admin/missions/$missionId'
+      path: '/missions/$missionId'
+      fullPath: '/admin/missions/$missionId'
+      preLoaderRoute: typeof AuthenticatedAdminMissionsMissionIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/olympus/missions/$missionId/': {
       id: '/_authenticated/olympus/missions/$missionId/'
       path: '/olympus/missions/$missionId'
@@ -1260,14 +1300,19 @@ const AuthenticatedAdminTeamRouteWithChildren =
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminIrisHealthRoute: typeof AuthenticatedAdminIrisHealthRoute
+  AuthenticatedAdminMessagingRoute: typeof AuthenticatedAdminMessagingRoute
   AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRouteWithChildren
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminMissionsMissionIdRoute: typeof AuthenticatedAdminMissionsMissionIdRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminIrisHealthRoute: AuthenticatedAdminIrisHealthRoute,
+  AuthenticatedAdminMessagingRoute: AuthenticatedAdminMessagingRoute,
   AuthenticatedAdminTeamRoute: AuthenticatedAdminTeamRouteWithChildren,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+  AuthenticatedAdminMissionsMissionIdRoute:
+    AuthenticatedAdminMissionsMissionIdRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =

@@ -66,19 +66,19 @@ function AdminMissionDetail() {
 
   async function save() {
     setSaving(true);
-    const payload: Record<string, unknown> = {
-      name: form.name,
-      client_name: form.client_name,
-      status: form.status,
-      submission_deadline: form.submission_deadline,
-      contract_value: form.contract_value,
-      agency_name: form.agency_name,
-      state: form.state,
-      primary_contact_name: form.primary_contact_name,
-      primary_contact_email: form.primary_contact_email,
+    const payload = {
+      name: form.name ?? null,
+      client_name: form.client_name ?? null,
+      status: form.status ?? null,
+      submission_deadline: form.submission_deadline ?? null,
+      contract_value: form.contract_value ?? null,
+      agency_name: form.agency_name ?? null,
+      state: form.state ?? null,
+      primary_contact_name: form.primary_contact_name ?? null,
+      primary_contact_email: form.primary_contact_email ?? null,
       updated_at: new Date().toISOString(),
     };
-    const { error } = await supabase.from("missions").update(payload).eq("id", missionId);
+    const { error } = await (supabase.from("missions").update(payload as any) as any).eq("id", missionId);
     setSaving(false);
     if (error) {
       toast.error(`Save failed: ${error.message}`);
