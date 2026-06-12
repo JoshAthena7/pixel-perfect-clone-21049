@@ -135,13 +135,9 @@ export function AppSidebar({
           {inAdmin ? (
             <Section label="ADMIN" items={ADMIN_AREA_ITEMS} missionId={undefined} pathname={pathname} collapsed={collapsed} />
           ) : (
-            <>
-              <Section label="MISSION" items={MISSION_ITEMS} missionId={missionId} pathname={pathname} collapsed={collapsed} disabled={!inMission} />
-              <Divider />
-              <Section label="MY WORK" items={MY_WORK_ITEMS} missionId={missionId} pathname={pathname} collapsed={collapsed} disabled={!inMission} />
-            </>
-
+            <Section label="MISSION" items={MISSION_ITEMS} missionId={missionId} pathname={pathname} collapsed={collapsed} disabled={!inMission} />
           )}
+
         </div>
 
 
