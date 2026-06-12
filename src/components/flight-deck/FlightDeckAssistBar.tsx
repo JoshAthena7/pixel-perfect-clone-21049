@@ -169,8 +169,8 @@ export function FlightDeckAssistBar({ missionId, questionId, questionNumber, que
         onClose={() => setThreadOpen(false)}
         missionId={missionId}
         questionId={questionId}
-        questionNumber={null}
-        questionText={null}
+        questionNumber={questionNumber}
+        questionText={questionText}
         onRequestFindSME={(_topic) => {
           setThreadOpen(false);
           setSmeOpen(true);
