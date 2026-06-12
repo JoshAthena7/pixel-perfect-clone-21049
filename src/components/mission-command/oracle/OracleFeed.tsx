@@ -111,7 +111,28 @@ export function OracleFeed({ missionId, isAdmin }: { missionId: string; isAdmin:
         })}
       </div>
 
-      {isAdmin && <OlympusLink>Manage sources in Olympus →</OlympusLink>}
+      {isAdmin && (
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => sweep.mutate()}
+            disabled={sweep.isPending}
+            className="inline-flex items-center gap-1.5 rounded transition-colors disabled:opacity-50"
+            style={{
+              padding: "4px 10px",
+              fontSize: 11,
+              color: "#C49A2B",
+              background: "rgba(196,154,43,0.10)",
+              border: "1px solid rgba(196,154,43,0.35)",
+            }}
+            title="Ask IRIS to research Legislation, Stakeholder, Competitor, Procurement, and Regulatory items for this mission"
+          >
+            {sweep.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+            {sweep.isPending ? "IRIS is researching…" : "Run IRIS Sweep"}
+          </button>
+          <OlympusLink>Manage sources in Olympus →</OlympusLink>
+        </div>
+      )}
 
       {isLoading ? (
         <SkeletonList count={3} />
