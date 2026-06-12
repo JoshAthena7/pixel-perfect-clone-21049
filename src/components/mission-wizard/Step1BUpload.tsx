@@ -4,6 +4,7 @@ import { CheckCircle2, FileText, Plus, UploadCloud, X, AlertCircle } from "lucid
 import { supabase } from "@/integrations/supabase/client";
 import { IrisMark } from "@/components/iris/IrisMark";
 import { MissionAnalysisAnimation } from "@/components/mission-wizard/MissionAnalysisAnimation";
+import { MissionAnalysisResults } from "@/components/mission-wizard/MissionAnalysisResults";
 import { cn } from "@/lib/utils";
 
 const BUCKET = "atlas-rfp-documents";
@@ -88,7 +89,7 @@ export function Step1BUpload({
   const [rows, setRows] = useState<Row[]>([]);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [analyzing, setAnalyzing] = useState(false);
+  const [phase, setPhase] = useState<"upload" | "analyzing" | "results">("upload");
 
   useEffect(() => {
     (async () => {
@@ -249,8 +250,11 @@ export function Step1BUpload({
     }
   }
 
-  if (analyzing) {
-    return <MissionAnalysisAnimation onComplete={onAdvance} />;
+  if (phase === "analyzing") {
+    return <MissionAnalysisAnimation onComplete={() => setPhase("results")} />;
+  }
+  if (phase === "results") {
+    return <MissionAnalysisResults missionId={missionId} onContinue={onAdvance} />;
   }
 
   return (
@@ -381,7 +385,7 @@ export function Step1BUpload({
         {/* Continue */}
         <div className="mt-12 flex justify-end">
           <button
-            onClick={() => setAnalyzing(true)}
+            onClick={() => setPhase("analyzing")}
             disabled={!hasAnyDone}
             className={cn(
               "inline-flex items-center gap-2 rounded-lg px-6 py-3 text-[14px] font-medium transition-all",
