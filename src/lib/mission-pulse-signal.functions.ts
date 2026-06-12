@@ -207,8 +207,9 @@ export const submitMissionSignal = createServerFn({ method: "POST" })
 
       const recipients = (members ?? []).filter((m) => {
         if (rolesToNotify.has("all")) return true;
-        return rolesToNotify.has(m.mission_role);
+        return m.mission_role ? rolesToNotify.has(m.mission_role) : false;
       });
+
 
       if (recipients.length > 0) {
         await supabaseAdmin.from("atlas_notifications").insert(
