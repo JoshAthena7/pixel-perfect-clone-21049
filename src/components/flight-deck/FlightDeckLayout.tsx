@@ -87,9 +87,6 @@ export function FlightDeckLayout({
   );
 }
 
-// Suppress unused-warning for the prefill prop now that the in-page assists row is removed.
-void onPrefillIris_unused;
-
 /* ---------------- Header ---------------- */
 function FlightDeckHeader({ name, status }: { name: string; status: string | null }) {
   const tone =
