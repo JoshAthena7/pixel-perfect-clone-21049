@@ -179,10 +179,8 @@ export const maybePostInactivityCheckIn = createServerFn({ method: "POST" })
 // IRIS analysis (server-only helper, called from postThreadMessage handler)
 // ──────────────────────────────────────────────────────────────────────────
 
-type Sup = Awaited<ReturnType<typeof getCtx>>["supabase"];
-// Trick to get the supabase type from the middleware context without an extra import.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getCtx(): Promise<{ supabase: any }> { return { supabase: null as any }; }
+type Sup = any;
 
 async function runIrisAnalysis(
   supabase: Sup,
