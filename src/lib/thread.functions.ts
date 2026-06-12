@@ -144,7 +144,7 @@ export const postThreadMessage = createServerFn({ method: "POST" })
         missionId: data.missionId,
         questionId: data.questionId,
         body: data.body,
-      }).catch((e) => console.error("[thread] cross-reference search failed", e));
+      }).catch((e: unknown) => console.error("[thread] cross-reference search failed", e));
     }
 
     return { ok: true, message: inserted };
