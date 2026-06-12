@@ -31,9 +31,10 @@ export type TeamUpdateRow = {
   sender_name: string;
   update_type: string;
   body: string;
-  metadata: Record<string, unknown> | null;
+  metadata: unknown;
   created_at: string;
 };
+
 
 const IRIS_TYPES = new Set([
   "iris_response",
