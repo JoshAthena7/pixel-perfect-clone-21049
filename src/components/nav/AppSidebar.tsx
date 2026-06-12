@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { differenceInCalendarDays } from "date-fns";
 import {
   FileText, Brain, Lightbulb, LayoutDashboard, MessageSquare, Target,
-  Trophy, Users, Route as RouteIcon, ListChecks, BarChart3, Settings,
+  Users, Route as RouteIcon, ListChecks, BarChart3, Settings,
   ArrowLeft, LogOut, Menu, X, Activity as ActivityIcon, Icon as LucideIcon,
   Flag, Megaphone,
 } from "lucide-react";
@@ -41,9 +41,7 @@ const MY_WORK_ITEMS: NavItem[] = [
   
 ];
 
-const ADMIN_ITEMS: NavItem[] = [
-  { to: "/missions/$missionId/win-strategy", label: "Win Strategy", Icon: Trophy, needsMission: true },
-];
+const ADMIN_ITEMS: NavItem[] = [];
 
 
 const ADMIN_AREA_ITEMS: NavItem[] = [
@@ -143,20 +141,6 @@ export function AppSidebar({
               <Section label="MISSION" items={MISSION_ITEMS} missionId={missionId} pathname={pathname} collapsed={collapsed} disabled={!inMission} />
               <Divider />
               <Section label="MY WORK" items={MY_WORK_ITEMS} missionId={missionId} pathname={pathname} collapsed={collapsed} disabled={!inMission} />
-              <Divider />
-              <Section
-                label="MISSION TOOLS"
-                items={ADMIN_ITEMS.filter((it) => {
-                  if (it.label !== "Activity") return true;
-                  const r = (userRole ?? "").toLowerCase();
-                  return r === "admin" || r === "engagement_lead" || r === "lead";
-                })}
-                missionId={missionId}
-                pathname={pathname}
-                collapsed={collapsed}
-                disabled={!inMission}
-                muted
-              />
             </>
 
           )}

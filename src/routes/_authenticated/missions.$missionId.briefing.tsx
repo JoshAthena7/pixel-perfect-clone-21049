@@ -15,6 +15,7 @@ import { SectionRisks } from "@/components/briefing-room/SectionRisks";
 import { SectionDocuments } from "@/components/briefing-room/SectionDocuments";
 import { SectionSignals } from "@/components/briefing-room/SectionSignals";
 import { SectionTimeline } from "@/components/briefing-room/SectionTimeline";
+import { WinStrategyLiveTab } from "@/components/mission-command/WinStrategyLiveTab";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/briefing")({
   component: BriefingPage,
@@ -53,6 +54,10 @@ function BriefingPage() {
         <Suspense fallback={<SectionSkeleton height={160} />}><SectionRisks {...props} /></Suspense>
         <Suspense fallback={<SectionSkeleton height={160} />}><SectionDocuments {...props} /></Suspense>
         <Suspense fallback={<SectionSkeleton height={180} />}><SectionSignals {...props} /></Suspense>
+        <Suspense fallback={<SectionSkeleton height={180} />}><SectionSignals {...props} /></Suspense>
+        <div className="pt-2">
+          <WinStrategyLiveTab missionId={missionId} missionName={header.mission?.name ?? "Mission"} />
+        </div>
       </div>
     </div>
   );
