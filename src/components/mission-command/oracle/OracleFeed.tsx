@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { formatDistanceToNow } from "date-fns";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Loader2, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { ErrorBanner, EmptyState, SkeletonList, OlympusLink } from "./OracleShared";
+import { runIrisSweep } from "@/lib/iris-sweep.functions";
 import type { Database } from "@/integrations/supabase/types";
 
 type FeedItem = Database["public"]["Tables"]["intelligence_feed_items"]["Row"];
