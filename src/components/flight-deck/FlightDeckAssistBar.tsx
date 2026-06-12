@@ -285,7 +285,13 @@ export function FlightDeckAssistBar({
         questionNumber={questionNumber}
         questionText={questionText}
       />
-      <MissionPulsePanel open={pulseOpen} onOpenChange={setPulseOpen} missionId={missionId} />
+      <MissionPulsePanel
+        open={pulseOpen}
+        onOpenChange={setPulseOpen}
+        missionId={missionId}
+        prefill={pulsePrefill ?? null}
+        onPrefillConsumed={onPulsePrefillConsumed}
+      />
       <SOSDialog
         open={sosOpen}
         onOpenChange={setSosOpen}
