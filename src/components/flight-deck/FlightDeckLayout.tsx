@@ -405,21 +405,22 @@ function IntelligenceColumn({
           <div className="mt-2 space-y-2">
             {evaluator.oneThing && (
               <div className="text-[12px] italic text-white pl-2" style={{ borderLeft: "2px solid #C49A2B" }}>
-                {evaluator.oneThing}
+                {String(evaluator.oneThing)}
               </div>
             )}
-            {evaluator.fears.map((f: string, i: number) => (
+            {(evaluator.fears as unknown[]).map((f, i) => (
               <div key={`f${i}`} className="flex items-start gap-2 text-[10px] text-muted-foreground">
                 <span className="mt-1 h-1.5 w-1.5 rounded-full shrink-0" style={{ background: "#E04A4A" }} />
-                <span>{f}</span>
+                <span>{String(f)}</span>
               </div>
             ))}
-            {evaluator.needs.map((n: string, i: number) => (
+            {(evaluator.needs as unknown[]).map((n, i) => (
               <div key={`n${i}`} className="flex items-start gap-2 text-[10px] text-muted-foreground">
                 <span className="mt-1 h-1.5 w-1.5 rounded-full shrink-0" style={{ background: "#C49A2B" }} />
-                <span>{n}</span>
+                <span>{String(n)}</span>
               </div>
             ))}
+
             {missionId && (
               <Link
                 to="/missions/$missionId/oracle"
