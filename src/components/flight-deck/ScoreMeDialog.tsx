@@ -9,6 +9,7 @@ import {
   postScoreMeToThread,
   type ScoreMeResult,
 } from "@/lib/score-me-coach.functions";
+import { prefetchScoreMeContext } from "@/lib/score-me-prefetch.functions";
 
 type Props = {
   open: boolean;
@@ -38,10 +39,12 @@ export function ScoreMeDialog({
 }: Props) {
   const run = useServerFn(scoreMeCoach);
   const post = useServerFn(postScoreMeToThread);
+  const prefetch = useServerFn(prefetchScoreMeContext);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ScoreMeResult | null>(null);
   const [posting, setPosting] = useState(false);
+  const [contextStatus, setContextStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
 
   useEffect(() => {
     if (!open) {
@@ -49,8 +52,18 @@ export function ScoreMeDialog({
       setResult(null);
       setLoading(false);
       setPosting(false);
+      setContextStatus("idle");
+      return;
     }
-  }, [open]);
+    if (!missionId || !questionId) return;
+    let cancelled = false;
+    setContextStatus("loading");
+    prefetch({ data: { missionId, questionId } })
+      .then(() => { if (!cancelled) setContextStatus("ready"); })
+      .catch(() => { if (!cancelled) setContextStatus("error"); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, missionId, questionId]);
 
   const charCount = draft.length;
   const canScore = useMemo(
