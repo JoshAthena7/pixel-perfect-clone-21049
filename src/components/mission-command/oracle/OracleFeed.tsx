@@ -170,7 +170,7 @@ export function OracleFeed({ missionId, isAdmin, highlightId }: { missionId: str
       ) : (
         <div className="space-y-2">
           {filtered.map((i) => (
-            <FeedCard key={i.id} item={i} />
+            <FeedCard key={i.id} item={i} highlighted={highlightedItemId === i.id} />
           ))}
         </div>
       )}
