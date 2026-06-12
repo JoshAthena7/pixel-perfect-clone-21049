@@ -15,22 +15,26 @@ type FeedItem = Database["public"]["Tables"]["intelligence_feed_items"]["Row"];
 const CATEGORIES: { id: string; label: string }[] = [
   { id: "all", label: "All" },
   { id: "federal_policy", label: "Federal Policy" },
+  { id: "state_policy", label: "State Policy" },
   { id: "legislative", label: "Legislation" },
   { id: "stakeholder", label: "Stakeholder" },
   { id: "research", label: "Research" },
   { id: "competitive", label: "Competitor" },
   { id: "procurement", label: "Procurement" },
   { id: "regulatory", label: "Regulatory" },
+  { id: "mission_risk", label: "Mission Risk" },
 ];
 
 const CATEGORY_COLOR: Record<string, { bg: string; fg: string; border: string }> = {
   federal_policy: { bg: "rgba(224,74,74,0.12)", fg: "#f08080", border: "rgba(224,74,74,0.3)" },
+  state_policy: { bg: "rgba(224,128,74,0.12)", fg: "#f0a070", border: "rgba(224,128,74,0.3)" },
   legislative: { bg: "rgba(125,207,125,0.12)", fg: "#7DCF7D", border: "rgba(125,207,125,0.3)" },
   stakeholder: { bg: "rgba(140,130,230,0.12)", fg: "#a39adf", border: "rgba(140,130,230,0.3)" },
   research: { bg: "rgba(123,167,212,0.12)", fg: "#7BA7D4", border: "rgba(123,167,212,0.3)" },
   competitive: { bg: "rgba(239,159,39,0.12)", fg: "#EF9F27", border: "rgba(239,159,39,0.3)" },
   procurement: { bg: "rgba(196,154,43,0.12)", fg: "#C49A2B", border: "rgba(196,154,43,0.3)" },
   regulatory: { bg: "rgba(239,191,39,0.12)", fg: "#EFBF27", border: "rgba(239,191,39,0.3)" },
+  mission_risk: { bg: "rgba(224,74,74,0.15)", fg: "#f08080", border: "rgba(224,74,74,0.4)" },
 };
 
 const CAT_LABEL: Record<string, string> = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.label]));
