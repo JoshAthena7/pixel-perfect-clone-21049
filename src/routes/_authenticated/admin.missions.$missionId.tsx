@@ -229,6 +229,13 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
 };
 
+const STATUS_OPTIONS: { value: string; label: string }[] = [
+  { value: "setup", label: "Draft" },
+  { value: "active", label: "Active" },
+  { value: "pens_down", label: "Planned" },
+  { value: "archived", label: "Closed" },
+];
+
 function OverviewTab({
   form,
   update,
@@ -236,43 +243,110 @@ function OverviewTab({
   form: Partial<Mission>;
   update: <K extends keyof Mission>(k: K, v: Mission[K]) => void;
 }) {
+  const currentStatus = form.status ?? "setup";
   return (
     <div className="space-y-5">
       <SectionCard title="Mission Snapshot">
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div className="space-y-4">
           <Field label="Mission name">
-            <input style={inputStyle} value={form.name ?? ""} onChange={(e) => update("name", e.target.value)} />
-          </Field>
-          <Field label="Client">
-            <input style={inputStyle} value={form.client_name ?? ""} onChange={(e) => update("client_name", e.target.value)} />
-          </Field>
-          <Field label="Agency">
-            <input style={inputStyle} value={form.agency_name ?? ""} onChange={(e) => update("agency_name", e.target.value)} />
-          </Field>
-          <Field label="State">
-            <input style={inputStyle} value={form.state ?? ""} onChange={(e) => update("state", e.target.value)} />
-          </Field>
-          <Field label="Status">
-            <select
-              style={inputStyle}
-              value={form.status ?? "setup"}
-              onChange={(e) => update("status", e.target.value)}
-            >
-              <option value="setup">Draft</option>
-              <option value="active">Active</option>
-              <option value="pens_down">Pens Down</option>
-              <option value="submitted">Submitted</option>
-              <option value="awarded">Awarded</option>
-              <option value="not_awarded">Not Awarded</option>
-              <option value="archived">Closed</option>
-            </select>
-          </Field>
-          <Field label="Submission deadline">
             <input
-              type="date"
               style={inputStyle}
-              value={form.submission_deadline ? form.submission_deadline.slice(0, 10) : ""}
-              onChange={(e) => update("submission_deadline", e.target.value ? new Date(e.target.value).toISOString() : null)}
+              value={form.name ?? ""}
+              onChange={(e) => update("name", e.target.value)}
+            />
+          </Field>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field label="Mission type">
+              <input
+                style={inputStyle}
+                placeholder="e.g. RFP, IDIQ, Task Order"
+                value={form.procurement_type ?? ""}
+                onChange={(e) => update("procurement_type", e.target.value)}
+              />
+            </Field>
+            <Field label="Classification">
+              <input
+                style={inputStyle}
+                placeholder="e.g. Confidential, Public"
+                value={form.program_type ?? ""}
+                onChange={(e) => update("program_type", e.target.value)}
+              />
+            </Field>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field label="Start date">
+              <input
+                type="date"
+                style={inputStyle}
+                value={form.blast_off_at ? form.blast_off_at.slice(0, 10) : ""}
+                onChange={(e) =>
+                  update("blast_off_at", e.target.value ? new Date(e.target.value).toISOString() : null)
+                }
+              />
+            </Field>
+            <Field label="End date">
+              <input
+                type="date"
+                style={inputStyle}
+                value={form.submission_deadline ? form.submission_deadline.slice(0, 10) : ""}
+                onChange={(e) =>
+                  update("submission_deadline", e.target.value ? new Date(e.target.value).toISOString() : null)
+                }
+              />
+            </Field>
+          </div>
+
+          <Field label="Location / region">
+            <input
+              style={inputStyle}
+              placeholder="State, region, or geography"
+              value={form.state ?? ""}
+              onChange={(e) => update("state", e.target.value)}
+            />
+          </Field>
+
+          <Field label="Status">
+            <div className="flex flex-wrap gap-2 mt-1">
+              {STATUS_OPTIONS.map((opt) => {
+                const active = currentStatus === opt.value;
+                return (
+                  <label
+                    key={opt.value}
+                    className="inline-flex items-center gap-2 cursor-pointer rounded-md px-3 py-1.5 text-xs transition-colors"
+                    style={{
+                      background: active ? "rgba(201,168,76,0.12)" : "rgba(255,255,255,0.03)",
+                      border: active
+                        ? "1px solid rgba(201,168,76,0.5)"
+                        : "1px solid rgba(255,255,255,0.08)",
+                      color: active ? "#c9a84c" : "rgba(255,255,255,0.7)",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="mission-status"
+                      checked={active}
+                      onChange={() => update("status", opt.value)}
+                      className="sr-only"
+                    />
+                    <span
+                      className="inline-block h-2 w-2 rounded-full"
+                      style={{ background: active ? "#c9a84c" : "rgba(255,255,255,0.25)" }}
+                    />
+                    {opt.label}
+                  </label>
+                );
+              })}
+            </div>
+          </Field>
+
+          <Field label="Mission brief">
+            <textarea
+              style={{ ...inputStyle, minHeight: 140, resize: "vertical", lineHeight: 1.5 }}
+              placeholder="Summarize the mission objective, scope, and context…"
+              value={form.iris_disclaimer ?? ""}
+              onChange={(e) => update("iris_disclaimer", e.target.value)}
             />
           </Field>
         </div>
@@ -287,17 +361,6 @@ function OverviewTab({
             <input style={inputStyle} type="email" value={form.primary_contact_email ?? ""} onChange={(e) => update("primary_contact_email", e.target.value)} />
           </Field>
         </div>
-      </SectionCard>
-
-      <SectionCard title="Contract">
-        <Field label="Contract value (USD)">
-          <input
-            style={inputStyle}
-            type="number"
-            value={form.contract_value ?? ""}
-            onChange={(e) => update("contract_value", e.target.value === "" ? null : Number(e.target.value))}
-          />
-        </Field>
       </SectionCard>
     </div>
   );
