@@ -16,6 +16,8 @@ type Props = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   missionId: string | null;
+  prefill?: { signalType: string; body: string } | null;
+  onPrefillConsumed?: () => void;
 };
 
 const TYPE_META: Record<
