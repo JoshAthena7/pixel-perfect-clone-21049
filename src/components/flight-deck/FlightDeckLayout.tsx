@@ -26,6 +26,7 @@ import { FlightDeckAssistBar } from "@/components/flight-deck/FlightDeckAssistBa
 import { ScoreMeDialog } from "@/components/flight-deck/ScoreMeDialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useIsAdmin } from "@/hooks/useAccess";
 
 type Props = {
   memberId: string | null;
