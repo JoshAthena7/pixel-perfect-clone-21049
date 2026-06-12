@@ -5,7 +5,7 @@ import { MissionPulsePanel } from "./MissionPulsePanel";
 import { ScoreMeDialog } from "./ScoreMeDialog";
 import { PhoneAFriendDialog } from "./PhoneAFriendDialog";
 import { ThreadPanel } from "./ThreadPanel";
-import { supabase } from "@/integrations/supabase/client";
+
 
 type Props = {
   missionId: string | null;
