@@ -88,26 +88,17 @@ function StaffPage() {
   const { data: missionCounts = {} } = useQuery({
     queryKey: ["admin-staff-mission-counts"],
     queryFn: async (): Promise<Record<string, number>> => {
-      const emails = staff.map((s) => s.email).filter(Boolean);
-      if (emails.length === 0) return {};
-      const { data: profs } = await supabase
-        .from("profiles")
-        .select("id,email")
-        .in("email", emails);
-      const profMap = new Map<string, string>(); // user_id -> email
-      (profs ?? []).forEach((p: any) => { if (p.email) profMap.set(p.id, p.email); });
-      const userIds = Array.from(profMap.keys());
-      if (userIds.length === 0) return {};
+      const ids = staff.map((s) => s.id);
+      if (ids.length === 0) return {};
       const { data: mems } = await supabase
         .from("mission_team_members")
-        .select("user_id")
-        .in("user_id", userIds);
-      const byEmail: Record<string, number> = {};
+        .select("member_id")
+        .in("member_id", ids);
+      const byId: Record<string, number> = {};
       (mems ?? []).forEach((m: any) => {
-        const email = profMap.get(m.user_id);
-        if (email) byEmail[email] = (byEmail[email] ?? 0) + 1;
+        byId[m.member_id] = (byId[m.member_id] ?? 0) + 1;
       });
-      return byEmail;
+      return byId;
     },
     enabled: staff.length > 0,
   });
