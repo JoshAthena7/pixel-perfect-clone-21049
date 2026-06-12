@@ -166,8 +166,10 @@ function AuthenticatedLayout() {
 
 function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolean }) {
   const isMobile = useIsMobile();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [userName, setUserName] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+
 
   useEffect(() => {
     (async () => {
