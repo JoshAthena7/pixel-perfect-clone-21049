@@ -44,7 +44,6 @@ const MY_WORK_ITEMS: NavItem[] = [
 const ADMIN_ITEMS: NavItem[] = [
   { to: "/missions/$missionId/win-strategy", label: "Win Strategy", Icon: Trophy, needsMission: true },
   { to: "/missions/$missionId/activity", label: "Activity", Icon: ActivityIcon, needsMission: true },
-  { to: "/missions/$missionId/settings", label: "Settings", Icon: Settings, needsMission: true },
 ];
 
 
@@ -53,6 +52,7 @@ const ADMIN_AREA_ITEMS: NavItem[] = [
   { to: "/admin/team", label: "Staff", Icon: Users },
   { to: "/admin/messaging", label: "Messaging", Icon: Megaphone },
   { to: "/admin/insights", label: "Insights", Icon: BarChart3, disabled: true, badge: "V2" },
+  { to: "/admin/settings", label: "Settings", Icon: Settings },
 ];
 
 export function AppSidebar({
