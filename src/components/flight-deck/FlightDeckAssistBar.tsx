@@ -195,21 +195,13 @@ export function FlightDeckAssistBar({ missionId, questionId, questionNumber, que
       <MissionPulsePanel open={pulseOpen} onOpenChange={setPulseOpen} missionId={missionId} />
       <SOSDialog
         open={sosOpen}
-        onOpenChange={async (v) => {
-          setSosOpen(v);
-          if (!v && questionId) {
-            try {
-              await supabase
-                .from("mission_questions")
-                .update({ health_status: "at_risk" })
-                .eq("id", questionId);
-            } catch {
-              /* ignore */
-            }
-          }
-        }}
+        onOpenChange={setSosOpen}
         missionId={missionId}
+        questionId={questionId}
+        questionNumber={questionNumber}
+        questionText={questionText}
       />
+
     </>
   );
 }
