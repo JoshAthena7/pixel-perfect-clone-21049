@@ -429,10 +429,10 @@ function AddStaffDialog({ onClose }: { onClose: () => void }) {
   const m = useMutation({
     mutationFn: async () => addFn({
       data: {
-        first_name: first.trim() || null,
-        last_name: last.trim() || null,
+        first_name: first.trim(),
+        last_name: last.trim(),
         email: email.trim().toLowerCase(),
-        job_title: title.trim() || null,
+        job_title: title.trim(),
         atlas_role: "unassigned",
       },
     }),
@@ -472,7 +472,7 @@ function AddStaffDialog({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             onClick={() => m.mutate()}
-            disabled={!email.trim() || m.isPending}
+            disabled={!email.trim() || !first.trim() || !last.trim() || m.isPending}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold disabled:opacity-50"
             style={{ background: "#c9a84c", color: "#080c14" }}
           >
