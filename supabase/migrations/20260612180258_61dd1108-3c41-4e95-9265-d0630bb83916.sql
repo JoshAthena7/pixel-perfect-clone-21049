@@ -1,0 +1,2 @@
+ALTER TABLE public.thread_messages DROP CONSTRAINT IF EXISTS thread_messages_message_type_check;
+ALTER TABLE public.thread_messages ADD CONSTRAINT thread_messages_message_type_check CHECK (message_type = ANY (ARRAY['regular'::text, 'decision'::text, 'iris'::text, 'system'::text, 'iris_decision'::text, 'win_theme_alignment'::text]));

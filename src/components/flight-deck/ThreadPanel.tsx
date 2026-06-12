@@ -2,12 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { formatDistanceToNow } from "date-fns";
-import { X, Eye, Send, Flag } from "lucide-react";
+import { X, Eye, Send, Flag, Star } from "lucide-react";
 import {
   listThreadMessages,
   postThreadMessage,
   listMissionTeam,
   maybePostInactivityCheckIn,
+  maybePostWinThemeAlignment,
 } from "@/lib/thread.functions";
 
 type Props = {
@@ -29,7 +30,7 @@ type ThreadMsg = {
   sender_id: string | null;
   sender_name: string;
   message_body: string;
-  message_type: "regular" | "decision" | "iris" | "system";
+  message_type: "regular" | "decision" | "iris" | "system" | "iris_decision" | "win_theme_alignment";
   iris_action: "recommend_expert" | "surface_intelligence" | "flag_conflict" | null;
   metadata: Record<string, unknown> | null;
   created_at: string;
@@ -61,6 +62,7 @@ export function ThreadPanel({
   const post = useServerFn(postThreadMessage);
   const team = useServerFn(listMissionTeam);
   const inactivityCheck = useServerFn(maybePostInactivityCheckIn);
+  const winThemeCheck = useServerFn(maybePostWinThemeAlignment);
 
   const enabled = open && !!questionId && !!missionId;
 
@@ -87,6 +89,12 @@ export function ThreadPanel({
         if (r.posted) qc.invalidateQueries({ queryKey: ["thread", questionId] });
       })
       .catch(() => {});
+    // Win Theme Alignment one-time orientation post (idempotent server-side).
+    winThemeCheck({ data: { missionId: missionId!, questionId: questionId! } })
+      .then((r) => {
+        if (r.posted) qc.invalidateQueries({ queryKey: ["thread", questionId] });
+      })
+      .catch((e) => console.error("[ThreadPanel] win theme alignment check failed", e));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, questionId]);
 
@@ -242,20 +250,31 @@ export function ThreadPanel({
           recommend experts, and flag conflicting guidance as the discussion develops.
         </div>
 
-        {messages.length === 0 ? (
-          <div
-            style={{
-              color: "rgba(255,255,255,0.4)",
-              fontSize: 12,
-              textAlign: "center",
-              padding: "32px 0",
-            }}
-          >
-            No discussion yet. Be the first to work the question.
-          </div>
-        ) : (
-          messages.map((m) => <MessageRow key={m.id} msg={m} onFindExpert={onRequestFindSME} />)
-        )}
+        {(() => {
+          const pinned = messages.filter((m) => m.message_type === "win_theme_alignment");
+          const rest = messages.filter((m) => m.message_type !== "win_theme_alignment");
+          return (
+            <>
+              {pinned.map((m) => (
+                <WinThemeAlignmentRow key={m.id} msg={m} />
+              ))}
+              {rest.length === 0 && pinned.length === 0 ? (
+                <div
+                  style={{
+                    color: "rgba(255,255,255,0.4)",
+                    fontSize: 12,
+                    textAlign: "center",
+                    padding: "32px 0",
+                  }}
+                >
+                  No discussion yet. Be the first to work the question.
+                </div>
+              ) : (
+                rest.map((m) => <MessageRow key={m.id} msg={m} onFindExpert={onRequestFindSME} />)
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* Composer */}
@@ -450,6 +469,122 @@ function MessageRow({ msg, onFindExpert }: { msg: ThreadMsg; onFindExpert?: (top
           >
             Find expert →
           </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WinThemeAlignmentRow({ msg }: { msg: ThreadMsg }) {
+  const meta = (msg.metadata ?? {}) as {
+    connected_questions?: Array<{ question_id: string; label: string; rationale: string | null }>;
+  };
+  const connected = meta.connected_questions ?? [];
+
+  // Split body into header paragraph and bullet lines.
+  const lines = msg.message_body.split("\n");
+  const bodyText = lines.filter((l) => !l.trim().startsWith("•")).join("\n").trim();
+  const bullets = lines.filter((l) => l.trim().startsWith("•"));
+
+  const openSection = (questionId: string) => {
+    try {
+      window.dispatchEvent(new CustomEvent("atlas:thread:open", { detail: { questionId } }));
+      // eslint-disable-next-line no-console
+      console.log("[atlas:thread:open] dispatched", { questionId });
+    } catch (e) {
+      console.error("[atlas:thread:open] dispatch failed", e);
+    }
+  };
+
+  return (
+    <div
+      style={{
+        background: "rgba(196,154,43,0.06)",
+        border: "0.5px solid rgba(196,154,43,0.25)",
+        borderRadius: 8,
+        padding: "10px 12px",
+        position: "relative",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+        <div
+          aria-hidden
+          style={{
+            width: 18,
+            height: 18,
+            borderRadius: "50%",
+            background: "rgba(196,154,43,0.18)",
+            color: GOLD,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Star size={10} />
+        </div>
+        <span style={{ color: "rgba(255,225,160,0.95)", fontSize: 11 }}>IRIS</span>
+        <span
+          style={{
+            fontSize: 9,
+            fontWeight: 600,
+            color: GOLD,
+            background: "rgba(196,154,43,0.15)",
+            border: "1px solid rgba(196,154,43,0.4)",
+            padding: "1px 6px",
+            borderRadius: 4,
+            letterSpacing: "0.06em",
+            marginLeft: 2,
+          }}
+        >
+          WIN THEME ALIGNMENT
+        </span>
+      </div>
+      <div
+        style={{
+          color: "rgba(255,255,255,0.75)",
+          fontSize: 11,
+          lineHeight: 1.7,
+          whiteSpace: "pre-wrap",
+        }}
+      >
+        {bodyText}
+      </div>
+      {bullets.length > 0 && (
+        <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 2 }}>
+          {bullets.map((b, i) => (
+            <div
+              key={i}
+              style={{
+                color: "rgba(255,255,255,0.55)",
+                fontSize: 10,
+                fontStyle: "italic",
+                lineHeight: 1.6,
+              }}
+            >
+              {b}
+            </div>
+          ))}
+        </div>
+      )}
+      {connected.length > 0 && (
+        <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
+          {connected.map((c) => (
+            <button
+              key={c.question_id}
+              onClick={() => openSection(c.question_id)}
+              style={{
+                background: "rgba(196,154,43,0.12)",
+                border: "1px solid rgba(196,154,43,0.35)",
+                color: "rgba(255,225,160,0.95)",
+                fontSize: 10,
+                padding: "3px 9px",
+                borderRadius: 999,
+                cursor: "pointer",
+              }}
+            >
+              See {c.label} Thread →
+            </button>
+          ))}
         </div>
       )}
     </div>
