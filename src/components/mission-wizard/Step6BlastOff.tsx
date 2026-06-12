@@ -161,6 +161,7 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
   const buildGraph = useServerFn(buildIntelligenceGraph);
   const seedTerritory = useServerFn(seedTerritoryIntelligence);
   const buildInsight = useServerFn(buildAthenaInsight);
+  const buildEvalPicture = useServerFn(buildEvaluatorPicture);
 
   const fireSectionInsights = async () => {
     try {
