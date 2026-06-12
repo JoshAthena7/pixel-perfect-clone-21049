@@ -44,7 +44,7 @@ function timeAgo(iso: string) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-export function MissionPulsePanel({ open, onOpenChange, missionId }: Props) {
+export function MissionPulsePanel({ open, onOpenChange, missionId, prefill, onPrefillConsumed }: Props) {
   const list = useServerFn(listMissionPulse);
   const submit = useServerFn(submitMissionSignal);
 
