@@ -2,7 +2,7 @@ import { Link, useParams, useRouterState, useNavigate } from "@tanstack/react-ro
 import { useEffect, useState } from "react";
 import { differenceInCalendarDays } from "date-fns";
 import {
-  FileText, Brain, Lightbulb, LayoutDashboard, MessageSquare, Target,
+  FileText, Brain, Lightbulb, Target,
   Users, Route as RouteIcon, ListChecks, BarChart3, Settings,
   LogOut, Menu, X, Activity as ActivityIcon, Icon as LucideIcon,
   Flag, Megaphone,
