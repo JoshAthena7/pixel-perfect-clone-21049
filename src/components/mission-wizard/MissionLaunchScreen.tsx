@@ -46,7 +46,7 @@ export function MissionLaunchScreen({
     (async () => {
       const [m, t, r, tm, q, asg, mem, ins, docs] = await Promise.all([
         supabase.from("missions").select("name, client_name, state, submission_deadline, status").eq("id", missionId).maybeSingle(),
-        supabase.from("win_themes").select("theme").eq("mission_id", missionId).limit(8),
+        supabase.from("win_themes").select("title").eq("mission_id", missionId).limit(8),
         supabase.from("mission_risks").select("description").eq("mission_id", missionId).limit(8),
         supabase.from("mission_team_members").select("mission_role").eq("mission_id", missionId),
         supabase.from("mission_questions").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
@@ -57,7 +57,7 @@ export function MissionLaunchScreen({
       ]);
 
       setSnapshot(m.data ?? {});
-      setThemes((t.data ?? []).map((x) => (x as { theme: string }).theme).filter(Boolean));
+      setThemes((t.data ?? []).map((x) => (x as { title: string }).title).filter(Boolean));
       setRisks((r.data ?? []).map((x) => (x as { description: string }).description).filter(Boolean));
 
       const roleCounts: Record<string, number> = {};
