@@ -425,7 +425,7 @@ function IntelligenceColumn({
               <Link
                 to="/missions/$missionId/oracle"
                 params={{ missionId }}
-                search={{ tab: "evaluator-picture" }}
+                
                 className="inline-block text-[10px] font-medium hover:underline"
                 style={{ color: "#C49A2B" }}
               >
