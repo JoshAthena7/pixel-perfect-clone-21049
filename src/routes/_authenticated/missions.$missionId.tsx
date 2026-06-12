@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, Link, notFound } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
-function MissionNotFound() {
+export function MissionNotFound() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
       <div className="max-w-md text-center">
