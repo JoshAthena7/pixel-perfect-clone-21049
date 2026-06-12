@@ -49,7 +49,7 @@ export function FlightDeckLayout({
   activeMissionId,
   activeMissionName,
   activeMissionStatus,
-  onPrefillIris,
+  onPrefillIris: _onPrefillIris,
 }: Props) {
   const [active, setActive] = useState<ActiveCtx>({
     questionId: null,
