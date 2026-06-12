@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { useMissionMeta, useMissionAtRiskCount } from "@/hooks/useMissionMeta";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
+import atlasWordmark from "@/assets/atlas-wordmark.png.asset.json";
 
 type IconType = typeof FileText;
 
