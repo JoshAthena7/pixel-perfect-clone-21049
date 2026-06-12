@@ -978,8 +978,6 @@ function JourneyTab({
       </button>
     </div>
   );
-    </SectionCard>
-  );
 }
 
 function ComplianceTab({ missionId }: { missionId: string }) {
