@@ -2,9 +2,10 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getSnapshot } from "@/lib/briefing-room.functions";
 import { SectionCard } from "./SectionCard";
+import { formatProgramType } from "./format";
 
-function fmtCurrency(n: number | null | undefined): string {
-  if (n == null) return "—";
+function fmtCurrency(n: number | null | undefined): string | null {
+  if (n == null) return null;
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 }
 
@@ -17,6 +18,10 @@ function fmtDate(s: string | null | undefined): string {
   }
 }
 
+const NOT_SET = (
+  <span style={{ color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>Not set</span>
+);
+
 function Field({ label, value, color }: { label: string; value: React.ReactNode; color?: string }) {
   return (
     <div>
@@ -24,7 +29,7 @@ function Field({ label, value, color }: { label: string; value: React.ReactNode;
         {label}
       </div>
       <div className="mt-1" style={{ color: color ?? "white", fontSize: 12 }}>
-        {value || "—"}
+        {value || NOT_SET}
       </div>
     </div>
   );
@@ -40,6 +45,7 @@ export function SectionSnapshot({ missionId, isAdmin }: { missionId: string; isA
   const m = data.mission ?? {};
   const days = data.daysToDeadline;
   const dayColor = days == null ? "rgba(255,255,255,0.4)" : days < 14 ? "#f08080" : days < 30 ? "#EF9F27" : "white";
+  const currency = fmtCurrency(m.contract_value);
 
   return (
     <SectionCard
@@ -52,20 +58,19 @@ export function SectionSnapshot({ missionId, isAdmin }: { missionId: string; isA
           <Field label="Client" value={m.client_name} />
           <Field label="Procurement" value={m.name} />
           <Field label="State" value={m.state} />
-          <Field label="Program Type" value={m.program_type} />
+          <Field label="Program Type" value={formatProgramType(m.program_type)} />
         </div>
         <div className="space-y-3">
-          <Field label="Estimated Contract Value" value={fmtCurrency(m.contract_value)} />
+          <Field label="Estimated Contract Value" value={currency} />
           <Field label="Submission Date" value={fmtDate(m.submission_deadline)} />
           <Field
             label="Days Remaining"
-            value={days == null ? "—" : days < 0 ? `${Math.abs(days)} days past` : `${days} days`}
+            value={days == null ? null : days < 0 ? `${Math.abs(days)} days past` : `${days} days`}
             color={dayColor}
           />
-          <Field label="Status" value={m.status} />
         </div>
         <div className="space-y-3">
-          <Field label="Prime Contractor" value="—" />
+          <Field label="Prime Contractor" value={null} />
           <Field label="Engagement Lead" value={data.leadName} />
           <div>
             <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
