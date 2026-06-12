@@ -132,12 +132,23 @@ export function MissionsListPage() {
               {total} mission{total === 1 ? "" : "s"}
             </span>
           </div>
-          <Button
-            onClick={() => navigate({ to: "/olympus/missions/new" })}
-            className="bg-[var(--athena-gold)] text-[var(--athena-navy-dark)] hover:bg-[var(--athena-gold-light)]"
-          >
-            <Plus className="h-4 w-4" /> Create New Mission
-          </Button>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button
+                variant="outline"
+                onClick={() => navigate({ to: "/admin/team" })}
+                className="border-border bg-surface/60"
+              >
+                <Users className="h-4 w-4" /> Manage Collective
+              </Button>
+            )}
+            <Button
+              onClick={() => navigate({ to: "/olympus/missions/new" })}
+              className="bg-[var(--athena-gold)] text-[var(--athena-navy-dark)] hover:bg-[var(--athena-gold-light)]"
+            >
+              <Plus className="h-4 w-4" /> Create New Mission
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2 mb-5">
