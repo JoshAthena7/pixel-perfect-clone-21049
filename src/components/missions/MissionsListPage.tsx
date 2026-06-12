@@ -79,6 +79,7 @@ async function fetchMissions(): Promise<MissionRow[]> {
 
 export function MissionsListPage() {
   const navigate = useNavigate();
+  const { isAdmin } = useIsAdmin();
   const [tab, setTab] = useState("all");
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
