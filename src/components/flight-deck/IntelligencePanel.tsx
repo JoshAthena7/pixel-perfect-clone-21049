@@ -15,10 +15,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import {
   ChevronDown, Eye, CheckSquare, Star, Activity, Compass,
-  ArrowLeft, Sparkles, ExternalLink, X as XIcon,
+  ArrowLeft, Sparkles, ExternalLink, X as XIcon, Search,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { IrisIntelligenceBrief } from "@/components/iris/IrisIntelligenceBrief";
+import { EvaluatorPicturePanel } from "@/components/flight-deck/EvaluatorPicturePanel";
 import { cn } from "@/lib/utils";
 
 const GOLD = "#C9A55C";
@@ -84,7 +85,7 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
       const raw = typeof window !== "undefined" ? localStorage.getItem(storageKey) : null;
       if (raw) return JSON.parse(raw);
     } catch {}
-    return { athena: true, iris: true, reqs: true, themes: true, live: true };
+    return { athena: true, iris: true, evaluator: true, reqs: true, themes: true, live: true };
   });
 
   useEffect(() => {
@@ -147,6 +148,26 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
           </div>
         )}
       </Section>
+
+      <Section
+        id="evaluator"
+        open={open.evaluator}
+        onToggle={() => toggle("evaluator")}
+        header={
+          <>
+            <Search className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-xs font-medium text-foreground">How They're Thinking</span>
+            <span
+              className="ml-auto text-[10px] uppercase tracking-wider font-semibold text-muted-foreground"
+            >
+              Evaluator Picture
+            </span>
+          </>
+        }
+      >
+        <EvaluatorPicturePanel missionId={props.missionId} sectionId={props.sectionId} />
+      </Section>
+
 
       <Section
         id="reqs"

@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { buildIntelligenceGraph } from "@/lib/oracle.functions";
 import { seedTerritoryIntelligence } from "@/lib/iris-territory.functions";
 import { buildAthenaInsight } from "@/lib/athena-insights.functions";
+import { buildEvaluatorPicture } from "@/lib/iris-evaluator.functions";
 import { supabase as supabaseClient } from "@/integrations/supabase/client";
 import { InputSourceBadge, IrisInfoCard, StepMetaIndicator, type InputSource } from "@/components/InputSourceBadge";
 
@@ -160,6 +161,7 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
   const buildGraph = useServerFn(buildIntelligenceGraph);
   const seedTerritory = useServerFn(seedTerritoryIntelligence);
   const buildInsight = useServerFn(buildAthenaInsight);
+  const buildEvalPicture = useServerFn(buildEvaluatorPicture);
 
   const fireSectionInsights = async () => {
     try {
@@ -241,6 +243,7 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
       // fire-and-forget graph build + territory seed
       seedTerritory({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] seedTerritoryIntelligence failed:", e));
       buildGraph({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] buildIntelligenceGraph failed:", e));
+      buildEvalPicture({ data: { missionId, forceRegenerate: false } }).catch((e) => console.error("[BLAST OFF] buildEvaluatorPicture failed:", e));
       fireSectionInsights();
       await new Promise((r) => setTimeout(r, 900));
 
@@ -262,6 +265,7 @@ export function Step6BlastOff({ missionId }: { missionId: string }) {
       setPhase("burst");
       seedTerritory({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] seedTerritoryIntelligence failed:", e));
       buildGraph({ data: { missionId } }).catch((e) => console.error("[BLAST OFF] buildIntelligenceGraph failed:", e));
+      buildEvalPicture({ data: { missionId, forceRegenerate: false } }).catch((e) => console.error("[BLAST OFF] buildEvaluatorPicture failed:", e));
       fireSectionInsights();
       await new Promise((r) => setTimeout(r, 900));
 

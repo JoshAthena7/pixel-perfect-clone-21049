@@ -13,14 +13,17 @@ import { refreshAllMissionFeeds } from "@/lib/iris-refresh-all.functions";
 import { OracleGraph } from "./OracleGraph";
 import { OracleFeed } from "./OracleFeed";
 import { OracleStakeholders } from "./OracleStakeholders";
+import { OracleEvaluatorPicture } from "./OracleEvaluatorPicture";
 import { OracleCompetitors } from "./OracleCompetitors";
 import { OracleProcurementEvolution } from "./OracleProcurementEvolution";
 import { IntelligenceLibraryTab } from "@/components/mission-command/IntelligenceLibraryTab";
+import { useIsAdmin } from "@/hooks/useAccess";
 
 const SUB_TABS = [
   { id: "graph", label: "Graph", hint: "Intelligence network map" },
   { id: "feed", label: "Intelligence Feed", hint: "Live monitoring updates" },
   { id: "stakeholders", label: "Stakeholders", hint: "Evaluators and influencers" },
+  { id: "evaluator-picture", label: "Evaluator Picture", hint: "How the scoring panel thinks" },
   { id: "competitors", label: "Competitors", hint: "Competitive landscape" },
   { id: "evolution", label: "Procurement Evolution", hint: "How this RFP changed" },
   { id: "research-library", label: "Research Library", hint: "Documents and resources" },
@@ -30,6 +33,7 @@ type SubId = (typeof SUB_TABS)[number]["id"];
 const GOLD = "#C9A55C";
 
 export function OracleTab({ missionId }: { missionId: string }) {
+  const { isAdmin } = useIsAdmin();
   // Oracle sub-views are an internal segmented control, not URL state.
   const [active, setActive] = useState<SubId>("graph");
   const [addAutoOpen, setAddAutoOpen] = useState(false);
@@ -257,6 +261,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
       {active === "graph" && <OracleGraph missionId={missionId} completeness={completeness} />}
       {active === "feed" && <OracleFeed missionId={missionId} />}
       {active === "stakeholders" && <OracleStakeholders missionId={missionId} />}
+      {active === "evaluator-picture" && <OracleEvaluatorPicture missionId={missionId} isAdmin={isAdmin} />}
       {active === "competitors" && <OracleCompetitors missionId={missionId} />}
       {active === "evolution" && <OracleProcurementEvolution missionId={missionId} />}
       {active === "research-library" && (
