@@ -1,43 +1,53 @@
 import { useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { ChevronRight } from "lucide-react";
 import { getWhyMatters } from "@/lib/briefing-room.functions";
 import { SectionCard } from "./SectionCard";
 
-const LIMIT = 400;
+function preview(s: string | null | undefined, n = 110): string {
+  if (!s) return "";
+  const clean = s.replace(/\s+/g, " ").trim();
+  return clean.length > n ? `${clean.slice(0, n).trimEnd()}…` : clean;
+}
 
-function Card({ label, body }: { label: string; body: string | null }) {
+function Row({ label, body }: { label: string; body: string | null }) {
   const [open, setOpen] = useState(false);
   const text = (body ?? "").trim();
-  const needsTrunc = text.length > LIMIT;
-  const shown = !text ? "" : open || !needsTrunc ? text : `${text.slice(0, LIMIT).trimEnd()}…`;
   return (
     <div
-      className="rounded-lg p-4"
+      className="rounded-lg overflow-hidden"
       style={{ background: "rgba(255,255,255,0.02)", border: "0.5px solid rgba(255,255,255,0.05)" }}
     >
-      <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-        {label}
-      </div>
-      <div
-        className="mt-2 whitespace-pre-line"
-        style={
-          text
-            ? { color: "rgba(255,255,255,0.7)", fontSize: 12, lineHeight: 1.7 }
-            : { color: "rgba(255,255,255,0.35)", fontSize: 12, fontStyle: "italic" }
-        }
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between gap-4 px-3 py-2.5 text-left hover:bg-white/[0.02]"
       >
-        {text ? shown : "Will be added in Olympus."}
-      </div>
-      {needsTrunc && (
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="mt-2 hover:underline"
-          style={{ color: "#C49A2B", fontSize: 11, background: "transparent", border: 0, padding: 0, cursor: "pointer" }}
+        <div className="min-w-0 flex-1">
+          <div style={{ color: "white", fontSize: 12, fontWeight: 500 }}>{label}</div>
+        </div>
+        <div className="flex items-center gap-2 min-w-0 max-w-[55%]">
+          <div className="truncate" style={{ color: "rgba(255,255,255,0.45)", fontSize: 11 }}>
+            {text ? preview(text) : <span style={{ fontStyle: "italic" }}>Not yet set</span>}
+          </div>
+          <ChevronRight
+            className="h-3.5 w-3.5 shrink-0 transition-transform"
+            style={{ color: "#C49A2B", transform: open ? "rotate(90deg)" : "none" }}
+          />
+        </div>
+      </button>
+      {open && (
+        <div
+          className="px-3 pb-3 pt-1 whitespace-pre-line"
+          style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, lineHeight: 1.6 }}
         >
-          {open ? "Show less" : "Read more"}
-        </button>
+          {text || (
+            <span style={{ color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>
+              Will be added in Olympus.
+            </span>
+          )}
+        </div>
       )}
     </div>
   );
@@ -56,11 +66,11 @@ export function SectionWhyMatters({ missionId, isAdmin }: { missionId: string; i
       showAdminEdit={isAdmin}
       editInOlympusHref={`/olympus/missions/${missionId}/wizard?step=3`}
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <Card label="Why the client is pursuing it" body={data.whyClientPursuing} />
-        <Card label="Why it matters to Athena" body={data.whyMattersToAthena} />
-        <Card label="What is at stake" body={data.whatIsAtStake} />
-        <Card label="Key market dynamics" body={data.keyMarketDynamics} />
+      <div className="space-y-2">
+        <Row label="Why the client is pursuing it" body={data.whyClientPursuing} />
+        <Row label="Why it matters to Athena" body={data.whyMattersToAthena} />
+        <Row label="What is at stake" body={data.whatIsAtStake} />
+        <Row label="Key market dynamics" body={data.keyMarketDynamics} />
       </div>
     </SectionCard>
   );
