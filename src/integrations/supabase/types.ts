@@ -2998,6 +2998,54 @@ export type Database = {
         }
         Relationships: []
       }
+      expertise_queries: {
+        Row: {
+          created_at: string
+          id: string
+          iris_message: string | null
+          matched_user_ids: string[]
+          mission_id: string | null
+          query_text: string
+          question_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          iris_message?: string | null
+          matched_user_ids?: string[]
+          mission_id?: string | null
+          query_text: string
+          question_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          iris_message?: string | null
+          matched_user_ids?: string[]
+          mission_id?: string | null
+          query_text?: string
+          question_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expertise_queries_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expertise_queries_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       federal_compliance_library: {
         Row: {
           citation: string
