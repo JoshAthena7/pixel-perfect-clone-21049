@@ -6,7 +6,14 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Profile = Database["public"]["Tables"]["stakeholder_profiles"]["Row"];
 
-const TYPES = [
+type OracleCtx = {
+  client: string | null;
+  agency: string | null;
+  agencyCode: string | null;
+  program: string | null;
+};
+
+const BASE_TYPES = [
   { id: "all", label: "All" },
   { id: "evaluator", label: "Evaluator" },
   { id: "influencer", label: "Influencer" },
@@ -23,8 +30,19 @@ const CONFIDENCE_LABEL: Record<string, { label: string; color: string }> = {
   low: { label: "Low", color: "rgba(255,255,255,0.4)" },
 };
 
-export function OracleStakeholders({ missionId, isAdmin }: { missionId: string; isAdmin: boolean }) {
+export function OracleStakeholders({ missionId, isAdmin, ctx }: { missionId: string; isAdmin: boolean; ctx?: OracleCtx }) {
   const [type, setType] = useState("all");
+  const agencyTag = ctx?.agencyCode || ctx?.agency || ctx?.client || null;
+  const TYPES = BASE_TYPES.map((t) => {
+    if (!agencyTag) return t;
+    if (t.id === "all") return { ...t, label: `All ${agencyTag}` };
+    if (t.id === "evaluator") return { ...t, label: `${agencyTag} Evaluators` };
+    if (t.id === "influencer") return { ...t, label: `${agencyTag} Influencers` };
+    if (t.id === "advocacy") return { ...t, label: "Advocacy" };
+    if (t.id === "legislative") return { ...t, label: "Legislative" };
+    if (t.id === "federal") return { ...t, label: "Federal" };
+    return t;
+  });
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["oracle-ro-stakeholders", missionId],
