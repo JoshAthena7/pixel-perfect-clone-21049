@@ -196,12 +196,14 @@ function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolea
   }, [email, isAdmin]);
 
   const sidebarWidth = isMobile ? 48 : 200;
+  const railWidth = 48;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <GlobalCommandBar email={email} isAdmin={isAdmin} />
+      <IconRail />
       <AppSidebar userName={userName} userRole={userRole} />
-      <main style={{ marginLeft: sidebarWidth, paddingTop: 0, position: "relative" }}>
+      <main style={{ marginLeft: sidebarWidth + railWidth, paddingTop: 0, position: "relative" }}>
         <IrisExplainThisPage />
         <Outlet />
       </main>
@@ -209,5 +211,6 @@ function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolea
     </div>
   );
 }
+
 
 
