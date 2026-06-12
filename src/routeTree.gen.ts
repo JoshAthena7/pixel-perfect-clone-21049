@@ -41,6 +41,7 @@ import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminMessagingRouteImport } from './routes/_authenticated/admin.messaging'
 import { Route as AuthenticatedAdminIrisHealthRouteImport } from './routes/_authenticated/admin.iris-health'
+import { Route as AuthenticatedAdminInsightsRouteImport } from './routes/_authenticated/admin.insights'
 import { Route as AuthenticatedAdminActivityRouteImport } from './routes/_authenticated/admin.activity'
 import { Route as AuthenticatedOlympusMissionsIndexRouteImport } from './routes/_authenticated/olympus.missions.index'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions.$missionId.index'
@@ -242,6 +243,12 @@ const AuthenticatedAdminIrisHealthRoute =
   AuthenticatedAdminIrisHealthRouteImport.update({
     id: '/iris-health',
     path: '/iris-health',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminInsightsRoute =
+  AuthenticatedAdminInsightsRouteImport.update({
+    id: '/insights',
+    path: '/insights',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminActivityRoute =
@@ -459,6 +466,7 @@ export interface FileRoutesByFullPath {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/welcome/$token': typeof WelcomeTokenRoute
   '/admin/activity': typeof AuthenticatedAdminActivityRoute
+  '/admin/insights': typeof AuthenticatedAdminInsightsRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
   '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -524,6 +532,7 @@ export interface FileRoutesByTo {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/welcome/$token': typeof WelcomeTokenRoute
   '/admin/activity': typeof AuthenticatedAdminActivityRoute
+  '/admin/insights': typeof AuthenticatedAdminInsightsRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
   '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -591,6 +600,7 @@ export interface FileRoutesById {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/welcome/$token': typeof WelcomeTokenRoute
   '/_authenticated/admin/activity': typeof AuthenticatedAdminActivityRoute
+  '/_authenticated/admin/insights': typeof AuthenticatedAdminInsightsRoute
   '/_authenticated/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
   '/_authenticated/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -659,6 +669,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/welcome/$token'
     | '/admin/activity'
+    | '/admin/insights'
     | '/admin/iris-health'
     | '/admin/messaging'
     | '/admin/settings'
@@ -724,6 +735,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/welcome/$token'
     | '/admin/activity'
+    | '/admin/insights'
     | '/admin/iris-health'
     | '/admin/messaging'
     | '/admin/settings'
@@ -790,6 +802,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/welcome/$token'
     | '/_authenticated/admin/activity'
+    | '/_authenticated/admin/insights'
     | '/_authenticated/admin/iris-health'
     | '/_authenticated/admin/messaging'
     | '/_authenticated/admin/settings'
@@ -1090,6 +1103,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIrisHealthRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/insights': {
+      id: '/_authenticated/admin/insights'
+      path: '/insights'
+      fullPath: '/admin/insights'
+      preLoaderRoute: typeof AuthenticatedAdminInsightsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/activity': {
       id: '/_authenticated/admin/activity'
       path: '/activity'
@@ -1340,6 +1360,7 @@ const AuthenticatedAdminTeamRouteWithChildren =
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminActivityRoute: typeof AuthenticatedAdminActivityRoute
+  AuthenticatedAdminInsightsRoute: typeof AuthenticatedAdminInsightsRoute
   AuthenticatedAdminIrisHealthRoute: typeof AuthenticatedAdminIrisHealthRoute
   AuthenticatedAdminMessagingRoute: typeof AuthenticatedAdminMessagingRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
@@ -1350,6 +1371,7 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminActivityRoute: AuthenticatedAdminActivityRoute,
+  AuthenticatedAdminInsightsRoute: AuthenticatedAdminInsightsRoute,
   AuthenticatedAdminIrisHealthRoute: AuthenticatedAdminIrisHealthRoute,
   AuthenticatedAdminMessagingRoute: AuthenticatedAdminMessagingRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
