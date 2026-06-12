@@ -2,7 +2,7 @@ import { Link, useParams, useRouterState, useNavigate } from "@tanstack/react-ro
 import { useEffect, useState } from "react";
 import { differenceInCalendarDays } from "date-fns";
 import {
-  FileText, Brain, Lightbulb, LayoutDashboard, MessageSquare, Target,
+  FileText, Brain, Lightbulb, Target,
   Users, Route as RouteIcon, ListChecks, BarChart3, Settings,
   LogOut, Menu, X, Activity as ActivityIcon, Icon as LucideIcon,
   Flag, Megaphone,
@@ -35,13 +35,9 @@ const MISSION_ITEMS: NavItem[] = [
   { to: "/missions/$missionId/insights", label: "Insights", Icon: Lightbulb, needsMission: true },
 ];
 
-const MY_WORK_ITEMS: NavItem[] = [
-  { to: "/missions/$missionId/flight-deck", label: "Flight Deck", Icon: LayoutDashboard, needsMission: true },
-  { to: "/missions/$missionId/qa", label: "Q&A Log", Icon: MessageSquare, needsMission: true },
-  
-];
-
 const ADMIN_ITEMS: NavItem[] = [];
+
+
 
 
 const ADMIN_AREA_ITEMS: NavItem[] = [
@@ -139,13 +135,9 @@ export function AppSidebar({
           {inAdmin ? (
             <Section label="ADMIN" items={ADMIN_AREA_ITEMS} missionId={undefined} pathname={pathname} collapsed={collapsed} />
           ) : (
-            <>
-              <Section label="MISSION" items={MISSION_ITEMS} missionId={missionId} pathname={pathname} collapsed={collapsed} disabled={!inMission} />
-              <Divider />
-              <Section label="MY WORK" items={MY_WORK_ITEMS} missionId={missionId} pathname={pathname} collapsed={collapsed} disabled={!inMission} />
-            </>
-
+            <Section label="MISSION" items={MISSION_ITEMS} missionId={missionId} pathname={pathname} collapsed={collapsed} disabled={!inMission} />
           )}
+
         </div>
 
 

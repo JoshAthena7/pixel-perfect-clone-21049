@@ -166,8 +166,10 @@ function AuthenticatedLayout() {
 
 function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolean }) {
   const isMobile = useIsMobile();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [userName, setUserName] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+
 
   useEffect(() => {
     (async () => {
@@ -197,14 +199,15 @@ function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolea
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email, isAdmin]);
 
-  const sidebarWidth = isMobile ? 48 : 200;
+  const onDesk = pathname.startsWith("/olympus/flight-deck");
+  const sidebarWidth = onDesk ? 0 : (isMobile ? 48 : 200);
   const railWidth = 48;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <GlobalCommandBar email={email} isAdmin={isAdmin} />
       <IconRail />
-      <AppSidebar userName={userName} userRole={userRole} />
+      {!onDesk && <AppSidebar userName={userName} userRole={userRole} />}
       <main style={{ marginLeft: sidebarWidth + railWidth, paddingTop: 0, position: "relative" }}>
         <IrisExplainThisPage />
         <Outlet />
@@ -213,6 +216,7 @@ function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolea
     </div>
   );
 }
+
 
 
 
