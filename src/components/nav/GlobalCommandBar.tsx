@@ -164,3 +164,30 @@ export function GlobalCommandBar({ email, isAdmin: _isAdmin = false }: { email?:
     </div>
   );
 }
+
+function PrimaryNav() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const items = [
+    { label: "Missions", to: "/olympus/missions", match: pathname === "/olympus/missions" || pathname.startsWith("/olympus/missions") },
+    { label: "Admin", to: "/admin", match: pathname === "/admin" || pathname.startsWith("/admin") },
+    { label: "Profile", to: "/profile", match: pathname.startsWith("/profile") },
+  ];
+  return (
+    <nav className="hidden md:flex items-center gap-1 shrink-0">
+      {items.map((it) => (
+        <Link
+          key={it.to}
+          to={it.to as any}
+          className="px-2.5 py-1 rounded-md transition-colors hover:bg-white/[0.05]"
+          style={{
+            fontSize: 12,
+            color: it.match ? "#c9a84c" : "rgba(255,255,255,0.55)",
+            fontWeight: it.match ? 600 : 400,
+          }}
+        >
+          {it.label}
+        </Link>
+      ))}
+    </nav>
+  );
+}
