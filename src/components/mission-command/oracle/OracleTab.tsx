@@ -120,7 +120,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
               Oracle
             </div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
-              IRIS&apos;s intelligence layer for {mission?.name ?? "this mission"}
+              {subtitle}
             </div>
           </div>
           <div className="flex items-center gap-4" style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>
