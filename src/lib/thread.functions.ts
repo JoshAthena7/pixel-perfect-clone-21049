@@ -115,7 +115,7 @@ export const postThreadMessage = createServerFn({ method: "POST" })
       // in connected sections and trigger conflict detection. Non-blocking.
       try {
         const { buildLineOfSightInternal } = await import("@/lib/iris-line-of-sight.server");
-        void buildLineOfSightInternal(data.missionId).catch((e) =>
+        void buildLineOfSightInternal(data.missionId).catch((e: unknown) =>
           console.error("[thread] line-of-sight recompute failed", e),
         );
       } catch (e) {
