@@ -36,6 +36,7 @@ import { Route as AuthenticatedOlympusTeamRouteImport } from './routes/_authenti
 import { Route as AuthenticatedOlympusFlightDeckRouteImport } from './routes/_authenticated/olympus.flight-deck'
 import { Route as AuthenticatedOlympusSplatRouteImport } from './routes/_authenticated/olympus.$'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions.$missionId'
+import { Route as AuthenticatedMissionNewRouteImport } from './routes/_authenticated/mission.new'
 import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated/admin.team'
 import { Route as AuthenticatedAdminIrisHealthRouteImport } from './routes/_authenticated/admin.iris-health'
 import { Route as AuthenticatedOlympusMissionsIndexRouteImport } from './routes/_authenticated/olympus.missions.index'
@@ -211,6 +212,11 @@ const AuthenticatedMissionsMissionIdRoute =
     path: '/missions/$missionId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMissionNewRoute = AuthenticatedMissionNewRouteImport.update({
+  id: '/mission/new',
+  path: '/mission/new',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAdminTeamRoute = AuthenticatedAdminTeamRouteImport.update({
   id: '/team',
   path: '/team',
@@ -426,6 +432,7 @@ export interface FileRoutesByFullPath {
   '/welcome/$token': typeof WelcomeTokenRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
   '/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
+  '/mission/new': typeof AuthenticatedMissionNewRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
@@ -486,6 +493,7 @@ export interface FileRoutesByTo {
   '/welcome/$token': typeof WelcomeTokenRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
   '/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
+  '/mission/new': typeof AuthenticatedMissionNewRoute
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/olympus/team': typeof AuthenticatedOlympusTeamRoute
@@ -548,6 +556,7 @@ export interface FileRoutesById {
   '/welcome/$token': typeof WelcomeTokenRoute
   '/_authenticated/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
+  '/_authenticated/mission/new': typeof AuthenticatedMissionNewRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
   '/_authenticated/olympus/$': typeof AuthenticatedOlympusSplatRoute
   '/_authenticated/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
@@ -611,6 +620,7 @@ export interface FileRouteTypes {
     | '/welcome/$token'
     | '/admin/iris-health'
     | '/admin/team'
+    | '/mission/new'
     | '/missions/$missionId'
     | '/olympus/$'
     | '/olympus/flight-deck'
@@ -671,6 +681,7 @@ export interface FileRouteTypes {
     | '/welcome/$token'
     | '/admin/iris-health'
     | '/admin/team'
+    | '/mission/new'
     | '/olympus/$'
     | '/olympus/flight-deck'
     | '/olympus/team'
@@ -732,6 +743,7 @@ export interface FileRouteTypes {
     | '/welcome/$token'
     | '/_authenticated/admin/iris-health'
     | '/_authenticated/admin/team'
+    | '/_authenticated/mission/new'
     | '/_authenticated/missions/$missionId'
     | '/_authenticated/olympus/$'
     | '/_authenticated/olympus/flight-deck'
@@ -989,6 +1001,13 @@ declare module '@tanstack/react-router' {
       path: '/missions/$missionId'
       fullPath: '/missions/$missionId'
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/mission/new': {
+      id: '/_authenticated/mission/new'
+      path: '/mission/new'
+      fullPath: '/mission/new'
+      preLoaderRoute: typeof AuthenticatedMissionNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin/team': {
@@ -1318,6 +1337,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedWelcomeRoute: typeof AuthenticatedWelcomeRoute
+  AuthenticatedMissionNewRoute: typeof AuthenticatedMissionNewRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRouteWithChildren
   AuthenticatedOlympusSplatRoute: typeof AuthenticatedOlympusSplatRoute
   AuthenticatedOlympusFlightDeckRoute: typeof AuthenticatedOlympusFlightDeckRoute
@@ -1341,6 +1361,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedWelcomeRoute: AuthenticatedWelcomeRoute,
+  AuthenticatedMissionNewRoute: AuthenticatedMissionNewRoute,
   AuthenticatedMissionsMissionIdRoute:
     AuthenticatedMissionsMissionIdRouteWithChildren,
   AuthenticatedOlympusSplatRoute: AuthenticatedOlympusSplatRoute,
