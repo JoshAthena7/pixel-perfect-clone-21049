@@ -137,6 +137,18 @@ function AdminMissionDetail() {
             {saving ? "Saving…" : "Save & cascade"}
           </button>
         )}
+        {cascaded && (
+          <span
+            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold transition-opacity duration-700"
+            style={{
+              background: "rgba(34,197,94,0.15)",
+              border: "1px solid rgba(34,197,94,0.4)",
+              color: "#4ade80",
+            }}
+          >
+            ✓ Changes cascaded
+          </span>
+        )}
       </div>
 
       {/* Tab strip */}
