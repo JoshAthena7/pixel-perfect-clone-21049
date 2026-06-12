@@ -22,14 +22,21 @@ export function HealthBadge({ health, size = "lg" }: { health: "green" | "amber"
   );
 }
 
+import { Link } from "@tanstack/react-router";
+import { Wand2 } from "lucide-react";
+
 export function BriefingHeader({
   missionName,
   clientName,
   health,
+  missionId,
+  isAdmin = false,
 }: {
   missionName: string;
   clientName: string | null;
   health: "green" | "amber" | "red";
+  missionId?: string;
+  isAdmin?: boolean;
 }) {
   return (
     <header className="mb-6">
@@ -44,7 +51,18 @@ export function BriefingHeader({
             </div>
           )}
         </div>
-        <HealthBadge health={health} />
+        <div className="flex items-center gap-2">
+          {isAdmin && missionId && (
+            <Link
+              to="/olympus/missions/$missionId/wizard"
+              params={{ missionId }}
+              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--athena-gold)]/40 bg-[var(--athena-gold)]/10 px-2.5 py-1 text-[11px] font-medium text-[var(--athena-gold)] hover:bg-[var(--athena-gold)]/20 transition-colors"
+            >
+              <Wand2 className="h-3 w-3" /> Enhance in Olympus
+            </Link>
+          )}
+          <HealthBadge health={health} />
+        </div>
       </div>
       <div
         className="mt-2"
@@ -55,3 +73,4 @@ export function BriefingHeader({
     </header>
   );
 }
+
