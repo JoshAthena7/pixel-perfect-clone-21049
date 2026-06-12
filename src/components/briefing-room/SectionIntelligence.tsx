@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { getIntelligence } from "@/lib/briefing-room.functions";
 import { SectionCard, Empty } from "./SectionCard";
 
@@ -13,26 +14,50 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
-function relTime(s: string | null | undefined): string {
-  if (!s) return "";
-  const ms = Date.now() - new Date(s).getTime();
-  const d = Math.floor(ms / 86400000);
-  if (d < 1) return "today";
-  if (d < 7) return `${d}d ago`;
-  if (d < 30) return `${Math.floor(d / 7)}w ago`;
-  return `${Math.floor(d / 30)}mo ago`;
+type ThreatLevel = "High" | "Med" | "Low";
+
+function threatFromConfidence(c?: string | null): ThreatLevel {
+  const v = String(c ?? "").toLowerCase();
+  if (v === "high") return "High";
+  if (v === "low") return "Low";
+  return "Med";
 }
 
-function SubCard({ title, children }: { title: string; children: React.ReactNode }) {
+function ThreatBadge({ level }: { level: ThreatLevel }) {
+  const palette =
+    level === "High"
+      ? { fg: "#f08080", bg: "rgba(224,74,74,0.12)" }
+      : level === "Med"
+      ? { fg: "#EF9F27", bg: "rgba(239,159,39,0.12)" }
+      : { fg: "#7DCF7D", bg: "rgba(125,207,125,0.12)" };
+  return (
+    <span
+      className="rounded"
+      style={{
+        fontSize: 9,
+        padding: "1px 6px",
+        color: palette.fg,
+        background: palette.bg,
+        fontWeight: 600,
+        letterSpacing: "0.04em",
+      }}
+    >
+      {level.toUpperCase()}
+    </span>
+  );
+}
+
+function SubCard({ title, children, footer }: { title: string; children: React.ReactNode; footer?: React.ReactNode }) {
   return (
     <div
-      className="rounded-lg p-4"
+      className="rounded-lg p-4 flex flex-col"
       style={{ background: "rgba(255,255,255,0.02)", border: "0.5px solid rgba(255,255,255,0.05)" }}
     >
       <div className="mb-3" style={{ color: "rgba(255,255,255,0.6)", fontSize: 11, fontWeight: 500 }}>
         {title}
       </div>
-      {children}
+      <div className="flex-1">{children}</div>
+      {footer && <div className="mt-3">{footer}</div>}
     </div>
   );
 }
@@ -44,148 +69,125 @@ export function SectionIntelligence({ missionId, isAdmin }: { missionId: string;
     queryFn: () => fn({ data: { missionId } }),
     staleTime: 60_000,
   });
+
+  const stakeholders = (data.stakeholders ?? []).slice(0, 3);
+  const stakeholderRest = Math.max(0, (data.stakeholders ?? []).length - stakeholders.length);
+
+  const competitors: any[] = [
+    ...(data.incumbent ? [{ ...data.incumbent, _incumbent: true }] : []),
+    ...((data.competitors ?? []) as any[]),
+  ];
+
+  const oracleHref = `/missions/${missionId}/oracle`;
+
   return (
     <SectionCard
       title="Program & Market Intelligence"
       showAdminEdit={isAdmin}
-      editInOlympusHref={`/missions/${missionId}/oracle`}
+      editInOlympusHref={oracleHref}
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        <SubCard title="Key Stakeholders">
-          {data.stakeholders.length === 0 ? (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <SubCard
+          title="Key Stakeholders"
+          footer={
+            <Link
+              to="/missions/$missionId/oracle"
+              params={{ missionId }}
+              search={{ tab: "stakeholders" } as never}
+              style={{ color: "#C49A2B", fontSize: 10 }}
+            >
+              See all in Oracle →
+            </Link>
+          }
+        >
+          {stakeholders.length === 0 ? (
             <Empty>No stakeholders profiled yet.</Empty>
           ) : (
-            <ul className="space-y-3">
-              {data.stakeholders.map((s: any, i: number) => (
-                <li key={i} className="flex items-start gap-2">
+            <ul className="space-y-2.5">
+              {stakeholders.map((s: any, i: number) => (
+                <li key={i} className="flex items-center gap-2.5">
                   <span
                     className="shrink-0 rounded-full inline-flex items-center justify-center"
                     style={{
-                      width: 24, height: 24,
+                      width: 28,
+                      height: 28,
                       background: "rgba(196,154,43,0.15)",
                       color: "#C49A2B",
-                      fontSize: 9, fontWeight: 600,
+                      fontSize: 10,
+                      fontWeight: 600,
                     }}
                   >
                     {initials(s.name ?? "?")}
                   </span>
-                  <div className="min-w-0">
-                    <div style={{ color: "white", fontSize: 11, fontWeight: 500 }} className="truncate">{s.name}</div>
-                    <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 10 }} className="truncate">{s.title || s.organization}</div>
-                    {Array.isArray(s.public_priorities) && s.public_priorities.length > 0 && (
-                      <div className="mt-0.5" style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontStyle: "italic" }}>
-                        {String(s.public_priorities[0]).slice(0, 80)}
-                      </div>
-                    )}
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate" style={{ color: "white", fontSize: 11, fontWeight: 500 }}>
+                      {s.name}
+                    </div>
+                    <div className="truncate" style={{ color: "rgba(255,255,255,0.5)", fontSize: 10 }}>
+                      {s.title || s.organization || s.stakeholder_type}
+                    </div>
                   </div>
                 </li>
               ))}
+              {stakeholderRest > 0 && (
+                <li style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontStyle: "italic" }}>
+                  + {stakeholderRest} more
+                </li>
+              )}
             </ul>
           )}
         </SubCard>
 
-        <SubCard title="Incumbent Analysis">
-          {!data.incumbent ? (
-            <Empty>No incumbent profiled yet.</Empty>
-          ) : (
-            <div className="space-y-2">
-              <div style={{ color: "white", fontSize: 11, fontWeight: 500 }}>{data.incumbent.organization_name}</div>
-              {data.incumbent.likely_narrative && (
-                <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 11, lineHeight: 1.5 }}>
-                  {data.incumbent.likely_narrative}
-                </div>
-              )}
-              {Array.isArray(data.incumbent.known_weaknesses) && data.incumbent.known_weaknesses.length > 0 && (
-                <div style={{ color: "rgba(240,128,128,0.7)", fontSize: 10, fontStyle: "italic" }}>
-                  Weakness: {String(data.incumbent.known_weaknesses[0])}
-                </div>
-              )}
-            </div>
-          )}
-        </SubCard>
-
-        <SubCard title="Competitor Analysis">
-          {data.competitors.length === 0 ? (
+        <SubCard
+          title="Competitors"
+          footer={
+            <Link
+              to="/missions/$missionId/oracle"
+              params={{ missionId }}
+              search={{ tab: "competitors" } as never}
+              style={{ color: "#C49A2B", fontSize: 10 }}
+            >
+              Full profiles in Oracle →
+            </Link>
+          }
+        >
+          {competitors.length === 0 ? (
             <Empty>No competitors profiled.</Empty>
           ) : (
             <ul className="space-y-2">
-              {data.competitors.map((c: any, i: number) => (
-                <li key={i}>
-                  <div style={{ color: "white", fontSize: 11, fontWeight: 500 }}>{c.organization_name}</div>
-                  {c.likely_narrative && (
-                    <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, fontStyle: "italic", lineHeight: 1.5 }}>
-                      {c.likely_narrative}
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </SubCard>
-
-        <SubCard title="Political Environment">
-          {data.policyNodes.length === 0 && data.politicalFeeds.length === 0 ? (
-            <Empty>No political signals recorded.</Empty>
-          ) : (
-            <ul className="space-y-2">
-              {data.policyNodes.map((n: any, i: number) => (
-                <li key={`p-${i}`}>
-                  <div style={{ color: "white", fontSize: 11 }}>{n.label}</div>
-                  {n.description && (
-                    <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 10 }}>{String(n.description).slice(0, 120)}</div>
-                  )}
-                </li>
-              ))}
-              {data.politicalFeeds.map((f: any, i: number) => (
-                <li key={`pf-${i}`}>
-                  <div style={{ color: "white", fontSize: 11 }}>{f.headline}</div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SubCard>
-
-        <SubCard title="Regulatory Environment">
-          {data.regulatoryNodes.length === 0 ? (
-            <Empty>No regulatory signals recorded.</Empty>
-          ) : (
-            <ul className="space-y-2">
-              {data.regulatoryNodes.map((n: any, i: number) => (
-                <li key={i}>
-                  <div style={{ color: "white", fontSize: 11 }}>{n.label}</div>
-                  {n.description && (
-                    <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 10 }}>{String(n.description).slice(0, 120)}</div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </SubCard>
-
-        <SubCard title="Recent Developments">
-          {data.recentFeeds.length === 0 ? (
-            <Empty>No recent intelligence.</Empty>
-          ) : (
-            <ul className="space-y-2">
-              {data.recentFeeds.map((f: any, i: number) => (
-                <li key={i}>
-                  <div style={{ color: "white", fontSize: 11 }} className="truncate">{f.headline}</div>
-                  {f.iris_assessment && (
-                    <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, fontStyle: "italic" }}>
-                      {String(f.iris_assessment).slice(0, 110)}
-                    </div>
-                  )}
-                  <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 9 }} className="mt-0.5">
-                    {relTime(f.published_at)}{f.source_name ? ` · ${f.source_name}` : ""}
+              {competitors.slice(0, 5).map((c: any, i: number) => (
+                <li key={i} className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex items-center gap-2">
+                    <span className="truncate" style={{ color: "white", fontSize: 11, fontWeight: 500 }}>
+                      {c.organization_name}
+                    </span>
+                    {c._incumbent && (
+                      <span
+                        className="rounded shrink-0"
+                        style={{
+                          fontSize: 8,
+                          padding: "1px 5px",
+                          color: "#f08080",
+                          background: "rgba(224,74,74,0.12)",
+                          fontWeight: 600,
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        INCUMBENT
+                      </span>
+                    )}
                   </div>
+                  <ThreatBadge level={threatFromConfidence(c.iris_confidence)} />
                 </li>
               ))}
+              {competitors.length > 5 && (
+                <li style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontStyle: "italic" }}>
+                  + {competitors.length - 5} more
+                </li>
+              )}
             </ul>
           )}
         </SubCard>
-      </div>
-      <div className="mt-4" style={{ color: "rgba(255,255,255,0.35)", fontSize: 10, fontStyle: "italic" }}>
-        Intelligence surfaced from Oracle. Add sources and feeds in Olympus to enrich this view.
       </div>
     </SectionCard>
   );

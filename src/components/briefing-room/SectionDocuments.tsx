@@ -4,16 +4,6 @@ import { ExternalLink, FileText } from "lucide-react";
 import { getDocuments } from "@/lib/briefing-room.functions";
 import { SectionCard, Empty } from "./SectionCard";
 
-const GROUP_LABEL: Record<string, string> = {
-  rfp: "RFP Documents",
-  amendment: "Amendments",
-  qa: "Q&A",
-  compliance: "Compliance",
-  style: "Style Guide",
-  intelligence: "Intelligence",
-  other: "Other",
-};
-
 export function SectionDocuments({ missionId, isAdmin }: { missionId: string; isAdmin: boolean }) {
   const fn = useServerFn(getDocuments);
   const { data } = useSuspenseQuery({
@@ -21,61 +11,55 @@ export function SectionDocuments({ missionId, isAdmin }: { missionId: string; is
     queryFn: () => fn({ data: { missionId } }),
     staleTime: 60_000,
   });
+
+  const allDocs = (data.groups ?? []).flatMap((g: any) => (g.docs ?? []).map((d: any) => ({ ...d, _group: g.key })));
+
   return (
     <SectionCard
       title="Key Documents"
       showAdminEdit={isAdmin}
       editInOlympusHref={`/olympus/missions/${missionId}/wizard?step=1B`}
     >
-      {data.groups.length === 0 ? (
+      {allDocs.length === 0 ? (
         <Empty>No documents linked yet. Add them in Olympus.</Empty>
       ) : (
-        <div className="space-y-4">
-          {data.groups.map((g) => (
-            <div key={g.key}>
-              <div
-                className="mb-1.5"
-                style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}
+        <div className="flex flex-wrap gap-1.5">
+          {allDocs.map((d: any) => {
+            const href = d.file_url || d.source_url;
+            const inner = (
+              <>
+                <FileText className="h-3 w-3 shrink-0" style={{ color: "rgba(255,255,255,0.45)" }} />
+                <span className="truncate" style={{ color: "white", fontSize: 11 }}>
+                  {d.title}
+                </span>
+                {href && <ExternalLink className="h-3 w-3 shrink-0" style={{ color: "#C49A2B" }} />}
+              </>
+            );
+            const className =
+              "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 max-w-[280px]";
+            const style: React.CSSProperties = {
+              background: "rgba(255,255,255,0.03)",
+              border: "0.5px solid rgba(255,255,255,0.07)",
+            };
+            return href ? (
+              <a
+                key={d.id}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${className} hover:bg-white/[0.06]`}
+                style={style}
               >
-                {GROUP_LABEL[g.key] ?? g.key}
+                {inner}
+              </a>
+            ) : (
+              <div key={d.id} className={className} style={style}>
+                {inner}
               </div>
-              <ul className="space-y-1">
-                {g.docs.map((d: any) => {
-                  const href = d.file_url || d.source_url;
-                  const inner = (
-                    <>
-                      <FileText className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(255,255,255,0.4)" }} />
-                      <span className="truncate flex-1" style={{ color: "white", fontSize: 11 }}>
-                        {d.title}
-                      </span>
-                      {href && <ExternalLink className="h-3 w-3 shrink-0" style={{ color: "#C49A2B" }} />}
-                    </>
-                  );
-                  return (
-                    <li key={d.id}>
-                      {href ? (
-                        <a
-                          href={href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-white/[0.03]"
-                        >
-                          {inner}
-                        </a>
-                      ) : (
-                        <div className="flex items-center gap-2 py-1.5 px-2">{inner}</div>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
-      <div className="mt-4" style={{ color: "rgba(255,255,255,0.35)", fontSize: 10, fontStyle: "italic" }}>
-        Documents are managed in Olympus. Contact your Engagement Lead to add or update documents.
-      </div>
     </SectionCard>
   );
 }
