@@ -42,20 +42,20 @@ export function FlightDeckAssistBar({ missionId, questionId, questionNumber, que
       label: "Thread",
       sub: "Work the question.",
       tooltip:
-        "Work the question. Tag teammates, capture decisions, build the permanent record.",
+        "Work the question. Tag teammates, capture decisions, preserve the history.",
       bg: "rgba(255,255,255,0.05)",
-      border: "rgba(255,255,255,0.1)",
-      color: "rgba(255,255,255,0.6)",
+      border: "rgba(255,255,255,0.12)",
+      color: "rgba(255,255,255,0.65)",
       onClick: () => setThreadOpen(true),
     },
     {
       id: "phone",
       Icon: PhoneCall,
       label: "Phone a Friend",
-      sub: "Find expertise.",
+      sub: "Find the right brain.",
       tooltip:
         "Find the right brain. I search the entire Athena Collective for you.",
-      bg: "rgba(74,111,165,0.12)",
+      bg: "rgba(74,111,165,0.1)",
       border: "rgba(74,111,165,0.3)",
       color: "#7BA7D4",
       onClick: () => setSmeOpen(true),
@@ -66,9 +66,9 @@ export function FlightDeckAssistBar({ missionId, questionId, questionNumber, que
       label: "Score Me",
       sub: "Improve the answer.",
       tooltip:
-        "Paste your draft. I will tell you what lands and what does not.",
-      bg: "rgba(196,154,43,0.15)",
-      border: "rgba(196,154,43,0.4)",
+        "Paste your draft from the client environment. I will tell you what lands and what does not.",
+      bg: "rgba(196,154,43,0.12)",
+      border: "rgba(196,154,43,0.35)",
       color: "#C49A2B",
       onClick: () => setScoreOpen(true),
     },
@@ -79,9 +79,9 @@ export function FlightDeckAssistBar({ missionId, questionId, questionNumber, que
       sub: "Tell the mission.",
       tooltip:
         "The mission needs to know this. I will route it to the right people.",
-      bg: "rgba(127,119,221,0.12)",
+      bg: "rgba(127,119,221,0.1)",
       border: "rgba(127,119,221,0.3)",
-      color: "rgba(200,195,255,0.9)",
+      color: "rgba(200,195,255,0.85)",
       onClick: () => setPulseOpen(true),
     },
     {
@@ -91,9 +91,9 @@ export function FlightDeckAssistBar({ missionId, questionId, questionNumber, que
       sub: "Raise the flag.",
       tooltip:
         "Ancient sailors raised distress flags. This is the modern version.",
-      bg: "rgba(224,74,74,0.06)",
+      bg: "rgba(224,74,74,0.05)",
       border: "rgba(224,74,74,0.3)",
-      color: "rgba(224,74,74,0.9)",
+      color: "rgba(224,74,74,0.85)",
       onClick: () => setSosOpen(true),
     },
   ];
@@ -105,7 +105,7 @@ export function FlightDeckAssistBar({ missionId, questionId, questionNumber, que
           position: "sticky",
           bottom: 0,
           zIndex: 30,
-          height: 52,
+          height: 56,
           background: "#050d18",
           borderTop: "1px solid rgba(255,255,255,0.06)",
           display: "grid",
@@ -123,14 +123,14 @@ export function FlightDeckAssistBar({ missionId, questionId, questionNumber, que
             onClick={b.onClick}
             title={b.tooltip}
             style={{
-              height: 40,
+              height: 44,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              gap: 1,
+              gap: 2,
               background: b.bg,
-              border: `1px solid ${b.border}`,
+              border: `0.5px solid ${b.border}`,
               color: b.color,
               borderRadius: 6,
               cursor: "pointer",
@@ -143,19 +143,17 @@ export function FlightDeckAssistBar({ missionId, questionId, questionNumber, que
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 5,
-                fontSize: 11,
-                fontWeight: 500,
+                fontSize: 10,
+                fontWeight: 600,
               }}
             >
-              <b.Icon size={12} />
+              <b.Icon size={16} />
               {b.label}
             </span>
             <span
               style={{
                 fontSize: 8,
-                color: "rgba(255,255,255,0.4)",
-                textTransform: "uppercase",
-                letterSpacing: "0.04em",
+                color: "rgba(255,255,255,0.45)",
               }}
             >
               {b.sub}
@@ -163,6 +161,7 @@ export function FlightDeckAssistBar({ missionId, questionId, questionNumber, que
           </button>
         ))}
       </div>
+
 
       <ThreadPanel
         open={threadOpen}
