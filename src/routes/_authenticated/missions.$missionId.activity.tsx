@@ -416,6 +416,7 @@ function TimelineRow({
   onToggle,
   isAdmin,
   onResolve,
+  onResolveConflict,
 }: {
   item: ActivityItem;
   isLast: boolean;
@@ -423,9 +424,11 @@ function TimelineRow({
   onToggle: () => void;
   isAdmin: boolean;
   onResolve: () => void;
+  onResolveConflict: () => void;
 }) {
   const meta = STREAMS.find((s) => s.key === item.stream)!;
   const isSos = item.stream === "sos";
+  const isConflict = item.stream === "conflict";
   const emerging = item.emerging_risk;
 
   return (
@@ -457,19 +460,24 @@ function TimelineRow({
       <div
         className="flex-1 rounded-md px-3 py-2"
         style={{
-          background: isSos
-            ? "rgba(224,74,74,0.05)"
-            : isExpanded
-              ? "rgba(255,255,255,0.03)"
-              : "transparent",
-          border: "0.5px solid rgba(255,255,255,0.06)",
-          borderLeft: emerging
-            ? "2px solid #f08080"
+          background: isConflict
+            ? "rgba(239,159,39,0.04)"
             : isSos
-              ? "2px solid rgba(224,74,74,0.4)"
-              : `0.5px solid rgba(255,255,255,0.06)`,
+              ? "rgba(224,74,74,0.05)"
+              : isExpanded
+                ? "rgba(255,255,255,0.03)"
+                : "transparent",
+          border: "0.5px solid rgba(255,255,255,0.06)",
+          borderLeft: isConflict
+            ? "3px solid rgba(239,159,39,0.4)"
+            : emerging
+              ? "2px solid #f08080"
+              : isSos
+                ? "2px solid rgba(224,74,74,0.4)"
+                : `0.5px solid rgba(255,255,255,0.06)`,
         }}
       >
+
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span
