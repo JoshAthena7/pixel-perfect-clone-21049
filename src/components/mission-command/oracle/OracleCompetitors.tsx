@@ -51,7 +51,7 @@ export function OracleCompetitors({ missionId, isAdmin, ctx }: { missionId: stri
       {isLoading ? (
         <SkeletonList count={2} />
       ) : sorted.length === 0 ? (
-        <EmptyState>No competitor profiles added yet. Add them in Olympus.</EmptyState>
+        <EmptyState>{emptyMsg}</EmptyState>
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {sorted.map((c) => (
