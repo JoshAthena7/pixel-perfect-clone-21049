@@ -109,8 +109,8 @@ export function MissionPulsePanel({ open, onOpenChange, missionId }: Props) {
       <DialogContent
         className="p-0 border-0 max-w-[800px] w-[95vw]"
         style={{ background: "#0a1420", color: "white" }}
-        showCloseButton={false}
       >
+
         {/* Header */}
         <div style={{ padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
