@@ -16,6 +16,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as CheckinTokenRouteImport } from './routes/checkin.$token'
+import { Route as AuthenticatedWelcomeRouteImport } from './routes/_authenticated/welcome'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedPortfolioRouteImport } from './routes/_authenticated/portfolio'
@@ -99,6 +100,11 @@ const CheckinTokenRoute = CheckinTokenRouteImport.update({
   id: '/checkin/$token',
   path: '/checkin/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedWelcomeRoute = AuthenticatedWelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
   id: '/team',
@@ -394,6 +400,7 @@ export interface FileRoutesByFullPath {
   '/portfolio': typeof AuthenticatedPortfolioRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/welcome': typeof AuthenticatedWelcomeRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
@@ -450,6 +457,7 @@ export interface FileRoutesByTo {
   '/portfolio': typeof AuthenticatedPortfolioRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/welcome': typeof AuthenticatedWelcomeRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
@@ -508,6 +516,7 @@ export interface FileRoutesById {
   '/_authenticated/portfolio': typeof AuthenticatedPortfolioRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
+  '/_authenticated/welcome': typeof AuthenticatedWelcomeRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/_authenticated/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
@@ -567,6 +576,7 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/reports'
     | '/team'
+    | '/welcome'
     | '/checkin/$token'
     | '/email/unsubscribe'
     | '/admin/iris-health'
@@ -623,6 +633,7 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/reports'
     | '/team'
+    | '/welcome'
     | '/checkin/$token'
     | '/email/unsubscribe'
     | '/admin/iris-health'
@@ -680,6 +691,7 @@ export interface FileRouteTypes {
     | '/_authenticated/portfolio'
     | '/_authenticated/reports'
     | '/_authenticated/team'
+    | '/_authenticated/welcome'
     | '/checkin/$token'
     | '/email/unsubscribe'
     | '/_authenticated/admin/iris-health'
@@ -800,6 +812,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/checkin/$token'
       preLoaderRoute: typeof CheckinTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/welcome': {
+      id: '/_authenticated/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof AuthenticatedWelcomeRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/team': {
       id: '/_authenticated/team'
@@ -1235,6 +1254,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPortfolioRoute: typeof AuthenticatedPortfolioRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
+  AuthenticatedWelcomeRoute: typeof AuthenticatedWelcomeRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRouteWithChildren
   AuthenticatedOlympusSplatRoute: typeof AuthenticatedOlympusSplatRoute
   AuthenticatedOlympusFlightDeckRoute: typeof AuthenticatedOlympusFlightDeckRoute
@@ -1256,6 +1276,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPortfolioRoute: AuthenticatedPortfolioRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
+  AuthenticatedWelcomeRoute: AuthenticatedWelcomeRoute,
   AuthenticatedMissionsMissionIdRoute:
     AuthenticatedMissionsMissionIdRouteWithChildren,
   AuthenticatedOlympusSplatRoute: AuthenticatedOlympusSplatRoute,
