@@ -95,7 +95,24 @@ export function SectionSnapshot({ missionId, isAdmin }: { missionId: string; isA
             </div>
           </div>
           <Field label="Writers / SMEs" value={`${data.writers} writers · ${data.smes} SMEs`} />
+          {(() => {
+            const oc = (data as any).openConflicts ?? 0;
+            const color = oc === 0 ? "#7DCF7D" : oc < 3 ? "#EF9F27" : "#f08080";
+            const value =
+              oc === 0 ? (
+                "None"
+              ) : oc >= 3 ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <span style={{ width: 6, height: 6, borderRadius: 999, background: "#f08080", display: "inline-block" }} />
+                  {oc}
+                </span>
+              ) : (
+                String(oc)
+              );
+            return <Field label="Open Conflicts" value={value} color={color} />;
+          })()}
         </div>
+
       </div>
     </SectionCard>
   );
