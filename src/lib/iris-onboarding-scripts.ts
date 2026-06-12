@@ -2,108 +2,44 @@
 // Plain text only. No HTML, no markdown. Phase 2 (ElevenLabs) reads these strings directly.
 
 export const IRIS_SCRIPTS: Record<number, string> = {
-  1: "Welcome to The Athena Collective. I'm IRIS. Our name comes from Athena, the goddess of wisdom and strategy, who won not by force but by preparation and the ability to see what others missed. That's the standard here. This Collective is operators, clinicians, strategists, and leaders who've done the real work from the inside. ATLAS is the platform that holds it all up, the missions, the intelligence, the people. I'm IRIS, your guide inside it. I connect what you know to what you need to know. I don't replace your judgment, I sharpen it. This isn't a product tour, it's a briefing. Let's begin.",
-  2: "Module 2, the Dashboard. Think of this as your command view. Every mission you're assigned to lives here, with your open assignments, unacknowledged Briefings, and the IRIS alerts relevant to your active work. It reflects your assignments only. You will not see other members' work here unless an administrator has explicitly granted access. Clear, honest, and yours.",
-  3: "Module 3, Assignments. This is your workshop. Each assignment shows the active draft, your deadline, and the internal review thread where Athena reviews the craft, comments, direction, quality feedback. That thread is internal to the Collective. Your clients will never see it. It is completely separate from any feedback in the client system. When you need intelligence about an assignment, terminology, RFP alignment, win themes, type @IRIS in the thread. I'll be there.",
-  4: "Module 4, IRIS. That's me. Like the messenger I'm named for, my job is to carry the message exactly as it should be, no distortion. I generate procurement intelligence calibrated to your specific mission: RFP analysis, win themes, competitive context, terminology guidance, content review. I am not a general AI assistant. My outputs are locked to the mission profile you're operating under. Before I generate anything, I verify my context is right. If I detect that I'm carrying the wrong message, for instance, health plan logic applied to a behavioral health systems procurement, I'll flag it and pause before proceeding. Precision over volume. That's the standard.",
-  5: "Module 5, The Brief Room. When a notification appears here, it requires your acknowledgment. Treat it with the weight of a direct directive. Global Briefings go to the whole Collective at once. Direct Briefings go to you. Both require acknowledgment. All are logged. You cannot reply unless a response is explicitly requested. The Brief Room is not a conversation. It exists so leadership can reach the Collective with authority and confirmation of receipt.",
-  6: "Module 6, Boundaries. Three thresholds. First: ATLAS is internal. Nothing inside is ever visible to clients. Second: writing assignments cannot be modified by users. Only authorized administrators can change assignment records. Third: Olympus, the seat of leadership, is restricted to Joshua Boynton and designated administrators. Do not attempt to enter. These are not preferences. They are the boundaries you acknowledged before this briefing. All activity in ATLAS is logged. Trust is the price of entry, and we keep it.",
-  7: "That's the briefing. Dashboard, Assignments, IRIS, Brief Room, Boundaries, you know the platform. You're cleared to operate. Athena carried an owl, wisdom that sees clearly in the dark. When the path isn't obvious and the stakes are high, that's when it matters most. I'll be in every assignment thread when you need me. Type @IRIS anywhere to reach me. One last thing: if something feels wrong, a missed assignment, unexpected access, unusual activity, report it immediately. ATLAS is only as strong as the people operating it. Wisdom shared. Trust protected. Work elevated. Welcome to the Collective.",
+  1: "Hello. I am IRIS — the intelligence co-pilot inside ATLAS. Before we get to the platform, I want to take two minutes to explain what you are walking into. Medicaid procurements are not won by the best proposal. They are won by the team that best understands what the evaluators are afraid of — and writes directly to those fears. That is what ATLAS helps Athena do. I will be walking you through this setup — one step at a time. Let's go.",
+  2: "First things first. I need to know who you are. I have pre-filled your email from the invite you received. Just add your name and create a password. Your account is scoped entirely to Athena Strategy Group. You will only ever see missions you have been explicitly assigned to. Nothing bleeds across.",
+  3: "Now I need to get to know you. Not for a directory — for the work. When a writer on your team gets stuck on a question, they can ask me to find an expert. I search everyone's profile to find the right person. The more specific you are here, the better I can match you. Select your expertise areas carefully. A writer asking for help with care coordination for youth in New Jersey needs someone who actually knows that space. Not just someone who clicked behavioral health.",
+  4: "I would like you to upload your resume here. Here is why this matters. When a writer is stuck on a question — say, provider network adequacy in rural counties — they can ask me to find them an expert. I search every resume on the Athena team to find the right person. Not just by job title. By the actual work people have done and the programs they have built. Your resume is how I know what you know. This is what powers Phone a Friend on every mission you are part of.",
+  5: "This is the security and confidentiality section. I want to be direct with you about what this is and why it exists — not just ask you to check boxes. Everything inside ATLAS is confidential. The mission strategy, the intelligence, the client information. The people Athena works with are trusting us with sensitive procurement strategy during live competitions. The HIPAA piece is specific. You will not enter any protected health information into ATLAS under any circumstances. Please read what follows. Not skim it. Then sign with your name. Your signature is timestamped and logged.",
+  6: "You are set up. Here is what to do first. You will land on the Mission Brief for your mission. Read today's Athena Insight at the top. It is the single most important strategic thought for this mission right now. Then look at your assignments and open your most urgent question in the Flight Deck. On every page you will see a button that says IRIS — explain this page. Click it any time. I will tell you exactly what you are looking at and what to do first. One last thing. I will be direct with you throughout this mission. Not harsh — direct. It saves time and it wins procurements. I will be with you the whole way. Let's go win this.",
 };
 
 export const MODULE_NAMES: Record<number, string> = {
   1: "Welcome",
-  2: "Dashboard",
-  3: "Assignments",
-  4: "IRIS",
-  5: "Brief Room",
-  6: "Boundaries",
-  7: "Mission Ready",
+  2: "Account",
+  3: "Profile",
+  4: "Resume",
+  5: "Attestation",
+  6: "Orient",
 };
 
 export type ModuleCard = { title: string; body: string };
 
 export const MODULE_CARDS: Record<number, ModuleCard | null> = {
   1: null,
-  2: { title: "Dashboard", body: "Your active missions, assignment queue, Brief Room alerts, and IRIS intelligence summary. This is where you start every session." },
-  3: { title: "Assignments", body: "Your writing queue, draft versions, internal review threads, and assignment status. Type @IRIS in any thread to ask me a procurement question inline." },
-  4: { title: "IRIS Intelligence", body: "Mission-locked intelligence: RFP analysis, win themes, terminology guidance, content review. Every output is anchored to your active mission profile." },
-  5: { title: "Brief Room", body: "Global Briefings go to all users. Direct Briefings go to you. Both require acknowledgment. All are logged. Read-and-acknowledge only." },
-  6: { title: "Key Restrictions", body: "Internal only, No assignment modifications, Olympus restricted, No external sharing, All activity logged." },
-  7: { title: "Mission Ready", body: "Dashboard, Assignments, IRIS, Brief Room, Boundaries. You know the platform. @IRIS is available in every assignment thread." },
+  2: { title: "Account", body: "Email pre-filled from your invite. Add your name and create a password. Your account is scoped entirely to Athena Strategy Group." },
+  3: { title: "Profile", body: "Tell me what you know. Expertise areas, specialties, and the work you've actually done. This is how I match you when a writer needs an expert." },
+  4: { title: "Resume", body: "Upload your resume. I search every resume to power Phone a Friend across missions. By the actual work, not just job titles." },
+  5: { title: "Attestation", body: "Confidentiality and HIPAA. Read it. Sign with your name. Your signature is timestamped and logged." },
+  6: { title: "You're In", body: "Land on the Mission Brief. Read today's Athena Insight. Open your most urgent question in the Flight Deck. Click IRIS — explain this page on any screen." },
 };
 
 export type QuickReply = { label: string; kind: "advance" | "question"; answer?: string };
 
 export const QUICK_REPLIES: Record<number, QuickReply[]> = {
   1: [{ label: "Ready. Let's go.", kind: "advance" }],
-  2: [
-    { label: "Next module", kind: "advance" },
-    {
-      label: "What are IRIS alerts?",
-      kind: "question",
-      answer: "IRIS alerts are intelligence notifications tied to your active mission, RFP amendments, competitive activity, terminology flags, deadline proximity. They appear on your Dashboard on login.",
-    },
-    {
-      label: "Can I see other team members' work?",
-      kind: "question",
-      answer: "Not by default. Your Dashboard shows your assignments only. Administrators can grant engagement-level visibility.",
-    },
-  ],
-  3: [
-    { label: "Next module", kind: "advance" },
-    {
-      label: "What's a thread?",
-      kind: "question",
-      answer: "A thread is the internal comment panel attached to an assignment. Comments live on the specific section they reference. You can @mention teammates or type @IRIS to ask me a question inline.",
-    },
-    {
-      label: "What is @IRIS?",
-      kind: "question",
-      answer: "Typing @IRIS in any assignment thread sends me a query in context. I respond inline with intelligence anchored to the active mission profile. All @IRIS queries are logged.",
-    },
-  ],
-  4: [
-    { label: "Next module", kind: "advance" },
-    {
-      label: "How is mission context set?",
-      kind: "question",
-      answer: "Mission context is set by an administrator or by me when you open an engagement. If I detect misalignment, for example, MCO frameworks applied to a behavioral health systems procurement, I flag it and request correction before generating further output.",
-    },
-    {
-      label: "What is IRIS drift?",
-      kind: "question",
-      answer: "Drift occurs when I apply generalized intelligence frameworks to a mission that requires a specific context. I detect it, flag it, and pause. The RFP and style guide are the source of truth.",
-    },
-  ],
-  5: [
-    { label: "Next module", kind: "advance" },
-    {
-      label: "What's a Global Briefing?",
-      kind: "question",
-      answer: "A Global Briefing is sent to all active ATLAS users simultaneously. It appears as a pinned notification and must be acknowledged. It carries the authority of a direct directive from Athena leadership.",
-    },
-    {
-      label: "Can I reply to a Briefing?",
-      kind: "question",
-      answer: "Not unless a response is explicitly requested in the Briefing. The Brief Room is one-way. Acknowledgment confirms receipt.",
-    },
-  ],
-  6: [
-    { label: "Next module", kind: "advance" },
-    {
-      label: "What can't I do in ATLAS?",
-      kind: "question",
-      answer: "You cannot modify writing assignments, access Olympus without authorization, share ATLAS content externally, or forward Brief Room communications. All activity is logged.",
-    },
-    {
-      label: "Where do client deliverables live?",
-      kind: "question",
-      answer: "In the client system, whatever environment your engagement uses. ATLAS is the internal Athena layer. Keep them separate.",
-    },
-  ],
-  7: [{ label: "Take me to ATLAS", kind: "advance" }],
+  2: [{ label: "Continue", kind: "advance" }],
+  3: [{ label: "Continue", kind: "advance" }],
+  4: [{ label: "Continue", kind: "advance" }],
+  5: [{ label: "I have read and signed.", kind: "advance" }],
+  6: [{ label: "Take me to ATLAS", kind: "advance" }],
 };
 
 export const FALLBACK_ANSWER =
-  "That's not something I can address in onboarding. Note it and ask me via @IRIS once you're in your assignment threads.";
+  "That's not something I can address in onboarding. Note it and ask me via IRIS once you're inside the platform.";
