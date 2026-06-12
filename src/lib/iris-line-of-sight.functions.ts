@@ -84,10 +84,10 @@ export const buildLineOfSight = createServerFn({ method: "POST" })
 
     const { data: sections } = await supabase
       .from("mission_sections")
-      .select("id, title")
+      .select("id, name")
       .eq("mission_id", missionId);
     const sectionName = new Map<string, string>(
-      (sections ?? []).map((s) => [s.id as string, (s.title as string) ?? "Section"]),
+      (sections ?? []).map((s) => [s.id as string, (s.name as string) ?? "Section"]),
     );
 
     const { data: questions } = await supabase
@@ -297,9 +297,9 @@ export const getLineOfSight = createServerFn({ method: "GET" })
       if (secIds.length) {
         const { data: secs } = await supabase
           .from("mission_sections")
-          .select("id, title")
+          .select("id, name")
           .in("id", secIds);
-        sectionLabels = new Map((secs ?? []).map((s) => [s.id as string, (s.title as string) ?? "Section"]));
+        sectionLabels = new Map((secs ?? []).map((s) => [s.id as string, (s.name as string) ?? "Section"]));
       }
 
       const { data: dec } = await supabase
