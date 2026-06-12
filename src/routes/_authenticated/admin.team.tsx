@@ -174,7 +174,7 @@ function StaffPage() {
             <StaffCard
               key={s.id}
               staff={s}
-              missionCount={missionCounts[s.email] ?? 0}
+              missionCount={missionCounts[s.id] ?? 0}
               onClick={() => setSelectedId(s.id)}
             />
           ))}
@@ -185,7 +185,7 @@ function StaffPage() {
       {selected && (
         <StaffDetailPanel
           staff={selected}
-          missionCount={missionCounts[selected.email] ?? 0}
+          missionCount={missionCounts[selected.id] ?? 0}
           onClose={() => setSelectedId(null)}
         />
       )}
@@ -273,21 +273,15 @@ function StaffDetailPanel({
   const c = clearanceFor(staff);
 
   const { data: missions = [] } = useQuery({
-    queryKey: ["staff-missions", staff.id, staff.email],
+    queryKey: ["staff-missions", staff.id],
     queryFn: async () => {
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("email", staff.email)
-        .maybeSingle();
-      if (!prof) return [];
       const { data: mems } = await supabase
         .from("mission_team_members")
-        .select("role,mission_id,missions:mission_id(name,status)")
-        .eq("user_id", prof.id);
+        .select("mission_role,mission_id,missions:mission_id(name,status)")
+        .eq("member_id", staff.id);
       return (mems ?? []).map((m: any) => ({
         mission_id: m.mission_id,
-        role: m.role,
+        role: m.mission_role,
         name: m.missions?.name ?? "Mission",
         status: m.missions?.status,
       }));
