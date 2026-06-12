@@ -7923,6 +7923,30 @@ export type Database = {
         }
         Relationships: []
       }
+      signal_patterns: {
+        Row: {
+          created_at: string
+          id: string
+          mission_id: string
+          signal_topic: string | null
+          signal_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mission_id: string
+          signal_topic?: string | null
+          signal_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mission_id?: string
+          signal_topic?: string | null
+          signal_type?: string
+        }
+        Relationships: []
+      }
       signals: {
         Row: {
           confidence: number | null
@@ -8252,6 +8276,42 @@ export type Database = {
           id?: string
           metadata?: Json | null
           reason?: string
+        }
+        Relationships: []
+      }
+      team_updates: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          metadata: Json
+          mission_id: string
+          question_id: string | null
+          sender_id: string | null
+          sender_name: string
+          update_type: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          mission_id: string
+          question_id?: string | null
+          sender_id?: string | null
+          sender_name: string
+          update_type: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          mission_id?: string
+          question_id?: string | null
+          sender_id?: string | null
+          sender_name?: string
+          update_type?: string
         }
         Relationships: []
       }
