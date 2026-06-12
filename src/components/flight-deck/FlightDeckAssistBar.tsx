@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { MessageSquare, PhoneCall, Target, Activity, AlertTriangle } from "lucide-react";
-import { SOSDialog } from "@/components/iris/AssistsDialogs";
+import { SOSDialog } from "./SOSDialog";
 import { MissionPulsePanel } from "./MissionPulsePanel";
 import { ScoreMeDialog } from "./ScoreMeDialog";
 import { PhoneAFriendDialog } from "./PhoneAFriendDialog";
 import { ThreadPanel } from "./ThreadPanel";
-import { supabase } from "@/integrations/supabase/client";
+
 
 type Props = {
   missionId: string | null;
@@ -195,21 +195,13 @@ export function FlightDeckAssistBar({ missionId, questionId, questionNumber, que
       <MissionPulsePanel open={pulseOpen} onOpenChange={setPulseOpen} missionId={missionId} />
       <SOSDialog
         open={sosOpen}
-        onOpenChange={async (v) => {
-          setSosOpen(v);
-          if (!v && questionId) {
-            try {
-              await supabase
-                .from("mission_questions")
-                .update({ health_status: "at_risk" })
-                .eq("id", questionId);
-            } catch {
-              /* ignore */
-            }
-          }
-        }}
+        onOpenChange={setSosOpen}
         missionId={missionId}
+        questionId={questionId}
+        questionNumber={questionNumber}
+        questionText={questionText}
       />
+
     </>
   );
 }

@@ -8287,8 +8287,11 @@ export type Database = {
           metadata: Json
           mission_id: string
           question_id: string | null
+          resolved: boolean
+          resolved_at: string | null
           sender_id: string | null
           sender_name: string
+          severity: string | null
           update_type: string
         }
         Insert: {
@@ -8298,8 +8301,11 @@ export type Database = {
           metadata?: Json
           mission_id: string
           question_id?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
           sender_id?: string | null
           sender_name: string
+          severity?: string | null
           update_type: string
         }
         Update: {
@@ -8309,8 +8315,11 @@ export type Database = {
           metadata?: Json
           mission_id?: string
           question_id?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
           sender_id?: string | null
           sender_name?: string
+          severity?: string | null
           update_type?: string
         }
         Relationships: []
