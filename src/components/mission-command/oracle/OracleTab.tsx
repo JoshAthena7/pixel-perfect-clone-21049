@@ -13,6 +13,7 @@ import { refreshAllMissionFeeds } from "@/lib/iris-refresh-all.functions";
 import { OracleGraph } from "./OracleGraph";
 import { OracleFeed } from "./OracleFeed";
 import { OracleStakeholders } from "./OracleStakeholders";
+import { OracleEvaluatorPicture } from "./OracleEvaluatorPicture";
 import { OracleCompetitors } from "./OracleCompetitors";
 import { OracleProcurementEvolution } from "./OracleProcurementEvolution";
 import { IntelligenceLibraryTab } from "@/components/mission-command/IntelligenceLibraryTab";
@@ -21,6 +22,7 @@ const SUB_TABS = [
   { id: "graph", label: "Graph", hint: "Intelligence network map" },
   { id: "feed", label: "Intelligence Feed", hint: "Live monitoring updates" },
   { id: "stakeholders", label: "Stakeholders", hint: "Evaluators and influencers" },
+  { id: "evaluator-picture", label: "Evaluator Picture", hint: "How the scoring panel thinks" },
   { id: "competitors", label: "Competitors", hint: "Competitive landscape" },
   { id: "evolution", label: "Procurement Evolution", hint: "How this RFP changed" },
   { id: "research-library", label: "Research Library", hint: "Documents and resources" },
