@@ -414,7 +414,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
     await playModuleLine(currentModule, greetedScript, { force: true });
   }
 
-  const isFinal = currentModule >= 7;
+  const isFinal = currentModule >= 6;
 
   return (
     <div
