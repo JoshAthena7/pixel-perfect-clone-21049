@@ -108,7 +108,7 @@ export function IconRail() {
               style={style}
             >
               <it.Icon className="h-[18px] w-[18px]" style={{ color }} />
-              <span style={{ fontSize: 9, color, fontWeight: it.active ? 600 : 400, letterSpacing: "0.03em" }}>
+              <span className="text-center w-full px-1 leading-tight" style={{ fontSize: 9, color, fontWeight: it.active ? 600 : 400, letterSpacing: "0.03em" }}>
                 {it.label}
               </span>
             </a>
@@ -123,7 +123,7 @@ export function IconRail() {
             style={style}
           >
             <it.Icon className="h-[18px] w-[18px]" style={{ color }} />
-            <span style={{ fontSize: 9, color, fontWeight: it.active ? 600 : 400, letterSpacing: "0.03em" }}>
+            <span className="text-center w-full px-1 leading-tight" style={{ fontSize: 9, color, fontWeight: it.active ? 600 : 400, letterSpacing: "0.03em" }}>
               {it.label}
             </span>
           </Link>
