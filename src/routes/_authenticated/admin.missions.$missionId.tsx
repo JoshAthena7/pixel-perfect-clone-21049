@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { ArrowLeft, Save, Search, Plus, X, AlertCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, Save, Search, Plus, X, AlertCircle, GripVertical, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -44,6 +44,7 @@ function AdminMissionDetail() {
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [cascaded, setCascaded] = useState(false);
+  const journeySaverRef = useRef<null | (() => Promise<void>)>(null);
 
   const { data: mission } = useQuery({
     queryKey: ["admin-mission", missionId],
@@ -94,16 +95,25 @@ function AdminMissionDetail() {
       updated_at: new Date().toISOString(),
     };
     const { error } = await (supabase.from("missions").update(payload as any) as any).eq("id", missionId);
-    setSaving(false);
     if (error) {
+      setSaving(false);
       toast.error(`Save failed: ${error.message}`);
       return;
     }
+    try {
+      await journeySaverRef.current?.();
+    } catch (e: any) {
+      setSaving(false);
+      toast.error(`Journey save failed: ${e?.message ?? "unknown"}`);
+      return;
+    }
+    setSaving(false);
     toast.success("Saved & cascaded to all linked records");
     setDirty(false);
     setCascaded(true);
     qc.invalidateQueries({ queryKey: ["admin-mission", missionId] });
     qc.invalidateQueries({ queryKey: ["admin-missions-list"] });
+    qc.invalidateQueries({ queryKey: ["admin-mission-journey", missionId] });
   }
 
   return (
@@ -194,7 +204,15 @@ function AdminMissionDetail() {
           <OverviewTab form={form} update={update} />
         )}
         {tab === "team" && <TeamTab missionId={missionId} />}
-        {tab === "journey" && <JourneyTab missionId={missionId} />}
+        {tab === "journey" && (
+          <JourneyTab
+            missionId={missionId}
+            setDirty={setDirty}
+            registerSaver={(fn) => {
+              journeySaverRef.current = fn;
+            }}
+          />
+        )}
         {tab === "compliance" && <ComplianceTab missionId={missionId} />}
         {tab === "reports" && <ReportsTab missionId={missionId} />}
       </div>
@@ -686,36 +704,279 @@ function TeamTab({ missionId }: { missionId: string }) {
   );
 }
 
-function JourneyTab({ missionId }: { missionId: string }) {
-  const { data: phases = [] } = useQuery({
+type JourneyStatus = "complete" | "in_progress" | "pending";
+type Milestone = {
+  id: string;
+  name: string;
+  kind: "Required" | "Optional";
+  status: JourneyStatus;
+  target_date: string | null; // ISO yyyy-mm-dd
+  order_index: number;
+  _new?: boolean;
+};
+
+const STATUS_DOT: Record<JourneyStatus, { color: string; label: string }> = {
+  complete: { color: "#22c55e", label: "Complete" },
+  in_progress: { color: "#c9a84c", label: "In progress" },
+  pending: { color: "rgba(255,255,255,0.25)", label: "Pending" },
+};
+
+const DEFAULT_MILESTONES: Omit<Milestone, "id">[] = [
+  { name: "Onboarding", kind: "Required", status: "complete", target_date: null, order_index: 0 },
+  { name: "Field Operations", kind: "Required", status: "in_progress", target_date: null, order_index: 1 },
+  { name: "Debrief & Close", kind: "Required", status: "pending", target_date: null, order_index: 2 },
+];
+
+function JourneyTab({
+  missionId,
+  setDirty,
+  registerSaver,
+}: {
+  missionId: string;
+  setDirty: (v: boolean) => void;
+  registerSaver: (fn: (() => Promise<void>) | null) => void;
+}) {
+  const { data: phases, isLoading } = useQuery({
     queryKey: ["admin-mission-journey", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("mission_journey_phases")
-        .select("id,phase_name,status,start_date,end_date")
+        .select("id,name,kind,color,end_date,order_index")
         .eq("mission_id", missionId)
-        .order("start_date", { ascending: true });
+        .order("order_index", { ascending: true });
       return data ?? [];
     },
   });
+
+  const [items, setItems] = useState<Milestone[]>([]);
+  const [removedIds, setRemovedIds] = useState<string[]>([]);
+  const dragIndex = useRef<number | null>(null);
+
+  // Load from DB; if empty, seed defaults locally (persisted on Save & cascade)
+  useEffect(() => {
+    if (isLoading || !phases) return;
+    if (phases.length === 0) {
+      setItems(
+        DEFAULT_MILESTONES.map((d, i) => ({
+          ...d,
+          id: `new-${i}-${Math.random().toString(36).slice(2, 8)}`,
+          _new: true,
+          order_index: i,
+        })),
+      );
+      setDirty(true);
+    } else {
+      setItems(
+        phases.map((p: any, i: number) => ({
+          id: p.id,
+          name: p.name ?? "",
+          kind: p.kind === "Optional" ? "Optional" : "Required",
+          status:
+            p.color === "complete" || p.color === "in_progress" || p.color === "pending"
+              ? (p.color as JourneyStatus)
+              : "pending",
+          target_date: p.end_date ? String(p.end_date).slice(0, 10) : null,
+          order_index: typeof p.order_index === "number" ? p.order_index : i,
+        })),
+      );
+    }
+    setRemovedIds([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phases, isLoading]);
+
+  const itemsRef = useRef(items);
+  const removedRef = useRef(removedIds);
+  itemsRef.current = items;
+  removedRef.current = removedIds;
+
+  useEffect(() => {
+    registerSaver(async () => {
+      const list = itemsRef.current;
+      const removed = removedRef.current;
+      // Deletes
+      if (removed.length > 0) {
+        await (supabase.from("mission_journey_phases").delete() as any).in("id", removed);
+      }
+      // Upserts
+      for (let i = 0; i < list.length; i++) {
+        const m = list[i];
+        const payload = {
+          mission_id: missionId,
+          name: m.name,
+          kind: m.kind,
+          color: m.status,
+          end_date: m.target_date ? new Date(m.target_date).toISOString() : null,
+          order_index: i,
+        };
+        if (m._new) {
+          await supabase.from("mission_journey_phases").insert(payload as any);
+        } else {
+          await (supabase.from("mission_journey_phases").update(payload as any) as any).eq("id", m.id);
+        }
+      }
+    });
+    return () => registerSaver(null);
+  }, [registerSaver, missionId]);
+
+  function patch(id: string, p: Partial<Milestone>) {
+    setItems((xs) => xs.map((x) => (x.id === id ? { ...x, ...p } : x)));
+    setDirty(true);
+  }
+  function remove(id: string) {
+    setItems((xs) => xs.filter((x) => x.id !== id));
+    setRemovedIds((r) => (id.startsWith("new-") ? r : [...r, id]));
+    setDirty(true);
+  }
+  function add() {
+    setItems((xs) => [
+      ...xs,
+      {
+        id: `new-${xs.length}-${Math.random().toString(36).slice(2, 8)}`,
+        name: "New milestone",
+        kind: "Required",
+        status: "pending",
+        target_date: null,
+        order_index: xs.length,
+        _new: true,
+      },
+    ]);
+    setDirty(true);
+  }
+  function reorder(from: number, to: number) {
+    if (from === to) return;
+    setItems((xs) => {
+      const next = xs.slice();
+      const [m] = next.splice(from, 1);
+      next.splice(to, 0, m);
+      return next.map((x, i) => ({ ...x, order_index: i }));
+    });
+    setDirty(true);
+  }
+
+  function cycleStatus(s: JourneyStatus): JourneyStatus {
+    return s === "pending" ? "in_progress" : s === "in_progress" ? "complete" : "pending";
+  }
+
   return (
-    <SectionCard title="Journey Phases">
-      {phases.length === 0 ? (
-        <div className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
-          No journey phases defined.
-        </div>
-      ) : (
-        <ol className="space-y-2">
-          {phases.map((p: any, i: number) => (
-            <li key={p.id} className="flex items-center gap-3 rounded-md px-3 py-2.5" style={{ background: "rgba(255,255,255,0.03)" }}>
-              <span className="text-xs font-mono" style={{ color: "#c9a84c" }}>{String(i + 1).padStart(2, "0")}</span>
-              <span className="text-sm text-white/80 flex-1">{p.phase_name}</span>
-              <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>{p.status}</span>
+    <div className="space-y-4">
+      <div className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+        Mission journey milestones — drag to reorder, click the dot to cycle status.
+      </div>
+
+      <ol className="relative space-y-2">
+        {/* vertical guide line */}
+        <div
+          className="absolute top-3 bottom-3 left-[34px] w-px"
+          style={{ background: "rgba(255,255,255,0.06)" }}
+        />
+        {items.map((m, i) => {
+          const dot = STATUS_DOT[m.status];
+          return (
+            <li
+              key={m.id}
+              draggable
+              onDragStart={() => (dragIndex.current = i)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => {
+                if (dragIndex.current !== null) reorder(dragIndex.current, i);
+                dragIndex.current = null;
+              }}
+              className="relative flex items-center gap-3 rounded-md px-3 py-2.5"
+              style={{
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <button
+                type="button"
+                aria-label="Drag to reorder"
+                className="cursor-grab active:cursor-grabbing p-1 -ml-1"
+                style={{ color: "rgba(255,255,255,0.3)" }}
+              >
+                <GripVertical className="h-4 w-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => patch(m.id, { status: cycleStatus(m.status) })}
+                title={dot.label}
+                className="h-3 w-3 rounded-full shrink-0 ring-offset-2"
+                style={{ background: dot.color, boxShadow: `0 0 0 2px ${dot.color}22` }}
+              />
+
+              <input
+                value={m.name}
+                onChange={(e) => patch(m.id, { name: e.target.value })}
+                placeholder="Milestone name"
+                style={{
+                  ...inputStyle,
+                  background: "transparent",
+                  border: "1px solid transparent",
+                  padding: "6px 8px",
+                  flex: 1,
+                  minWidth: 0,
+                }}
+                className="hover:bg-white/[0.03] focus:bg-white/[0.04] rounded"
+              />
+
+              <select
+                value={m.kind}
+                onChange={(e) => patch(m.id, { kind: e.target.value as "Required" | "Optional" })}
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "rgba(255,255,255,0.75)",
+                  borderRadius: 6,
+                  padding: "5px 8px",
+                  fontSize: 12,
+                }}
+              >
+                <option value="Required" style={{ background: "#0a121f" }}>Required</option>
+                <option value="Optional" style={{ background: "#0a121f" }}>Optional</option>
+              </select>
+
+              <input
+                type="date"
+                value={m.target_date ?? ""}
+                onChange={(e) => patch(m.id, { target_date: e.target.value || null })}
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "rgba(255,255,255,0.75)",
+                  borderRadius: 6,
+                  padding: "5px 8px",
+                  fontSize: 12,
+                  width: 140,
+                }}
+              />
+
+              <button
+                type="button"
+                onClick={() => remove(m.id)}
+                aria-label="Delete milestone"
+                className="p-1.5 rounded hover:bg-white/5 transition-colors"
+                style={{ color: "rgba(255,255,255,0.35)" }}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
             </li>
-          ))}
-        </ol>
-      )}
-    </SectionCard>
+          );
+        })}
+      </ol>
+
+      <button
+        type="button"
+        onClick={add}
+        className="w-full rounded-md py-3 text-xs font-medium transition-colors hover:bg-white/[0.03]"
+        style={{
+          border: "1px dashed rgba(201,168,76,0.4)",
+          color: "#c9a84c",
+          background: "transparent",
+        }}
+      >
+        + Add milestone
+      </button>
+    </div>
   );
 }
 
