@@ -388,7 +388,7 @@ function IntelligenceColumn({
         <div className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: "#C8C3FF" }}>IRIS BRIEF</div>
         {brief?.refined_brief || brief?.content ? (
           <div className="mt-2 text-[11px]" style={{ color: "rgba(255,255,255,0.75)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
-            {brief.refined_brief || brief.content}
+            {String(brief.refined_brief || brief.content)}
           </div>
         ) : (
           <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
