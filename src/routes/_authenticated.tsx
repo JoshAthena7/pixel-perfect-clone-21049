@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { IrisProvider } from "@/components/iris/IrisContext";
 import { AskIrisPanel } from "@/components/iris/AskIrisPanel";
+import { IrisExplainThisPage } from "@/components/iris/IrisExplainThisPage";
 import { GlobalCommandBar } from "@/components/nav/GlobalCommandBar";
 import { AppSidebar } from "@/components/nav/AppSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -200,7 +201,8 @@ function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolea
     <div className="min-h-screen bg-background text-foreground">
       <GlobalCommandBar email={email} isAdmin={isAdmin} />
       <AppSidebar userName={userName} userRole={userRole} />
-      <main style={{ marginLeft: sidebarWidth, paddingTop: 0 }}>
+      <main style={{ marginLeft: sidebarWidth, paddingTop: 0, position: "relative" }}>
+        <IrisExplainThisPage />
         <Outlet />
       </main>
       <AskIrisPanel />
