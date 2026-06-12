@@ -83,7 +83,18 @@ export function FlightDeckLayout({
     return qs;
   }, [data?.qs]);
 
-  const effectiveId = selectedId ?? sortedQs[0]?.id ?? null;
+  // Default to first at-risk assignment, else first by section/question order.
+  const defaultId = useMemo(() => {
+    const atRisk = sortedQs.find(
+      (q: any) =>
+        q.health_status === "at_risk" ||
+        q.health_status === "blocked" ||
+        q.health_status === "critical",
+    );
+    return atRisk?.id ?? sortedQs[0]?.id ?? null;
+  }, [sortedQs]);
+
+  const effectiveId = selectedId ?? defaultId;
   const activeQ = effectiveId ? sortedQs.find((q: any) => q.id === effectiveId) : null;
   const activeAsg = (data?.asgs ?? []).find((a: any) => a.question_id === effectiveId);
   const idx = sortedQs.findIndex((q: any) => q.id === effectiveId);
@@ -172,6 +183,21 @@ export function FlightDeckLayout({
         questionText={activeQ?.question_text ?? null}
         dueDate={activeAsg?.due_date ?? activeQ?.due_date ?? null}
         confidence={activeAsg?.writer_confidence ?? null}
+        onHealthChanged={() => {
+          // optimistic local update + cache invalidation
+          if (activeQ) {
+            qc.setQueryData(["fd-assignments", memberId, activeMissionId], (prev: any) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                qs: prev.qs.map((q: any) =>
+                  q.id === activeQ.id ? { ...q, health_status: "at_risk" } : q,
+                ),
+              };
+            });
+          }
+          qc.invalidateQueries({ queryKey: ["fd-assignments"] });
+        }}
       />
     </div>
   );
