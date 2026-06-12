@@ -177,6 +177,19 @@ function AdminMissionDetail() {
 
       {/* Content */}
       <div className="mx-auto max-w-4xl px-6 py-8">
+        {tab === "overview" && dirty && (
+          <div
+            className="mb-5 rounded-md px-4 py-3 text-xs flex items-start gap-2"
+            style={{
+              background: "rgba(59,130,246,0.08)",
+              border: "1px solid rgba(59,130,246,0.3)",
+              color: "#93c5fd",
+            }}
+          >
+            <span className="mt-px">ⓘ</span>
+            <span>Saving will cascade name and status changes to all staff notifications and journey milestones.</span>
+          </div>
+        )}
         {tab === "overview" && (
           <OverviewTab form={form} update={update} />
         )}
