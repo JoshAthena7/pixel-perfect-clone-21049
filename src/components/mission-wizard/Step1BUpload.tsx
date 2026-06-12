@@ -362,9 +362,11 @@ export function Step1BUpload({
 
   return (
     <div
-      className="min-h-screen flex flex-col px-4 py-10"
+      className="min-h-screen flex flex-col"
       style={{ background: "#080c14", color: "white" }}
     >
+      {chrome}
+      <div className="flex-1 px-4 py-10">
       <style>{`
         @keyframes feed-shimmer {
           0% { background-position: -200% 0; }
