@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { CheckCircle2, FileText, Plus, UploadCloud, X, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { IrisMark } from "@/components/iris/IrisMark";
+import { MissionAnalysisAnimation } from "@/components/mission-wizard/MissionAnalysisAnimation";
 import { cn } from "@/lib/utils";
 
 const BUCKET = "atlas-rfp-documents";
