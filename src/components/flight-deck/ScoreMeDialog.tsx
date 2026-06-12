@@ -138,6 +138,23 @@ export function ScoreMeDialog({
             <div className="mt-1" style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
               {headerSub}
             </div>
+            {contextStatus !== "idle" && (
+              <div
+                className="mt-1.5 inline-flex items-center gap-1.5"
+                style={{ fontSize: 10, color: contextStatus === "ready" ? "#6fcf97" : contextStatus === "error" ? "#f08080" : "rgba(200,195,255,0.75)" }}
+              >
+                <span
+                  style={{
+                    width: 6, height: 6, borderRadius: 999,
+                    background: contextStatus === "ready" ? "#6fcf97" : contextStatus === "error" ? "#f08080" : "#b7afff",
+                    animation: contextStatus === "loading" ? "pulse 1.4s ease-in-out infinite" : undefined,
+                  }}
+                />
+                {contextStatus === "loading" && "Loading mission context from Oracle..."}
+                {contextStatus === "ready" && "Ready to coach"}
+                {contextStatus === "error" && "Context unavailable — coaching will run anyway"}
+              </div>
+            )}
           </div>
           <button
             onClick={() => onOpenChange(false)}
