@@ -270,7 +270,7 @@ Evaluator panel mindset: ${parsed.inferred_panel_mindset}
 Top 2 fears: ${(parsed.inferred_fears ?? []).slice(0, 2).map((f) => f.fear).join(" | ") || "—"}
 Top 2 defensibility needs: ${(parsed.inferred_defensibility_needs ?? []).slice(0, 2).map((n) => n.need).join(" | ") || "—"}
 
-Section: ${s.title}
+Section: ${s.name}
 Section description: ${(s.description ?? "").slice(0, 400)}
 
 What is the single most important thing a writer should know about how this panel will read this section? Maximum 2 sentences. Grounded in the evaluator picture. Section_id is "${s.id}".`;
