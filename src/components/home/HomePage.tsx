@@ -156,9 +156,6 @@ function AdminMissionCard({ m }: { m: HomeMissionAdmin }) {
         >
           ACTIVE
         </span>
-        <span style={{ marginLeft: "auto", color: GOLD, fontSize: 12, fontWeight: 500 }}>
-          Open Mission →
-        </span>
       </div>
     </Link>
   );
