@@ -16,13 +16,14 @@ import {
   AlertTriangle, Bell, PencilLine, Phone, Sparkles, MessagesSquare,
   Clock, ShieldAlert, AtSign, LifeBuoy, ShieldCheck, UserCheck,
   Eye, ExternalLink, Calendar, FileText, Users, Target,
-  ChevronRight, MessageCircle,
+  ChevronRight, ChevronLeft, MessageCircle, ArrowLeft,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIris } from "@/components/iris/IrisContext";
 import { UpdateRealityDialog, SOSDialog } from "@/components/iris/AssistsDialogs";
 import { DailyPulseModal } from "@/components/iris/DailyPulseModal";
 import { IntelligencePanel } from "@/components/flight-deck/IntelligencePanel";
+import { FlightDeckAssistBar } from "@/components/flight-deck/FlightDeckAssistBar";
 import { cn } from "@/lib/utils";
 
 const GOLD = "#C9A55C";
@@ -35,6 +36,14 @@ type Props = {
   onPrefillIris?: (text: string) => void;
 };
 
+type ActiveCtx = {
+  questionId: string | null;
+  questionNumber: string | null;
+  questionText: string | null;
+  dueDate: string | null;
+  confidence: string | null;
+};
+
 export function FlightDeckLayout({
   memberId,
   activeMissionId,
@@ -42,6 +51,14 @@ export function FlightDeckLayout({
   activeMissionStatus,
   onPrefillIris,
 }: Props) {
+  const [active, setActive] = useState<ActiveCtx>({
+    questionId: null,
+    questionNumber: null,
+    questionText: null,
+    dueDate: null,
+    confidence: null,
+  });
+
   return (
     <div className="space-y-6">
       <FlightDeckHeader name={activeMissionName} status={activeMissionStatus} />
@@ -52,8 +69,21 @@ export function FlightDeckLayout({
         <MissionRadarPanel memberId={memberId} missionId={activeMissionId} />
       </div>
 
-      <QuestionWorkspacePanel memberId={memberId} missionId={activeMissionId} />
+      <QuestionWorkspacePanel
+        memberId={memberId}
+        missionId={activeMissionId}
+        onActiveChange={setActive}
+      />
       <AirTrafficControlPanel missionId={activeMissionId} />
+
+      <FlightDeckAssistBar
+        missionId={activeMissionId}
+        questionId={active.questionId}
+        questionNumber={active.questionNumber}
+        questionText={active.questionText}
+        dueDate={active.dueDate}
+        confidence={active.confidence}
+      />
     </div>
   );
 }
@@ -363,7 +393,21 @@ function Ring({ pct }: { pct: number }) {
 }
 
 /* ---------------- Question Workspace ---------------- */
-function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | null; missionId: string | null }) {
+function QuestionWorkspacePanel({
+  memberId,
+  missionId,
+  onActiveChange,
+}: {
+  memberId: string | null;
+  missionId: string | null;
+  onActiveChange?: (a: {
+    questionId: string | null;
+    questionNumber: string | null;
+    questionText: string | null;
+    dueDate: string | null;
+    confidence: string | null;
+  }) => void;
+}) {
   const iris = useIris();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<"work" | "intel">("work");
@@ -376,7 +420,7 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
         .from("mission_assignments")
         .select("id, question_id, mission_id, due_date, writer_confidence, acceptance_status")
         .eq("assigned_writer_id", memberId!)
-        .limit(20);
+        .limit(50);
       const qids = (asgs ?? []).map((a: any) => a.question_id).filter(Boolean);
       const { data: qs } = qids.length
         ? await supabase
@@ -388,10 +432,29 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
     },
   });
 
+  // Sort questions by section then question number
+  const sortedQs = useMemo(() => {
+    const qs = [...(questions?.qs ?? [])];
+    qs.sort((a: any, b: any) => {
+      const s = String(a.section_id ?? "").localeCompare(String(b.section_id ?? ""));
+      if (s !== 0) return s;
+      return String(a.question_number ?? "").localeCompare(
+        String(b.question_number ?? ""),
+        undefined,
+        { numeric: true },
+      );
+    });
+    return qs;
+  }, [questions?.qs]);
+
   // Default to first assignment if none selected
-  const effectiveId = selectedId ?? (questions?.asgs ?? [])[0]?.question_id ?? null;
+  const effectiveId = selectedId ?? sortedQs[0]?.id ?? null;
   const active = (questions?.asgs ?? []).find((a: any) => a.question_id === effectiveId);
-  const activeQ = effectiveId ? (questions?.qs ?? []).find((q: any) => q.id === effectiveId) : null;
+  const activeQ = effectiveId ? sortedQs.find((q: any) => q.id === effectiveId) : null;
+
+  const currentIndex = sortedQs.findIndex((q: any) => q.id === effectiveId);
+  const prevQ = currentIndex > 0 ? sortedQs[currentIndex - 1] : null;
+  const nextQ = currentIndex >= 0 && currentIndex < sortedQs.length - 1 ? sortedQs[currentIndex + 1] : null;
 
   // Fetch section name for IRIS context
   const { data: sectionInfo } = useQuery({
@@ -407,7 +470,7 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
     },
   });
 
-  // Wire IrisContext when active question changes
+  // Wire IrisContext + bubble active up to parent
   useEffect(() => {
     if (activeQ) {
       iris.setQuestion(activeQ.id, activeQ.question_text, activeQ.question_number);
@@ -415,8 +478,15 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
     } else {
       iris.setQuestion(null);
     }
+    onActiveChange?.({
+      questionId: activeQ?.id ?? null,
+      questionNumber: activeQ?.question_number ?? null,
+      questionText: activeQ?.question_text ?? null,
+      dueDate: active?.due_date ?? activeQ?.due_date ?? null,
+      confidence: active?.writer_confidence ?? null,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeQ?.id, sectionInfo?.name]);
+  }, [activeQ?.id, sectionInfo?.name, active?.due_date, active?.writer_confidence]);
 
   const workColumn = (
     <div className="space-y-4">
@@ -534,7 +604,7 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
 
   return (
     <section className="rounded-xl border border-border bg-surface/30 p-4">
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-3 gap-3">
         <PanelHeader title="QUESTION WORKSPACE" subtitle="Your mission operations hub. You do the writing in the client environment." />
         {missionId && (
           <Link
@@ -546,6 +616,57 @@ function QuestionWorkspacePanel({ memberId, missionId }: { memberId: string | nu
           </Link>
         )}
       </div>
+
+      {/* Question header strip: All Questions + prev/next + active question label */}
+      {activeQ && (
+        <div className="flex flex-wrap items-center gap-2 mb-3 pb-3 border-b border-border">
+          {missionId ? (
+            <Link
+              to="/missions/$missionId/briefing"
+              params={{ missionId }}
+              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              All Questions
+            </Link>
+          ) : (
+            <Link
+              to="/my-work"
+              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              All Questions
+            </Link>
+          )}
+          <span className="text-muted-foreground/40">·</span>
+          <span className="font-mono text-[11px] text-[color:var(--athena-gold)]">
+            {activeQ.question_number}
+          </span>
+          <span className="text-[11px] text-foreground/80 truncate max-w-md">
+            {activeQ.question_text}
+          </span>
+          <div className="ml-auto flex items-center gap-1">
+            {prevQ && (
+              <button
+                onClick={() => setSelectedId(prevQ.id)}
+                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground rounded px-2 py-1 hover:bg-surface/50"
+              >
+                <ChevronLeft className="h-3 w-3" />
+                prev
+              </button>
+            )}
+            {nextQ && (
+              <button
+                onClick={() => setSelectedId(nextQ.id)}
+                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground rounded px-2 py-1 hover:bg-surface/50"
+              >
+                next
+                <ChevronRight className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Mobile tab toggle */}
       <div className="md:hidden mb-3 sticky top-0 z-10 -mx-4 px-4 py-2 bg-surface/80 backdrop-blur border-b border-border">
