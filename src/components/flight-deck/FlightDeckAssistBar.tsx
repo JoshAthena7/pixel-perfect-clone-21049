@@ -164,11 +164,17 @@ export function FlightDeckAssistBar({ missionId, questionId }: Props) {
         ))}
       </div>
 
-      <UpdateRealityDialog
+      <ThreadPanel
         open={threadOpen}
-        onOpenChange={setThreadOpen}
+        onClose={() => setThreadOpen(false)}
         missionId={missionId}
-        onSent={() => {}}
+        questionId={questionId}
+        questionNumber={null}
+        questionText={null}
+        onRequestFindSME={(_topic) => {
+          setThreadOpen(false);
+          setSmeOpen(true);
+        }}
       />
       <FindSMEDialog open={smeOpen} onOpenChange={setSmeOpen} missionId={missionId} />
       <ScoreDraftPanel
