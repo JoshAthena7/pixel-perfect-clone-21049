@@ -25,6 +25,24 @@ export function OracleTab({ missionId }: { missionId: string }) {
   const { isAdmin } = useIsAdmin();
   const [active, setActive] = useState<TabId>("feed");
   const [visited, setVisited] = useState<Set<TabId>>(new Set(["feed"]));
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+
+  // Read ?tab=&highlight= params on mount and whenever the URL changes
+  useEffect(() => {
+    const apply = () => {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab") as TabId | null;
+      const hl = params.get("highlight");
+      if (tabParam && TABS.some((t) => t.id === tabParam)) {
+        setActive(tabParam);
+        setVisited((prev) => (prev.has(tabParam) ? prev : new Set(prev).add(tabParam)));
+      }
+      setHighlightId(hl);
+    };
+    apply();
+    window.addEventListener("popstate", apply);
+    return () => window.removeEventListener("popstate", apply);
+  }, []);
 
   useEffect(() => {
     setVisited((prev) => {
