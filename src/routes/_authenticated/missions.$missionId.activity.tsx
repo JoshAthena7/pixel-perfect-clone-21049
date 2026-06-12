@@ -20,6 +20,7 @@ import {
   type ActivityStream,
   type ActivityRange,
 } from "@/lib/mission-activity.functions";
+import { resolveConflict } from "@/lib/iris-conflicts.functions";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/activity")({
   component: ActivityPage,
@@ -43,7 +44,9 @@ const STREAMS: {
   { key: "score_me", label: "Score Me", color: "#C49A2B", Icon: Target },
   { key: "mission_pulse", label: "Mission Pulse", color: "rgba(200,195,255,0.85)", Icon: ActivityIcon },
   { key: "sos", label: "SOS", color: "#f08080", Icon: AlertTriangle },
+  { key: "conflict", label: "Conflicts", color: "#EF9F27", Icon: AlertTriangle },
 ];
+
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -71,6 +74,8 @@ function ActivityPage() {
   const activityFn = useServerFn(getMissionActivity);
   const synthFn = useServerFn(getActivitySynthesis);
   const resolveFn = useServerFn(resolveSos);
+  const resolveConflictFn = useServerFn(resolveConflict);
+  const [hiddenConflicts, setHiddenConflicts] = useState<Set<string>>(new Set());
 
   const {
     data,
@@ -89,8 +94,11 @@ function ActivityPage() {
   });
 
   const filtered = useMemo<ActivityItem[]>(() => {
-    return (data?.items ?? []).filter((i) => enabled.has(i.stream));
-  }, [data, enabled]);
+    return (data?.items ?? [])
+      .filter((i) => enabled.has(i.stream))
+      .filter((i) => !(i.stream === "conflict" && i.conflict_id && hiddenConflicts.has(i.conflict_id)));
+  }, [data, enabled, hiddenConflicts]);
+
 
   function toggleStream(s: ActivityStream) {
     setEnabled((prev) => {
@@ -120,6 +128,30 @@ function ActivityPage() {
       toast.error(e?.message ?? "Could not resolve");
     }
   }
+
+  async function handleResolveConflict(item: ActivityItem) {
+    if (!item.conflict_id) return;
+    const cid = item.conflict_id;
+    // Optimistic remove
+    setHiddenConflicts((s) => new Set(s).add(cid));
+    try {
+      const result = await resolveConflictFn({
+        data: { missionId, conflictId: cid },
+      });
+      if (!result?.success) throw new Error(result?.error ?? "Resolve failed");
+      toast.success("Conflict marked resolved");
+      refetch();
+    } catch (e: any) {
+      setHiddenConflicts((s) => {
+        const n = new Set(s);
+        n.delete(cid);
+        return n;
+      });
+      toast.error("Could not mark resolved. Try again.");
+      console.error("[mission-activity] resolveConflict failed", e);
+    }
+  }
+
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 sm:px-6 py-6" style={{ color: "white" }}>
@@ -228,7 +260,9 @@ function ActivityPage() {
                   onToggle={() => toggleExpand(item.id)}
                   isAdmin={!!isAdmin}
                   onResolve={() => handleResolve(item.id.replace(/^sos:/, ""))}
+                  onResolveConflict={() => handleResolveConflict(item)}
                 />
+
               ))}
             </ol>
           )}
@@ -382,6 +416,7 @@ function TimelineRow({
   onToggle,
   isAdmin,
   onResolve,
+  onResolveConflict,
 }: {
   item: ActivityItem;
   isLast: boolean;
@@ -389,9 +424,11 @@ function TimelineRow({
   onToggle: () => void;
   isAdmin: boolean;
   onResolve: () => void;
+  onResolveConflict: () => void;
 }) {
   const meta = STREAMS.find((s) => s.key === item.stream)!;
   const isSos = item.stream === "sos";
+  const isConflict = item.stream === "conflict";
   const emerging = item.emerging_risk;
 
   return (
@@ -423,19 +460,24 @@ function TimelineRow({
       <div
         className="flex-1 rounded-md px-3 py-2"
         style={{
-          background: isSos
-            ? "rgba(224,74,74,0.05)"
-            : isExpanded
-              ? "rgba(255,255,255,0.03)"
-              : "transparent",
-          border: "0.5px solid rgba(255,255,255,0.06)",
-          borderLeft: emerging
-            ? "2px solid #f08080"
+          background: isConflict
+            ? "rgba(239,159,39,0.04)"
             : isSos
-              ? "2px solid rgba(224,74,74,0.4)"
-              : `0.5px solid rgba(255,255,255,0.06)`,
+              ? "rgba(224,74,74,0.05)"
+              : isExpanded
+                ? "rgba(255,255,255,0.03)"
+                : "transparent",
+          border: "0.5px solid rgba(255,255,255,0.06)",
+          borderLeft: isConflict
+            ? "3px solid rgba(239,159,39,0.4)"
+            : emerging
+              ? "2px solid #f08080"
+              : isSos
+                ? "2px solid rgba(224,74,74,0.4)"
+                : `0.5px solid rgba(255,255,255,0.06)`,
         }}
       >
+
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span
@@ -505,32 +547,79 @@ function TimelineRow({
               lineHeight: 1.6,
             }}
           >
-            {item.detail || "(no additional detail)"}
-            {isSos && item.update_type === "sos" && !item.resolved && isAdmin && (
-              <div className="mt-3">
-                <button
-                  onClick={onResolve}
-                  style={{
-                    fontSize: 10,
-                    padding: "4px 10px",
-                    background: "rgba(26,122,74,0.15)",
-                    border: "0.5px solid rgba(26,122,74,0.4)",
-                    color: "#7FD4A8",
-                    borderRadius: 4,
-                    cursor: "pointer",
-                  }}
-                >
-                  Mark resolved
-                </button>
-              </div>
-            )}
-            {isSos && item.resolved && (
-              <div className="mt-2" style={{ color: "#7FD4A8", fontSize: 10 }}>
-                ✓ Resolved
-              </div>
+            {isConflict ? (
+              <>
+                <div style={{ color: "white", fontSize: 12, lineHeight: 1.6 }}>
+                  {item.conflict_description || item.detail || "(no description)"}
+                </div>
+                {item.detected_from && (
+                  <div
+                    className="mt-2"
+                    style={{
+                      color: "rgba(255,255,255,0.4)",
+                      fontSize: 10,
+                      fontStyle: "italic",
+                    }}
+                  >
+                    Detected from: {item.detected_from}
+                  </div>
+                )}
+                {(item.section_a_label || item.section_b_label) && (
+                  <div
+                    className="mt-2"
+                    style={{ color: "rgba(255,255,255,0.55)", fontSize: 11 }}
+                  >
+                    Section {item.section_a_label ?? "—"} ↔ Section {item.section_b_label ?? "—"}
+                  </div>
+                )}
+                <div className="mt-3">
+                  <button
+                    onClick={onResolveConflict}
+                    style={{
+                      fontSize: 11,
+                      padding: "5px 12px",
+                      background: "transparent",
+                      border: "0.5px solid rgba(239,159,39,0.4)",
+                      color: "#EF9F27",
+                      borderRadius: 5,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Mark Resolved
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {item.detail || "(no additional detail)"}
+                {isSos && item.update_type === "sos" && !item.resolved && isAdmin && (
+                  <div className="mt-3">
+                    <button
+                      onClick={onResolve}
+                      style={{
+                        fontSize: 10,
+                        padding: "4px 10px",
+                        background: "rgba(26,122,74,0.15)",
+                        border: "0.5px solid rgba(26,122,74,0.4)",
+                        color: "#7FD4A8",
+                        borderRadius: 4,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Mark resolved
+                    </button>
+                  </div>
+                )}
+                {isSos && item.resolved && (
+                  <div className="mt-2" style={{ color: "#7FD4A8", fontSize: 10 }}>
+                    ✓ Resolved
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
+
       </div>
     </li>
   );

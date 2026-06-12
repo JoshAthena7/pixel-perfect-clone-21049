@@ -15,7 +15,8 @@ export type ActivityStream =
   | "phone_a_friend"
   | "score_me"
   | "mission_pulse"
-  | "sos";
+  | "sos"
+  | "conflict";
 
 export type ActivityItem = {
   id: string;
@@ -36,7 +37,16 @@ export type ActivityItem = {
   update_type?: string | null;
   resolved?: boolean;
   emerging_risk?: boolean;
+  // conflict-specific
+  conflict_id?: string;
+  conflict_description?: string;
+  detected_from?: string | null;
+  question_id_a?: string;
+  question_id_b?: string;
+  section_a_label?: string | null;
+  section_b_label?: string | null;
 };
+
 
 export type AttentionRail = {
   staleQuestions: Array<{ id: string; question_number: string | null; question_text: string | null; due_date: string | null; health_status: string }>;
@@ -82,7 +92,7 @@ export const getMissionActivity = createServerFn({ method: "POST" })
 
     const filterSince = (q: any) => (since ? q.gte("created_at", since) : q);
 
-    const [threadRes, consultRes, scoreRes, pulseRes, sosRes] = await Promise.all([
+    const [threadRes, consultRes, scoreRes, pulseRes, sosRes, conflictRes] = await Promise.all([
       filterSince(
         supabaseAdmin
           .from("thread_messages")
@@ -125,6 +135,15 @@ export const getMissionActivity = createServerFn({ method: "POST" })
           .order("created_at", { ascending: false })
           .limit(100),
       ),
+      filterSince(
+        supabaseAdmin
+          .from("conflict_flags")
+          .select("id,conflict_description,detected_from,severity,resolved,created_at,question_id_a,question_id_b")
+          .eq("mission_id", data.missionId)
+          .eq("resolved", false)
+          .order("created_at", { ascending: false })
+          .limit(100),
+      ),
     ]);
 
     // Resolve requester display names for expert_consults
@@ -145,6 +164,7 @@ export const getMissionActivity = createServerFn({ method: "POST" })
         profileMap.set(p.id, p.display_name || p.email || "Team member"),
       );
     }
+
 
     const items: ActivityItem[] = [];
 
@@ -259,7 +279,37 @@ export const getMissionActivity = createServerFn({ method: "POST" })
       });
     });
 
+    (conflictRes.data ?? []).forEach((r: any) => {
+      const desc = (r.conflict_description ?? "").toString();
+      const qa = r.question_id_a ? qMap.get(r.question_id_a) : null;
+      const qb = r.question_id_b ? qMap.get(r.question_id_b) : null;
+      const labelFor = (q: any) =>
+        q
+          ? `Q${q.question_number ?? "—"}${q.question_text ? ` — ${String(q.question_text).slice(0, 40)}` : ""}`
+          : null;
+      items.push({
+        id: `conflict:${r.id}`,
+        stream: "conflict",
+        created_at: r.created_at,
+        actor: "IRIS",
+        question_id: r.question_id_a ?? null,
+        question_number: qa?.question_number ?? null,
+        question_text: qa?.question_text ?? null,
+        summary: `IRIS detected a decision conflict: ${desc.slice(0, 80)}${desc.length > 80 ? "…" : ""}`,
+        detail: desc,
+        severity: r.severity,
+        conflict_id: r.id,
+        conflict_description: desc,
+        detected_from: r.detected_from ?? null,
+        question_id_a: r.question_id_a,
+        question_id_b: r.question_id_b,
+        section_a_label: labelFor(qa),
+        section_b_label: labelFor(qb),
+      });
+    });
+
     items.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+
 
     // Attention rail
     const now = Date.now();
@@ -363,7 +413,9 @@ export const getMissionActivity = createServerFn({ method: "POST" })
       score_me: (scoreRes.data ?? []).length,
       mission_pulse: (pulseRes.data ?? []).length,
       sos: (sosRes.data ?? []).filter((r: any) => r.update_type === "sos").length,
+      conflict: (conflictRes.data ?? []).length,
     };
+
 
     return { items, rail, counts, range: data.range };
   });
@@ -377,7 +429,7 @@ export const getActivitySynthesis = createServerFn({ method: "POST" })
     const since = sinceISO(data.range);
 
     const filterSince = (q: any) => (since ? q.gte("created_at", since) : q);
-    const [threadC, consultC, scoreC, pulseC, sosC, mission, questions] = await Promise.all([
+    const [threadC, consultC, scoreC, pulseC, sosC, mission, questions, conflictsC] = await Promise.all([
       filterSince(supabaseAdmin.from("thread_messages").select("id,question_id", { count: "exact", head: false }).eq("mission_id", data.missionId)),
       filterSince(supabaseAdmin.from("expert_consults").select("id", { count: "exact", head: true }).eq("mission_id", data.missionId)),
       filterSince(supabaseAdmin.from("score_me_history").select("score", { count: "exact" }).eq("mission_id", data.missionId)),
@@ -385,7 +437,14 @@ export const getActivitySynthesis = createServerFn({ method: "POST" })
       filterSince(supabaseAdmin.from("team_updates").select("id", { count: "exact", head: true }).eq("mission_id", data.missionId).eq("update_type", "sos")),
       supabaseAdmin.from("missions").select("name").eq("id", data.missionId).maybeSingle(),
       supabaseAdmin.from("mission_questions").select("id,question_number,status").eq("mission_id", data.missionId),
+      supabaseAdmin
+        .from("conflict_flags")
+        .select("conflict_description,created_at")
+        .eq("mission_id", data.missionId)
+        .eq("resolved", false)
+        .order("created_at", { ascending: false }),
     ]);
+
 
     const threadRows = (threadC.data ?? []) as Array<{ question_id: string }>;
     const threadCount = threadRows.length;
@@ -417,6 +476,10 @@ export const getActivitySynthesis = createServerFn({ method: "POST" })
       .filter(Boolean)
       .slice(0, 8);
 
+    const conflictRows = (conflictsC.data ?? []) as Array<{ conflict_description: string }>;
+    const unresolvedConflicts = conflictRows.length;
+    const mostRecentConflict = conflictRows[0]?.conflict_description ?? "none";
+
     const facts = {
       mission_name: mission.data?.name ?? "this mission",
       window: data.range,
@@ -428,7 +491,10 @@ export const getActivitySynthesis = createServerFn({ method: "POST" })
       phone_a_friend_requests: consultC.count ?? 0,
       sos_events: sosC.count ?? 0,
       stale_questions_48h: stale,
+      unresolved_conflicts: unresolvedConflicts,
+      most_recent_conflict: mostRecentConflict,
     };
+
 
     const apiKey = process.env.LOVABLE_API_KEY;
     let synthesis = defaultSynthesis(facts);
@@ -451,7 +517,7 @@ export const getActivitySynthesis = createServerFn({ method: "POST" })
               },
               {
                 role: "user",
-                content: `Activity facts for ${facts.mission_name} in the last ${facts.window}:\n${JSON.stringify(facts, null, 2)}`,
+                content: `Activity facts for ${facts.mission_name} in the last ${facts.window}:\n${JSON.stringify(facts, null, 2)}\n\nUnresolved conflicts detected by IRIS: ${facts.unresolved_conflicts}. Most recent: ${facts.most_recent_conflict}.`,
               },
             ],
           }),
