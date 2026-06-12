@@ -29,11 +29,14 @@ type Staff = {
   atlas_role: string | null;
   atlas_hipaa_acknowledged: boolean | null;
   atlas_invite_status: string | null;
+  clearance_status: string | null;
 };
 
 type Clearance = "Cleared" | "Pending" | "Not cleared";
 
 function clearanceFor(s: Staff): Clearance {
+  const c = (s.clearance_status ?? "").trim();
+  if (c === "Cleared" || c === "Pending" || c === "Not cleared") return c;
   if (s.atlas_hipaa_acknowledged) return "Cleared";
   if (s.atlas_invite_status === "invite_sent") return "Pending";
   return "Not cleared";
@@ -77,7 +80,7 @@ function StaffPage() {
     queryFn: async (): Promise<Staff[]> => {
       const { data } = await supabase
         .from("atlas_team_members")
-        .select("id,first_name,last_name,email,job_title,atlas_role,atlas_hipaa_acknowledged,atlas_invite_status")
+        .select("id,first_name,last_name,email,job_title,atlas_role,atlas_hipaa_acknowledged,atlas_invite_status,clearance_status")
         .eq("is_removed", false)
         .order("first_name", { ascending: true });
       return (data ?? []) as Staff[];

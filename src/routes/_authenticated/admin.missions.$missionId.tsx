@@ -402,12 +402,28 @@ function SectionCard({ title, children }: { title: string; children: React.React
 }
 
 const MISSION_ROLES = [
-  "Mission Lead",
-  "Analyst",
-  "Advisor",
+  "Lead Writer",
+  "Section Writer",
   "Reviewer",
-  "Copy Editor",
+  "SME",
+  "Proposal Manager",
+  "Compliance Officer",
+  "Analyst",
+  "Coordinator",
 ] as const;
+
+const LEGACY_ROLE_MAP: Record<string, string> = {
+  engagement_lead: "Proposal Manager",
+  writer: "Section Writer",
+  sme: "SME",
+  reviewer: "Reviewer",
+};
+
+function normalizeRole(r: string | null | undefined): string {
+  if (!r) return "Section Writer";
+  if ((MISSION_ROLES as readonly string[]).includes(r)) return r;
+  return LEGACY_ROLE_MAP[r] ?? "Section Writer";
+}
 
 const AVATAR_COLORS = [
   "#7c5cff", "#c9a84c", "#3b82f6", "#10b981", "#ef4444",
@@ -510,7 +526,7 @@ function TeamTab({ missionId }: { missionId: string }) {
   async function addMember(memberId: string) {
     const { error } = await supabase
       .from("mission_team_members")
-      .insert({ mission_id: missionId, member_id: memberId, mission_role: "Analyst" } as any);
+      .insert({ mission_id: missionId, member_id: memberId, mission_role: "Section Writer" } as any);
     if (error) return toast.error(error.message);
     toast.success("Added to mission");
     qc.invalidateQueries({ queryKey: ["admin-mission-team", missionId] });
@@ -591,7 +607,7 @@ function TeamTab({ missionId }: { missionId: string }) {
                     )}
                   </div>
                   <select
-                    value={MISSION_ROLES.includes(row.mission_role as any) ? (row.mission_role as string) : "Analyst"}
+                    value={normalizeRole(row.mission_role)}
                     onChange={(e) => updateRole(row.id, e.target.value)}
                     style={{
                       background: "rgba(201,168,76,0.08)",
