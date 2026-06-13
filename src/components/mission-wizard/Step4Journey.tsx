@@ -431,7 +431,7 @@ export function Step4Journey({ missionId }: { missionId: string }) {
               navigate({
                 to: "/olympus/missions/$missionId/wizard",
                 params: { missionId },
-                search: { step: 7 },
+                search: { step: 5 },
               })
             }
             title="Skip Journey for now and set up your team. You can return to Journey via the wizard Back button."
@@ -443,7 +443,7 @@ export function Step4Journey({ missionId }: { missionId: string }) {
               navigate({
                 to: "/olympus/missions/$missionId/wizard",
                 params: { missionId },
-                search: { step: 7 },
+                search: { step: 5 },
               })
             }
             disabled={!canContinue}
