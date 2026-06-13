@@ -799,8 +799,9 @@ function PostUpdateOverlay({ open, onClose, missionId, onSent }: { open: boolean
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-end p-6" style={{ background: "rgba(0,0,0,0.4)" }} onClick={onClose}>
       <div className="w-full max-w-[400px] rounded-lg p-4 space-y-3" style={{ background: PANEL_BG, border: `1px solid ${IRIS_BORDER}` }} onClick={(e) => e.stopPropagation()}>
-        <div className="text-white text-[14px] font-medium">Post an update</div>
-        <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="What changed?" rows={5} className="w-full bg-white/5 text-white placeholder:text-white/40 rounded p-2 text-[13px] border border-white/10 focus:outline-none" />
+        <div className="text-white text-[14px] font-medium">Update Reality</div>
+        <div className="text-[11px] text-white/55 -mt-1">Use when the mission's strategic direction needs to change (north star, why-win, state priorities, competitive landscape). For real-time observations, use Mission Pulse instead.</div>
+        <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="What changed about the mission strategy?" rows={5} className="w-full bg-white/5 text-white placeholder:text-white/40 rounded p-2 text-[13px] border border-white/10 focus:outline-none" />
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="text-[12px] text-white/60 px-2 py-1">Cancel</button>
           <button onClick={submit} disabled={busy || !text.trim()} className="text-[12px] px-3 py-1.5 rounded disabled:opacity-50" style={{ background: IRIS, color: "#0F0A2A" }}>
