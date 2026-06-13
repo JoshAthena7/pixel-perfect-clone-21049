@@ -149,7 +149,14 @@ export function OracleTab({ missionId }: { missionId: string }) {
           <div className="italic" style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>
             Oracle is configured in Olympus. Read only.
           </div>
-          <AskIrisButton prefill={`Explain this page (Oracle) for mission ${mission?.name ?? missionId}.`} />
+          <div className="flex items-center gap-2">
+            <RequestChangeButton
+              surface={`oracle:${active}`}
+              missionId={missionId}
+              section={TABS.find((t) => t.id === active)?.label ?? active}
+            />
+            <AskIrisButton prefill={`Explain this page (Oracle) for mission ${mission?.name ?? missionId}.`} />
+          </div>
         </div>
       </div>
 
