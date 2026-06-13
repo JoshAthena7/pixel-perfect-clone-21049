@@ -19,6 +19,9 @@ type Edge = {
 };
 
 const NODE_COLOR: Record<string, string> = {
+  person: "#7BA7D4",
+  organization: "rgba(127,119,221,0.9)",
+  source: "#7DCF7D",
   requirement: "#C49A2B",
   stakeholder: "#7BA7D4",
   risk: "#f08080",
@@ -27,6 +30,9 @@ const NODE_COLOR: Record<string, string> = {
   competitor: "rgba(127,119,221,0.9)",
 };
 const NODE_LABEL: Record<string, string> = {
+  person: "Person",
+  organization: "Organization",
+  source: "Source",
   requirement: "Requirement",
   stakeholder: "Stakeholder",
   risk: "Risk",
