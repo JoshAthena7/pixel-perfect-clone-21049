@@ -14,10 +14,20 @@ export const Route = createFileRoute("/_authenticated/missions/$missionId")({
   loader: async ({ params }) => {
     const { data, error } = await supabase
       .from("missions")
-      .select("id")
+      .select("id, status")
       .eq("id", params.missionId)
       .maybeSingle();
     if (error || !data) throw notFound();
+    // Drafts haven't been launched yet — keep the user in the wizard
+    // instead of dropping them into a half-empty briefing room.
+    if ((data.status ?? "").toLowerCase() === "draft") {
+      const { redirect } = await import("@tanstack/react-router");
+      throw redirect({
+        to: "/olympus/wizard/$missionId",
+        params: { missionId: params.missionId },
+        search: { step: 1 },
+      });
+    }
     return { missionId: params.missionId };
   },
   component: MissionLayout,
