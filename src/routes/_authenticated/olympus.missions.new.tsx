@@ -213,6 +213,94 @@ function MeetIrisIntro() {
             />
           </div>
 
+          <div className="mt-8 space-y-3">
+            <CollapsibleSection
+              title="Mission Strategy"
+              subtitle="Optional — frame the bid"
+              open={openSections.strategy}
+              onToggle={() => toggleSection("strategy")}
+            >
+              <ChatField
+                label="North Star"
+                placeholder="What is the single most important thing we must say in this proposal?"
+                value={northStar}
+                onChange={setNorthStar}
+                multiline
+              />
+              <ChatField
+                label="Why We Win"
+                placeholder="What unique advantages do we bring that the client actually cares about?"
+                value={whyWin}
+                onChange={setWhyWin}
+                multiline
+              />
+              <ChatField
+                label="Why We Could Lose"
+                placeholder="What are our honest vulnerabilities on this pursuit?"
+                value={whyLose}
+                onChange={setWhyLose}
+                multiline
+              />
+              <ChatField
+                label="Biggest Concerns"
+                placeholder="What keeps you up at night about this bid?"
+                value={biggestConcerns}
+                onChange={setBiggestConcerns}
+                multiline
+              />
+            </CollapsibleSection>
+
+            <CollapsibleSection
+              title="Competitive Context"
+              subtitle="Optional — who and what we're up against"
+              open={openSections.competitive}
+              onToggle={() => toggleSection("competitive")}
+            >
+              <ChatField
+                label="Known Competitors"
+                placeholder="Comma-separated, e.g. AmeriHealth, Centene, Molina"
+                value={knownCompetitors}
+                onChange={setKnownCompetitors}
+              />
+              <ChatField
+                label="State Priorities"
+                placeholder="What does this state care most about right now politically and programmatically?"
+                value={statePriorities}
+                onChange={setStatePriorities}
+                multiline
+              />
+              <ChatField
+                label="Win Themes"
+                placeholder="What 3-5 themes should run through every section of our response?"
+                value={winThemesText}
+                onChange={setWinThemesText}
+                multiline
+              />
+            </CollapsibleSection>
+
+            <CollapsibleSection
+              title="Proposal Guidance"
+              subtitle="Optional — what to say and what to dodge"
+              open={openSections.guidance}
+              onToggle={() => toggleSection("guidance")}
+            >
+              <ChatField
+                label="What to Reinforce"
+                placeholder="Comma-separated key messages to repeat throughout the proposal"
+                value={reinforce}
+                onChange={setReinforce}
+              />
+              <ChatField
+                label="What to Avoid"
+                placeholder="Comma-separated topics, claims, or language to stay away from"
+                value={avoid}
+                onChange={setAvoid}
+              />
+            </CollapsibleSection>
+          </div>
+
+
+
           <div className="mt-10 flex justify-end">
             <button
               onClick={handleSubmit}
