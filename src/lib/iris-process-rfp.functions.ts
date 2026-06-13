@@ -93,7 +93,11 @@ function conf(v: unknown): Conf {
 }
 
 function tryParseJSON(s: string): Extracted | null {
-  const cleaned = s.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  const cleaned = s
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
   try {
     return JSON.parse(cleaned) as Extracted;
   } catch {
@@ -168,13 +172,28 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
     if (!parsed) throw new Error("IRIS could not extract a valid structure.");
 
     // Wipe any previously-extracted IRIS data for idempotency.
-    await supabase.from("mission_submission_checklist").delete().eq("mission_id", data.mission_id).eq("iris_extracted", true);
-    await supabase.from("mission_compliance_requirements").delete().eq("mission_id", data.mission_id).eq("iris_extracted", true);
+    await supabase
+      .from("mission_submission_checklist")
+      .delete()
+      .eq("mission_id", data.mission_id)
+      .eq("iris_extracted", true);
+    await supabase
+      .from("mission_compliance_requirements")
+      .delete()
+      .eq("mission_id", data.mission_id)
+      .eq("iris_extracted", true);
     await supabase.from("mission_questions").delete().eq("mission_id", data.mission_id);
     await supabase.from("mission_sections").delete().eq("mission_id", data.mission_id);
     await supabase.from("mission_volumes").delete().eq("mission_id", data.mission_id);
 
-    const counts = { volumes: 0, sections: 0, sub_sections: 0, questions: 0, compliance: 0, checklist: 0 };
+    const counts = {
+      volumes: 0,
+      sections: 0,
+      sub_sections: 0,
+      questions: 0,
+      compliance: 0,
+      checklist: 0,
+    };
 
     const insertQuestions = async (sectionId: string, qs: Question[]) => {
       if (qs.length === 0) return;
@@ -186,7 +205,9 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
           question_text: String(q.text ?? "").slice(0, 4000),
           word_limit: safeNum(q.word_limit),
           page_limit: safeNum(q.page_limit),
-          evaluation_criteria: q.evaluation_criteria ? String(q.evaluation_criteria).slice(0, 2000) : null,
+          evaluation_criteria: q.evaluation_criteria
+            ? String(q.evaluation_criteria).slice(0, 2000)
+            : null,
           iris_confidence: conf(q.confidence),
           status: "not_started",
         }))
