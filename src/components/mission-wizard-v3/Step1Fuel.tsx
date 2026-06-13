@@ -57,6 +57,7 @@ export function Step1Fuel({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const analyzeFn = useServerFn(analyzeMissionStep);
+  const processRfpFn = useServerFn(processRFPDocuments);
   const [rows, setRows] = useState<Row[]>([]);
   const [name, setName] = useState(missionName);
   const [analyzing, setAnalyzing] = useState(false);
