@@ -155,7 +155,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
               missionId={missionId}
               section={TABS.find((t) => t.id === active)?.label ?? active}
             />
-            <AskIrisButton prefill={`Explain this page (Oracle) for mission ${mission?.name ?? missionId}.`} />
+            <AskIrisButton prefill={`Explain this page (IRIS) for mission ${mission?.name ?? missionId}.`} />
           </div>
         </div>
       </div>
