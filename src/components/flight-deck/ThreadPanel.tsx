@@ -213,6 +213,24 @@ export function ThreadPanel({
             {questionText ?? "No question selected"}
           </div>
         </div>
+        {questionId && (
+          <button
+            onClick={() => setLessonsOpen(true)}
+            title="Mark question complete"
+            style={{
+              background: "transparent",
+              border: "1px solid rgba(196,154,43,0.45)",
+              color: GOLD,
+              fontSize: 10.5,
+              padding: "3px 8px",
+              borderRadius: 6,
+              cursor: "pointer",
+              marginRight: 6,
+            }}
+          >
+            Mark Complete
+          </button>
+        )}
         <button
           onClick={onClose}
           aria-label="Close thread"
