@@ -11,6 +11,7 @@ import { DecisionLogTab } from "./DecisionLogTab";
 import { ComplianceTab } from "./ComplianceTab";
 import { SubmissionChecklistTab } from "./SubmissionChecklistTab";
 import { useViewerMissionRole, type TabId } from "./MissionTabs";
+import { IrisThreadExtractionPanel } from "./IrisThreadExtractionPanel";
 
 const GOLD = "#C49A2B";
 
