@@ -10,6 +10,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  loadCustomerIntelligence,
+  renderCustomerIntelligenceBlock,
+} from "@/lib/iris-enrich-mission-brief.functions";
 
 export type BriefBody = {
   whats_asked: string;
