@@ -20,6 +20,28 @@ function MeetIrisIntro() {
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
 
+  // Optional canvas fields
+  const [northStar, setNorthStar] = useState("");
+  const [whyWin, setWhyWin] = useState("");
+  const [whyLose, setWhyLose] = useState("");
+  const [biggestConcerns, setBiggestConcerns] = useState("");
+  const [knownCompetitors, setKnownCompetitors] = useState("");
+  const [statePriorities, setStatePriorities] = useState("");
+  const [winThemesText, setWinThemesText] = useState("");
+  const [reinforce, setReinforce] = useState("");
+  const [avoid, setAvoid] = useState("");
+
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    strategy: false,
+    competitive: false,
+    guidance: false,
+  });
+  const toggleSection = (k: string) =>
+    setOpenSections((s) => ({ ...s, [k]: !s[k] }));
+
+  const toArray = (v: string) =>
+    v.split(",").map((s) => s.trim()).filter(Boolean);
+
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getUser();
@@ -52,6 +74,9 @@ function MeetIrisIntro() {
     try {
       const { data: userData } = await supabase.auth.getUser();
       const uid = userData.user?.id;
+      const competitorsArr = toArray(knownCompetitors);
+      const reinforceArr = toArray(reinforce);
+      const avoidArr = toArray(avoid);
       const { data, error } = await supabase
         .from("missions")
         .insert({
@@ -61,6 +86,15 @@ function MeetIrisIntro() {
           submission_deadline: new Date(deadline).toISOString(),
           status: "setup",
           created_by: uid,
+          north_star: northStar.trim() || null,
+          why_win: whyWin.trim() || null,
+          why_lose: whyLose.trim() || null,
+          biggest_concerns: biggestConcerns.trim() || null,
+          known_competitors: competitorsArr.length ? competitorsArr : null,
+          state_priorities: statePriorities.trim() || null,
+          win_themes_text: winThemesText.trim() || null,
+          reinforce: reinforceArr.length ? reinforceArr : null,
+          avoid: avoidArr.length ? avoidArr : null,
         })
         .select("id")
         .single();
@@ -179,6 +213,94 @@ function MeetIrisIntro() {
             />
           </div>
 
+          <div className="mt-8 space-y-3">
+            <CollapsibleSection
+              title="Mission Strategy"
+              subtitle="Optional — frame the bid"
+              open={openSections.strategy}
+              onToggle={() => toggleSection("strategy")}
+            >
+              <ChatField
+                label="North Star"
+                placeholder="What is the single most important thing we must say in this proposal?"
+                value={northStar}
+                onChange={setNorthStar}
+                multiline
+              />
+              <ChatField
+                label="Why We Win"
+                placeholder="What unique advantages do we bring that the client actually cares about?"
+                value={whyWin}
+                onChange={setWhyWin}
+                multiline
+              />
+              <ChatField
+                label="Why We Could Lose"
+                placeholder="What are our honest vulnerabilities on this pursuit?"
+                value={whyLose}
+                onChange={setWhyLose}
+                multiline
+              />
+              <ChatField
+                label="Biggest Concerns"
+                placeholder="What keeps you up at night about this bid?"
+                value={biggestConcerns}
+                onChange={setBiggestConcerns}
+                multiline
+              />
+            </CollapsibleSection>
+
+            <CollapsibleSection
+              title="Competitive Context"
+              subtitle="Optional — who and what we're up against"
+              open={openSections.competitive}
+              onToggle={() => toggleSection("competitive")}
+            >
+              <ChatField
+                label="Known Competitors"
+                placeholder="Comma-separated, e.g. AmeriHealth, Centene, Molina"
+                value={knownCompetitors}
+                onChange={setKnownCompetitors}
+              />
+              <ChatField
+                label="State Priorities"
+                placeholder="What does this state care most about right now politically and programmatically?"
+                value={statePriorities}
+                onChange={setStatePriorities}
+                multiline
+              />
+              <ChatField
+                label="Win Themes"
+                placeholder="What 3-5 themes should run through every section of our response?"
+                value={winThemesText}
+                onChange={setWinThemesText}
+                multiline
+              />
+            </CollapsibleSection>
+
+            <CollapsibleSection
+              title="Proposal Guidance"
+              subtitle="Optional — what to say and what to dodge"
+              open={openSections.guidance}
+              onToggle={() => toggleSection("guidance")}
+            >
+              <ChatField
+                label="What to Reinforce"
+                placeholder="Comma-separated key messages to repeat throughout the proposal"
+                value={reinforce}
+                onChange={setReinforce}
+              />
+              <ChatField
+                label="What to Avoid"
+                placeholder="Comma-separated topics, claims, or language to stay away from"
+                value={avoid}
+                onChange={setAvoid}
+              />
+            </CollapsibleSection>
+          </div>
+
+
+
           <div className="mt-10 flex justify-end">
             <button
               onClick={handleSubmit}
@@ -221,6 +343,7 @@ function ChatField({
   onChange,
   error,
   type = "text",
+  multiline = false,
 }: {
   label: string;
   placeholder?: string;
@@ -228,29 +351,88 @@ function ChatField({
   onChange: (v: string) => void;
   error?: boolean;
   type?: string;
+  multiline?: boolean;
 }) {
+  const baseStyle = {
+    background: "rgba(255,255,255,0.04)",
+    border: `1px solid ${error ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.1)"}`,
+  } as const;
+  const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (!error) e.currentTarget.style.borderColor = "rgba(196,154,43,0.55)";
+  };
+  const onBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (!error) e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+  };
   return (
     <div>
       <label className="block text-[13px] text-white/70 mb-2">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full rounded-lg px-4 py-3 text-[15px] text-white placeholder:text-white/30 transition-colors focus:outline-none"
-        style={{
-          background: "rgba(255,255,255,0.04)",
-          border: `1px solid ${error ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.1)"}`,
-        }}
-        onFocus={(e) => {
-          if (!error)
-            e.currentTarget.style.borderColor = "rgba(196,154,43,0.55)";
-        }}
-        onBlur={(e) => {
-          if (!error)
-            e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
-        }}
-      />
+      {multiline ? (
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          rows={3}
+          className="w-full rounded-lg px-4 py-3 text-[14px] text-white placeholder:text-white/30 transition-colors focus:outline-none resize-y"
+          style={baseStyle}
+          onFocus={onFocus}
+          onBlur={onBlur}
+        />
+      ) : (
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full rounded-lg px-4 py-3 text-[15px] text-white placeholder:text-white/30 transition-colors focus:outline-none"
+          style={baseStyle}
+          onFocus={onFocus}
+          onBlur={onBlur}
+        />
+      )}
+    </div>
+  );
+}
+
+function CollapsibleSection({
+  title,
+  subtitle,
+  open,
+  onToggle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{
+        background: "rgba(255,255,255,0.02)",
+        border: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between px-5 py-3 text-left hover:bg-white/[0.03] transition-colors"
+      >
+        <div>
+          <div className="text-[13px] text-white font-medium">{title}</div>
+          {subtitle && (
+            <div className="text-[11px] text-white/40 mt-0.5">{subtitle}</div>
+          )}
+        </div>
+        <span
+          className="text-white/40 text-[14px] transition-transform"
+          style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)" }}
+        >
+          ▸
+        </span>
+      </button>
+      {open && <div className="px-5 pb-5 pt-1 space-y-4">{children}</div>}
     </div>
   );
 }
