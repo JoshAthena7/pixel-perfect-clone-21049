@@ -14,6 +14,7 @@ import { SectionDocuments } from "@/components/briefing-room/SectionDocuments";
 import { SectionSignals } from "@/components/briefing-room/SectionSignals";
 import { SectionTimeline } from "@/components/briefing-room/SectionTimeline";
 import { StrategyView } from "@/components/mission-command/StrategyView";
+import { MissionBriefArtifact } from "@/components/briefing-room/MissionBriefArtifact";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/briefing")({
   component: BriefingPage,
