@@ -13,7 +13,7 @@ export type MissionViewRole = "admin" | "engagement_lead" | "writer" | "sme" | "
 export const ALL_TABS: { id: TabId; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "work", label: "Work" },
-  { id: "oracle", label: "Oracle" },
+  { id: "oracle", label: "IRIS" },
   { id: "team", label: "Team" },
   { id: "settings", label: "Settings" },
 ];

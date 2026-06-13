@@ -530,7 +530,7 @@ function IntelCardView({ card, onNavigate }: { card: IntelCard; onNavigate: (hre
           {it.assessment && <div className="text-white/60 mt-0.5">{it.assessment}</div>}
           <div className="flex gap-2 mt-1">
             {it.url && <a href={it.url} target="_blank" rel="noreferrer" className="underline" style={{ color: IRIS_BRAND }}>Open <ExternalLink className="inline h-3 w-3" /></a>}
-            <button onClick={() => onNavigate(it.href)} className="underline" style={{ color: IRIS_BRAND }}>View in Oracle</button>
+            <button onClick={() => onNavigate(it.href)} className="underline" style={{ color: IRIS_BRAND }}>View in IRIS</button>
           </div>
         </li>
       ))}

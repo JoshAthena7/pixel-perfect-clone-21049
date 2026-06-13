@@ -208,7 +208,7 @@ export function MissionAnalysisResults({
         {/* Continue */}
         <div className="mt-10 flex justify-end items-center gap-4">
           <span className="text-[12px] text-white/40">
-            You can revisit any of these from the Oracle after launch.
+            You can revisit any of these from IRIS after launch.
           </span>
           <button
             onClick={onContinue}

@@ -166,7 +166,7 @@ export const Route = createFileRoute("/api/public/hooks/generate-daily-briefs")(
                         headline: f.headline,
                         why_it_matters: f.iris_assessment ?? "Recent intelligence signal.",
                         affected_sections: [],
-                        action: "Review in the Oracle feed.",
+                        action: "Review in IRIS.",
                       })),
                       questions_needing_attention: atRiskRows.slice(0, 5).map((q) => ({
                         question_number: q.question_number,

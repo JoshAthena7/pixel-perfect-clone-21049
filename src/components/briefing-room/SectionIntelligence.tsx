@@ -96,7 +96,7 @@ export function SectionIntelligence({ missionId, isAdmin }: { missionId: string;
               search={{ tab: "stakeholders" } as never}
               style={{ color: "#C49A2B", fontSize: 10 }}
             >
-              See all in Oracle →
+              See all in IRIS →
             </Link>
           }
         >
@@ -147,7 +147,7 @@ export function SectionIntelligence({ missionId, isAdmin }: { missionId: string;
               search={{ tab: "competitors" } as never}
               style={{ color: "#C49A2B", fontSize: 10 }}
             >
-              Full profiles in Oracle →
+              Full profiles in IRIS →
             </Link>
           }
         >

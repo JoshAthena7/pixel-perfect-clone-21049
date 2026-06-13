@@ -16,7 +16,7 @@ const EXPLANATIONS: Array<{ match: (p: string) => boolean; text: string }> = [
   {
     match: (p) => /^\/missions\/[^/]+\/oracle$/.test(p),
     text:
-      "This is Oracle — everything I know about the ecosystem around this procurement. I have been watching while you were away. Some things changed. Not all of it matters. I flagged the things that do — check the Intelligence Feed first. The Evaluator Picture tab shows you how the scoring panel thinks. Not who they are as individuals. How the institutional context shapes their behavior. Start there before writing any section. I find it changes everything.",
+      "This is IRIS — everything I know about the ecosystem around this procurement. I have been watching while you were away. Some things changed. Not all of it matters. I flagged the things that do — check the Intelligence Feed first. The Evaluator Picture tab shows you how the scoring panel thinks. Not who they are as individuals. How the institutional context shapes their behavior. Start there before writing any section. I find it changes everything.",
   },
   {
     match: (p) => /^\/missions\/[^/]+\/insights$/.test(p),

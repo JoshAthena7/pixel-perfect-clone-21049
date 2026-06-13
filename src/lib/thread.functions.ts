@@ -451,7 +451,7 @@ async function runIrisAnalysis(
   } else if (action === "surface_intelligence") {
     const top = intel[0];
     if (top) {
-      body = `Oracle has relevant intelligence on this topic: ${top.headline}${top.iris_assessment ? ` — ${top.iris_assessment}` : ""}. View full item →`;
+      body = `IRIS has relevant intelligence on this topic: ${top.headline}${top.iris_assessment ? ` — ${top.iris_assessment}` : ""}. View full item →`;
     }
   } else if (action === "flag_conflict") {
     body = `I noticed potential conflicting guidance on this point. ${parsed.response}. Check with leadership before proceeding.`;

@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/missions/$missionId")({
 
 const TABS = [
   { id: "briefing", label: "Briefing", to: "/missions/$missionId/briefing" as const },
-  { id: "oracle", label: "Oracle", to: "/missions/$missionId/oracle" as const },
+  { id: "oracle", label: "IRIS", to: "/missions/$missionId/oracle" as const },
   { id: "insights", label: "Insights", to: "/missions/$missionId/insights" as const },
 ];
 

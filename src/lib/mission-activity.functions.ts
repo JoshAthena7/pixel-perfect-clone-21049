@@ -237,7 +237,7 @@ export const getMissionActivity = createServerFn({ method: "POST" })
       const isIris = r.sender_name === "IRIS";
       const emerging = r.update_type === "emerging_risk" || r.update_type === "oracle_finding";
       const head = emerging
-        ? `IRIS flagged ${r.update_type === "emerging_risk" ? "an emerging risk" : "an Oracle finding"}`
+        ? `IRIS flagged ${r.update_type === "emerging_risk" ? "an emerging risk" : "an IRIS finding"}`
         : isIris
           ? "IRIS distributed an update"
           : `${r.sender_name} sent a ${r.update_type} signal`;

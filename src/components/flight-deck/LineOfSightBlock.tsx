@@ -188,7 +188,7 @@ function DecisionCard({
   );
 }
 
-/* ---------------- TYPE B — Oracle Intelligence ---------------- */
+/* ---------------- TYPE B — IRIS Intelligence ---------------- */
 function OracleIntelCard({
   headline,
   category,
@@ -218,7 +218,7 @@ function OracleIntelCard({
             fontWeight: 600,
           }}
         >
-          Oracle Intel
+          IRIS Intel
         </span>
         <span style={{ fontSize: 9, color: "rgba(255,255,255,0.45)" }}>{category}</span>
       </div>
@@ -236,7 +236,7 @@ function OracleIntelCard({
         className="inline-flex items-center gap-1 mt-2 hover:underline"
         style={{ fontSize: 10, color: BLUE }}
       >
-        View in Oracle <ArrowRight className="h-3 w-3" />
+        View in IRIS <ArrowRight className="h-3 w-3" />
       </button>
     </div>
   );

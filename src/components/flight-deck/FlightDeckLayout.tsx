@@ -502,7 +502,7 @@ function IntelligenceColumn({
     <div className="space-y-3">
       <div>
         <div className="text-[9px] uppercase tracking-[0.07em] text-muted-foreground font-semibold">INTELLIGENCE</div>
-        <div className="text-[8px] text-muted-foreground/60 italic mt-0.5">Sourced from Oracle · Updated by IRIS</div>
+        <div className="text-[8px] text-muted-foreground/60 italic mt-0.5">Updated by IRIS</div>
       </div>
 
       {/* Athena */}
