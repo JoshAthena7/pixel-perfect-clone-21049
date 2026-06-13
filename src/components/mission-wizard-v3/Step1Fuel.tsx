@@ -384,10 +384,22 @@ export function Step1Fuel({
       <WizardFooter
         step={1}
         onBack={onBack}
-        onContinue={onAdvance}
-        continueDisabled={!hasAnyDone || !name.trim()}
-        continueHint={!hasAnyDone ? "Upload at least one document to continue" : undefined}
+        onContinue={async () => {
+          if (!analyzeResult && hasAnyDone && !analyzing) {
+            await analyze();
+          }
+          onAdvance();
+        }}
+        continueDisabled={!hasAnyDone || !name.trim() || analyzing}
+        continueHint={
+          !hasAnyDone
+            ? "Upload at least one document to continue"
+            : !analyzeResult
+              ? "Continue will run IRIS analysis automatically"
+              : undefined
+        }
       />
+
     </div>
   );
 }
