@@ -1,3 +1,16 @@
+/**
+ * SIGNAL: Real-time intelligence observation associated with a specific mission.
+ * Ephemeral. Logged frequently. Does NOT change mission strategy.
+ *
+ * Use for: things the team learned today, news, SME observations, contact intel.
+ * NOT for:
+ *   - Strategic direction changes → update the missions canvas
+ *     (north_star, why_win, why_lose, state_priorities, etc.)
+ *   - Persistent lessons / patterns → write to public.insights
+ *
+ * See also: src/components/flight-deck/SaveAsInsightDialog.tsx (INSIGHT)
+ *           supabase/migrations — COMMENT ON TABLE public.signals
+ */
 import { supabase } from "@/integrations/supabase/client";
 import type { QueryClient } from "@tanstack/react-query";
 

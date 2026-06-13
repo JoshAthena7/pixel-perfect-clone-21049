@@ -1,3 +1,21 @@
+/**
+ * INSIGHT: Strategic observation with value beyond a single mission interaction.
+ * Persistent. Mission-specific (mission_id set) or global (mission_id NULL).
+ *
+ * insight_type taxonomy (public.insights.insight_type):
+ *   - win_pattern:       Something that consistently improves scoring or win probability.
+ *   - loss_lesson:       Something that consistently hurts scoring or causes losses.
+ *   - competitive_intel: Intelligence about specific competitors.
+ *   - lesson:            Post-hoc learning from question or mission closeout
+ *                        (written by LessonsLearnedDialog at closeout).
+ *   - observation:       General strategic observation that doesn't fit above.
+ *
+ * Global insights (mission_id = NULL) form the Athena intelligence library.
+ * Mission insights (mission_id set) are specific to one pursuit.
+ *
+ * Contrast with SIGNAL (src/lib/signals.ts): signals are ephemeral, frequent
+ * observations tied to one mission. Insights are persistent strategy.
+ */
 import { useState } from "react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
