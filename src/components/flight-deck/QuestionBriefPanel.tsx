@@ -157,6 +157,8 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
               <BriefList title="Things to Avoid" items={brief.things_to_avoid} accent="#e57373" />
               <BriefList title="Proof Points to Consider" items={brief.proof_points} />
               <BriefList title="Suggested SMEs" items={brief.suggested_smes} />
+              <CounterStrategyBlock missionId={missionId} />
+
 
               <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 4 }}>
                 <button
