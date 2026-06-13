@@ -386,17 +386,30 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
     },
   });
 
-  const { data: assignments, isLoading, isError, refetch } = useQuery({
+  const { data: assignments, isLoading: assignmentsLoading, isError: assignmentsError, refetch: refetchAssignments } = useQuery({
     queryKey: ["mt-assignments", missionId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("mission_assignments")
         .select(`
           id, question_id, assigned_writer_id, sme_member_ids, acceptance_status, writer_confidence,
-          due_date, assigned_at,
-          mission_questions(id, question_number, question_text, status, section_id, mission_sections(name, section_number))
+          due_date, assigned_at
         `)
         .eq("mission_id", missionId);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: questions, isLoading: questionsLoading, isError: questionsError, refetch: refetchQuestions } = useQuery({
+    queryKey: ["mt-assignment-questions", missionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("mission_questions")
+        .select("id, question_number, question_text, status, section_id, mission_sections(name, section_number)")
+        .eq("mission_id", missionId)
+        .order("question_number", { ascending: true, nullsFirst: false });
+      if (error) throw error;
       return data ?? [];
     },
   });
@@ -419,35 +432,62 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
     return `${m.atlas_team_members.first_name} ${m.atlas_team_members.last_name}`;
   };
 
+  const rows = useMemo(() => {
+    const assignmentByQuestion = new Map((assignments ?? []).map((a: any) => [a.question_id, a]));
+    return (questions ?? []).map((q: any) => {
+      const assignment = assignmentByQuestion.get(q.id) as any;
+      return {
+        ...(assignment ?? {
+          id: null,
+          question_id: q.id,
+          assigned_writer_id: null,
+          sme_member_ids: [],
+          acceptance_status: "pending",
+          writer_confidence: "not_set",
+          due_date: null,
+          assigned_at: null,
+        }),
+        mission_questions: q,
+      };
+    });
+  }, [assignments, questions]);
+
   const filtered = useMemo(() => {
-    return (assignments ?? []).filter((a: any) => {
+    return rows.filter((a: any) => {
       if (writerFilter !== "all" && a.assigned_writer_id !== writerFilter) return false;
       if (acceptFilter !== "all" && a.acceptance_status !== acceptFilter) return false;
       return true;
     });
-  }, [assignments, writerFilter, acceptFilter]);
+  }, [rows, writerFilter, acceptFilter]);
 
-  const totalCount = assignments?.length ?? 0;
-  const assignedCount = (assignments ?? []).filter((a: any) => a.assigned_writer_id).length;
+  const totalCount = rows.length;
+  const assignedCount = rows.filter((a: any) => a.assigned_writer_id).length;
 
-  const reassign = async (assignmentId: string, oldWriterId: string | null, newWriterId: string) => {
+  const reassign = async (assignmentId: string | null, questionId: string, oldWriterId: string | null, newWriterId: string) => {
     if (!canManage) { toast.error("Only mission admins can change assignments."); return; }
-    const { error } = await supabase
-      .from("mission_assignments")
-      .update({
+    const patch = {
         assigned_writer_id: newWriterId,
         acceptance_status: "pending",
         writer_confidence: "not_set",
         assigned_at: new Date().toISOString(),
-      })
-      .eq("id", assignmentId);
+    };
+    const { data: u } = await supabase.auth.getUser();
+    const result = assignmentId
+      ? await supabase.from("mission_assignments").update(patch).eq("id", assignmentId).select("id").single()
+      : await supabase.from("mission_assignments").insert({
+          mission_id: missionId,
+          question_id: questionId,
+          ...patch,
+          assigned_by: u.user?.id,
+        }).select("id").single();
+    const { data: saved, error } = result;
     if (error) { toast.error(error.message); return; }
     const notifs: any[] = [{
       recipient_id: newWriterId,
       recipient_role: "specific_user",
       type: "assignment_acceptance_required",
       message: `You have been assigned a question on ${missionName}.`,
-      metadata: { mission_id: missionId, assignment_id: assignmentId },
+      metadata: { mission_id: missionId, assignment_id: saved?.id ?? assignmentId },
     }];
     if (oldWriterId) {
       notifs.push({
@@ -455,35 +495,40 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
         recipient_role: "specific_user",
         type: "assignment_removed",
         message: `Your assignment on ${missionName} has been reassigned.`,
-        metadata: { mission_id: missionId, assignment_id: assignmentId },
+        metadata: { mission_id: missionId, assignment_id: saved?.id ?? assignmentId },
       });
     }
     await supabase.from("atlas_notifications").insert(notifs);
-    await logAudit({ missionId, action: "Assignment reassigned", metadata: { assignment_id: assignmentId, from: oldWriterId, to: newWriterId } });
+    await logAudit({ missionId, action: "Assignment reassigned", metadata: { assignment_id: saved?.id ?? assignmentId, question_id: questionId, from: oldWriterId, to: newWriterId } });
     qc.invalidateQueries({ queryKey: ["mt-assignments", missionId] });
   };
 
-  const updateDue = async (id: string, d: Date | undefined) => {
+  const updateDue = async (id: string | null, questionId: string, d: Date | undefined) => {
     if (!canManage) { toast.error("Only mission admins can change assignments."); return; }
-    await supabase.from("mission_assignments").update({ due_date: d ? d.toISOString() : null }).eq("id", id);
+    if (id) {
+      await supabase.from("mission_assignments").update({ due_date: d ? d.toISOString() : null }).eq("id", id);
+    } else {
+      const { data: u } = await supabase.auth.getUser();
+      await supabase.from("mission_assignments").insert({ mission_id: missionId, question_id: questionId, due_date: d ? d.toISOString() : null, assigned_by: u.user?.id });
+    }
     qc.invalidateQueries({ queryKey: ["mt-assignments", missionId] });
   };
 
-  const updateSmes = async (id: string, ids: string[]) => {
+  const updateSmes = async (id: string | null, questionId: string, ids: string[]) => {
     if (!canManage) { toast.error("Only mission admins can change assignments."); return; }
-    const { error } = await supabase
-      .from("mission_assignments")
-      .update({ sme_member_ids: ids })
-      .eq("id", id);
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = id
+      ? await supabase.from("mission_assignments").update({ sme_member_ids: ids }).eq("id", id)
+      : await supabase.from("mission_assignments").insert({ mission_id: missionId, question_id: questionId, sme_member_ids: ids, assigned_by: u.user?.id });
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["mt-assignments", missionId] });
   };
 
   const bulkReassign = async () => {
     if (!bulkWriter || selected.size === 0) return;
-    for (const id of selected) {
-      const a: any = assignments?.find((x: any) => x.id === id);
-      if (a) await reassign(id, a.assigned_writer_id, bulkWriter);
+    for (const questionId of selected) {
+      const a: any = rows.find((x: any) => x.question_id === questionId);
+      if (a) await reassign(a.id, a.question_id, a.assigned_writer_id, bulkWriter);
     }
     setSelected(new Set()); setBulkOpen(null); setBulkWriter(null);
     toast.success("Bulk reassignment complete.");
@@ -492,8 +537,10 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
   const bulkSetDue = async () => {
     if (!bulkDate || selected.size === 0) return;
     await Promise.all(
-      Array.from(selected).map((id) =>
-        supabase.from("mission_assignments").update({ due_date: bulkDate!.toISOString() }).eq("id", id),
+      Array.from(selected).map((questionId) => {
+        const a: any = rows.find((x: any) => x.question_id === questionId);
+        return a ? updateDue(a.id, a.question_id, bulkDate) : Promise.resolve();
+      }
       ),
     );
     setSelected(new Set()); setBulkOpen(null); setBulkDate(undefined);
@@ -501,8 +548,8 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
     toast.success("Due dates updated.");
   };
 
-  if (isError) return <ErrorState message="Couldn't load assignments." onRetry={() => refetch()} />;
-  if (isLoading) return <SkeletonRows rows={5} height="h-14" />;
+  if (assignmentsError || questionsError) return <ErrorState message="Couldn't load assignments." onRetry={() => { refetchAssignments(); refetchQuestions(); }} />;
+  if (assignmentsLoading || questionsLoading) return <SkeletonRows rows={5} height="h-14" />;
 
   return (
     <div className="space-y-4">
@@ -571,14 +618,14 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
               const status = deriveAssignmentStatus(a);
               const smeIds: string[] = Array.isArray(a.sme_member_ids) ? a.sme_member_ids : [];
               return (
-                <tr key={a.id} className="border-t">
+                <tr key={a.question_id} className="border-t">
                   {canManage && (
                     <td className="px-2 py-2">
                       <Checkbox
-                        checked={selected.has(a.id)}
+                        checked={selected.has(a.question_id)}
                         onCheckedChange={(v) => {
                           const n = new Set(selected);
-                          v ? n.add(a.id) : n.delete(a.id);
+                          v ? n.add(a.question_id) : n.delete(a.question_id);
                           setSelected(n);
                         }}
                       />
@@ -593,7 +640,7 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
                     {canManage ? (
                       <Select
                         value={a.assigned_writer_id ?? "none"}
-                        onValueChange={(v) => reassign(a.id, a.assigned_writer_id, v)}
+                        onValueChange={(v) => reassign(a.id, a.question_id, a.assigned_writer_id, v)}
                       >
                         <SelectTrigger className="h-8 text-xs w-40"><SelectValue placeholder="Unassigned" /></SelectTrigger>
                         <SelectContent>
@@ -631,7 +678,7 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
                                       const next = v
                                         ? Array.from(new Set([...smeIds, m.member_id]))
                                         : smeIds.filter((x) => x !== m.member_id);
-                                      updateSmes(a.id, next);
+                                      updateSmes(a.id, a.question_id, next);
                                     }}
                                   />
                                   <span>{teamName(m.member_id)}</span>
@@ -662,7 +709,7 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar mode="single" selected={a.due_date ? new Date(a.due_date) : undefined}
-                                    onSelect={(d) => updateDue(a.id, d)} className="pointer-events-auto" />
+                                    onSelect={(d) => updateDue(a.id, a.question_id, d)} className="pointer-events-auto" />
                         </PopoverContent>
                       </Popover>
                     ) : (
