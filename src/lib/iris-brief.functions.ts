@@ -26,6 +26,37 @@ export type BriefBody = {
   has_competitors: boolean;
 };
 
+// Robustly extract a JSON object from an AI response that may include
+// markdown code fences, leading prose, trailing commas, or stray control
+// characters. Throws a descriptive error when no recoverable object exists.
+function safeParseJsonObject(raw: string): unknown {
+  let cleaned = (raw ?? "")
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*/g, "")
+    .trim();
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  if (start === -1 || end === -1 || end < start) {
+    throw new Error("IRIS returned a malformed response.");
+  }
+  cleaned = cleaned.slice(start, end + 1);
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const repaired = cleaned
+      .replace(/,\s*}/g, "}")
+      .replace(/,\s*]/g, "]")
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+    try {
+      return JSON.parse(repaired);
+    } catch (e) {
+      console.error("safeParseJsonObject: unrecoverable JSON from IRIS", e);
+      return {};
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Shared formatters for optional Olympus enrichment fields. Return "" when the
 // underlying JSON is null/empty so callers can concat without conditionals.
@@ -332,9 +363,7 @@ ${(researchNodes?.data ?? []).map((n) => `- ${n.label}${n.description ? `: ${n.d
 
     const j = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const content = j.choices?.[0]?.message?.content ?? "";
-    const match = content.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("IRIS returned a malformed response.");
-    const parsed = JSON.parse(match[0]) as Partial<BriefBody>;
+    const parsed = safeParseJsonObject(content) as Partial<BriefBody>;
 
     return {
       whats_asked: String(parsed.whats_asked ?? ""),
