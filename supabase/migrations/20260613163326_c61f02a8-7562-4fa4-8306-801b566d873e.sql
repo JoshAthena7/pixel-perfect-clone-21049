@@ -1,0 +1,1 @@
+ALTER TABLE public.missions ADD COLUMN IF NOT EXISTS executive_intelligence jsonb;

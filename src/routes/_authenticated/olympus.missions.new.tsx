@@ -51,6 +51,27 @@ function MeetIrisIntro() {
   const [evaluatorFrustrations, setEvaluatorFrustrations] = useState("");
   const [evaluatorSuccess, setEvaluatorSuccess] = useState("");
 
+  // Executive intelligence (optional, six roles)
+  const EXEC_ROLES = [
+    { key: "executive_sponsor", label: "Executive Sponsor" },
+    { key: "market_lead", label: "Market Lead" },
+    { key: "product_clinical_lead", label: "Product / Clinical Lead" },
+    { key: "operations_lead", label: "Operations Lead" },
+    { key: "network_lead", label: "Network Lead" },
+    { key: "bd_lead", label: "BD Lead" },
+  ] as const;
+  type ExecField = "why_win" | "why_lose" | "risks" | "proof_points" | "what_matters_most";
+  const EXEC_QUESTIONS: { key: ExecField; label: string }[] = [
+    { key: "why_win", label: "Why do we win this type of pursuit?" },
+    { key: "why_lose", label: "Why do we lose this type of pursuit?" },
+    { key: "risks", label: "What are our biggest risks on this mission?" },
+    { key: "proof_points", label: "What are our strongest proof points?" },
+    { key: "what_matters_most", label: "What matters most to the evaluator on this opportunity?" },
+  ];
+  const [execIntel, setExecIntel] = useState<Record<string, Partial<Record<ExecField, string>>>>({});
+  const setExecField = (role: string, field: ExecField, value: string) =>
+    setExecIntel((prev) => ({ ...prev, [role]: { ...prev[role], [field]: value } }));
+
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     strategy: false,
     competitive: false,
@@ -59,6 +80,7 @@ function MeetIrisIntro() {
     stk_member: false,
     stk_provider: false,
     stk_evaluator: false,
+    executives: false,
   });
   const toggleSection = (k: string) =>
     setOpenSections((s) => ({ ...s, [k]: !s[k] }));
@@ -117,6 +139,19 @@ function MeetIrisIntro() {
           ? { member: memberObj, provider: providerObj, evaluator: evaluatorObj }
           : null;
 
+      // Build executive intelligence: only include roles that have any non-empty answer.
+      const execObj: Record<string, Record<string, string>> = {};
+      for (const role of EXEC_ROLES) {
+        const entry = execIntel[role.key] ?? {};
+        const cleaned: Record<string, string> = {};
+        for (const q of EXEC_QUESTIONS) {
+          const v = (entry[q.key] ?? "").trim();
+          if (v) cleaned[q.key] = v;
+        }
+        if (Object.keys(cleaned).length) execObj[role.key] = cleaned;
+      }
+      const executiveIntel = Object.keys(execObj).length ? execObj : null;
+
       const { data, error } = await supabase
         .from("missions")
         .insert({
@@ -136,6 +171,7 @@ function MeetIrisIntro() {
           reinforce: reinforceArr.length ? reinforceArr : null,
           avoid: avoidArr.length ? avoidArr : null,
           stakeholder_intelligence: stakeholderIntel,
+          executive_intelligence: executiveIntel,
         })
         .select("id")
         .single();
@@ -333,6 +369,40 @@ function MeetIrisIntro() {
                 <ChatField label="What keeps evaluators awake at night about this procurement?" placeholder="" value={evaluatorFrustrations} onChange={setEvaluatorFrustrations} multiline />
                 <ChatField label="What would evaluators consider a winning response?" placeholder="" value={evaluatorSuccess} onChange={setEvaluatorSuccess} multiline />
               </CollapsibleSection>
+            </CollapsibleSection>
+
+            <CollapsibleSection
+              title="Executive Intelligence"
+              subtitle="Optional — captures leadership perspective for IRIS"
+              open={openSections.executives}
+              onToggle={() => toggleSection("executives")}
+            >
+              <div className="text-[11.5px] text-white/55 leading-relaxed -mt-1">
+                Not required. Fill in only the roles that are applicable — leave the rest blank. IRIS uses these to reconcile leadership perspectives against the rest of the intelligence picture.
+              </div>
+              {EXEC_ROLES.map((role) => {
+                const key = `exec_${role.key}`;
+                return (
+                  <CollapsibleSection
+                    key={role.key}
+                    title={role.label}
+                    subtitle="Optional"
+                    open={!!openSections[key]}
+                    onToggle={() => toggleSection(key)}
+                  >
+                    {EXEC_QUESTIONS.map((q) => (
+                      <ChatField
+                        key={q.key}
+                        label={q.label}
+                        placeholder=""
+                        value={execIntel[role.key]?.[q.key] ?? ""}
+                        onChange={(v) => setExecField(role.key, q.key, v)}
+                        multiline
+                      />
+                    ))}
+                  </CollapsibleSection>
+                );
+              })}
             </CollapsibleSection>
           </div>
 
