@@ -463,24 +463,31 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
   const totalCount = rows.length;
   const assignedCount = rows.filter((a: any) => a.assigned_writer_id).length;
 
-  const reassign = async (assignmentId: string, oldWriterId: string | null, newWriterId: string) => {
+  const reassign = async (assignmentId: string | null, questionId: string, oldWriterId: string | null, newWriterId: string) => {
     if (!canManage) { toast.error("Only mission admins can change assignments."); return; }
-    const { error } = await supabase
-      .from("mission_assignments")
-      .update({
+    const patch = {
         assigned_writer_id: newWriterId,
         acceptance_status: "pending",
         writer_confidence: "not_set",
         assigned_at: new Date().toISOString(),
-      })
-      .eq("id", assignmentId);
+    };
+    const { data: u } = await supabase.auth.getUser();
+    const result = assignmentId
+      ? await supabase.from("mission_assignments").update(patch).eq("id", assignmentId).select("id").single()
+      : await supabase.from("mission_assignments").insert({
+          mission_id: missionId,
+          question_id: questionId,
+          ...patch,
+          assigned_by: u.user?.id,
+        }).select("id").single();
+    const { data: saved, error } = result;
     if (error) { toast.error(error.message); return; }
     const notifs: any[] = [{
       recipient_id: newWriterId,
       recipient_role: "specific_user",
       type: "assignment_acceptance_required",
       message: `You have been assigned a question on ${missionName}.`,
-      metadata: { mission_id: missionId, assignment_id: assignmentId },
+      metadata: { mission_id: missionId, assignment_id: saved?.id ?? assignmentId },
     }];
     if (oldWriterId) {
       notifs.push({
@@ -488,35 +495,40 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
         recipient_role: "specific_user",
         type: "assignment_removed",
         message: `Your assignment on ${missionName} has been reassigned.`,
-        metadata: { mission_id: missionId, assignment_id: assignmentId },
+        metadata: { mission_id: missionId, assignment_id: saved?.id ?? assignmentId },
       });
     }
     await supabase.from("atlas_notifications").insert(notifs);
-    await logAudit({ missionId, action: "Assignment reassigned", metadata: { assignment_id: assignmentId, from: oldWriterId, to: newWriterId } });
+    await logAudit({ missionId, action: "Assignment reassigned", metadata: { assignment_id: saved?.id ?? assignmentId, question_id: questionId, from: oldWriterId, to: newWriterId } });
     qc.invalidateQueries({ queryKey: ["mt-assignments", missionId] });
   };
 
-  const updateDue = async (id: string, d: Date | undefined) => {
+  const updateDue = async (id: string | null, questionId: string, d: Date | undefined) => {
     if (!canManage) { toast.error("Only mission admins can change assignments."); return; }
-    await supabase.from("mission_assignments").update({ due_date: d ? d.toISOString() : null }).eq("id", id);
+    if (id) {
+      await supabase.from("mission_assignments").update({ due_date: d ? d.toISOString() : null }).eq("id", id);
+    } else {
+      const { data: u } = await supabase.auth.getUser();
+      await supabase.from("mission_assignments").insert({ mission_id: missionId, question_id: questionId, due_date: d ? d.toISOString() : null, assigned_by: u.user?.id });
+    }
     qc.invalidateQueries({ queryKey: ["mt-assignments", missionId] });
   };
 
-  const updateSmes = async (id: string, ids: string[]) => {
+  const updateSmes = async (id: string | null, questionId: string, ids: string[]) => {
     if (!canManage) { toast.error("Only mission admins can change assignments."); return; }
-    const { error } = await supabase
-      .from("mission_assignments")
-      .update({ sme_member_ids: ids })
-      .eq("id", id);
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = id
+      ? await supabase.from("mission_assignments").update({ sme_member_ids: ids }).eq("id", id)
+      : await supabase.from("mission_assignments").insert({ mission_id: missionId, question_id: questionId, sme_member_ids: ids, assigned_by: u.user?.id });
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["mt-assignments", missionId] });
   };
 
   const bulkReassign = async () => {
     if (!bulkWriter || selected.size === 0) return;
-    for (const id of selected) {
-      const a: any = assignments?.find((x: any) => x.id === id);
-      if (a) await reassign(id, a.assigned_writer_id, bulkWriter);
+    for (const questionId of selected) {
+      const a: any = rows.find((x: any) => x.question_id === questionId);
+      if (a) await reassign(a.id, a.question_id, a.assigned_writer_id, bulkWriter);
     }
     setSelected(new Set()); setBulkOpen(null); setBulkWriter(null);
     toast.success("Bulk reassignment complete.");
@@ -525,8 +537,10 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
   const bulkSetDue = async () => {
     if (!bulkDate || selected.size === 0) return;
     await Promise.all(
-      Array.from(selected).map((id) =>
-        supabase.from("mission_assignments").update({ due_date: bulkDate!.toISOString() }).eq("id", id),
+      Array.from(selected).map((questionId) => {
+        const a: any = rows.find((x: any) => x.question_id === questionId);
+        return a ? updateDue(a.id, a.question_id, bulkDate) : Promise.resolve();
+      }
       ),
     );
     setSelected(new Set()); setBulkOpen(null); setBulkDate(undefined);
@@ -534,8 +548,8 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
     toast.success("Due dates updated.");
   };
 
-  if (isError) return <ErrorState message="Couldn't load assignments." onRetry={() => refetch()} />;
-  if (isLoading) return <SkeletonRows rows={5} height="h-14" />;
+  if (assignmentsError || questionsError) return <ErrorState message="Couldn't load assignments." onRetry={() => { refetchAssignments(); refetchQuestions(); }} />;
+  if (assignmentsLoading || questionsLoading) return <SkeletonRows rows={5} height="h-14" />;
 
   return (
     <div className="space-y-4">
