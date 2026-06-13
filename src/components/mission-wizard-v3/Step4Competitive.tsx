@@ -1,5 +1,6 @@
 import { WizardStepHeading, WizardFooter } from "./WizardShellV3";
 import { StepFieldList } from "./StepFieldList";
+import { CompetitorIntelPanel } from "./CompetitorIntelPanel";
 
 const FIELDS = [
   { key: "known_competitors", label: "Known Competitors", multiline: true, hint: "One per line" },
@@ -25,6 +26,7 @@ export function Step4Competitive({
         subtitle="Sharpen these against what you know about the deal. Edit anything."
       />
       <StepFieldList missionId={missionId} wizardStep={4} fields={FIELDS} autoRun />
+      <CompetitorIntelPanel missionId={missionId} />
       <WizardFooter step={4} onBack={onBack} onContinue={onAdvance} />
     </div>
   );
