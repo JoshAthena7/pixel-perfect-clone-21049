@@ -23,9 +23,10 @@ export function HealthBadge({ health, size = "lg" }: { health: "green" | "amber"
 }
 
 import { Link } from "@tanstack/react-router";
-import { Wand2, Pencil } from "lucide-react";
+import { Wand2, Pencil, Flag } from "lucide-react";
 import { useState } from "react";
 import { MissionEditPanel } from "@/components/missions/MissionEditPanel";
+import { CloseMissionDialog } from "@/components/mission-command/CloseMissionDialog";
 
 export function BriefingHeader({
   missionName,
