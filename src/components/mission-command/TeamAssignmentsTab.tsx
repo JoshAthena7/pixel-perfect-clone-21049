@@ -386,17 +386,30 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
     },
   });
 
-  const { data: assignments, isLoading, isError, refetch } = useQuery({
+  const { data: assignments, isLoading: assignmentsLoading, isError: assignmentsError, refetch: refetchAssignments } = useQuery({
     queryKey: ["mt-assignments", missionId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("mission_assignments")
         .select(`
           id, question_id, assigned_writer_id, sme_member_ids, acceptance_status, writer_confidence,
-          due_date, assigned_at,
-          mission_questions(id, question_number, question_text, status, section_id, mission_sections(name, section_number))
+          due_date, assigned_at
         `)
         .eq("mission_id", missionId);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: questions, isLoading: questionsLoading, isError: questionsError, refetch: refetchQuestions } = useQuery({
+    queryKey: ["mt-assignment-questions", missionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("mission_questions")
+        .select("id, question_number, question_text, status, section_id, mission_sections(name, section_number)")
+        .eq("mission_id", missionId)
+        .order("question_number", { ascending: true, nullsFirst: false });
+      if (error) throw error;
       return data ?? [];
     },
   });
@@ -419,16 +432,36 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
     return `${m.atlas_team_members.first_name} ${m.atlas_team_members.last_name}`;
   };
 
+  const rows = useMemo(() => {
+    const assignmentByQuestion = new Map((assignments ?? []).map((a: any) => [a.question_id, a]));
+    return (questions ?? []).map((q: any) => {
+      const assignment = assignmentByQuestion.get(q.id) as any;
+      return {
+        ...(assignment ?? {
+          id: null,
+          question_id: q.id,
+          assigned_writer_id: null,
+          sme_member_ids: [],
+          acceptance_status: "pending",
+          writer_confidence: "not_set",
+          due_date: null,
+          assigned_at: null,
+        }),
+        mission_questions: q,
+      };
+    });
+  }, [assignments, questions]);
+
   const filtered = useMemo(() => {
-    return (assignments ?? []).filter((a: any) => {
+    return rows.filter((a: any) => {
       if (writerFilter !== "all" && a.assigned_writer_id !== writerFilter) return false;
       if (acceptFilter !== "all" && a.acceptance_status !== acceptFilter) return false;
       return true;
     });
-  }, [assignments, writerFilter, acceptFilter]);
+  }, [rows, writerFilter, acceptFilter]);
 
-  const totalCount = assignments?.length ?? 0;
-  const assignedCount = (assignments ?? []).filter((a: any) => a.assigned_writer_id).length;
+  const totalCount = rows.length;
+  const assignedCount = rows.filter((a: any) => a.assigned_writer_id).length;
 
   const reassign = async (assignmentId: string, oldWriterId: string | null, newWriterId: string) => {
     if (!canManage) { toast.error("Only mission admins can change assignments."); return; }
