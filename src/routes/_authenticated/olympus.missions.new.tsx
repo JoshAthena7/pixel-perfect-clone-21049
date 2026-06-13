@@ -1,10 +1,14 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { IrisMark } from "@/components/iris/IrisMark";
 import { logAuditEvent } from "@/lib/mission-audit";
 import { cn } from "@/lib/utils";
+import {
+  MissionCanvasLockBanner,
+  useBriefLocked,
+} from "@/components/olympus/MissionCanvasLock";
 
 export const Route = createFileRoute("/_authenticated/olympus/missions/new")({
   component: MeetIrisIntro,
