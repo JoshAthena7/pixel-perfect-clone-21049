@@ -1,4 +1,19 @@
-// Mission Brief approval workflow — read + set brief_status on missions.
+/**
+ * Mission Brief approval workflow — read + set brief_status on missions.
+ *
+ * CANVAS: The mission's canvas fields (north_star, why_win, why_lose,
+ * state_priorities, competitive_context, proposal_guidance,
+ * stakeholder_intelligence, executive_intelligence) are human-entered
+ * strategic inputs for this mission. They are the mission owner's
+ * strategic direction — NOT IRIS output. IRIS reads them as the
+ * highest-priority context for brief generation.
+ *
+ * Canvas fields become read-only when brief_status = 'approved'.
+ *
+ * Contrast with:
+ *   - SIGNAL (public.signals): ephemeral real-time observations.
+ *   - INSIGHT (public.insights): persistent strategy / lessons / patterns.
+ */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
