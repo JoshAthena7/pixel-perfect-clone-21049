@@ -10,6 +10,7 @@ import {
   type ScoreMeResult,
 } from "@/lib/score-me-coach.functions";
 import { prefetchScoreMeContext } from "@/lib/score-me-prefetch.functions";
+import { irisScoreGapAnalysis } from "@/lib/iris-score-gap-analysis.functions";
 
 type Props = {
   open: boolean;
@@ -40,6 +41,7 @@ export function ScoreMeDialog({
   const run = useServerFn(scoreMeCoach);
   const post = useServerFn(postScoreMeToThread);
   const prefetch = useServerFn(prefetchScoreMeContext);
+  const gapAnalysis = useServerFn(irisScoreGapAnalysis);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ScoreMeResult | null>(null);
@@ -84,6 +86,27 @@ export function ScoreMeDialog({
     try {
       const r = await run({ data: { missionId, questionId, draftText: draft } });
       setResult(r.result);
+      // Fire-and-forget: feed gaps into IRIS Memory.
+      void gapAnalysis({
+        data: {
+          mission_id: missionId,
+          question_id: questionId,
+          question_text: questionText ?? undefined,
+          answer_text: draft,
+          score_result: {
+            overall_score: r.result.overall_score,
+            feedback: r.result.iris_verdict,
+            gaps: [...r.result.what_needs_work, ...r.result.compliance_flags, r.result.the_one_fix].filter(Boolean),
+            strengths: r.result.what_lands,
+          },
+        },
+      })
+        .then((res) => {
+          if (res && (res as { gaps_written?: number }).gaps_written) {
+            toast(`IRIS logged ${(res as { gaps_written: number }).gaps_written} gap${(res as { gaps_written: number }).gaps_written === 1 ? "" : "s"} from this scoring.`);
+          }
+        })
+        .catch((err) => console.error("[iris-score-gap] background extract failed", err));
     } catch (e: any) {
       toast.error("Coaching failed", { description: e?.message ?? String(e) });
     } finally {
