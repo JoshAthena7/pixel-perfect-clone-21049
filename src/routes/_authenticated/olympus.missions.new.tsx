@@ -139,6 +139,19 @@ function MeetIrisIntro() {
           ? { member: memberObj, provider: providerObj, evaluator: evaluatorObj }
           : null;
 
+      // Build executive intelligence: only include roles that have any non-empty answer.
+      const execObj: Record<string, Record<string, string>> = {};
+      for (const role of EXEC_ROLES) {
+        const entry = execIntel[role.key] ?? {};
+        const cleaned: Record<string, string> = {};
+        for (const q of EXEC_QUESTIONS) {
+          const v = (entry[q.key] ?? "").trim();
+          if (v) cleaned[q.key] = v;
+        }
+        if (Object.keys(cleaned).length) execObj[role.key] = cleaned;
+      }
+      const executiveIntel = Object.keys(execObj).length ? execObj : null;
+
       const { data, error } = await supabase
         .from("missions")
         .insert({
@@ -158,6 +171,7 @@ function MeetIrisIntro() {
           reinforce: reinforceArr.length ? reinforceArr : null,
           avoid: avoidArr.length ? avoidArr : null,
           stakeholder_intelligence: stakeholderIntel,
+          executive_intelligence: executiveIntel,
         })
         .select("id")
         .single();
