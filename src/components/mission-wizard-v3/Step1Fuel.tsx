@@ -361,7 +361,8 @@ export function Step1Fuel({
             <p className="text-[13.5px] text-white">
               {analyzing
                 ? "IRIS is reading your documents…"
-                : analyzeResult ?? "When you click Analyze, IRIS reads every uploaded document and pre-populates Mission Basics. Steps 3–7 generate when you land on them."}
+                : (analyzeResult ??
+                  "When you click Analyze, IRIS reads every uploaded document and pre-populates Mission Basics. Steps 3–7 generate when you land on them.")}
             </p>
             <button
               disabled={!canAnalyze}
@@ -369,7 +370,11 @@ export function Step1Fuel({
               className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-medium disabled:opacity-40"
               style={{ background: "#C49A2B", color: "#0D1B3E" }}
             >
-              {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              {analyzing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
               {analyzing ? "Analyzing…" : analyzeResult ? "Re-analyze" : "Analyze with IRIS"}
             </button>
           </div>
