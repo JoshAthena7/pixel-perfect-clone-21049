@@ -86,6 +86,27 @@ export function ScoreMeDialog({
     try {
       const r = await run({ data: { missionId, questionId, draftText: draft } });
       setResult(r.result);
+      // Fire-and-forget: feed gaps into IRIS Memory.
+      void gapAnalysis({
+        data: {
+          mission_id: missionId,
+          question_id: questionId,
+          question_text: questionText ?? undefined,
+          answer_text: draft,
+          score_result: {
+            overall_score: r.result.overall_score,
+            feedback: r.result.iris_verdict,
+            gaps: [...r.result.what_needs_work, ...r.result.compliance_flags, r.result.the_one_fix].filter(Boolean),
+            strengths: r.result.what_lands,
+          },
+        },
+      })
+        .then((res) => {
+          if (res && (res as { gaps_written?: number }).gaps_written) {
+            toast(`IRIS logged ${(res as { gaps_written: number }).gaps_written} gap${(res as { gaps_written: number }).gaps_written === 1 ? "" : "s"} from this scoring.`);
+          }
+        })
+        .catch((err) => console.error("[iris-score-gap] background extract failed", err));
     } catch (e: any) {
       toast.error("Coaching failed", { description: e?.message ?? String(e) });
     } finally {
