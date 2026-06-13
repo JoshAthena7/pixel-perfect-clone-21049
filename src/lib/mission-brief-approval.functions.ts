@@ -47,7 +47,7 @@ export const getMissionBriefStatus = createServerFn({ method: "POST" })
         .filter((t: any) => /lead|principal|engagement/i.test(String(t.mission_role ?? "")))
         .map((t: any) => t.member_id);
       if (leadMemberIds.length) {
-        const { data: me } = await supabase
+        const { data: me } = await (supabase as any)
           .from("atlas_team_members")
           .select("id")
           .in("id", leadMemberIds)
