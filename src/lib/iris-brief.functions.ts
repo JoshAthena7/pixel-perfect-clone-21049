@@ -63,9 +63,12 @@ export const generateIntelligenceBrief = createServerFn({ method: "POST" })
         ? supabase.from("state_dna").select("category,attribute,value,source,confidence").eq("state", missionState).limit(200)
         : Promise.resolve({ data: [] as any[] }),
       supabase.from("program_dna").select("category,attribute,value,source,confidence").or(programPattern).limit(200),
+      // Q6: decisions scoped to THIS mission, where applies_to_states contains
+      // the mission state OR applies_to_states is null (global to all states).
       missionState
-        ? supabase.from("mission_decisions").select("title,rationale,status,category,applies_to_states,applies_to_programs").contains("applies_to_states", [missionState]).limit(50)
-        : Promise.resolve({ data: [] as any[] }),
+        ? supabase.from("mission_decisions").select("title,rationale,status,category,applies_to_states,applies_to_programs").eq("mission_id", data.missionId).or(`applies_to_states.cs.{${missionState}},applies_to_states.is.null`).limit(50)
+        : supabase.from("mission_decisions").select("title,rationale,status,category,applies_to_states,applies_to_programs").eq("mission_id", data.missionId).limit(50),
+
       expertsOr
         ? supabase.from("experts").select("name,role,expertise_areas,states,programs,contact_method,notes").or(expertsOr).limit(50)
         : Promise.resolve({ data: [] as any[] }),
