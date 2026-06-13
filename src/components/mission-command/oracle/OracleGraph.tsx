@@ -205,7 +205,7 @@ export function OracleGraph({
         style={{
           background: "radial-gradient(ellipse at center, rgba(13,27,62,0.8), #07101e)",
           border: "1px solid rgba(255,255,255,0.06)",
-          height: isMobile ? 300 : 400,
+          height: isMobile ? 320 : 620,
         }}
       >
         {isLoading ? (
@@ -226,53 +226,104 @@ export function OracleGraph({
             </div>
           </div>
         ) : (
-          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" style={{ width: "100%", height: "100%" }}>
-            {(data?.edges ?? []).map((e) => {
-              const s = positions.get(e.source_node_id);
-              const t = positions.get(e.target_node_id);
-              if (!s || !t) return null;
-              const confirmed = e.is_confirmed !== false;
-              return (
-                <line
-                  key={e.id}
-                  x1={s.x}
-                  y1={s.y}
-                  x2={t.x}
-                  y2={t.y}
-                  stroke={confirmed ? "rgba(196,154,43,0.2)" : "rgba(196,154,43,0.1)"}
-                  strokeWidth={1}
-                  strokeDasharray={confirmed ? undefined : "4 3"}
-                />
-              );
-            })}
-            {nodes.map((n) => {
-              const p = positions.get(n.id);
-              if (!p) return null;
-              const isSel = selectedId === n.id;
-              return (
-                <g key={n.id} style={{ cursor: "pointer" }} onClick={() => setSelectedId(n.id)}>
-                  <circle
-                    cx={p.x}
-                    cy={p.y}
-                    r={p.r}
-                    fill={p.color}
-                    fillOpacity={isSel ? 0.95 : 0.75}
-                    stroke={isSel ? "#fff" : "rgba(255,255,255,0.2)"}
-                    strokeWidth={isSel ? 1.5 : 0.5}
-                  />
-                  <text
-                    x={p.x}
-                    y={p.y + 3}
-                    textAnchor="middle"
-                    fill="#fff"
-                    style={{ fontSize: 8, pointerEvents: "none", fontWeight: 500 }}
-                  >
-                    {n.label.length > 14 ? n.label.slice(0, 12) + "…" : n.label}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
+          (() => {
+            // Compute bounding box so the SVG zooms to fit all nodes
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            positions.forEach((p) => {
+              minX = Math.min(minX, p.x - p.r);
+              minY = Math.min(minY, p.y - p.r);
+              maxX = Math.max(maxX, p.x + p.r);
+              maxY = Math.max(maxY, p.y + p.r);
+            });
+            const pad = 40;
+            const vbX = minX - pad;
+            const vbY = minY - pad;
+            const vbW = maxX - minX + pad * 2;
+            const vbH = maxY - minY + pad * 2;
+
+            const focusId = hoverId ?? selectedId;
+            const neighbors = new Set<string>();
+            if (focusId) {
+              (data?.edges ?? []).forEach((e) => {
+                if (e.source_node_id === focusId) neighbors.add(e.target_node_id);
+                if (e.target_node_id === focusId) neighbors.add(e.source_node_id);
+              });
+              neighbors.add(focusId);
+            }
+            const isDimmed = (id: string) => focusId !== null && !neighbors.has(id);
+
+            return (
+              <svg viewBox={`${vbX} ${vbY} ${vbW} ${vbH}`} preserveAspectRatio="xMidYMid meet" style={{ width: "100%", height: "100%" }}>
+                {(data?.edges ?? []).map((e) => {
+                  const s = positions.get(e.source_node_id);
+                  const t = positions.get(e.target_node_id);
+                  if (!s || !t) return null;
+                  const confirmed = e.is_confirmed !== false;
+                  const touchesFocus =
+                    !focusId || e.source_node_id === focusId || e.target_node_id === focusId;
+                  const op = touchesFocus ? (confirmed ? 0.35 : 0.2) : 0.05;
+                  return (
+                    <line
+                      key={e.id}
+                      x1={s.x}
+                      y1={s.y}
+                      x2={t.x}
+                      y2={t.y}
+                      stroke={`rgba(196,154,43,${op})`}
+                      strokeWidth={touchesFocus && focusId ? 1.2 : 0.8}
+                      strokeDasharray={confirmed ? undefined : "4 3"}
+                    />
+                  );
+                })}
+                {nodes.map((n) => {
+                  const p = positions.get(n.id);
+                  if (!p) return null;
+                  const isSel = selectedId === n.id || hoverId === n.id;
+                  const dim = isDimmed(n.id);
+                  const showLabel = isSel || labeledIds.has(n.id) || (focusId !== null && neighbors.has(n.id));
+                  const label = n.label.length > 22 ? n.label.slice(0, 20) + "…" : n.label;
+                  return (
+                    <g
+                      key={n.id}
+                      style={{ cursor: "pointer", opacity: dim ? 0.18 : 1, transition: "opacity 120ms" }}
+                      onClick={() => setSelectedId(n.id)}
+                      onMouseEnter={() => setHoverId(n.id)}
+                      onMouseLeave={() => setHoverId((h) => (h === n.id ? null : h))}
+                    >
+                      <circle
+                        cx={p.x}
+                        cy={p.y}
+                        r={p.r}
+                        fill={p.color}
+                        fillOpacity={isSel ? 1 : 0.8}
+                        stroke={isSel ? "#fff" : "rgba(255,255,255,0.25)"}
+                        strokeWidth={isSel ? 1.5 : 0.5}
+                      />
+                      {showLabel && (
+                        <text
+                          x={p.x}
+                          y={p.y + p.r + 10}
+                          textAnchor="middle"
+                          fill={isSel ? "#fff" : "rgba(255,255,255,0.75)"}
+                          style={{
+                            fontSize: isSel ? 11 : 9,
+                            pointerEvents: "none",
+                            fontWeight: isSel ? 600 : 500,
+                            paintOrder: "stroke",
+                            stroke: "rgba(7,16,30,0.9)",
+                            strokeWidth: 3,
+                            strokeLinejoin: "round",
+                          }}
+                        >
+                          {label}
+                        </text>
+                      )}
+                    </g>
+                  );
+                })}
+              </svg>
+            );
+          })()
         )}
       </div>
 
