@@ -15,6 +15,89 @@ export type BriefBody = {
   has_competitors: boolean;
 };
 
+// ---------------------------------------------------------------------------
+// Shared formatters for optional Olympus enrichment fields. Return "" when the
+// underlying JSON is null/empty so callers can concat without conditionals.
+// ---------------------------------------------------------------------------
+
+type StakeholderGroup = {
+  matters_most?: string | null;
+  frustrations?: string | null;
+  success_looks_like?: string | null;
+} | null | undefined;
+
+type StakeholderIntel = {
+  member?: StakeholderGroup;
+  provider?: StakeholderGroup;
+  evaluator?: StakeholderGroup;
+} | null | undefined;
+
+type ExecutiveEntry = Partial<Record<"why_win" | "why_lose" | "risks" | "proof_points" | "what_matters_most", string>>;
+type ExecutiveIntel = Record<string, ExecutiveEntry> | null | undefined;
+
+function formatStakeholderBlock(s: StakeholderIntel): string {
+  if (!s) return "";
+  const row = (label: string, evaluatorLabels: boolean, g: StakeholderGroup) => {
+    if (!g) return null;
+    const a = (g.matters_most ?? "").trim();
+    const b = (g.frustrations ?? "").trim();
+    const c = (g.success_looks_like ?? "").trim();
+    if (!a && !b && !c) return null;
+    const bLabel = evaluatorLabels ? "what_keeps_awake" : "frustrations";
+    return `- ${label}: [matters_most: ${a || "(blank)"}, ${bLabel}: ${b || "(blank)"}, success_looks_like: ${c || "(blank)"}]`;
+  };
+  const lines = [
+    row("Members/Families", false, s.member),
+    row("Providers", false, s.provider),
+    row("Evaluators", true, s.evaluator),
+  ].filter(Boolean) as string[];
+  if (lines.length === 0) return "";
+  return `=== STAKEHOLDER INTELLIGENCE (captured by capture team — voice of the audience) ===\n${lines.join("\n")}\n\n`;
+}
+
+function formatExecutiveBlock(e: ExecutiveIntel): string {
+  if (!e) return "";
+  const roleLabels: Record<string, string> = {
+    executive_sponsor: "Executive Sponsor",
+    market_lead: "Market Lead",
+    product_clinical_lead: "Product/Clinical Lead",
+    operations_lead: "Operations Lead",
+    network_lead: "Network Lead",
+    bd_lead: "BD Lead",
+  };
+  const collect = (field: keyof ExecutiveEntry) => {
+    const parts: string[] = [];
+    for (const [role, entry] of Object.entries(e)) {
+      const v = (entry?.[field] ?? "").trim();
+      if (!v) continue;
+      const label = roleLabels[role] ?? role;
+      parts.push(`(${label}) ${v}`);
+    }
+    return parts;
+  };
+  const win = collect("why_win");
+  const lose = collect("why_lose");
+  const risks = collect("risks");
+  const proof = collect("proof_points");
+  const matters = collect("what_matters_most");
+  if (![win, lose, risks, proof, matters].some((a) => a.length)) return "";
+  const fmt = (arr: string[]) => (arr.length ? arr.map((s) => `  • ${s}`).join("\n") : "  (none)");
+  return `=== EXECUTIVE PERSPECTIVE (aggregated from leadership) ===
+- Why we win:
+${fmt(win)}
+- Why we lose:
+${fmt(lose)}
+- Key risks:
+${fmt(risks)}
+- Strongest proof points:
+${fmt(proof)}
+- What matters most to the evaluator:
+${fmt(matters)}
+
+`;
+}
+
+
 export const generateIntelligenceBrief = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
