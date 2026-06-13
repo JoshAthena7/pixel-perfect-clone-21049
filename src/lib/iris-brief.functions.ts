@@ -448,6 +448,8 @@ export const generateQuestionBrief = createServerFn({ method: "POST" })
 
     const user = `${canvasBlock}
 
+${stakeholderBlock}${executiveBlock}
+
 === APPROVED MISSION BRIEF (synthesized — primary context) ===
 ${approvedBrief || "(not yet generated)"}
 
