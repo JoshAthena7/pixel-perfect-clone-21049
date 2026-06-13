@@ -99,7 +99,13 @@ function AdminMissionsPage() {
               <button
                 key={m.id}
                 type="button"
-                onClick={() => navigate({ to: "/admin/missions/$missionId", params: { missionId: m.id } })}
+                onClick={() => {
+                  if (b === "Draft") {
+                    navigate({ to: "/olympus/wizard/$missionId", params: { missionId: m.id } });
+                  } else {
+                    navigate({ to: "/admin/missions/$missionId", params: { missionId: m.id } });
+                  }
+                }}
                 className="group w-full text-left rounded-lg px-4 py-3.5 flex items-center gap-4 transition-colors"
                 style={{
                   background: "rgba(255,255,255,0.02)",
@@ -128,6 +134,19 @@ function AdminMissionsPage() {
                   <UsersIcon className="h-3.5 w-3.5" />
                   {staff}
                 </div>
+                {b === "Draft" && (
+                  <span
+                    className="rounded-full text-[10px] font-semibold uppercase tracking-wider shrink-0"
+                    style={{
+                      padding: "3px 9px",
+                      background: "rgba(201,168,76,0.18)",
+                      color: "#c9a84c",
+                      border: "1px solid rgba(201,168,76,0.4)",
+                    }}
+                  >
+                    Resume setup
+                  </span>
+                )}
                 <span
                   className="rounded-full text-[10px] font-semibold uppercase tracking-wider shrink-0"
                   style={{
@@ -147,6 +166,7 @@ function AdminMissionsPage() {
                   style={{ color: "rgba(255,255,255,0.3)" }}
                 />
               </button>
+
             );
           })}
         </div>
