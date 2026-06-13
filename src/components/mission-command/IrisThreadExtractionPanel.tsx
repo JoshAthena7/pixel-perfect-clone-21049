@@ -123,23 +123,6 @@ export function IrisThreadExtractionPanel({ missionId }: { missionId: string }) 
           )}
         </div>
       )}
-      {result && (
-        <div className="mt-3 text-xs text-white/70 space-y-1 border-t border-white/5 pt-3">
-          <div>
-            <span className="text-white">{result.signals_extracted}</span> intelligence signal
-            {result.signals_extracted === 1 ? "" : "s"} added to IRIS Memory across{" "}
-            <span className="text-white">{result.processed}</span> of {result.total_questions} thread
-            {result.total_questions === 1 ? "" : "s"}.
-          </div>
-          {result.errors.length > 0 && (
-            <ul className="text-amber-400/80 text-[11px] list-disc pl-4">
-              {result.errors.map((e, i) => (
-                <li key={i}>{e}</li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
       <ScoreGapsSection missionId={missionId} />
     </div>
   );
