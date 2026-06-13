@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import {
   getMissionBriefStatus, setMissionBriefStatus, type BriefStatus,
 } from "@/lib/mission-brief-approval.functions";
+import { getMissionCustomerIntelligence } from "@/lib/iris-enrich-mission-brief.functions";
 import { IrisIntelligenceBrief } from "@/components/iris/IrisIntelligenceBrief";
 
 const GOLD = "#C9A55C";
