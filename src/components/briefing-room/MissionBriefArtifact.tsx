@@ -121,6 +121,10 @@ export function MissionBriefArtifact({ missionId }: { missionId: string }) {
 
       <IrisIntelligenceBrief missionId={missionId} contextType="flight_deck" />
 
+      <IntelligenceSourcesFooter missionId={missionId} />
+
+
+
       <AlertDialog open={confirmAction !== null} onOpenChange={(o) => { if (!o) setConfirmAction(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
