@@ -49,6 +49,8 @@ function BriefingPage() {
         missionId={missionId}
         isAdmin={!!isAdmin}
       />
+      <MissionOutcomeCard missionId={missionId} />
+
 
       <div className="flex items-center gap-2 mb-4 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
         {([
