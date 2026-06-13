@@ -58,6 +58,8 @@ import { Route as ApiPublicHooksMonitorCustomFeedsRouteImport } from './routes/a
 import { Route as ApiPublicHooksMonitorCmsFeedsRouteImport } from './routes/api/public/hooks/monitor-cms-feeds'
 import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
 import { Route as ApiPublicHooksGenerateDailyBriefsRouteImport } from './routes/api/public/hooks/generate-daily-briefs'
+import { Route as AuthenticatedOlympusWizardNewRouteImport } from './routes/_authenticated/olympus.wizard.new'
+import { Route as AuthenticatedOlympusWizardMissionIdRouteImport } from './routes/_authenticated/olympus.wizard.$missionId'
 import { Route as AuthenticatedOlympusMissionsNewRouteImport } from './routes/_authenticated/olympus.missions.new'
 import { Route as AuthenticatedMissionsMissionIdWinStrategyRouteImport } from './routes/_authenticated/missions.$missionId.win-strategy'
 import { Route as AuthenticatedMissionsMissionIdTeamRouteImport } from './routes/_authenticated/missions.$missionId.team'
@@ -346,6 +348,18 @@ const ApiPublicHooksGenerateDailyBriefsRoute =
     path: '/api/public/hooks/generate-daily-briefs',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedOlympusWizardNewRoute =
+  AuthenticatedOlympusWizardNewRouteImport.update({
+    id: '/olympus/wizard/new',
+    path: '/olympus/wizard/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedOlympusWizardMissionIdRoute =
+  AuthenticatedOlympusWizardMissionIdRouteImport.update({
+    id: '/olympus/wizard/$missionId',
+    path: '/olympus/wizard/$missionId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedOlympusMissionsNewRoute =
   AuthenticatedOlympusMissionsNewRouteImport.update({
     id: '/olympus/missions/new',
@@ -506,6 +520,8 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/missions/$missionId/win-strategy': typeof AuthenticatedMissionsMissionIdWinStrategyRoute
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
+  '/olympus/wizard/$missionId': typeof AuthenticatedOlympusWizardMissionIdRoute
+  '/olympus/wizard/new': typeof AuthenticatedOlympusWizardNewRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
@@ -572,6 +588,8 @@ export interface FileRoutesByTo {
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/missions/$missionId/win-strategy': typeof AuthenticatedMissionsMissionIdWinStrategyRoute
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
+  '/olympus/wizard/$missionId': typeof AuthenticatedOlympusWizardMissionIdRoute
+  '/olympus/wizard/new': typeof AuthenticatedOlympusWizardNewRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
@@ -642,6 +660,8 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
   '/_authenticated/missions/$missionId/win-strategy': typeof AuthenticatedMissionsMissionIdWinStrategyRoute
   '/_authenticated/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
+  '/_authenticated/olympus/wizard/$missionId': typeof AuthenticatedOlympusWizardMissionIdRoute
+  '/_authenticated/olympus/wizard/new': typeof AuthenticatedOlympusWizardNewRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
@@ -712,6 +732,8 @@ export interface FileRouteTypes {
     | '/missions/$missionId/team'
     | '/missions/$missionId/win-strategy'
     | '/olympus/missions/new'
+    | '/olympus/wizard/$missionId'
+    | '/olympus/wizard/new'
     | '/api/public/hooks/generate-daily-briefs'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/monitor-cms-feeds'
@@ -778,6 +800,8 @@ export interface FileRouteTypes {
     | '/missions/$missionId/team'
     | '/missions/$missionId/win-strategy'
     | '/olympus/missions/new'
+    | '/olympus/wizard/$missionId'
+    | '/olympus/wizard/new'
     | '/api/public/hooks/generate-daily-briefs'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/monitor-cms-feeds'
@@ -847,6 +871,8 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/team'
     | '/_authenticated/missions/$missionId/win-strategy'
     | '/_authenticated/olympus/missions/new'
+    | '/_authenticated/olympus/wizard/$missionId'
+    | '/_authenticated/olympus/wizard/new'
     | '/api/public/hooks/generate-daily-briefs'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/monitor-cms-feeds'
@@ -1235,6 +1261,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksGenerateDailyBriefsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/olympus/wizard/new': {
+      id: '/_authenticated/olympus/wizard/new'
+      path: '/olympus/wizard/new'
+      fullPath: '/olympus/wizard/new'
+      preLoaderRoute: typeof AuthenticatedOlympusWizardNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/olympus/wizard/$missionId': {
+      id: '/_authenticated/olympus/wizard/$missionId'
+      path: '/olympus/wizard/$missionId'
+      fullPath: '/olympus/wizard/$missionId'
+      preLoaderRoute: typeof AuthenticatedOlympusWizardMissionIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/olympus/missions/new': {
       id: '/_authenticated/olympus/missions/new'
       path: '/olympus/missions/new'
@@ -1478,6 +1518,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMissionsIndexRoute: typeof AuthenticatedMissionsIndexRoute
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
   AuthenticatedOlympusMissionsNewRoute: typeof AuthenticatedOlympusMissionsNewRoute
+  AuthenticatedOlympusWizardMissionIdRoute: typeof AuthenticatedOlympusWizardMissionIdRoute
+  AuthenticatedOlympusWizardNewRoute: typeof AuthenticatedOlympusWizardNewRoute
   AuthenticatedOlympusMissionsIndexRoute: typeof AuthenticatedOlympusMissionsIndexRoute
   AuthenticatedOlympusMissionsMissionIdWizardRoute: typeof AuthenticatedOlympusMissionsMissionIdWizardRoute
   AuthenticatedOlympusMissionsMissionIdIndexRoute: typeof AuthenticatedOlympusMissionsMissionIdIndexRoute
@@ -1505,6 +1547,9 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMissionsIndexRoute: AuthenticatedMissionsIndexRoute,
   AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
   AuthenticatedOlympusMissionsNewRoute: AuthenticatedOlympusMissionsNewRoute,
+  AuthenticatedOlympusWizardMissionIdRoute:
+    AuthenticatedOlympusWizardMissionIdRoute,
+  AuthenticatedOlympusWizardNewRoute: AuthenticatedOlympusWizardNewRoute,
   AuthenticatedOlympusMissionsIndexRoute:
     AuthenticatedOlympusMissionsIndexRoute,
   AuthenticatedOlympusMissionsMissionIdWizardRoute:

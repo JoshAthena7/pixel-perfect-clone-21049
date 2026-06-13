@@ -5371,6 +5371,65 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_iris_extractions: {
+        Row: {
+          confidence_score: number | null
+          confirmed_at: string | null
+          confirmed_by_user: boolean
+          created_at: string
+          extracted_field: string
+          extracted_value: string | null
+          id: string
+          mission_id: string
+          overridden_by_user: boolean
+          source_file_id: string | null
+          source_file_name: string | null
+          updated_at: string
+          user_override_value: string | null
+          wizard_step: number | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          confirmed_at?: string | null
+          confirmed_by_user?: boolean
+          created_at?: string
+          extracted_field: string
+          extracted_value?: string | null
+          id?: string
+          mission_id: string
+          overridden_by_user?: boolean
+          source_file_id?: string | null
+          source_file_name?: string | null
+          updated_at?: string
+          user_override_value?: string | null
+          wizard_step?: number | null
+        }
+        Update: {
+          confidence_score?: number | null
+          confirmed_at?: string | null
+          confirmed_by_user?: boolean
+          created_at?: string
+          extracted_field?: string
+          extracted_value?: string | null
+          id?: string
+          mission_id?: string
+          overridden_by_user?: boolean
+          source_file_id?: string | null
+          source_file_name?: string | null
+          updated_at?: string
+          user_override_value?: string | null
+          wizard_step?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_iris_extractions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_journey_deliverables: {
         Row: {
           created_at: string
