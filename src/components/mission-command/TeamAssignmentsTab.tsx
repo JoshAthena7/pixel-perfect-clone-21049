@@ -618,14 +618,14 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
               const status = deriveAssignmentStatus(a);
               const smeIds: string[] = Array.isArray(a.sme_member_ids) ? a.sme_member_ids : [];
               return (
-                <tr key={a.id} className="border-t">
+                <tr key={a.question_id} className="border-t">
                   {canManage && (
                     <td className="px-2 py-2">
                       <Checkbox
-                        checked={selected.has(a.id)}
+                        checked={selected.has(a.question_id)}
                         onCheckedChange={(v) => {
                           const n = new Set(selected);
-                          v ? n.add(a.id) : n.delete(a.id);
+                          v ? n.add(a.question_id) : n.delete(a.question_id);
                           setSelected(n);
                         }}
                       />
@@ -640,7 +640,7 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
                     {canManage ? (
                       <Select
                         value={a.assigned_writer_id ?? "none"}
-                        onValueChange={(v) => reassign(a.id, a.assigned_writer_id, v)}
+                        onValueChange={(v) => reassign(a.id, a.question_id, a.assigned_writer_id, v)}
                       >
                         <SelectTrigger className="h-8 text-xs w-40"><SelectValue placeholder="Unassigned" /></SelectTrigger>
                         <SelectContent>
@@ -678,7 +678,7 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
                                       const next = v
                                         ? Array.from(new Set([...smeIds, m.member_id]))
                                         : smeIds.filter((x) => x !== m.member_id);
-                                      updateSmes(a.id, next);
+                                      updateSmes(a.id, a.question_id, next);
                                     }}
                                   />
                                   <span>{teamName(m.member_id)}</span>
@@ -709,7 +709,7 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar mode="single" selected={a.due_date ? new Date(a.due_date) : undefined}
-                                    onSelect={(d) => updateDue(a.id, d)} className="pointer-events-auto" />
+                                    onSelect={(d) => updateDue(a.id, a.question_id, d)} className="pointer-events-auto" />
                         </PopoverContent>
                       </Popover>
                     ) : (
