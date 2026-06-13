@@ -6755,6 +6755,7 @@ export type Database = {
           procurement_type: string | null
           program_type: string | null
           reinforce: string[] | null
+          stakeholder_intelligence: Json | null
           state: string | null
           state_code: string | null
           state_priorities: string | null
@@ -6794,6 +6795,7 @@ export type Database = {
           procurement_type?: string | null
           program_type?: string | null
           reinforce?: string[] | null
+          stakeholder_intelligence?: Json | null
           state?: string | null
           state_code?: string | null
           state_priorities?: string | null
@@ -6833,6 +6835,7 @@ export type Database = {
           procurement_type?: string | null
           program_type?: string | null
           reinforce?: string[] | null
+          stakeholder_intelligence?: Json | null
           state?: string | null
           state_code?: string | null
           state_priorities?: string | null
