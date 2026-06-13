@@ -6741,6 +6741,7 @@ export type Database = {
           contract_value: number | null
           created_at: string
           created_by: string | null
+          executive_intelligence: Json | null
           id: string
           intelligence_graph_completeness: number
           intelligence_loadout_step: number
@@ -6781,6 +6782,7 @@ export type Database = {
           contract_value?: number | null
           created_at?: string
           created_by?: string | null
+          executive_intelligence?: Json | null
           id?: string
           intelligence_graph_completeness?: number
           intelligence_loadout_step?: number
@@ -6821,6 +6823,7 @@ export type Database = {
           contract_value?: number | null
           created_at?: string
           created_by?: string | null
+          executive_intelligence?: Json | null
           id?: string
           intelligence_graph_completeness?: number
           intelligence_loadout_step?: number
