@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { formatDistanceToNow } from "date-fns";
 import { X, Eye, Send, Flag, Star, ArrowLeftRight, Bookmark } from "lucide-react";
 import { SaveAsInsightDialog } from "./SaveAsInsightDialog";
+import { LessonsLearnedDialog } from "./LessonsLearnedDialog";
 import {
   listThreadMessages,
   postThreadMessage,
