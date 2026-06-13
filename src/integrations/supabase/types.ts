@@ -5783,6 +5783,8 @@ export type Database = {
           health_status: string
           id: string
           iris_confidence: string | null
+          iris_extracted: boolean | null
+          iris_extracted_at: string | null
           iris_intel_note: string | null
           is_withdrawn: boolean
           mission_id: string
@@ -5804,6 +5806,8 @@ export type Database = {
           health_status?: string
           id?: string
           iris_confidence?: string | null
+          iris_extracted?: boolean | null
+          iris_extracted_at?: string | null
           iris_intel_note?: string | null
           is_withdrawn?: boolean
           mission_id: string
@@ -5825,6 +5829,8 @@ export type Database = {
           health_status?: string
           id?: string
           iris_confidence?: string | null
+          iris_extracted?: boolean | null
+          iris_extracted_at?: string | null
           iris_intel_note?: string | null
           is_withdrawn?: boolean
           mission_id?: string
