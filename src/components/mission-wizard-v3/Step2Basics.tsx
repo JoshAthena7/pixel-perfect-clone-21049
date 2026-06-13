@@ -1,5 +1,6 @@
 import { WizardStepHeading, WizardFooter } from "./WizardShellV3";
 import { StepFieldList } from "./StepFieldList";
+import { MissionTeamPicker } from "./MissionTeamPicker";
 
 const FIELDS = [
   { key: "client_agency", label: "Client / Agency" },
@@ -33,7 +34,9 @@ export function Step2Basics({
         subtitle="IRIS extracted these fields from your RFP. Confirm each, edit, or write your own."
       />
       <StepFieldList missionId={missionId} wizardStep={2} fields={FIELDS} />
+      <MissionTeamPicker missionId={missionId} />
       <WizardFooter step={2} onBack={onBack} onContinue={onAdvance} />
     </div>
   );
 }
+
