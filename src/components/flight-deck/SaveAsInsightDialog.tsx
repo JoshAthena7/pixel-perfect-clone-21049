@@ -27,10 +27,7 @@ export function SaveAsInsightDialog({ open, onOpenChange, initialContent, missio
   const [tags, setTags] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Reset content when re-opening with new selection
-  if (open && content !== initialContent && !saving && content === "") {
-    setContent(initialContent);
-  }
+  // Content is reset/initialized via the Dialog's onOpenChange below.
 
   const handleSave = async () => {
     const text = content.trim();
