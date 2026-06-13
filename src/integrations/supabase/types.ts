@@ -7508,6 +7508,84 @@ export type Database = {
           },
         ]
       }
+      question_briefs: {
+        Row: {
+          created_at: string
+          evaluator_perspective: string | null
+          generated_at: string
+          generated_by_iris: boolean
+          id: string
+          key_messages_to_reinforce: string[] | null
+          member_perspective: string | null
+          mission_id: string
+          proof_points: string[] | null
+          provider_perspective: string | null
+          question_id: string | null
+          status: string
+          suggested_smes: string[] | null
+          things_to_avoid: string[] | null
+          thread_id: string | null
+          updated_at: string
+          what_they_really_asking: string | null
+          why_it_matters: string | null
+        }
+        Insert: {
+          created_at?: string
+          evaluator_perspective?: string | null
+          generated_at?: string
+          generated_by_iris?: boolean
+          id?: string
+          key_messages_to_reinforce?: string[] | null
+          member_perspective?: string | null
+          mission_id: string
+          proof_points?: string[] | null
+          provider_perspective?: string | null
+          question_id?: string | null
+          status?: string
+          suggested_smes?: string[] | null
+          things_to_avoid?: string[] | null
+          thread_id?: string | null
+          updated_at?: string
+          what_they_really_asking?: string | null
+          why_it_matters?: string | null
+        }
+        Update: {
+          created_at?: string
+          evaluator_perspective?: string | null
+          generated_at?: string
+          generated_by_iris?: boolean
+          id?: string
+          key_messages_to_reinforce?: string[] | null
+          member_perspective?: string | null
+          mission_id?: string
+          proof_points?: string[] | null
+          provider_perspective?: string | null
+          question_id?: string | null
+          status?: string
+          suggested_smes?: string[] | null
+          things_to_avoid?: string[] | null
+          thread_id?: string | null
+          updated_at?: string
+          what_they_really_asking?: string | null
+          why_it_matters?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_briefs_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_briefs_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       question_collaboration: {
         Row: {
           author_id: string | null
