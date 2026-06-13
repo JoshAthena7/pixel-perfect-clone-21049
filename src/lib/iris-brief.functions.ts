@@ -15,6 +15,89 @@ export type BriefBody = {
   has_competitors: boolean;
 };
 
+// ---------------------------------------------------------------------------
+// Shared formatters for optional Olympus enrichment fields. Return "" when the
+// underlying JSON is null/empty so callers can concat without conditionals.
+// ---------------------------------------------------------------------------
+
+type StakeholderGroup = {
+  matters_most?: string | null;
+  frustrations?: string | null;
+  success_looks_like?: string | null;
+} | null | undefined;
+
+type StakeholderIntel = {
+  member?: StakeholderGroup;
+  provider?: StakeholderGroup;
+  evaluator?: StakeholderGroup;
+} | null | undefined;
+
+type ExecutiveEntry = Partial<Record<"why_win" | "why_lose" | "risks" | "proof_points" | "what_matters_most", string>>;
+type ExecutiveIntel = Record<string, ExecutiveEntry> | null | undefined;
+
+function formatStakeholderBlock(s: StakeholderIntel): string {
+  if (!s) return "";
+  const row = (label: string, evaluatorLabels: boolean, g: StakeholderGroup) => {
+    if (!g) return null;
+    const a = (g.matters_most ?? "").trim();
+    const b = (g.frustrations ?? "").trim();
+    const c = (g.success_looks_like ?? "").trim();
+    if (!a && !b && !c) return null;
+    const bLabel = evaluatorLabels ? "what_keeps_awake" : "frustrations";
+    return `- ${label}: [matters_most: ${a || "(blank)"}, ${bLabel}: ${b || "(blank)"}, success_looks_like: ${c || "(blank)"}]`;
+  };
+  const lines = [
+    row("Members/Families", false, s.member),
+    row("Providers", false, s.provider),
+    row("Evaluators", true, s.evaluator),
+  ].filter(Boolean) as string[];
+  if (lines.length === 0) return "";
+  return `=== STAKEHOLDER INTELLIGENCE (captured by capture team — voice of the audience) ===\n${lines.join("\n")}\n\n`;
+}
+
+function formatExecutiveBlock(e: ExecutiveIntel): string {
+  if (!e) return "";
+  const roleLabels: Record<string, string> = {
+    executive_sponsor: "Executive Sponsor",
+    market_lead: "Market Lead",
+    product_clinical_lead: "Product/Clinical Lead",
+    operations_lead: "Operations Lead",
+    network_lead: "Network Lead",
+    bd_lead: "BD Lead",
+  };
+  const collect = (field: keyof ExecutiveEntry) => {
+    const parts: string[] = [];
+    for (const [role, entry] of Object.entries(e)) {
+      const v = (entry?.[field] ?? "").trim();
+      if (!v) continue;
+      const label = roleLabels[role] ?? role;
+      parts.push(`(${label}) ${v}`);
+    }
+    return parts;
+  };
+  const win = collect("why_win");
+  const lose = collect("why_lose");
+  const risks = collect("risks");
+  const proof = collect("proof_points");
+  const matters = collect("what_matters_most");
+  if (![win, lose, risks, proof, matters].some((a) => a.length)) return "";
+  const fmt = (arr: string[]) => (arr.length ? arr.map((s) => `  • ${s}`).join("\n") : "  (none)");
+  return `=== EXECUTIVE PERSPECTIVE (aggregated from leadership) ===
+- Why we win:
+${fmt(win)}
+- Why we lose:
+${fmt(lose)}
+- Key risks:
+${fmt(risks)}
+- Strongest proof points:
+${fmt(proof)}
+- What matters most to the evaluator:
+${fmt(matters)}
+
+`;
+}
+
+
 export const generateIntelligenceBrief = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
@@ -43,7 +126,7 @@ export const generateIntelligenceBrief = createServerFn({ method: "POST" })
       supabase.from("procurement_evolution_records").select("iris_signals,iris_summary").eq("mission_id", data.missionId).maybeSingle(),
       supabase.from("intelligence_feed_items").select("category,headline,source_name,source_url,iris_assessment,iris_relevance_score,published_at").eq("mission_id", data.missionId).gte("iris_relevance_score", 50).order("iris_relevance_score", { ascending: false }).limit(50),
       supabase.from("intelligence_graph_nodes").select("label,description").eq("mission_id", data.missionId).eq("node_type", "research").limit(15),
-      supabase.from("missions").select("north_star,why_win,why_lose,biggest_concerns,known_competitors,state_priorities,win_themes_text,reinforce,avoid").eq("id", data.missionId).maybeSingle(),
+      supabase.from("missions").select("north_star,why_win,why_lose,biggest_concerns,known_competitors,state_priorities,win_themes_text,reinforce,avoid,stakeholder_intelligence,executive_intelligence").eq("id", data.missionId).maybeSingle(),
       supabase.from("insights").select("insight_type,content,source,confidence,tags").is("mission_id", null).eq("expiry_flag", false).limit(100),
     ]);
 
@@ -79,7 +162,11 @@ export const generateIntelligenceBrief = createServerFn({ method: "POST" })
       biggest_concerns?: string | null; known_competitors?: string[] | null;
       state_priorities?: string | null; win_themes_text?: string | null;
       reinforce?: string[] | null; avoid?: string[] | null;
+      stakeholder_intelligence?: StakeholderIntel;
+      executive_intelligence?: ExecutiveIntel;
     } | null;
+    const stakeholderBlock = formatStakeholderBlock(canvas?.stakeholder_intelligence);
+    const executiveBlock = formatExecutiveBlock(canvas?.executive_intelligence);
     const insightsRows = (athenaInsightsRes?.data ?? []) as Array<{ insight_type: string; content: string; source: string | null; confidence: string | null; tags: string[] | null }>;
     const stateDnaRows = (stateDnaRes?.data ?? []) as Array<{ category: string; attribute: string; value: string; source: string | null; confidence: string | null }>;
     const programDnaRows = (programDnaRes?.data ?? []) as Array<{ category: string; attribute: string; value: string; source: string | null; confidence: string | null }>;
@@ -147,7 +234,7 @@ export const generateIntelligenceBrief = createServerFn({ method: "POST" })
 `
       : "";
 
-    const user = `${canvasBlock}Mission: ${m?.name ?? ""} | Client: ${m?.client_name ?? ""} | State: ${m?.state ?? ""} | Agency: ${m?.agency_name ?? ""} | Program: ${m?.program_type ?? ""}
+    const user = `${canvasBlock}${stakeholderBlock}${executiveBlock}Mission: ${m?.name ?? ""} | Client: ${m?.client_name ?? ""} | State: ${m?.state ?? ""} | Agency: ${m?.agency_name ?? ""} | Program: ${m?.program_type ?? ""}
 Section ${sec?.section_number ?? ""}: ${sectionName}${sectionDescription ? ` — ${sectionDescription}` : ""}
 ${qn ? `Question ${qn.question_number ?? ""}: ${questionText}` : ""}
 
@@ -284,7 +371,7 @@ export const generateQuestionBrief = createServerFn({ method: "POST" })
     // Mission + canvas fields (single row from missions).
     const { data: missionRow } = await supabase
       .from("missions")
-      .select("name,state,agency_name,program_type,client_name,north_star,why_win,why_lose,biggest_concerns,known_competitors,state_priorities,win_themes_text,reinforce,avoid")
+      .select("name,state,agency_name,program_type,client_name,north_star,why_win,why_lose,biggest_concerns,known_competitors,state_priorities,win_themes_text,reinforce,avoid,stakeholder_intelligence,executive_intelligence")
       .eq("id", data.missionId)
       .maybeSingle();
     const m = (missionRow ?? {}) as {
@@ -294,7 +381,11 @@ export const generateQuestionBrief = createServerFn({ method: "POST" })
       biggest_concerns?: string | null; known_competitors?: string[] | null;
       state_priorities?: string | null; win_themes_text?: string | null;
       reinforce?: string[] | null; avoid?: string[] | null;
+      stakeholder_intelligence?: StakeholderIntel;
+      executive_intelligence?: ExecutiveIntel;
     };
+    const stakeholderBlock = formatStakeholderBlock(m.stakeholder_intelligence);
+    const executiveBlock = formatExecutiveBlock(m.executive_intelligence);
     const missionState = m.state ?? null;
     const missionProgram = m.program_type ?? null;
 
@@ -356,6 +447,8 @@ export const generateQuestionBrief = createServerFn({ method: "POST" })
       "Be specific to THIS question and mission — no boilerplate. Each text field is 2-4 sentences. Arrays contain 3-6 short, concrete items. Reference state and program specifics by name. Pull directly from the Mission Canvas and the approved Mission Brief when relevant.";
 
     const user = `${canvasBlock}
+
+${stakeholderBlock}${executiveBlock}
 
 === APPROVED MISSION BRIEF (synthesized — primary context) ===
 ${approvedBrief || "(not yet generated)"}
