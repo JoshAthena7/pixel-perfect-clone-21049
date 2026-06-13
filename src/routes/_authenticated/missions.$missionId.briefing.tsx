@@ -84,6 +84,18 @@ function BriefingPage() {
           <div className="pt-2">
             <div className="flex items-center gap-3 mb-3">
               <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                Competitive Intelligence
+              </h3>
+              <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <CompetitorIntelPanel missionId={missionId} readOnly />
+          </div>
+
+
+
+          <div className="pt-2">
+            <div className="flex items-center gap-3 mb-3">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                 Supporting Materials
               </h3>
               <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
