@@ -6733,6 +6733,10 @@ export type Database = {
           biggest_concerns: string | null
           blast_off_at: string | null
           blast_off_by: string | null
+          brief_approved_at: string | null
+          brief_approved_by: string | null
+          brief_status: string
+          brief_version: number
           client_name: string | null
           contract_value: number | null
           created_at: string
@@ -6768,6 +6772,10 @@ export type Database = {
           biggest_concerns?: string | null
           blast_off_at?: string | null
           blast_off_by?: string | null
+          brief_approved_at?: string | null
+          brief_approved_by?: string | null
+          brief_status?: string
+          brief_version?: number
           client_name?: string | null
           contract_value?: number | null
           created_at?: string
@@ -6803,6 +6811,10 @@ export type Database = {
           biggest_concerns?: string | null
           blast_off_at?: string | null
           blast_off_by?: string | null
+          brief_approved_at?: string | null
+          brief_approved_by?: string | null
+          brief_status?: string
+          brief_version?: number
           client_name?: string | null
           contract_value?: number | null
           created_at?: string
@@ -6831,7 +6843,22 @@ export type Database = {
           why_win?: string | null
           win_themes_text?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "missions_brief_approved_by_fkey"
+            columns: ["brief_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "missions_brief_approved_by_fkey"
+            columns: ["brief_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mock_scores: {
         Row: {
