@@ -27,11 +27,14 @@ const Input = z.object({
   competitors: z.array(z.string().trim().min(1)).min(0).max(20).optional(),
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Supa = any;
+
 export const generateCompetitorIntelligence = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => Input.parse(d))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
+    const supabase = context.supabase as Supa;
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("IRIS is not configured — built-in AI key missing.");
 
@@ -42,10 +45,9 @@ export const generateCompetitorIntelligence = createServerFn({ method: "POST" })
       .maybeSingle();
     if (mErr || !mission) throw new Error("Mission not found or access denied.");
 
-    // Resolve competitor list: explicit > mission.known_competitors > extraction.
     let competitors: string[] = Array.isArray(data.competitors) ? data.competitors : [];
     if (competitors.length === 0 && Array.isArray(mission.known_competitors)) {
-      competitors = mission.known_competitors;
+      competitors = mission.known_competitors as string[];
     }
     if (competitors.length === 0) {
       const { data: ext } = await supabase
@@ -54,11 +56,11 @@ export const generateCompetitorIntelligence = createServerFn({ method: "POST" })
         .eq("mission_id", data.mission_id)
         .eq("extracted_field", "known_competitors")
         .maybeSingle();
-      const raw = (ext?.user_override_value ?? ext?.extracted_value ?? "").trim();
+      const raw = ((ext?.user_override_value ?? ext?.extracted_value ?? "") as string).trim();
       if (raw) {
         competitors = raw
           .split(/[\n,;]+/)
-          .map((s) => s.trim())
+          .map((s: string) => s.trim())
           .filter(Boolean);
       }
     }
@@ -67,22 +69,19 @@ export const generateCompetitorIntelligence = createServerFn({ method: "POST" })
       throw new Error("No confirmed competitors to research. Add competitors first.");
     }
 
-    // Persist the confirmed list back to missions.known_competitors so it
-    // stays in sync with what we generated cards for.
     await supabase
       .from("missions")
       .update({ known_competitors: competitors })
       .eq("id", data.mission_id);
 
-    const stateName = mission.state ?? null;
-    const programName = mission.program_type ?? null;
+    const stateName: string | null = mission.state ?? null;
+    const programName: string | null = mission.program_type ?? null;
 
     const cards: CompetitorCard[] = [];
     for (const name of competitors) {
       const card = await generateOneCard({
         supabase,
         apiKey,
-        missionId: data.mission_id,
         competitorName: name,
         stateName,
         programName,
@@ -98,13 +97,7 @@ export const generateCompetitorIntelligence = createServerFn({ method: "POST" })
       });
     }
 
-    // Competitive landscape synthesis across all cards.
-    const summary = await generateLandscapeSummary({
-      apiKey,
-      cards,
-      stateName,
-      programName,
-    });
+    const summary = await generateLandscapeSummary({ apiKey, cards, stateName, programName });
     await upsertExtraction(supabase, {
       missionId: data.mission_id,
       field: "competitive_landscape_summary",
@@ -118,22 +111,11 @@ export const generateCompetitorIntelligence = createServerFn({ method: "POST" })
 // -------- helpers --------
 
 function slug(s: string): string {
-  return s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 80);
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 80);
 }
 
-type SupaClient = Awaited<
-  ReturnType<typeof import("@/integrations/supabase/auth-middleware").requireSupabaseAuth>
-> extends never
-  ? never
-  : Parameters<typeof upsertExtraction>[0];
-
 async function upsertExtraction(
-  // Loose typing — supabase-js client from auth middleware
-  supabase: { from: (t: string) => unknown } & Record<string, unknown>,
+  supabase: Supa,
   args: {
     missionId: string;
     field: string;
@@ -142,21 +124,9 @@ async function upsertExtraction(
     sourceFileName?: string;
   },
 ) {
-  // Re-run is idempotent: overwrite extracted_value but preserve any
+  // Re-run is idempotent: overwrite extracted_value but never touch
   // user_override_value so manual edits survive regeneration.
-  const { data: existing } = await (
-    supabase as unknown as {
-      from: (t: string) => {
-        select: (s: string) => {
-          eq: (a: string, b: string) => {
-            eq: (a: string, b: string) => {
-              maybeSingle: () => Promise<{ data: { id: string } | null }>;
-            };
-          };
-        };
-      };
-    }
-  )
+  const { data: existing } = await supabase
     .from("mission_iris_extractions")
     .select("id")
     .eq("mission_id", args.missionId)
@@ -170,34 +140,18 @@ async function upsertExtraction(
     confidence_score: args.confidence,
     wizard_step: 4,
     source_file_name: args.sourceFileName ?? null,
-  } as const;
+  };
 
   if (existing?.id) {
-    await (
-      supabase as unknown as {
-        from: (t: string) => {
-          update: (v: Record<string, unknown>) => { eq: (a: string, b: string) => Promise<unknown> };
-        };
-      }
-    )
-      .from("mission_iris_extractions")
-      .update(row)
-      .eq("id", existing.id);
+    await supabase.from("mission_iris_extractions").update(row).eq("id", existing.id);
   } else {
-    await (
-      supabase as unknown as {
-        from: (t: string) => { insert: (v: Record<string, unknown>) => Promise<unknown> };
-      }
-    )
-      .from("mission_iris_extractions")
-      .insert(row);
+    await supabase.from("mission_iris_extractions").insert(row);
   }
 }
 
 async function generateOneCard(args: {
-  supabase: SupaClient;
+  supabase: Supa;
   apiKey: string;
-  missionId: string;
   competitorName: string;
   stateName: string | null;
   programName: string | null;
@@ -207,96 +161,40 @@ async function generateOneCard(args: {
 
   const [insightsRes, stateDnaRes, programDnaRes, signalsRes, historyRes, expertsRes] =
     await Promise.all([
-      (supabase as unknown as {
-        from: (t: string) => {
-          select: (s: string) => {
-            eq: (a: string, b: string) => {
-              or: (q: string) => { limit: (n: number) => Promise<{ data: unknown[] | null }> };
-            };
-          };
-        };
-      })
+      supabase
         .from("insights")
         .select("content, source, confidence, tags")
         .eq("insight_type", "competitive_intel")
         .or(`content.ilike.${like},tags.cs.{${competitorName}}`)
         .limit(50),
       stateName
-        ? (supabase as unknown as {
-            from: (t: string) => {
-              select: (s: string) => {
-                eq: (a: string, b: string) => {
-                  ilike: (
-                    a: string,
-                    b: string,
-                  ) => { limit: (n: number) => Promise<{ data: unknown[] | null }> };
-                };
-              };
-            };
-          })
+        ? supabase
             .from("state_dna")
             .select("category, attribute, value, source")
             .eq("state", stateName)
             .ilike("value", like)
             .limit(30)
-        : Promise.resolve({ data: [] as unknown[] }),
+        : Promise.resolve({ data: [] }),
       programName
-        ? (supabase as unknown as {
-            from: (t: string) => {
-              select: (s: string) => {
-                eq: (a: string, b: string) => {
-                  ilike: (
-                    a: string,
-                    b: string,
-                  ) => { limit: (n: number) => Promise<{ data: unknown[] | null }> };
-                };
-              };
-            };
-          })
+        ? supabase
             .from("program_dna")
             .select("category, attribute, value, source")
             .eq("program", programName)
             .ilike("value", like)
             .limit(30)
-        : Promise.resolve({ data: [] as unknown[] }),
-      (supabase as unknown as {
-        from: (t: string) => {
-          select: (s: string) => {
-            or: (q: string) => {
-              order: (
-                c: string,
-                o: { ascending: boolean },
-              ) => { limit: (n: number) => Promise<{ data: unknown[] | null }> };
-            };
-          };
-        };
-      })
+        : Promise.resolve({ data: [] }),
+      supabase
         .from("signals")
         .select("signal_title, signal_summary, severity, created_at, tags")
         .or(`signal_title.ilike.${like},signal_summary.ilike.${like},tags.cs.{${competitorName}}`)
         .order("created_at", { ascending: false })
         .limit(5),
-      (supabase as unknown as {
-        from: (t: string) => {
-          select: (s: string) => {
-            contains: (
-              c: string,
-              v: string[],
-            ) => { limit: (n: number) => Promise<{ data: unknown[] | null }> };
-          };
-        };
-      })
+      supabase
         .from("missions")
         .select("name, state, program_type, status")
         .contains("known_competitors", [competitorName])
         .limit(50),
-      (supabase as unknown as {
-        from: (t: string) => {
-          select: (s: string) => {
-            or: (q: string) => { limit: (n: number) => Promise<{ data: unknown[] | null }> };
-          };
-        };
-      })
+      supabase
         .from("experts")
         .select("name, role, notes, tags")
         .or(`notes.ilike.${like},tags.cs.{${competitorName}}`)
@@ -304,53 +202,28 @@ async function generateOneCard(args: {
     ]);
 
   const insights = (insightsRes?.data ?? []) as Array<{
-    content: string;
-    source: string | null;
-    confidence: string | null;
-    tags: string[] | null;
+    content: string; source: string | null; confidence: string | null; tags: string[] | null;
   }>;
   const stateDna = (stateDnaRes?.data ?? []) as Array<{
-    category: string;
-    attribute: string;
-    value: string;
-    source: string | null;
+    category: string; attribute: string; value: string; source: string | null;
   }>;
   const programDna = (programDnaRes?.data ?? []) as Array<{
-    category: string;
-    attribute: string;
-    value: string;
-    source: string | null;
+    category: string; attribute: string; value: string; source: string | null;
   }>;
   const signals = (signalsRes?.data ?? []) as Array<{
-    signal_title: string;
-    signal_summary: string | null;
-    severity: string | null;
-    created_at: string;
-    tags: string[] | null;
+    signal_title: string; signal_summary: string | null; severity: string | null;
+    created_at: string; tags: string[] | null;
   }>;
   const history = (historyRes?.data ?? []) as Array<{
-    name: string;
-    state: string | null;
-    program_type: string | null;
-    status: string | null;
+    name: string; state: string | null; program_type: string | null; status: string | null;
   }>;
   const experts = (expertsRes?.data ?? []) as Array<{
-    name: string;
-    role: string | null;
-    notes: string | null;
-    tags: string[] | null;
+    name: string; role: string | null; notes: string | null; tags: string[] | null;
   }>;
 
   const sourceCount =
-    insights.length +
-    stateDna.length +
-    programDna.length +
-    signals.length +
-    history.length +
-    experts.length;
+    insights.length + stateDna.length + programDna.length + signals.length + history.length + experts.length;
 
-  // Quick threat heuristic — surfaces in UI; AI may also infer, but the badge
-  // should be deterministic from data we control.
   const wonByThemInState = history.filter(
     (m) =>
       m.status === "awarded" &&
@@ -437,7 +310,7 @@ ${sourceBlock}`;
   const parsed = (match ? safeJson(match[0]) : null) ?? {};
 
   const empty = "No intelligence on file — add via competitor card below.";
-  const card: CompetitorCard = {
+  return {
     competitor_name: competitorName,
     incumbent_status: str(parsed.incumbent_status, empty),
     how_they_win: str(parsed.how_they_win, empty),
@@ -455,7 +328,6 @@ ${sourceBlock}`;
     source_count: sourceCount,
     threat_level: threat,
   };
-  return card;
 }
 
 async function generateLandscapeSummary(args: {
@@ -471,7 +343,6 @@ async function generateLandscapeSummary(args: {
         `- ${c.competitor_name} (threat=${c.threat_level}, conf=${c.confidence_level}): ${c.how_they_win}\n  weaknesses: ${c.known_weaknesses}`,
     )
     .join("\n");
-
   const system = `You are IRIS. In ONE tight paragraph (4-6 sentences), summarize the overall competitive landscape: who the real threats are, the competitive dynamic, and what it means for our positioning. No bullets, no preamble.`;
   const user = `Mission context: state=${stateName ?? "(unknown)"}, program=${programName ?? "(unknown)"}.
 
