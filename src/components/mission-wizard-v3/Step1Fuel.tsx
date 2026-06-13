@@ -8,13 +8,26 @@ import { AlertCircle, FileText, Loader2, Plus, Sparkles, UploadCloud, X } from "
 import { supabase } from "@/integrations/supabase/client";
 import { analyzeMissionStep } from "@/lib/iris-mission-analysis.functions";
 import { processRFPDocuments } from "@/lib/iris-process-rfp.functions";
+import { extractRFPText } from "@/lib/extract-rfp-text.client";
 import { Input } from "@/components/ui/input";
 import { WizardStepHeading, WizardFooter } from "./WizardShellV3";
 import { cn } from "@/lib/utils";
 
 const BUCKET = "atlas-rfp-documents";
 const MAX_BYTES = 100 * 1024 * 1024;
-const ALLOWED_EXT = [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".csv", ".txt", ".md", ".rtf"];
+const ALLOWED_EXT = [
+  ".pdf",
+  ".doc",
+  ".docx",
+  ".xls",
+  ".xlsx",
+  ".ppt",
+  ".pptx",
+  ".csv",
+  ".txt",
+  ".md",
+  ".rtf",
+];
 
 const BASICS_FIELDS = [
   { key: "client_agency", label: "Client / Agency" },
@@ -41,6 +54,20 @@ type Row = {
   documentId?: string;
   error?: string;
 };
+
+async function extractTextFromBlob(blob: Blob, fileName: string): Promise<string> {
+  const lower = fileName.toLowerCase();
+  if (
+    lower.endsWith(".txt") ||
+    lower.endsWith(".md") ||
+    lower.endsWith(".csv") ||
+    lower.endsWith(".rtf")
+  ) {
+    return blob.text();
+  }
+  const file = new File([blob], fileName, { type: blob.type });
+  return extractRFPText(file);
+}
 
 export function Step1Fuel({
   missionId,
@@ -95,21 +122,31 @@ export function Step1Fuel({
   const saveName = async (v: string) => {
     setName(v);
     onMissionNameChange(v);
-    await supabase.from("missions").update({ name: v.trim() || "Untitled Mission" }).eq("id", missionId);
+    await supabase
+      .from("missions")
+      .update({ name: v.trim() || "Untitled Mission" })
+      .eq("id", missionId);
   };
 
   async function uploadRow(initial: Row, file: File) {
-    setRows((cur) => cur.map((r) => (r.uid === initial.uid ? { ...r, status: "uploading", progress: 10 } : r)));
+    setRows((cur) =>
+      cur.map((r) => (r.uid === initial.uid ? { ...r, status: "uploading", progress: 10 } : r)),
+    );
     try {
       const path = `${missionId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9_.-]/g, "_")}`;
-      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, { upsert: false });
+      const { error: upErr } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, file, { upsert: false });
       if (upErr) throw upErr;
       const { data: userData } = await supabase.auth.getUser();
       const { data: doc, error: insErr } = await supabase
         .from("mission_documents")
         .insert({
           mission_id: missionId,
-          document_type: rows.length === 0 && file.name.toLowerCase().match(/rfp|sow|solicit/) ? "primary_rfp" : "other",
+          document_type:
+            rows.length === 0 && file.name.toLowerCase().match(/rfp|sow|solicit/)
+              ? "primary_rfp"
+              : "other",
           title: file.name.replace(/\.[^.]+$/, "").slice(0, 200),
           file_url: path,
           uploaded_by: userData.user?.id ?? null,
@@ -118,11 +155,15 @@ export function Step1Fuel({
         .single();
       if (insErr) throw insErr;
       setRows((cur) =>
-        cur.map((r) => (r.uid === initial.uid ? { ...r, status: "done", progress: 100, documentId: doc.id } : r)),
+        cur.map((r) =>
+          r.uid === initial.uid ? { ...r, status: "done", progress: 100, documentId: doc.id } : r,
+        ),
       );
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Upload failed";
-      setRows((cur) => cur.map((r) => (r.uid === initial.uid ? { ...r, status: "error", error: msg } : r)));
+      setRows((cur) =>
+        cur.map((r) => (r.uid === initial.uid ? { ...r, status: "error", error: msg } : r)),
+      );
     }
   }
 
@@ -157,14 +198,50 @@ export function Step1Fuel({
     setAnalyzing(true);
     setAnalyzeResult(null);
     try {
+      const { data: docs, error: docsError } = await supabase
+        .from("mission_documents")
+        .select("id, title, file_url, content_summary")
+        .eq("mission_id", missionId)
+        .order("created_at", { ascending: true });
+      if (docsError) throw docsError;
+
+      const textParts: string[] = [];
+      for (const doc of docs ?? []) {
+        const title = doc.title ?? "Document";
+        const cachedText = (doc.content_summary ?? "").trim();
+        if (cachedText.length > 50) {
+          textParts.push(`# ${title}\n\n${cachedText}`);
+          continue;
+        }
+        if (!doc.file_url) continue;
+        const { data: blob, error: downloadError } = await supabase.storage
+          .from(BUCKET)
+          .download(doc.file_url);
+        if (downloadError || !blob) continue;
+        const fileName = doc.file_url.split("/").pop() || title;
+        try {
+          const extracted = (await extractTextFromBlob(blob, fileName)).trim();
+          if (extracted.length > 50) {
+            textParts.push(`# ${title}\n\n${extracted}`);
+            await supabase
+              .from("mission_documents")
+              .update({ content_summary: extracted.slice(0, 220_000) })
+              .eq("id", doc.id);
+          }
+        } catch (e) {
+          console.warn("[IRIS] Text extraction failed:", title, e);
+        }
+      }
+
+      const primaryRfpText = textParts.join("\n\n---\n\n").slice(0, 700_000);
+      if (primaryRfpText.trim().length < 50)
+        throw new Error("IRIS could not read text from the uploaded RFP documents.");
+
       // Run RFP structure extraction (volumes/sections/questions/compliance) AND
       // basics field extraction in parallel. The RFP processor is what populates
       // mission_questions so Step 7 has questions to assign writers to.
       const [rfp, basics] = await Promise.all([
-        processRfpFn({ data: { mission_id: missionId } }).catch((e) => {
-          console.warn("[IRIS] RFP processing failed:", e);
-          return null;
-        }),
+        processRfpFn({ data: { mission_id: missionId, primary_rfp_text: primaryRfpText } }),
         analyzeFn({ data: { missionId, wizardStep: 2, fields: BASICS_FIELDS } }),
       ]);
       const basicsCount = basics.extractions?.length ?? 0;
@@ -196,7 +273,9 @@ export function Step1Fuel({
 
       <div className="space-y-6">
         <div>
-          <label className="text-[12px] uppercase tracking-[0.14em] text-white/55 mb-2 block">Mission Name *</label>
+          <label className="text-[12px] uppercase tracking-[0.14em] text-white/55 mb-2 block">
+            Mission Name *
+          </label>
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -215,7 +294,10 @@ export function Step1Fuel({
             if (e.dataTransfer.files?.length) addFiles(e.dataTransfer.files);
           }}
           className="w-full rounded-2xl py-12 px-6 flex flex-col items-center gap-3 text-center transition-all hover:bg-white/5"
-          style={{ background: "rgba(255,255,255,0.025)", border: "2px dashed rgba(201,168,76,0.4)" }}
+          style={{
+            background: "rgba(255,255,255,0.025)",
+            border: "2px dashed rgba(201,168,76,0.4)",
+          }}
         >
           <UploadCloud className="h-10 w-10" style={{ color: "#c9a84c" }} strokeWidth={1.4} />
           <div>
@@ -255,9 +337,7 @@ export function Step1Fuel({
                 {r.status === "uploading" && (
                   <span className="text-[11px] text-white/45">Uploading {r.progress}%</span>
                 )}
-                {r.status === "done" && (
-                  <span className="text-[11px] text-emerald-400">Ready</span>
-                )}
+                {r.status === "done" && <span className="text-[11px] text-emerald-400">Ready</span>}
                 {r.status === "error" && (
                   <span className="text-[11px] text-red-400">{r.error}</span>
                 )}
@@ -281,7 +361,8 @@ export function Step1Fuel({
             <p className="text-[13.5px] text-white">
               {analyzing
                 ? "IRIS is reading your documents…"
-                : analyzeResult ?? "When you click Analyze, IRIS reads every uploaded document and pre-populates Mission Basics. Steps 3–7 generate when you land on them."}
+                : (analyzeResult ??
+                  "When you click Analyze, IRIS reads every uploaded document and pre-populates Mission Basics. Steps 3–7 generate when you land on them.")}
             </p>
             <button
               disabled={!canAnalyze}
@@ -289,7 +370,11 @@ export function Step1Fuel({
               className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-medium disabled:opacity-40"
               style={{ background: "#C49A2B", color: "#0D1B3E" }}
             >
-              {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              {analyzing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
               {analyzing ? "Analyzing…" : analyzeResult ? "Re-analyze" : "Analyze with IRIS"}
             </button>
           </div>

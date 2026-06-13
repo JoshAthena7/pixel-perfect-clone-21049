@@ -93,7 +93,11 @@ function conf(v: unknown): Conf {
 }
 
 function tryParseJSON(s: string): Extracted | null {
-  const cleaned = s.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  const cleaned = s
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
   try {
     return JSON.parse(cleaned) as Extracted;
   } catch {
@@ -168,13 +172,50 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
     if (!parsed) throw new Error("IRIS could not extract a valid structure.");
 
     // Wipe any previously-extracted IRIS data for idempotency.
-    await supabase.from("mission_submission_checklist").delete().eq("mission_id", data.mission_id).eq("iris_extracted", true);
-    await supabase.from("mission_compliance_requirements").delete().eq("mission_id", data.mission_id).eq("iris_extracted", true);
+    await supabase
+      .from("mission_submission_checklist")
+      .delete()
+      .eq("mission_id", data.mission_id)
+      .eq("iris_extracted", true);
+    await supabase
+      .from("mission_compliance_requirements")
+      .delete()
+      .eq("mission_id", data.mission_id)
+      .eq("iris_extracted", true);
     await supabase.from("mission_questions").delete().eq("mission_id", data.mission_id);
     await supabase.from("mission_sections").delete().eq("mission_id", data.mission_id);
     await supabase.from("mission_volumes").delete().eq("mission_id", data.mission_id);
 
-    const counts = { volumes: 0, sections: 0, sub_sections: 0, questions: 0, compliance: 0, checklist: 0 };
+    const counts = {
+      volumes: 0,
+      sections: 0,
+      sub_sections: 0,
+      questions: 0,
+      compliance: 0,
+      checklist: 0,
+    };
+
+    const insertQuestions = async (sectionId: string, qs: Question[]) => {
+      if (qs.length === 0) return;
+      const qRows = qs
+        .map((q) => ({
+          mission_id: data.mission_id,
+          section_id: sectionId,
+          question_number: q.number ? String(q.number).slice(0, 50) : null,
+          question_text: String(q.text ?? "").slice(0, 4000),
+          word_limit: safeNum(q.word_limit),
+          page_limit: safeNum(q.page_limit),
+          evaluation_criteria: q.evaluation_criteria
+            ? String(q.evaluation_criteria).slice(0, 2000)
+            : null,
+          iris_confidence: conf(q.confidence),
+          status: "not_started",
+        }))
+        .filter((r) => r.question_text.trim().length > 0);
+      if (qRows.length === 0) return;
+      const { error: qErr } = await supabase.from("mission_questions").insert(qRows);
+      if (!qErr) counts.questions += qRows.length;
+    };
 
     const volumes = Array.isArray(parsed.volumes) ? parsed.volumes : [];
     for (let vi = 0; vi < volumes.length; vi++) {
@@ -213,6 +254,8 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
         if (sErr || !sRow) continue;
         counts.sections++;
 
+        await insertQuestions(sRow.id, Array.isArray(s.questions) ? s.questions : []);
+
         const subs = Array.isArray(s.sub_sections) ? s.sub_sections : [];
         for (let ssi = 0; ssi < subs.length; ssi++) {
           const ss = subs[ssi] ?? ({} as SubSection);
@@ -235,31 +278,16 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
           if (ssErr || !ssRow) continue;
           counts.sub_sections++;
 
-          const qs = Array.isArray(ss.questions) ? ss.questions : [];
-          if (qs.length === 0) continue;
-          const qRows = qs
-            .map((q) => ({
-              mission_id: data.mission_id,
-              section_id: ssRow.id,
-              question_number: q.number ? String(q.number).slice(0, 50) : null,
-              question_text: String(q.text ?? "").slice(0, 4000),
-              word_limit: safeNum(q.word_limit),
-              page_limit: safeNum(q.page_limit),
-              evaluation_criteria: q.evaluation_criteria ? String(q.evaluation_criteria).slice(0, 2000) : null,
-              iris_confidence: conf(q.confidence),
-              status: "not_started",
-            }))
-            .filter((r) => r.question_text.trim().length > 0);
-          if (qRows.length > 0) {
-            const { error: qErr } = await supabase.from("mission_questions").insert(qRows);
-            if (!qErr) counts.questions += qRows.length;
-          }
+          await insertQuestions(ssRow.id, Array.isArray(ss.questions) ? ss.questions : []);
         }
       }
     }
 
     const compliance = Array.isArray(parsed.compliance_requirements)
-      ? parsed.compliance_requirements.map((c) => String(c).trim()).filter(Boolean).slice(0, 200)
+      ? parsed.compliance_requirements
+          .map((c) => String(c).trim())
+          .filter(Boolean)
+          .slice(0, 200)
       : [];
     if (compliance.length > 0) {
       const { error } = await supabase.from("mission_compliance_requirements").insert(
@@ -274,7 +302,10 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
     }
 
     const checklist = Array.isArray(parsed.submission_checklist_items)
-      ? parsed.submission_checklist_items.map((c) => String(c).trim()).filter(Boolean).slice(0, 200)
+      ? parsed.submission_checklist_items
+          .map((c) => String(c).trim())
+          .filter(Boolean)
+          .slice(0, 200)
       : [];
     if (checklist.length > 0) {
       const { error } = await supabase.from("mission_submission_checklist").insert(
@@ -291,7 +322,10 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
       typeof parsed.disclaimer === "string" && parsed.disclaimer.trim().length > 0
         ? parsed.disclaimer.trim().slice(0, 2000)
         : null;
-    await supabase.from("missions").update({ iris_disclaimer: disclaimer }).eq("id", data.mission_id);
+    await supabase
+      .from("missions")
+      .update({ iris_disclaimer: disclaimer })
+      .eq("id", data.mission_id);
 
     void userId;
     return { ok: true, counts, disclaimer };
