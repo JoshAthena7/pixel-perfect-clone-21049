@@ -205,7 +205,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
       <div>
         {visited.has("feed") && (
           <div style={{ display: active === "feed" ? "block" : "none" }}>
-            <OracleFeed missionId={missionId} isAdmin={isAdmin} highlightId={active === "feed" ? highlightId : null} />
+            <OracleFeed missionId={missionId} isAdmin={isAdmin} highlightId={active === "feed" ? highlightId : null} completeness={completeness} />
           </div>
         )}
         {visited.has("graph") && (
