@@ -332,9 +332,7 @@ ${(researchNodes?.data ?? []).map((n) => `- ${n.label}${n.description ? `: ${n.d
 
     const j = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const content = j.choices?.[0]?.message?.content ?? "";
-    const match = content.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("IRIS returned a malformed response.");
-    const parsed = JSON.parse(match[0]) as Partial<BriefBody>;
+    const parsed = safeParseJsonObject(content) as Partial<BriefBody>;
 
     return {
       whats_asked: String(parsed.whats_asked ?? ""),
