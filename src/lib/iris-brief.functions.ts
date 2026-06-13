@@ -126,7 +126,7 @@ export const generateIntelligenceBrief = createServerFn({ method: "POST" })
       supabase.from("procurement_evolution_records").select("iris_signals,iris_summary").eq("mission_id", data.missionId).maybeSingle(),
       supabase.from("intelligence_feed_items").select("category,headline,source_name,source_url,iris_assessment,iris_relevance_score,published_at").eq("mission_id", data.missionId).gte("iris_relevance_score", 50).order("iris_relevance_score", { ascending: false }).limit(50),
       supabase.from("intelligence_graph_nodes").select("label,description").eq("mission_id", data.missionId).eq("node_type", "research").limit(15),
-      supabase.from("missions").select("north_star,why_win,why_lose,biggest_concerns,known_competitors,state_priorities,win_themes_text,reinforce,avoid").eq("id", data.missionId).maybeSingle(),
+      supabase.from("missions").select("north_star,why_win,why_lose,biggest_concerns,known_competitors,state_priorities,win_themes_text,reinforce,avoid,stakeholder_intelligence,executive_intelligence").eq("id", data.missionId).maybeSingle(),
       supabase.from("insights").select("insight_type,content,source,confidence,tags").is("mission_id", null).eq("expiry_flag", false).limit(100),
     ]);
 
