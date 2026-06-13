@@ -74,6 +74,9 @@ function MeetIrisIntro() {
     try {
       const { data: userData } = await supabase.auth.getUser();
       const uid = userData.user?.id;
+      const competitorsArr = toArray(knownCompetitors);
+      const reinforceArr = toArray(reinforce);
+      const avoidArr = toArray(avoid);
       const { data, error } = await supabase
         .from("missions")
         .insert({
@@ -83,6 +86,15 @@ function MeetIrisIntro() {
           submission_deadline: new Date(deadline).toISOString(),
           status: "setup",
           created_by: uid,
+          north_star: northStar.trim() || null,
+          why_win: whyWin.trim() || null,
+          why_lose: whyLose.trim() || null,
+          biggest_concerns: biggestConcerns.trim() || null,
+          known_competitors: competitorsArr.length ? competitorsArr : null,
+          state_priorities: statePriorities.trim() || null,
+          win_themes_text: winThemesText.trim() || null,
+          reinforce: reinforceArr.length ? reinforceArr : null,
+          avoid: avoidArr.length ? avoidArr : null,
         })
         .select("id")
         .single();
