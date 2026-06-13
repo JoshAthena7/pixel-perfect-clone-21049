@@ -45,8 +45,16 @@ const CONF_COLOR: Record<string, string> = {
   not_set: "bg-muted text-muted-foreground",
 };
 
-export function TeamAssignmentsTab({ missionId, missionName }: { missionId: string; missionName: string }) {
-  const [sub, setSub] = useState<"team" | "assignments">("team");
+export function TeamAssignmentsTab({
+  missionId,
+  missionName,
+  initialSub = "team",
+}: {
+  missionId: string;
+  missionName: string;
+  initialSub?: "team" | "assignments";
+}) {
+  const [sub, setSub] = useState<"team" | "assignments">(initialSub);
   return (
     <div className="space-y-4">
       <div>
@@ -472,14 +480,13 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
         assigned_at: new Date().toISOString(),
     };
     const { data: u } = await supabase.auth.getUser();
-    const result = assignmentId
-      ? await supabase.from("mission_assignments").update(patch).eq("id", assignmentId).select("id").single()
-      : await supabase.from("mission_assignments").insert({
-          mission_id: missionId,
-          question_id: questionId,
-          ...patch,
-          assigned_by: u.user?.id,
-        }).select("id").single();
+    const result = await supabase.from("mission_assignments").upsert({
+      id: assignmentId ?? undefined,
+      mission_id: missionId,
+      question_id: questionId,
+      ...patch,
+      assigned_by: u.user?.id,
+    }, { onConflict: "mission_id,question_id" }).select("id").single();
     const { data: saved, error } = result;
     if (error) { toast.error(error.message); return; }
     const notifs: any[] = [{
@@ -505,21 +512,28 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
 
   const updateDue = async (id: string | null, questionId: string, d: Date | undefined) => {
     if (!canManage) { toast.error("Only mission admins can change assignments."); return; }
-    if (id) {
-      await supabase.from("mission_assignments").update({ due_date: d ? d.toISOString() : null }).eq("id", id);
-    } else {
-      const { data: u } = await supabase.auth.getUser();
-      await supabase.from("mission_assignments").insert({ mission_id: missionId, question_id: questionId, due_date: d ? d.toISOString() : null, assigned_by: u.user?.id });
-    }
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = await supabase.from("mission_assignments").upsert({
+      id: id ?? undefined,
+      mission_id: missionId,
+      question_id: questionId,
+      due_date: d ? d.toISOString() : null,
+      assigned_by: u.user?.id,
+    }, { onConflict: "mission_id,question_id" });
+    if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["mt-assignments", missionId] });
   };
 
   const updateSmes = async (id: string | null, questionId: string, ids: string[]) => {
     if (!canManage) { toast.error("Only mission admins can change assignments."); return; }
     const { data: u } = await supabase.auth.getUser();
-    const { error } = id
-      ? await supabase.from("mission_assignments").update({ sme_member_ids: ids }).eq("id", id)
-      : await supabase.from("mission_assignments").insert({ mission_id: missionId, question_id: questionId, sme_member_ids: ids, assigned_by: u.user?.id });
+    const { error } = await supabase.from("mission_assignments").upsert({
+      id: id ?? undefined,
+      mission_id: missionId,
+      question_id: questionId,
+      sme_member_ids: ids,
+      assigned_by: u.user?.id,
+    }, { onConflict: "mission_id,question_id" });
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["mt-assignments", missionId] });
   };
