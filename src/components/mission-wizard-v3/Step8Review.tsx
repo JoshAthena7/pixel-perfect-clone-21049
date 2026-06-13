@@ -77,7 +77,7 @@ export function Step8Review({
     try {
       // Pull confirmed deadline if present
       const dueIso = byKey.get("proposal_due_date")?.value ?? null;
-      const updates: Record<string, unknown> = { status: "active" };
+      const updates: { status: string; submission_deadline?: string } = { status: "active" };
       if (dueIso && /^\d{4}-\d{2}-\d{2}/.test(dueIso)) {
         updates.submission_deadline = `${dueIso}T17:00:00Z`;
       }
