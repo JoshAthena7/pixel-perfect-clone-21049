@@ -103,7 +103,7 @@ export function Step7Team({
         </div>
       )}
 
-      <TeamAssignmentsTab missionId={missionId} missionName={meta?.name ?? "Mission"} />
+      <TeamAssignmentsTab missionId={missionId} missionName={meta?.name ?? "Mission"} initialSub="assignments" />
       <WizardFooter step={7} onBack={onBack} onContinue={onAdvance} />
     </div>
   );
