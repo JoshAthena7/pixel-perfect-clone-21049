@@ -136,7 +136,7 @@ export const runIrisSweep = createServerFn({ method: "POST" })
     const { data: mission, error: mErr } = await supabase
       .from("missions")
       .select(
-        "id, name, state, state_code, agency_name, program_type, client_name, known_competitors, north_star, submission_deadline, classification",
+        "id, name, state, state_code, agency_name, program_type, client_name, known_competitors, north_star, submission_deadline",
       )
       .eq("id", data.missionId)
       .maybeSingle();
