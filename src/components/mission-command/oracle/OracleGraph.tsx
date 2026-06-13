@@ -121,23 +121,40 @@ export function OracleGraph({
       const t = NODE_COLOR[n.node_type] ? n.node_type : "evidence";
       (grouped[t] = grouped[t] || []).push(n);
     });
-    const types = Object.keys(grouped);
+    // Order rings: largest groups outermost so inner rings stay airy
+    const types = Object.keys(grouped).sort((a, b) => grouped[a].length - grouped[b].length);
     const cx = W / 2;
     const cy = H / 2;
     const maxDeg = Math.max(1, ...Array.from(degree.values()));
+    const minNodeR = 6;
+    const maxNodeR = 18;
+    // Compute ring radii so circumference fits the group with spacing
+    let prevRing = 60;
     types.forEach((t, ti) => {
-      const ring = 80 + ti * 70;
       const arr = grouped[t];
+      // Minimum circumference needed: each node ~ (2*maxNodeR + 14) px of arc
+      const needed = (arr.length * (2 * maxNodeR + 14)) / (2 * Math.PI);
+      const ring = Math.max(prevRing + 60, needed);
+      prevRing = ring;
       arr.forEach((n, i) => {
-        const angle = (2 * Math.PI * i) / arr.length + ti * 0.4;
+        const angle = (2 * Math.PI * i) / arr.length + ti * 0.35;
         const x = cx + ring * Math.cos(angle);
         const y = cy + ring * Math.sin(angle);
         const d = degree.get(n.id) ?? 0;
-        const r = 14 + (d / maxDeg) * 14; // 14..28 radius -> 28..56 diameter
+        const r = minNodeR + (d / maxDeg) * (maxNodeR - minNodeR);
         pos.set(n.id, { x, y, r, color: NODE_COLOR[n.node_type] ?? "#888" });
       });
     });
     return pos;
+  }, [data, degree]);
+
+  // Which nodes always show labels (top-degree hubs)
+  const labeledIds = useMemo(() => {
+    const nodes = data?.nodes ?? [];
+    const sorted = [...nodes].sort(
+      (a, b) => (degree.get(b.id) ?? 0) - (degree.get(a.id) ?? 0),
+    );
+    return new Set(sorted.slice(0, 8).map((n) => n.id));
   }, [data, degree]);
 
   const selected = useMemo(() => {
