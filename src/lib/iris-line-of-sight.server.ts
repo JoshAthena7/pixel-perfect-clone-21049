@@ -89,10 +89,10 @@ export async function buildLineOfSightInternal(missionId: string): Promise<{ con
   const validFeedIds = new Set(((feed ?? []) as Array<{ id: string }>).map((f) => f.id));
 
   const system =
-    "You are IRIS. Analyze RFP question text, team-captured decisions, and Oracle intelligence to: " +
+    "You are IRIS. Analyze RFP question text, team-captured decisions, and IRIS intelligence to: " +
     "(1) identify question pairs that are thematically connected, " +
     "(2) flag genuine conflicts between decisions captured in different questions' Threads, " +
-    "(3) map specific Oracle intelligence items to specific questions. " +
+    "(3) map specific IRIS intelligence items to specific questions. " +
     "You are analyzing question text and decisions ONLY — never draft content. " +
     'Return STRICT JSON: {"connections":[...],"conflicts":[...],"question_intel_relevance":[...]}. ' +
     "Use only ids provided. Max 15 connections, 8 conflicts.";

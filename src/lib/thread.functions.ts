@@ -378,7 +378,7 @@ async function runIrisAnalysis(
     "Default to should_respond=false. Only respond when you can cite a specific piece of mission intelligence, " +
     "stakeholder fact, or compliance requirement that materially changes how the writer should approach this message. " +
     "Do NOT respond to acknowledgments, social chatter, generic questions, brainstorming, or anything you cannot " +
-    "ground in the Oracle context below. Thread is a human collaboration space — you are an occasional intelligent " +
+    "ground in the IRIS Memory context below. Thread is a human collaboration space — you are an occasional intelligent " +
     "contributor, not a chatbot. When in doubt, stay silent.";
 
   const user = [
@@ -388,7 +388,7 @@ async function runIrisAnalysis(
     `Win themes: ${winThemes || "(none)"}.`,
     `North star: ${strategy?.north_star_message ?? "(none)"}.`,
     `New message: ${args.body}`,
-    `Recent Oracle intelligence:`,
+    `Recent IRIS intelligence:`,
     intel.length
       ? intel
           .map(

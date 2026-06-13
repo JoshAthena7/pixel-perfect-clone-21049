@@ -244,7 +244,7 @@ ${groupByCategory(stateDnaRows)}
 === PROGRAM DNA (matched to program_type / CSOC / Children) ===
 ${groupByCategory(programDnaRows)}
 
-=== ATHENA GLOBAL INSIGHTS (apply across missions) ===
+=== WHAT IRIS KNOWS (global insights apply across missions) ===
   Win patterns:
 ${fmtInsights(insightsByType("win_pattern"))}
   Loss lessons:
@@ -464,7 +464,7 @@ ${groupByCategory(stateDnaRows)}
 === PROGRAM DNA ===
 ${groupByCategory(programDnaRows)}
 
-=== GLOBAL INSIGHTS (Athena cross-mission) ===
+=== WHAT IRIS KNOWS (global insights, cross-mission) ===
 ${insightsRows.length === 0 ? "(none)" : insightsRows.map((i) => `- [${i.insight_type}/${i.confidence ?? "?"}] ${i.content}${i.source ? ` (src: ${i.source})` : ""}`).join("\n")}
 
 === EXPERTS available for this state ===
