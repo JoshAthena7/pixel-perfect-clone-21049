@@ -370,6 +370,40 @@ function MeetIrisIntro() {
                 <ChatField label="What would evaluators consider a winning response?" placeholder="" value={evaluatorSuccess} onChange={setEvaluatorSuccess} multiline />
               </CollapsibleSection>
             </CollapsibleSection>
+
+            <CollapsibleSection
+              title="Executive Intelligence"
+              subtitle="Optional — captures leadership perspective for IRIS"
+              open={openSections.executives}
+              onToggle={() => toggleSection("executives")}
+            >
+              <div className="text-[11.5px] text-white/55 leading-relaxed -mt-1">
+                Not required. Fill in only the roles that are applicable — leave the rest blank. IRIS uses these to reconcile leadership perspectives against the rest of the intelligence picture.
+              </div>
+              {EXEC_ROLES.map((role) => {
+                const key = `exec_${role.key}`;
+                return (
+                  <CollapsibleSection
+                    key={role.key}
+                    title={role.label}
+                    subtitle="Optional"
+                    open={!!openSections[key]}
+                    onToggle={() => toggleSection(key)}
+                  >
+                    {EXEC_QUESTIONS.map((q) => (
+                      <ChatField
+                        key={q.key}
+                        label={q.label}
+                        placeholder=""
+                        value={execIntel[role.key]?.[q.key] ?? ""}
+                        onChange={(v) => setExecField(role.key, q.key, v)}
+                        multiline
+                      />
+                    ))}
+                  </CollapsibleSection>
+                );
+              })}
+            </CollapsibleSection>
           </div>
 
 
