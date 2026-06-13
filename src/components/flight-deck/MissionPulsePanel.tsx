@@ -300,6 +300,7 @@ export function MissionPulsePanel({ open, onOpenChange, missionId, prefill, onPr
             </div>
 
             {/* Team feed */}
+            <div style={{ fontSize: 12, fontWeight: 500, color: "white", marginBottom: 10 }}>From the team</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {team.length === 0 && !loading ? (
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", padding: "12px 4px" }}>
