@@ -371,7 +371,7 @@ export const generateQuestionBrief = createServerFn({ method: "POST" })
     // Mission + canvas fields (single row from missions).
     const { data: missionRow } = await supabase
       .from("missions")
-      .select("name,state,agency_name,program_type,client_name,north_star,why_win,why_lose,biggest_concerns,known_competitors,state_priorities,win_themes_text,reinforce,avoid")
+      .select("name,state,agency_name,program_type,client_name,north_star,why_win,why_lose,biggest_concerns,known_competitors,state_priorities,win_themes_text,reinforce,avoid,stakeholder_intelligence,executive_intelligence")
       .eq("id", data.missionId)
       .maybeSingle();
     const m = (missionRow ?? {}) as {
@@ -381,7 +381,11 @@ export const generateQuestionBrief = createServerFn({ method: "POST" })
       biggest_concerns?: string | null; known_competitors?: string[] | null;
       state_priorities?: string | null; win_themes_text?: string | null;
       reinforce?: string[] | null; avoid?: string[] | null;
+      stakeholder_intelligence?: StakeholderIntel;
+      executive_intelligence?: ExecutiveIntel;
     };
+    const stakeholderBlock = formatStakeholderBlock(m.stakeholder_intelligence);
+    const executiveBlock = formatExecutiveBlock(m.executive_intelligence);
     const missionState = m.state ?? null;
     const missionProgram = m.program_type ?? null;
 
