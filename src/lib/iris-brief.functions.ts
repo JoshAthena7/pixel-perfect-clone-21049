@@ -400,7 +400,7 @@ export const generateQuestionBrief = createServerFn({ method: "POST" })
     const programPattern = missionProgram
       ? `program.ilike.%${missionProgram}%,program.ilike.%CSOC%,program.ilike.%Children%`
       : `program.ilike.%CSOC%,program.ilike.%Children%`;
-    const [approvedBriefRes, stateDnaRes, programDnaRes, insightsRes, expertsRes] = await Promise.all([
+    const [approvedBriefRes, stateDnaRes, programDnaRes, insightsRes, expertsRes, compIntelRes] = await Promise.all([
       supabase.from("iris_brief_cache")
         .select("brief_text,generated_at")
         .eq("scope", "mission")
@@ -416,6 +416,10 @@ export const generateQuestionBrief = createServerFn({ method: "POST" })
       missionState
         ? supabase.from("experts").select("name,role,expertise_areas,states,programs,contact_method,notes").contains("states", [missionState]).limit(50)
         : Promise.resolve({ data: [] as any[] }),
+      supabase.from("mission_iris_extractions")
+        .select("extracted_field,extracted_value,user_override_value")
+        .eq("mission_id", data.missionId)
+        .or("extracted_field.like.competitor_card_%,extracted_field.eq.competitive_landscape_summary"),
     ]);
 
     const approvedBrief = (approvedBriefRes?.data as { brief_text?: string | null } | null)?.brief_text ?? "";
@@ -423,6 +427,24 @@ export const generateQuestionBrief = createServerFn({ method: "POST" })
     const programDnaRows = (programDnaRes?.data ?? []) as Array<{ category: string; attribute: string; value: string }>;
     const insightsRows = (insightsRes?.data ?? []) as Array<{ insight_type: string; content: string; source: string | null; confidence: string | null }>;
     const expertsList = (expertsRes?.data ?? []) as Array<{ name: string; role: string | null; expertise_areas: string[] | null; states: string[] | null; programs: string[] | null; contact_method: string | null }>;
+
+    type CompCard = { competitor_name: string; how_we_beat_them?: string; known_weaknesses?: string; threat_level?: string };
+    const compRows = (compIntelRes?.data ?? []) as Array<{ extracted_field: string; extracted_value: string | null; user_override_value: string | null }>;
+    const competitorCards: CompCard[] = compRows
+      .filter((r) => r.extracted_field.startsWith("competitor_card_"))
+      .map((r) => { try { return JSON.parse((r.user_override_value ?? r.extracted_value) || "null") as CompCard | null; } catch { return null; } })
+      .filter((c): c is CompCard => !!c);
+    const landscapeRow = compRows.find((r) => r.extracted_field === "competitive_landscape_summary");
+    const landscapeSummary = (landscapeRow?.user_override_value ?? landscapeRow?.extracted_value ?? "").trim();
+    const competitorBlock = competitorCards.length === 0 && !landscapeSummary
+      ? ""
+      : `
+
+=== COMPETITIVE INTELLIGENCE (use to shape positioning + counter-moves) ===
+${landscapeSummary ? `Landscape: ${landscapeSummary}\n` : ""}${competitorCards.map((c) => `- ${c.competitor_name} [threat=${c.threat_level ?? "?"}]
+    weaknesses: ${c.known_weaknesses ?? "(n/a)"}
+    HOW WE BEAT THEM: ${c.how_we_beat_them ?? "(n/a)"}`).join("\n")}`;
+
 
     const groupByCategory = <T extends { category: string; attribute: string; value: string }>(rows: T[]): string => {
       if (rows.length === 0) return "(none)";
