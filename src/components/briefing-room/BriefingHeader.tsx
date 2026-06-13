@@ -79,6 +79,13 @@ export function BriefingHeader({
               >
                 <Wand2 className="h-3 w-3" /> Enhance in Olympus
               </Link>
+              <button
+                type="button"
+                onClick={() => setCloseOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/10 px-2.5 py-1 text-[11px] font-medium text-red-300 hover:bg-red-500/20 transition-colors"
+              >
+                <Flag className="h-3 w-3" /> Close Mission
+              </button>
             </>
           )}
           <HealthBadge health={health} />
