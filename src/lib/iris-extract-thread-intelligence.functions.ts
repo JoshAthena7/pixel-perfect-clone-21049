@@ -260,6 +260,28 @@ Return { "signals": [] } if no signals found. Be conservative — only extract f
     if (!error) signalsWritten = signalRows.length;
   }
 
+  // Fire-and-forget mirror into the entity-first intel_events feed.
+  if (signals.length > 0) {
+    const { writeIntelEvents } = await import("@/lib/intel-events-writer");
+    writeIntelEvents(
+      signals.map((s) => ({
+        mission_id: data.mission_id,
+        event_type: "thread_extraction",
+        title: s.content.slice(0, 200),
+        content: s.source_evidence ? `${s.content}\n\nEvidence: ${s.source_evidence}` : s.content,
+        confidence: (s.confidence as "high" | "medium" | "low") ?? null,
+        generated_by: "iris_thread_extraction",
+        tags: dedupe([
+          s.signal_type,
+          "thread_extracted",
+          questionTag,
+          ...s.applies_to_programs,
+          ...s.applies_to_states,
+        ]).slice(0, 25),
+      })),
+    );
+  }
+
   // Mark question as extracted (best-effort)
   await supabase
     .from("mission_questions")

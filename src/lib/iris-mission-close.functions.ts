@@ -305,6 +305,48 @@ Return ONLY a JSON object: { "lessons": [ { "lesson_type": "strategy" | "writing
         ),
       });
       if (!sErr) signalsAdded = 1;
+
+      // Fire-and-forget mirror into intel_events.
+      try {
+        const { writeIntelEvent, writeIntelEvents } = await import("@/lib/intel-events-writer");
+        writeIntelEvent({
+          mission_id: data.mission_id,
+          event_type: "mission_close_summary",
+          title: sigTitle,
+          content: sigSummaryParts.join(" "),
+          confidence: "high",
+          generated_by: "iris_mission_close",
+          tags: dedupe(
+            [mission.state, mission.program_type, data.outcome, String(new Date().getFullYear())].filter(Boolean) as string[],
+          ),
+        });
+        if (compRows.length > 0) {
+          writeIntelEvents(
+            compRows.map((r) => ({
+              mission_id: data.mission_id,
+              event_type: "mission_close_competitor",
+              title: String((r as { content?: string }).content ?? "").slice(0, 200),
+              content: String((r as { content?: string }).content ?? ""),
+              confidence: ((r as { confidence?: string }).confidence as "high" | "medium" | "low") ?? "medium",
+              generated_by: "iris_mission_close",
+              tags: Array.isArray((r as { tags?: string[] }).tags) ? (r as { tags: string[] }).tags : [],
+            })),
+          );
+        }
+        if (lessonsGenerated > 0) {
+          writeIntelEvent({
+            mission_id: data.mission_id,
+            event_type: "mission_close_lesson",
+            title: `${lessonsGenerated} lesson(s) recorded from mission close`,
+            content: `Outcome=${data.outcome}. See insights tagged 'mission_close' for full text.`,
+            confidence: "medium",
+            generated_by: "iris_mission_close",
+            tags: ["mission_close", "lessons"],
+          });
+        }
+      } catch (e) {
+        console.error("[iris-mission-close] intel_events mirror failed", e);
+      }
     } catch (e) {
       pipelineError = e instanceof Error ? e.message : String(e);
     }

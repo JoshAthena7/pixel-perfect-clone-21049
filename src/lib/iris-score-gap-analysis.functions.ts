@@ -234,6 +234,35 @@ async function runScoreGapAnalysis(
     console.error("[iris-score-gap] signal insert failed", e);
   }
 
+  // Fire-and-forget mirror into intel_events for the entity-first feed.
+  try {
+    const { writeIntelEvent, writeIntelEvents } = await import("@/lib/intel-events-writer");
+    writeIntelEvent({
+      mission_id: data.mission_id,
+      event_type: "score_gap",
+      title: `Score Me: ${score100}/100`,
+      content: (sr.feedback ?? "").slice(0, 1000) || `Overall ${score100}/100 — ${(sr.gaps ?? []).length} gap(s).`,
+      confidence: score100 < 50 ? "high" : score100 < 70 ? "medium" : "low",
+      generated_by: "iris_score_gap",
+      tags: ["score_gap", lowScoreTag, questionTag],
+    });
+    if (rows.length > 0) {
+      writeIntelEvents(
+        rows.map((r) => ({
+          mission_id: data.mission_id,
+          event_type: "score_gap",
+          title: String((r as { content?: string }).content ?? "").slice(0, 200),
+          content: String((r as { content?: string }).content ?? ""),
+          confidence: ((r as { confidence?: string }).confidence as "high" | "medium" | "low") ?? "medium",
+          generated_by: "iris_score_gap",
+          tags: Array.isArray((r as { tags?: string[] }).tags) ? (r as { tags: string[] }).tags : ["score_gap"],
+        })),
+      );
+    }
+  } catch (e) {
+    console.error("[iris-score-gap] intel_events mirror failed", e);
+  }
+
   // e) mark question as extracted
   try {
     await supabase

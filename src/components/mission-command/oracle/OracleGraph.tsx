@@ -19,6 +19,9 @@ type Edge = {
 };
 
 const NODE_COLOR: Record<string, string> = {
+  person: "#7BA7D4",
+  organization: "rgba(127,119,221,0.9)",
+  source: "#7DCF7D",
   requirement: "#C49A2B",
   stakeholder: "#7BA7D4",
   risk: "#f08080",
@@ -27,6 +30,9 @@ const NODE_COLOR: Record<string, string> = {
   competitor: "rgba(127,119,221,0.9)",
 };
 const NODE_LABEL: Record<string, string> = {
+  person: "Person",
+  organization: "Organization",
+  source: "Source",
   requirement: "Requirement",
   stakeholder: "Stakeholder",
   risk: "Risk",
@@ -81,22 +87,84 @@ export function OracleGraph({
   };
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["oracle-ro-graph", missionId],
+    queryKey: ["oracle-intel-graph", missionId],
     queryFn: async () => {
-      const [nRes, eRes] = await Promise.all([
-        supabase
-          .from("intelligence_graph_nodes")
-          .select("id,node_type,label,description")
-          .eq("mission_id", missionId)
-          .eq("is_active", true),
-        supabase
-          .from("intelligence_graph_edges")
-          .select("id,source_node_id,target_node_id,is_confirmed")
-          .eq("mission_id", missionId),
+      const sb = supabase as unknown as {
+        from: (t: string) => {
+          select: (cols: string, opts?: unknown) => {
+            eq: (c: string, v: unknown) => Promise<{ data: unknown[] | null; error: unknown }>;
+            contains?: (c: string, v: unknown) => Promise<{ data: unknown[] | null; error: unknown }>;
+          };
+        };
+      };
+      const [peopleRes, orgsRes, sourcesRes, relsRes, legacyN, legacyE] = await Promise.all([
+        sb.from("intel_people").select("id,entity_id,role_type,title,notes").eq("mission_id", missionId),
+        sb.from("intel_organizations").select("id,entity_id,org_type,notes").eq("mission_id", missionId),
+        sb.from("intel_sources").select("id,entity_id,source_type,summary,url").eq("mission_id", missionId),
+        sb.from("intel_relationships").select("id,from_entity_id,to_entity_id,relationship_type,confidence").eq("mission_id", missionId),
+        supabase.from("intelligence_graph_nodes").select("id,node_type,label,description").eq("mission_id", missionId).eq("is_active", true),
+        supabase.from("intelligence_graph_edges").select("id,source_node_id,target_node_id,is_confirmed").eq("mission_id", missionId),
       ]);
-      if (nRes.error) throw nRes.error;
-      if (eRes.error) throw eRes.error;
-      return { nodes: (nRes.data ?? []) as Node[], edges: (eRes.data ?? []) as Edge[] };
+
+      // Pull entity names for any entity_ids referenced
+      const entityIds = new Set<string>();
+      const addId = (v: unknown) => { if (typeof v === "string") entityIds.add(v); };
+      (peopleRes.data ?? []).forEach((r: unknown) => addId((r as { entity_id?: string }).entity_id));
+      (orgsRes.data ?? []).forEach((r: unknown) => addId((r as { entity_id?: string }).entity_id));
+      (sourcesRes.data ?? []).forEach((r: unknown) => addId((r as { entity_id?: string }).entity_id));
+      (relsRes.data ?? []).forEach((r: unknown) => {
+        addId((r as { from_entity_id?: string }).from_entity_id);
+        addId((r as { to_entity_id?: string }).to_entity_id);
+      });
+
+      let entityNames = new Map<string, { name: string; description: string | null }>();
+      if (entityIds.size > 0) {
+        const { data: ents } = await (supabase as unknown as {
+          from: (t: string) => { select: (c: string) => { in: (col: string, vals: string[]) => Promise<{ data: unknown[] | null }> } };
+        }).from("intel_entities").select("id,name,description").in("id", Array.from(entityIds));
+        entityNames = new Map((ents ?? []).map((e: unknown) => {
+          const r = e as { id: string; name: string; description: string | null };
+          return [r.id, { name: r.name, description: r.description }];
+        }));
+      }
+
+      // Build node list from intel_* (entity-first)
+      const nodes: Node[] = [];
+      const nodeIds = new Set<string>();
+      const addNode = (n: Node) => { if (!nodeIds.has(n.id)) { nodes.push(n); nodeIds.add(n.id); } };
+
+      (peopleRes.data ?? []).forEach((row: unknown) => {
+        const r = row as { entity_id: string | null; role_type: string; title: string | null; notes: string | null };
+        if (!r.entity_id) return;
+        const meta = entityNames.get(r.entity_id);
+        addNode({ id: r.entity_id, node_type: "person", label: meta?.name ?? r.title ?? "Person", description: r.notes ?? meta?.description ?? null });
+      });
+      (orgsRes.data ?? []).forEach((row: unknown) => {
+        const r = row as { entity_id: string | null; org_type: string; notes: string | null };
+        if (!r.entity_id) return;
+        const meta = entityNames.get(r.entity_id);
+        addNode({ id: r.entity_id, node_type: r.org_type === "competitor" ? "competitor" : "organization", label: meta?.name ?? "Organization", description: r.notes ?? meta?.description ?? null });
+      });
+      (sourcesRes.data ?? []).forEach((row: unknown) => {
+        const r = row as { entity_id: string | null; source_type: string; summary: string | null; url: string | null };
+        if (!r.entity_id) return;
+        const meta = entityNames.get(r.entity_id);
+        addNode({ id: r.entity_id, node_type: "source", label: meta?.name ?? r.source_type, description: r.summary ?? r.url ?? null });
+      });
+
+      const edges: Edge[] = (relsRes.data ?? []).map((row: unknown) => {
+        const r = row as { id: string; from_entity_id: string; to_entity_id: string; confidence: string | null };
+        return { id: r.id, source_node_id: r.from_entity_id, target_node_id: r.to_entity_id, is_confirmed: r.confidence !== "low" };
+      }).filter((e) => nodeIds.has(e.source_node_id) && nodeIds.has(e.target_node_id));
+
+      // Fallback: if no entity-first graph yet, fall back to legacy nodes/edges so existing missions are not blank.
+      if (nodes.length === 0) {
+        return {
+          nodes: ((legacyN.data ?? []) as Node[]),
+          edges: ((legacyE.data ?? []) as Edge[]),
+        };
+      }
+      return { nodes, edges };
     },
     staleTime: 60_000,
   });
