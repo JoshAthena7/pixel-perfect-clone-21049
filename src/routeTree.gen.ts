@@ -34,6 +34,7 @@ import { Route as ApiChatIrisRouteImport } from './routes/api/chat/iris'
 import { Route as AuthenticatedProfileExpertiseRouteImport } from './routes/_authenticated/profile/expertise'
 import { Route as AuthenticatedOlympusTeamRouteImport } from './routes/_authenticated/olympus.team'
 import { Route as AuthenticatedOlympusFlightDeckRouteImport } from './routes/_authenticated/olympus.flight-deck'
+import { Route as AuthenticatedOlympusChangeRequestsRouteImport } from './routes/_authenticated/olympus.change-requests'
 import { Route as AuthenticatedOlympusSplatRouteImport } from './routes/_authenticated/olympus.$'
 import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_authenticated/missions.$missionId'
 import { Route as AuthenticatedMissionNewRouteImport } from './routes/_authenticated/mission.new'
@@ -203,6 +204,12 @@ const AuthenticatedOlympusFlightDeckRoute =
   AuthenticatedOlympusFlightDeckRouteImport.update({
     id: '/olympus/flight-deck',
     path: '/olympus/flight-deck',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedOlympusChangeRequestsRoute =
+  AuthenticatedOlympusChangeRequestsRouteImport.update({
+    id: '/olympus/change-requests',
+    path: '/olympus/change-requests',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedOlympusSplatRoute =
@@ -474,6 +481,7 @@ export interface FileRoutesByFullPath {
   '/mission/new': typeof AuthenticatedMissionNewRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
+  '/olympus/change-requests': typeof AuthenticatedOlympusChangeRequestsRoute
   '/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/olympus/team': typeof AuthenticatedOlympusTeamRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
@@ -539,6 +547,7 @@ export interface FileRoutesByTo {
   '/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/mission/new': typeof AuthenticatedMissionNewRoute
   '/olympus/$': typeof AuthenticatedOlympusSplatRoute
+  '/olympus/change-requests': typeof AuthenticatedOlympusChangeRequestsRoute
   '/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/olympus/team': typeof AuthenticatedOlympusTeamRoute
   '/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
@@ -608,6 +617,7 @@ export interface FileRoutesById {
   '/_authenticated/mission/new': typeof AuthenticatedMissionNewRoute
   '/_authenticated/missions/$missionId': typeof AuthenticatedMissionsMissionIdRouteWithChildren
   '/_authenticated/olympus/$': typeof AuthenticatedOlympusSplatRoute
+  '/_authenticated/olympus/change-requests': typeof AuthenticatedOlympusChangeRequestsRoute
   '/_authenticated/olympus/flight-deck': typeof AuthenticatedOlympusFlightDeckRoute
   '/_authenticated/olympus/team': typeof AuthenticatedOlympusTeamRoute
   '/_authenticated/profile/expertise': typeof AuthenticatedProfileExpertiseRoute
@@ -677,6 +687,7 @@ export interface FileRouteTypes {
     | '/mission/new'
     | '/missions/$missionId'
     | '/olympus/$'
+    | '/olympus/change-requests'
     | '/olympus/flight-deck'
     | '/olympus/team'
     | '/profile/expertise'
@@ -742,6 +753,7 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/mission/new'
     | '/olympus/$'
+    | '/olympus/change-requests'
     | '/olympus/flight-deck'
     | '/olympus/team'
     | '/profile/expertise'
@@ -810,6 +822,7 @@ export interface FileRouteTypes {
     | '/_authenticated/mission/new'
     | '/_authenticated/missions/$missionId'
     | '/_authenticated/olympus/$'
+    | '/_authenticated/olympus/change-requests'
     | '/_authenticated/olympus/flight-deck'
     | '/_authenticated/olympus/team'
     | '/_authenticated/profile/expertise'
@@ -1052,6 +1065,13 @@ declare module '@tanstack/react-router' {
       path: '/olympus/flight-deck'
       fullPath: '/olympus/flight-deck'
       preLoaderRoute: typeof AuthenticatedOlympusFlightDeckRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/olympus/change-requests': {
+      id: '/_authenticated/olympus/change-requests'
+      path: '/olympus/change-requests'
+      fullPath: '/olympus/change-requests'
+      preLoaderRoute: typeof AuthenticatedOlympusChangeRequestsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/olympus/$': {
@@ -1451,6 +1471,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMissionNewRoute: typeof AuthenticatedMissionNewRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRouteWithChildren
   AuthenticatedOlympusSplatRoute: typeof AuthenticatedOlympusSplatRoute
+  AuthenticatedOlympusChangeRequestsRoute: typeof AuthenticatedOlympusChangeRequestsRoute
   AuthenticatedOlympusFlightDeckRoute: typeof AuthenticatedOlympusFlightDeckRoute
   AuthenticatedOlympusTeamRoute: typeof AuthenticatedOlympusTeamRoute
   AuthenticatedProfileExpertiseRoute: typeof AuthenticatedProfileExpertiseRoute
@@ -1476,6 +1497,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMissionsMissionIdRoute:
     AuthenticatedMissionsMissionIdRouteWithChildren,
   AuthenticatedOlympusSplatRoute: AuthenticatedOlympusSplatRoute,
+  AuthenticatedOlympusChangeRequestsRoute:
+    AuthenticatedOlympusChangeRequestsRoute,
   AuthenticatedOlympusFlightDeckRoute: AuthenticatedOlympusFlightDeckRoute,
   AuthenticatedOlympusTeamRoute: AuthenticatedOlympusTeamRoute,
   AuthenticatedProfileExpertiseRoute: AuthenticatedProfileExpertiseRoute,

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ExternalLink } from "lucide-react";
+import { RequestChangeButton } from "@/components/RequestChangeButton";
 
 export function SectionCard({
   title,
@@ -7,12 +8,14 @@ export function SectionCard({
   editInOlympusHref,
   showAdminEdit,
   bare,
+  missionId,
 }: {
   title: string;
   children: ReactNode;
   editInOlympusHref?: string;
   showAdminEdit?: boolean;
   bare?: boolean;
+  missionId?: string | null;
 }) {
   return (
     <section
@@ -45,16 +48,24 @@ export function SectionCard({
             Read only
           </span>
         </div>
-        {showAdminEdit && editInOlympusHref && (
-          <a
-            href={editInOlympusHref}
-            className="inline-flex items-center gap-1 hover:opacity-80"
-            style={{ color: "#C49A2B", fontSize: 10 }}
-          >
-            Edit in Olympus
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        )}
+        <div className="flex items-center gap-2">
+          <RequestChangeButton
+            surface={`briefing-room:${title}`}
+            section={title}
+            missionId={missionId ?? null}
+            variant="icon"
+          />
+          {showAdminEdit && editInOlympusHref && (
+            <a
+              href={editInOlympusHref}
+              className="inline-flex items-center gap-1 hover:opacity-80"
+              style={{ color: "#C49A2B", fontSize: 10 }}
+            >
+              Edit in Olympus
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
+        </div>
       </header>
       {children}
     </section>
