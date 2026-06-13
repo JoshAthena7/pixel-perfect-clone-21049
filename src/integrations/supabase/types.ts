@@ -3161,6 +3161,48 @@ export type Database = {
           },
         ]
       }
+      experts: {
+        Row: {
+          contact_method: string | null
+          created_at: string
+          expertise_areas: string[] | null
+          id: string
+          name: string
+          notes: string | null
+          programs: string[] | null
+          role: string | null
+          states: string[] | null
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          contact_method?: string | null
+          created_at?: string
+          expertise_areas?: string[] | null
+          id?: string
+          name: string
+          notes?: string | null
+          programs?: string[] | null
+          role?: string | null
+          states?: string[] | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          contact_method?: string | null
+          created_at?: string
+          expertise_areas?: string[] | null
+          id?: string
+          name?: string
+          notes?: string | null
+          programs?: string[] | null
+          role?: string | null
+          states?: string[] | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       federal_compliance_library: {
         Row: {
           citation: string
@@ -3385,6 +3427,53 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
+      }
+      insights: {
+        Row: {
+          confidence: string | null
+          content: string
+          created_at: string
+          expiry_flag: boolean | null
+          id: string
+          insight_type: string | null
+          mission_id: string | null
+          source: string | null
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          confidence?: string | null
+          content: string
+          created_at?: string
+          expiry_flag?: boolean | null
+          id?: string
+          insight_type?: string | null
+          mission_id?: string | null
+          source?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          confidence?: string | null
+          content?: string
+          created_at?: string
+          expiry_flag?: boolean | null
+          id?: string
+          insight_type?: string | null
+          mission_id?: string | null
+          source?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insights_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       intelligence_canon: {
         Row: {
@@ -4882,6 +4971,9 @@ export type Database = {
       }
       mission_decisions: {
         Row: {
+          applies_to_programs: string[] | null
+          applies_to_states: string[] | null
+          category: string | null
           created_at: string | null
           decided_at: string | null
           id: string
@@ -4893,6 +4985,9 @@ export type Database = {
           title: string
         }
         Insert: {
+          applies_to_programs?: string[] | null
+          applies_to_states?: string[] | null
+          category?: string | null
           created_at?: string | null
           decided_at?: string | null
           id?: string
@@ -4904,6 +4999,9 @@ export type Database = {
           title: string
         }
         Update: {
+          applies_to_programs?: string[] | null
+          applies_to_states?: string[] | null
+          category?: string | null
           created_at?: string | null
           decided_at?: string | null
           id?: string
@@ -6578,6 +6676,8 @@ export type Database = {
         Row: {
           agency_code: string | null
           agency_name: string | null
+          avoid: string[] | null
+          biggest_concerns: string | null
           blast_off_at: string | null
           blast_off_by: string | null
           client_name: string | null
@@ -6588,22 +6688,31 @@ export type Database = {
           intelligence_graph_completeness: number
           intelligence_loadout_step: number
           iris_disclaimer: string | null
+          known_competitors: string[] | null
           monitoring_schedule: string
           name: string
+          north_star: string | null
           primary_contact_email: string | null
           primary_contact_name: string | null
           procurement_evolution_analysis: string | null
           procurement_type: string | null
           program_type: string | null
+          reinforce: string[] | null
           state: string | null
           state_code: string | null
+          state_priorities: string | null
           status: string
           submission_deadline: string
           updated_at: string
+          why_lose: string | null
+          why_win: string | null
+          win_themes_text: string | null
         }
         Insert: {
           agency_code?: string | null
           agency_name?: string | null
+          avoid?: string[] | null
+          biggest_concerns?: string | null
           blast_off_at?: string | null
           blast_off_by?: string | null
           client_name?: string | null
@@ -6614,22 +6723,31 @@ export type Database = {
           intelligence_graph_completeness?: number
           intelligence_loadout_step?: number
           iris_disclaimer?: string | null
+          known_competitors?: string[] | null
           monitoring_schedule?: string
           name: string
+          north_star?: string | null
           primary_contact_email?: string | null
           primary_contact_name?: string | null
           procurement_evolution_analysis?: string | null
           procurement_type?: string | null
           program_type?: string | null
+          reinforce?: string[] | null
           state?: string | null
           state_code?: string | null
+          state_priorities?: string | null
           status?: string
           submission_deadline: string
           updated_at?: string
+          why_lose?: string | null
+          why_win?: string | null
+          win_themes_text?: string | null
         }
         Update: {
           agency_code?: string | null
           agency_name?: string | null
+          avoid?: string[] | null
+          biggest_concerns?: string | null
           blast_off_at?: string | null
           blast_off_by?: string | null
           client_name?: string | null
@@ -6640,18 +6758,25 @@ export type Database = {
           intelligence_graph_completeness?: number
           intelligence_loadout_step?: number
           iris_disclaimer?: string | null
+          known_competitors?: string[] | null
           monitoring_schedule?: string
           name?: string
+          north_star?: string | null
           primary_contact_email?: string | null
           primary_contact_name?: string | null
           procurement_evolution_analysis?: string | null
           procurement_type?: string | null
           program_type?: string | null
+          reinforce?: string[] | null
           state?: string | null
           state_code?: string | null
+          state_priorities?: string | null
           status?: string
           submission_deadline?: string
           updated_at?: string
+          why_lose?: string | null
+          why_win?: string | null
+          win_themes_text?: string | null
         }
         Relationships: []
       }
@@ -7136,6 +7261,45 @@ export type Database = {
           timezone?: string | null
           writing_voice_sample?: string | null
           years_of_experience?: number | null
+        }
+        Relationships: []
+      }
+      program_dna: {
+        Row: {
+          attribute: string
+          category: string
+          confidence: string | null
+          created_at: string
+          id: string
+          last_reviewed: string | null
+          program: string
+          source: string | null
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          attribute: string
+          category: string
+          confidence?: string | null
+          created_at?: string
+          id?: string
+          last_reviewed?: string | null
+          program: string
+          source?: string | null
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          attribute?: string
+          category?: string
+          confidence?: string | null
+          created_at?: string
+          id?: string
+          last_reviewed?: string | null
+          program?: string
+          source?: string | null
+          updated_at?: string
+          value?: string
         }
         Relationships: []
       }
@@ -8149,6 +8313,7 @@ export type Database = {
       }
       signals: {
         Row: {
+          classified_as: string | null
           confidence: number | null
           created_at: string
           created_by_system: boolean | null
@@ -8161,6 +8326,8 @@ export type Database = {
           related_document_id: string | null
           related_question_id: string | null
           related_risk_id: string | null
+          reviewed: boolean | null
+          reviewed_by: string | null
           severity: string
           signal_summary: string | null
           signal_title: string
@@ -8172,6 +8339,7 @@ export type Database = {
           user_role: string | null
         }
         Insert: {
+          classified_as?: string | null
           confidence?: number | null
           created_at?: string
           created_by_system?: boolean | null
@@ -8184,6 +8352,8 @@ export type Database = {
           related_document_id?: string | null
           related_question_id?: string | null
           related_risk_id?: string | null
+          reviewed?: boolean | null
+          reviewed_by?: string | null
           severity?: string
           signal_summary?: string | null
           signal_title: string
@@ -8195,6 +8365,7 @@ export type Database = {
           user_role?: string | null
         }
         Update: {
+          classified_as?: string | null
           confidence?: number | null
           created_at?: string
           created_by_system?: boolean | null
@@ -8207,6 +8378,8 @@ export type Database = {
           related_document_id?: string | null
           related_question_id?: string | null
           related_risk_id?: string | null
+          reviewed?: boolean | null
+          reviewed_by?: string | null
           severity?: string
           signal_summary?: string | null
           signal_title?: string
@@ -8217,7 +8390,22 @@ export type Database = {
           user_id?: string | null
           user_role?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "signals_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signals_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stakeholder_profiles: {
         Row: {
@@ -8333,6 +8521,45 @@ export type Database = {
           tags?: string[]
           topic?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      state_dna: {
+        Row: {
+          attribute: string
+          category: string
+          confidence: string | null
+          created_at: string
+          id: string
+          last_reviewed: string | null
+          source: string | null
+          state: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          attribute: string
+          category: string
+          confidence?: string | null
+          created_at?: string
+          id?: string
+          last_reviewed?: string | null
+          source?: string | null
+          state: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          attribute?: string
+          category?: string
+          confidence?: string | null
+          created_at?: string
+          id?: string
+          last_reviewed?: string | null
+          source?: string | null
+          state?: string
+          updated_at?: string
+          value?: string
         }
         Relationships: []
       }
