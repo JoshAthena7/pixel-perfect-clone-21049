@@ -121,6 +121,11 @@ export const postThreadMessage = createServerFn({ method: "POST" })
       } catch (e) {
         console.error("[thread] line-of-sight import failed", e);
       }
+      // Fire-and-forget: decision is a final-ish event — extract intelligence.
+      void triggerThreadExtraction({
+        missionId: data.missionId,
+        questionId: data.questionId,
+      }).catch((e: unknown) => console.error("[thread] iris extraction failed", e));
       return { ok: true, message: inserted };
     }
 
@@ -147,8 +152,40 @@ export const postThreadMessage = createServerFn({ method: "POST" })
       }).catch((e: unknown) => console.error("[thread] cross-reference search failed", e));
     }
 
+    // If the question is in a final/complete state, run thread intelligence
+    // extraction in the background.
+    try {
+      const { data: qstate } = await supabase
+        .from("mission_questions")
+        .select("status, iris_extracted")
+        .eq("id", data.questionId)
+        .maybeSingle();
+      const status = (qstate as { status: string | null } | null)?.status;
+      const already = (qstate as { iris_extracted: boolean | null } | null)?.iris_extracted;
+      if (
+        !already &&
+        (status === "complete" || status === "submitted" || status === "final")
+      ) {
+        void triggerThreadExtraction({
+          missionId: data.missionId,
+          questionId: data.questionId,
+        }).catch((e: unknown) => console.error("[thread] iris extraction failed", e));
+      }
+    } catch (e) {
+      console.error("[thread] extraction-trigger check failed", e);
+    }
+
     return { ok: true, message: inserted };
   });
+
+async function triggerThreadExtraction(args: { missionId: string; questionId: string }) {
+  const { extractThreadIntelligence } = await import(
+    "@/lib/iris-extract-thread-intelligence.functions"
+  );
+  await extractThreadIntelligence({
+    data: { mission_id: args.missionId, question_id: args.questionId },
+  });
+}
 
 /** Called when the panel opens. Posts an IRIS check-in if the thread has been
  * inactive for 24+ hours and the question is flagged at-risk. */
