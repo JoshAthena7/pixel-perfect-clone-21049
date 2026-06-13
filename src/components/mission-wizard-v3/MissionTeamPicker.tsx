@@ -44,7 +44,10 @@ export function MissionTeamPicker({ missionId }: { missionId: string }) {
         .from("mission_iris_extractions")
         .select("id, extracted_field, user_override_value")
         .eq("mission_id", missionId)
-        .in("extracted_field", ROLES.map((r) => r.key));
+        .in(
+          "extracted_field",
+          ROLES.map((r) => r.key),
+        );
       return (data ?? []) as Array<{
         id: string;
         extracted_field: string;
