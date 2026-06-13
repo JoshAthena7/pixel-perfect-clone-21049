@@ -163,6 +163,16 @@ export const analyzeMissionStep = createServerFn({ method: "POST" })
     const docsById = new Map(docs.map((d) => [d.id as string, d]));
 
     for (const e of extractions) {
+      const { data: humanRow } = await supabase
+        .from("mission_iris_extractions")
+        .select("id")
+        .eq("mission_id", data.missionId)
+        .eq("extracted_field", e.field_key)
+        .or("confirmed_by_user.eq.true,overridden_by_user.eq.true")
+        .maybeSingle();
+
+      if (humanRow?.id) continue;
+
       // Try to match source mention to a document
       let sourceFileId: string | null = null;
       let sourceFileName: string | null = null;
