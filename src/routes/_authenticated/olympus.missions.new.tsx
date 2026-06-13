@@ -343,6 +343,7 @@ function ChatField({
   onChange,
   error,
   type = "text",
+  multiline = false,
 }: {
   label: string;
   placeholder?: string;
@@ -350,29 +351,88 @@ function ChatField({
   onChange: (v: string) => void;
   error?: boolean;
   type?: string;
+  multiline?: boolean;
 }) {
+  const baseStyle = {
+    background: "rgba(255,255,255,0.04)",
+    border: `1px solid ${error ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.1)"}`,
+  } as const;
+  const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (!error) e.currentTarget.style.borderColor = "rgba(196,154,43,0.55)";
+  };
+  const onBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (!error) e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+  };
   return (
     <div>
       <label className="block text-[13px] text-white/70 mb-2">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full rounded-lg px-4 py-3 text-[15px] text-white placeholder:text-white/30 transition-colors focus:outline-none"
-        style={{
-          background: "rgba(255,255,255,0.04)",
-          border: `1px solid ${error ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.1)"}`,
-        }}
-        onFocus={(e) => {
-          if (!error)
-            e.currentTarget.style.borderColor = "rgba(196,154,43,0.55)";
-        }}
-        onBlur={(e) => {
-          if (!error)
-            e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
-        }}
-      />
+      {multiline ? (
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          rows={3}
+          className="w-full rounded-lg px-4 py-3 text-[14px] text-white placeholder:text-white/30 transition-colors focus:outline-none resize-y"
+          style={baseStyle}
+          onFocus={onFocus}
+          onBlur={onBlur}
+        />
+      ) : (
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full rounded-lg px-4 py-3 text-[15px] text-white placeholder:text-white/30 transition-colors focus:outline-none"
+          style={baseStyle}
+          onFocus={onFocus}
+          onBlur={onBlur}
+        />
+      )}
+    </div>
+  );
+}
+
+function CollapsibleSection({
+  title,
+  subtitle,
+  open,
+  onToggle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{
+        background: "rgba(255,255,255,0.02)",
+        border: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between px-5 py-3 text-left hover:bg-white/[0.03] transition-colors"
+      >
+        <div>
+          <div className="text-[13px] text-white font-medium">{title}</div>
+          {subtitle && (
+            <div className="text-[11px] text-white/40 mt-0.5">{subtitle}</div>
+          )}
+        </div>
+        <span
+          className="text-white/40 text-[14px] transition-transform"
+          style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)" }}
+        >
+          ▸
+        </span>
+      </button>
+      {open && <div className="px-5 pb-5 pt-1 space-y-4">{children}</div>}
     </div>
   );
 }
