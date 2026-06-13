@@ -53,16 +53,23 @@ export function MissionTeamPicker({ missionId }: { missionId: string }) {
     },
   });
 
+  const [pending, setPending] = useState<Record<string, string>>({});
+
   const byRole = useMemo(() => {
     const m = new Map<string, string>();
     (assignments ?? []).forEach((a) => {
       if (a.user_override_value) m.set(a.extracted_field, a.user_override_value);
     });
+    Object.entries(pending).forEach(([k, v]) => {
+      if (v) m.set(k, v);
+      else m.delete(k);
+    });
     return m;
-  }, [assignments]);
+  }, [assignments, pending]);
 
   async function setRole(roleKey: string, value: string) {
-    await supabase
+    setPending((p) => ({ ...p, [roleKey]: value }));
+    const { error } = await supabase
       .from("mission_iris_extractions")
       .upsert(
         {
@@ -77,7 +84,17 @@ export function MissionTeamPicker({ missionId }: { missionId: string }) {
         },
         { onConflict: "mission_id,extracted_field" },
       );
-    qc.invalidateQueries({ queryKey });
+    if (error) {
+      console.error("[MissionTeamPicker] upsert failed", error);
+      alert(`Could not save team role: ${error.message}`);
+      setPending((p) => {
+        const n = { ...p };
+        delete n[roleKey];
+        return n;
+      });
+      return;
+    }
+    await qc.invalidateQueries({ queryKey });
   }
 
   return (
