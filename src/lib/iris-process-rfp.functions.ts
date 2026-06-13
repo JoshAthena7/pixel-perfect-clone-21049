@@ -112,6 +112,28 @@ function tryParseJSON(s: string): Extracted | null {
   }
 }
 
+function questionKey(q: Pick<Question, "number" | "text"> | { question_number?: string | null; question_text?: string | null }) {
+  const number = "question_number" in q ? q.question_number : q.number;
+  const text = "question_text" in q ? q.question_text : q.text;
+  return `${String(number ?? "").trim().toLowerCase()}::${String(text ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ")}`;
+}
+
+function countPlannedQuestions(volumes: Volume[]) {
+  return volumes.reduce((total, volume) => {
+    return total + (volume.sections ?? []).reduce((sectionTotal, section) => {
+      const direct = Array.isArray(section.questions) ? section.questions.length : 0;
+      const nested = (section.sub_sections ?? []).reduce(
+        (subTotal, sub) => subTotal + (Array.isArray(sub.questions) ? sub.questions.length : 0),
+        0,
+      );
+      return sectionTotal + direct + nested;
+    }, 0);
+  }, 0);
+}
+
 export type ProcessResult = {
   ok: boolean;
   counts: {
@@ -171,7 +193,33 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
     const parsed = tryParseJSON(content);
     if (!parsed) throw new Error("IRIS could not extract a valid structure.");
 
-    // Wipe any previously-extracted IRIS data for idempotency.
+    const volumes = Array.isArray(parsed.volumes) ? parsed.volumes : [];
+    const plannedQuestionCount = countPlannedQuestions(volumes);
+    const [{ data: previousQuestions }, { data: previousAssignments }] = await Promise.all([
+      supabase
+        .from("mission_questions")
+        .select("id, question_number, question_text")
+        .eq("mission_id", data.mission_id),
+      supabase
+        .from("mission_assignments")
+        .select("question_id, assigned_writer_id, sme_member_ids, acceptance_status, writer_confidence, due_date, assigned_by, assigned_at")
+        .eq("mission_id", data.mission_id),
+    ]);
+    if (plannedQuestionCount === 0 && (previousQuestions?.length ?? 0) > 0) {
+      throw new Error("IRIS did not find replacement questions, so existing questions and assignments were left unchanged.");
+    }
+
+    const questionKeyById = new Map((previousQuestions ?? []).map((q) => [q.id, questionKey(q)]));
+    const previousAssignmentByQuestionKey = new Map(
+      (previousAssignments ?? [])
+        .map((assignment) => {
+          const key = questionKeyById.get(assignment.question_id);
+          return key ? [key, assignment] as const : null;
+        })
+        .filter(Boolean) as Array<readonly [string, NonNullable<typeof previousAssignments>[number]]>,
+    );
+
+    // Wipe previously-extracted IRIS data only after we know the new run has questions.
     await supabase
       .from("mission_submission_checklist")
       .delete()
@@ -197,27 +245,55 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
 
     const insertQuestions = async (sectionId: string, qs: Question[]) => {
       if (qs.length === 0) return;
-      const qRows = qs
+      const rowsWithKeys = qs
         .map((q) => ({
-          mission_id: data.mission_id,
-          section_id: sectionId,
-          question_number: q.number ? String(q.number).slice(0, 50) : null,
-          question_text: String(q.text ?? "").slice(0, 4000),
-          word_limit: safeNum(q.word_limit),
-          page_limit: safeNum(q.page_limit),
-          evaluation_criteria: q.evaluation_criteria
-            ? String(q.evaluation_criteria).slice(0, 2000)
-            : null,
-          iris_confidence: conf(q.confidence),
-          status: "not_started",
+          key: questionKey(q),
+          row: {
+            mission_id: data.mission_id,
+            section_id: sectionId,
+            question_number: q.number ? String(q.number).slice(0, 50) : null,
+            question_text: String(q.text ?? "").slice(0, 4000),
+            word_limit: safeNum(q.word_limit),
+            page_limit: safeNum(q.page_limit),
+            evaluation_criteria: q.evaluation_criteria
+              ? String(q.evaluation_criteria).slice(0, 2000)
+              : null,
+            iris_confidence: conf(q.confidence),
+            status: "not_started",
+          },
         }))
-        .filter((r) => r.question_text.trim().length > 0);
-      if (qRows.length === 0) return;
-      const { error: qErr } = await supabase.from("mission_questions").insert(qRows);
-      if (!qErr) counts.questions += qRows.length;
+        .filter((r) => r.row.question_text.trim().length > 0);
+      if (rowsWithKeys.length === 0) return;
+      const { data: inserted, error: qErr } = await supabase
+        .from("mission_questions")
+        .insert(rowsWithKeys.map((r) => r.row))
+        .select("id, question_number, question_text");
+      if (qErr) throw qErr;
+      counts.questions += inserted?.length ?? 0;
+      const restoreRows = (inserted ?? [])
+        .map((newQuestion) => {
+          const previous = previousAssignmentByQuestionKey.get(questionKey(newQuestion));
+          if (!previous) return null;
+          return {
+            mission_id: data.mission_id,
+            question_id: newQuestion.id,
+            assigned_writer_id: previous.assigned_writer_id,
+            sme_member_ids: previous.sme_member_ids ?? [],
+            acceptance_status: previous.acceptance_status ?? "pending",
+            writer_confidence: previous.writer_confidence ?? "not_set",
+            due_date: previous.due_date,
+            assigned_by: previous.assigned_by,
+            assigned_at: previous.assigned_at ?? new Date().toISOString(),
+          };
+        })
+        .filter(Boolean);
+      if (restoreRows.length > 0) {
+        const { error: restoreErr } = await supabase.from("mission_assignments").upsert(restoreRows, {
+          onConflict: "mission_id,question_id",
+        });
+        if (restoreErr) throw restoreErr;
+      }
     };
-
-    const volumes = Array.isArray(parsed.volumes) ? parsed.volumes : [];
     for (let vi = 0; vi < volumes.length; vi++) {
       const v = volumes[vi] ?? {};
       const { data: vRow, error: vErr } = await supabase
