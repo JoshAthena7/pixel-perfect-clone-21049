@@ -35,8 +35,8 @@ const NODE_LABEL: Record<string, string> = {
   competitor: "Competitor",
 };
 
-const W = 800;
-const H = 400;
+const W = 1200;
+const H = 700;
 
 export function OracleGraph({
   missionId,
