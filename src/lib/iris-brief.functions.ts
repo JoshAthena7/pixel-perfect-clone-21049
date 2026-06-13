@@ -249,3 +249,192 @@ ${(researchNodes?.data ?? []).map((n) => `- ${n.label}${n.description ? `: ${n.d
       has_competitors: comps.length > 0,
     };
   });
+
+// ============================================================================
+// Question Brief — IRIS-generated per-question brief for Flight Deck threads.
+// Persisted to public.question_briefs (additive, does not affect mission brief).
+// ============================================================================
+
+export type QuestionBriefBody = {
+  what_they_really_asking: string;
+  why_it_matters: string;
+  evaluator_perspective: string;
+  member_perspective: string;
+  provider_perspective: string;
+  key_messages_to_reinforce: string[];
+  things_to_avoid: string[];
+  proof_points: string[];
+  suggested_smes: string[];
+};
+
+export const generateQuestionBrief = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    missionId: z.string().uuid(),
+    questionId: z.string().uuid().nullable().optional(),
+    threadId: z.string().uuid().nullable().optional(),
+    questionText: z.string().min(3),
+    persist: z.boolean().optional().default(true),
+  }).parse(d))
+  .handler(async ({ data, context }): Promise<QuestionBriefBody & { id?: string }> => {
+    const { supabase } = context;
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (!apiKey) throw new Error("IRIS is not configured.");
+
+    // Mission + canvas fields (single row from missions).
+    const { data: missionRow } = await supabase
+      .from("missions")
+      .select("name,state,agency_name,program_type,client_name,north_star,why_win,why_lose,biggest_concerns,known_competitors,state_priorities,win_themes_text,reinforce,avoid")
+      .eq("id", data.missionId)
+      .maybeSingle();
+    const m = (missionRow ?? {}) as {
+      name?: string | null; state?: string | null; agency_name?: string | null;
+      program_type?: string | null; client_name?: string | null;
+      north_star?: string | null; why_win?: string | null; why_lose?: string | null;
+      biggest_concerns?: string | null; known_competitors?: string[] | null;
+      state_priorities?: string | null; win_themes_text?: string | null;
+      reinforce?: string[] | null; avoid?: string[] | null;
+    };
+    const missionState = m.state ?? null;
+    const missionProgram = m.program_type ?? null;
+
+    // Parallel context fetches.
+    const programPattern = missionProgram
+      ? `program.ilike.%${missionProgram}%,program.ilike.%CSOC%,program.ilike.%Children%`
+      : `program.ilike.%CSOC%,program.ilike.%Children%`;
+    const [approvedBriefRes, stateDnaRes, programDnaRes, insightsRes, expertsRes] = await Promise.all([
+      supabase.from("iris_brief_cache")
+        .select("brief_text,generated_at")
+        .eq("scope", "mission")
+        .eq("ref_id", data.missionId)
+        .order("generated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      missionState
+        ? supabase.from("state_dna").select("category,attribute,value,source,confidence").eq("state", missionState).limit(200)
+        : Promise.resolve({ data: [] as any[] }),
+      supabase.from("program_dna").select("category,attribute,value,source,confidence").or(programPattern).limit(200),
+      supabase.from("insights").select("insight_type,content,source,confidence,tags").is("mission_id", null).eq("expiry_flag", false).limit(100),
+      missionState
+        ? supabase.from("experts").select("name,role,expertise_areas,states,programs,contact_method,notes").contains("states", [missionState]).limit(50)
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
+
+    const approvedBrief = (approvedBriefRes?.data as { brief_text?: string | null } | null)?.brief_text ?? "";
+    const stateDnaRows = (stateDnaRes?.data ?? []) as Array<{ category: string; attribute: string; value: string }>;
+    const programDnaRows = (programDnaRes?.data ?? []) as Array<{ category: string; attribute: string; value: string }>;
+    const insightsRows = (insightsRes?.data ?? []) as Array<{ insight_type: string; content: string; source: string | null; confidence: string | null }>;
+    const expertsList = (expertsRes?.data ?? []) as Array<{ name: string; role: string | null; expertise_areas: string[] | null; states: string[] | null; programs: string[] | null; contact_method: string | null }>;
+
+    const groupByCategory = <T extends { category: string; attribute: string; value: string }>(rows: T[]): string => {
+      if (rows.length === 0) return "(none)";
+      const groups = new Map<string, T[]>();
+      for (const r of rows) {
+        if (!groups.has(r.category)) groups.set(r.category, []);
+        groups.get(r.category)!.push(r);
+      }
+      return Array.from(groups.entries()).map(([cat, items]) =>
+        `  [${cat}]\n${items.map((i) => `    - ${i.attribute}: ${i.value}`).join("\n")}`
+      ).join("\n");
+    };
+
+    const canvasBlock = `=== MISSION CANVAS (HIGHEST PRIORITY) ===
+- North Star: ${m.north_star ?? "(none)"}
+- Why we win: ${m.why_win ?? "(none)"}
+- Why we lose: ${m.why_lose ?? "(none)"}
+- Biggest concerns: ${m.biggest_concerns ?? "(none)"}
+- Known competitors: ${(m.known_competitors ?? []).join(", ") || "(none)"}
+- State priorities: ${m.state_priorities ?? "(none)"}
+- Win themes: ${m.win_themes_text ?? "(none)"}
+- Reinforce: ${(m.reinforce ?? []).join(" | ") || "(none)"}
+- Avoid: ${(m.avoid ?? []).join(" | ") || "(none)"}`;
+
+    const system =
+      "You are IRIS, a Medicaid procurement intelligence analyst. Generate a per-question brief for a proposal writer. " +
+      "Return ONLY valid JSON with this exact shape: " +
+      `{ "what_they_really_asking": string, "why_it_matters": string, "evaluator_perspective": string, "member_perspective": string, "provider_perspective": string, "key_messages_to_reinforce": string[], "things_to_avoid": string[], "proof_points": string[], "suggested_smes": string[] }. ` +
+      "Be specific to THIS question and mission — no boilerplate. Each text field is 2-4 sentences. Arrays contain 3-6 short, concrete items. Reference state and program specifics by name. Pull directly from the Mission Canvas and the approved Mission Brief when relevant.";
+
+    const user = `${canvasBlock}
+
+=== APPROVED MISSION BRIEF (synthesized — primary context) ===
+${approvedBrief || "(not yet generated)"}
+
+Mission: ${m.name ?? ""} | Client: ${m.client_name ?? ""} | State: ${missionState ?? ""} | Agency: ${m.agency_name ?? ""} | Program: ${missionProgram ?? ""}
+
+=== QUESTION (this is the question to brief) ===
+${data.questionText}
+
+=== STATE DNA (${missionState ?? "unknown"}) ===
+${groupByCategory(stateDnaRows)}
+
+=== PROGRAM DNA ===
+${groupByCategory(programDnaRows)}
+
+=== GLOBAL INSIGHTS (Athena cross-mission) ===
+${insightsRows.length === 0 ? "(none)" : insightsRows.map((i) => `- [${i.insight_type}/${i.confidence ?? "?"}] ${i.content}${i.source ? ` (src: ${i.source})` : ""}`).join("\n")}
+
+=== EXPERTS available for this state ===
+${expertsList.length === 0 ? "(none)" : expertsList.map((e) => `- ${e.name}${e.role ? `, ${e.role}` : ""} | expertise=${(e.expertise_areas ?? []).join("/") || "?"} | programs=${(e.programs ?? []).join("/") || "?"}${e.contact_method ? ` | contact=${e.contact_method}` : ""}`).join("\n")}`;
+
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        response_format: { type: "json_object" },
+        max_tokens: 2200,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+      }),
+    });
+    if (res.status === 402) throw new Error("Workspace is out of AI credits.");
+    if (res.status === 429) throw new Error("IRIS is rate limited. Try again shortly.");
+    if (!res.ok) throw new Error(`IRIS gateway returned ${res.status}.`);
+
+    const j = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+    const content = j.choices?.[0]?.message?.content ?? "";
+    const match = content.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("IRIS returned a malformed response.");
+    const parsed = JSON.parse(match[0]) as Partial<QuestionBriefBody>;
+
+    const asArr = (v: unknown): string[] => Array.isArray(v) ? v.map(String).filter(Boolean) : [];
+    const body: QuestionBriefBody = {
+      what_they_really_asking: String(parsed.what_they_really_asking ?? ""),
+      why_it_matters: String(parsed.why_it_matters ?? ""),
+      evaluator_perspective: String(parsed.evaluator_perspective ?? ""),
+      member_perspective: String(parsed.member_perspective ?? ""),
+      provider_perspective: String(parsed.provider_perspective ?? ""),
+      key_messages_to_reinforce: asArr(parsed.key_messages_to_reinforce),
+      things_to_avoid: asArr(parsed.things_to_avoid),
+      proof_points: asArr(parsed.proof_points),
+      suggested_smes: asArr(parsed.suggested_smes),
+    };
+
+    let insertedId: string | undefined;
+    if (data.persist) {
+      const { data: row, error } = await supabase
+        .from("question_briefs")
+        .insert({
+          mission_id: data.missionId,
+          question_id: data.questionId ?? null,
+          thread_id: data.threadId ?? null,
+          ...body,
+          generated_by_iris: true,
+          status: "draft",
+        })
+        .select("id")
+        .single();
+      if (error) {
+        // Don't fail the brief generation if persistence fails; surface in logs.
+        console.error("question_briefs insert failed:", error.message);
+      } else {
+        insertedId = (row as { id: string }).id;
+      }
+    }
+
+    return { ...body, id: insertedId };
+  });
+
