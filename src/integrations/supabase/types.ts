@@ -1813,6 +1813,59 @@ export type Database = {
           },
         ]
       }
+      change_requests: {
+        Row: {
+          admin_notes: string | null
+          context: Json
+          created_at: string
+          id: string
+          message: string
+          mission_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          surface: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          context?: Json
+          created_at?: string
+          id?: string
+          message: string
+          mission_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          surface: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          context?: Json
+          created_at?: string
+          id?: string
+          message?: string
+          mission_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          surface?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "change_requests_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkin_cycles: {
         Row: {
           created_at: string
