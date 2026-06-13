@@ -77,14 +77,26 @@ function BriefingPage() {
 
       {tab === "brief" ? (
         <div className="space-y-4">
-          <Suspense fallback={<SectionSkeleton height={140} />}><SectionSnapshot {...props} /></Suspense>
-          <Suspense fallback={<SectionSkeleton height={200} />}><SectionTimeline {...props} /></Suspense>
-          <Suspense fallback={<SectionSkeleton height={180} />}><SectionWhyMatters {...props} /></Suspense>
-          <Suspense fallback={<SectionSkeleton height={260} />}><SectionIntelligence {...props} /></Suspense>
-          <Suspense fallback={<SectionSkeleton height={220} />}><SectionClientStory {...props} /></Suspense>
-          <Suspense fallback={<SectionSkeleton height={200} />}><SectionBriefAtRisk {...props} /></Suspense>
-          <Suspense fallback={<SectionSkeleton height={120} />}><SectionDocuments {...props} /></Suspense>
-          <Suspense fallback={<SectionSkeleton height={160} />}><SectionSignals {...props} /></Suspense>
+          <MissionBriefArtifact missionId={missionId} />
+
+          <div className="pt-2">
+            <div className="flex items-center gap-3 mb-3">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                Supporting Materials
+              </h3>
+              <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <div className="space-y-4 opacity-95">
+              <Suspense fallback={<SectionSkeleton height={140} />}><SectionSnapshot {...props} /></Suspense>
+              <Suspense fallback={<SectionSkeleton height={200} />}><SectionTimeline {...props} /></Suspense>
+              <Suspense fallback={<SectionSkeleton height={180} />}><SectionWhyMatters {...props} /></Suspense>
+              <Suspense fallback={<SectionSkeleton height={260} />}><SectionIntelligence {...props} /></Suspense>
+              <Suspense fallback={<SectionSkeleton height={220} />}><SectionClientStory {...props} /></Suspense>
+              <Suspense fallback={<SectionSkeleton height={200} />}><SectionBriefAtRisk {...props} /></Suspense>
+              <Suspense fallback={<SectionSkeleton height={120} />}><SectionDocuments {...props} /></Suspense>
+              <Suspense fallback={<SectionSkeleton height={160} />}><SectionSignals {...props} /></Suspense>
+            </div>
+          </div>
         </div>
       ) : (
         <StrategyView missionId={missionId} missionName={header.mission?.name ?? "Mission"} />
