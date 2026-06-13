@@ -23,9 +23,10 @@ export function HealthBadge({ health, size = "lg" }: { health: "green" | "amber"
 }
 
 import { Link } from "@tanstack/react-router";
-import { Wand2, Pencil } from "lucide-react";
+import { Wand2, Pencil, Flag } from "lucide-react";
 import { useState } from "react";
 import { MissionEditPanel } from "@/components/missions/MissionEditPanel";
+import { CloseMissionDialog } from "@/components/mission-command/CloseMissionDialog";
 
 export function BriefingHeader({
   missionName,
@@ -41,10 +42,14 @@ export function BriefingHeader({
   isAdmin?: boolean;
 }) {
   const [editOpen, setEditOpen] = useState(false);
+  const [closeOpen, setCloseOpen] = useState(false);
   return (
     <header className="mb-6">
       {isAdmin && missionId && (
-        <MissionEditPanel missionId={missionId} open={editOpen} onOpenChange={setEditOpen} />
+        <>
+          <MissionEditPanel missionId={missionId} open={editOpen} onOpenChange={setEditOpen} />
+          <CloseMissionDialog missionId={missionId} open={closeOpen} onOpenChange={setCloseOpen} />
+        </>
       )}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
@@ -74,6 +79,13 @@ export function BriefingHeader({
               >
                 <Wand2 className="h-3 w-3" /> Enhance in Olympus
               </Link>
+              <button
+                type="button"
+                onClick={() => setCloseOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/10 px-2.5 py-1 text-[11px] font-medium text-red-300 hover:bg-red-500/20 transition-colors"
+              >
+                <Flag className="h-3 w-3" /> Close Mission
+              </button>
             </>
           )}
           <HealthBadge health={health} />
