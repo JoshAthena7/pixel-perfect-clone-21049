@@ -10,6 +10,7 @@ import {
   type ScoreMeResult,
 } from "@/lib/score-me-coach.functions";
 import { prefetchScoreMeContext } from "@/lib/score-me-prefetch.functions";
+import { irisScoreGapAnalysis } from "@/lib/iris-score-gap-analysis.functions";
 
 type Props = {
   open: boolean;
