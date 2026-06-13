@@ -305,6 +305,7 @@ function ChatField({
   error,
   type = "text",
   multiline = false,
+  disabled = false,
 }: {
   label: string;
   placeholder?: string;
@@ -313,13 +314,16 @@ function ChatField({
   error?: boolean;
   type?: string;
   multiline?: boolean;
+  disabled?: boolean;
 }) {
   const baseStyle = {
-    background: "rgba(255,255,255,0.04)",
+    background: disabled ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)",
     border: `1px solid ${error ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.1)"}`,
+    opacity: disabled ? 0.6 : 1,
+    cursor: disabled ? "not-allowed" : "auto",
   } as const;
   const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    if (!error) e.currentTarget.style.borderColor = "rgba(196,154,43,0.55)";
+    if (!error && !disabled) e.currentTarget.style.borderColor = "rgba(196,154,43,0.55)";
   };
   const onBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (!error) e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
@@ -333,6 +337,8 @@ function ChatField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={3}
+          disabled={disabled}
+          readOnly={disabled}
           className="w-full rounded-lg px-4 py-3 text-[14px] text-white placeholder:text-white/30 transition-colors focus:outline-none resize-y"
           style={baseStyle}
           onFocus={onFocus}
@@ -344,6 +350,8 @@ function ChatField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
+          disabled={disabled}
+          readOnly={disabled}
           className="w-full rounded-lg px-4 py-3 text-[15px] text-white placeholder:text-white/30 transition-colors focus:outline-none"
           style={baseStyle}
           onFocus={onFocus}
