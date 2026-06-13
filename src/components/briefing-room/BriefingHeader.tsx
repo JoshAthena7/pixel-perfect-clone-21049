@@ -42,10 +42,14 @@ export function BriefingHeader({
   isAdmin?: boolean;
 }) {
   const [editOpen, setEditOpen] = useState(false);
+  const [closeOpen, setCloseOpen] = useState(false);
   return (
     <header className="mb-6">
       {isAdmin && missionId && (
-        <MissionEditPanel missionId={missionId} open={editOpen} onOpenChange={setEditOpen} />
+        <>
+          <MissionEditPanel missionId={missionId} open={editOpen} onOpenChange={setEditOpen} />
+          <CloseMissionDialog missionId={missionId} open={closeOpen} onOpenChange={setCloseOpen} />
+        </>
       )}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
