@@ -72,7 +72,34 @@ export function Step8Review({
     });
   });
 
-  const unconfirmedCount = Array.from(byKey.values()).filter((v) => v.value && !v.confirmed).length;
+  const unconfirmedByStep: { step: number; title: string; fields: string[] }[] = Object.entries(
+    STEP_FIELD_GROUPS,
+  )
+    .map(([stepStr, group]) => {
+      const stepNum = Number(stepStr);
+      const fields = group.keys.filter((k) => {
+        const v = byKey.get(k);
+        return v?.value && !v.confirmed;
+      });
+      return { step: stepNum, title: group.title, fields };
+    })
+    .filter((g) => g.fields.length > 0);
+  const unconfirmedCount = unconfirmedByStep.reduce((n, g) => n + g.fields.length, 0);
+
+  async function confirmAll() {
+    const fields = unconfirmedByStep.flatMap((g) => g.fields);
+    if (fields.length === 0) return;
+    const { error: upErr } = await supabase
+      .from("mission_iris_extractions")
+      .update({ confirmed_by_user: true, confirmed_at: new Date().toISOString() })
+      .eq("mission_id", missionId)
+      .in("extracted_field", fields);
+    if (upErr) {
+      setError(upErr.message);
+      return;
+    }
+    qc.invalidateQueries({ queryKey: ["wizard-review-extractions", missionId] });
+  }
 
   async function launch() {
     setLaunching(true);
