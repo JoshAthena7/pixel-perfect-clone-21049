@@ -290,6 +290,50 @@ function MeetIrisIntro() {
               <ChatField label="What to Reinforce" placeholder="Comma-separated key messages to repeat throughout the proposal" value={reinforce} onChange={setReinforce} disabled={isLocked} />
               <ChatField label="What to Avoid" placeholder="Comma-separated topics, claims, or language to stay away from" value={avoid} onChange={setAvoid} disabled={isLocked} />
             </CollapsibleSection>
+
+            <CollapsibleSection
+              title="Stakeholder Intelligence"
+              subtitle="Optional — helps IRIS understand your audience"
+              open={openSections.stakeholders}
+              onToggle={() => toggleSection("stakeholders")}
+            >
+              <div className="text-[11.5px] text-white/55 leading-relaxed -mt-1">
+                Not required. Filling this in sharpens IRIS guidance, briefs, and scoring by anchoring it to the people who actually decide and use the program.
+              </div>
+
+              <CollapsibleSection
+                title="Member / Family"
+                subtitle="Optional"
+                open={openSections.stk_member}
+                onToggle={() => toggleSection("stk_member")}
+              >
+                <ChatField label="What matters most to members and families in this program?" placeholder="" value={memberMatters} onChange={setMemberMatters} multiline />
+                <ChatField label="What frustrates them most about current care?" placeholder="" value={memberFrustrations} onChange={setMemberFrustrations} multiline />
+                <ChatField label="What would success look like for them?" placeholder="" value={memberSuccess} onChange={setMemberSuccess} multiline />
+              </CollapsibleSection>
+
+              <CollapsibleSection
+                title="Provider"
+                subtitle="Optional"
+                open={openSections.stk_provider}
+                onToggle={() => toggleSection("stk_provider")}
+              >
+                <ChatField label="What matters most to providers in this network?" placeholder="" value={providerMatters} onChange={setProviderMatters} multiline />
+                <ChatField label="What frustrates them most about current managed care?" placeholder="" value={providerFrustrations} onChange={setProviderFrustrations} multiline />
+                <ChatField label="What would success look like for them?" placeholder="" value={providerSuccess} onChange={setProviderSuccess} multiline />
+              </CollapsibleSection>
+
+              <CollapsibleSection
+                title="Evaluator"
+                subtitle="Optional"
+                open={openSections.stk_evaluator}
+                onToggle={() => toggleSection("stk_evaluator")}
+              >
+                <ChatField label="What does the evaluator care most about?" placeholder="" value={evaluatorMatters} onChange={setEvaluatorMatters} multiline />
+                <ChatField label="What keeps evaluators awake at night about this procurement?" placeholder="" value={evaluatorFrustrations} onChange={setEvaluatorFrustrations} multiline />
+                <ChatField label="What would evaluators consider a winning response?" placeholder="" value={evaluatorSuccess} onChange={setEvaluatorSuccess} multiline />
+              </CollapsibleSection>
+            </CollapsibleSection>
           </div>
 
 
