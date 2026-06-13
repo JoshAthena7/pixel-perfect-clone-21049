@@ -11,11 +11,16 @@ import {
 } from "@/components/olympus/MissionCanvasLock";
 
 export const Route = createFileRoute("/_authenticated/olympus/missions/new")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    missionId: typeof s.missionId === "string" ? s.missionId : undefined,
+  }),
   component: MeetIrisIntro,
 });
 
 function MeetIrisIntro() {
   const navigate = useNavigate();
+  const { missionId: editingMissionId } = useSearch({ from: Route.id });
+  const { isLocked } = useBriefLocked(editingMissionId);
   const [firstName, setFirstName] = useState<string>("");
   const [name, setName] = useState("");
   const [client, setClient] = useState("");
