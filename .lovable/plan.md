@@ -1,103 +1,41 @@
-# Mission Briefing Room — Build Plan
+## Important context I found before planning
 
-Read-only command center at `/missions/[id]/briefing`. Olympus creates reality; ATLAS distributes it. Zero edit affordances for non-admin.
+Your spec asks me to create `question_assignments` with `lead_writer_id`, `sme_ids[]`, `due_date`, etc. The codebase already has a **working Question Assignments feature** I want to extend rather than duplicate:
 
-## Files to create
+- Table `public.mission_assignments` (one row per question) already stores `assigned_writer_id`, `due_date`, `acceptance_status`, `writer_confidence`, `assigned_by`, `assigned_at`. It's populated automatically when questions are imported.
+- A `public.question_assignments` table *also* exists but holds plain-text names (`writer_name`, `athena_sme_name`, …) and is only read by the Briefing Room. It's not what the live UI uses.
+- A "Team & Assignments" page at `/missions/$missionId/team` already renders the writer dropdown, due-date picker, bulk-reassign, and acceptance/confidence chips against `mission_assignments`. It's currently visible to all mission members, not gated to admins.
+- The schema models team members as `mission_team_members → atlas_team_members`, **not** `profiles`. Your spec's `REFERENCES profiles(id)` won't match how teams actually work here, so writer/SME IDs need to point at `atlas_team_members.id` (which is what the existing dropdown already uses).
+- Flight Deck `ThreadPanel` does not currently show the assigned Lead Writer / SMEs.
 
-```text
-src/routes/_authenticated/missions.$missionId.briefing.tsx     (route shell + Suspense per section)
-src/routes/_authenticated/missions.$missionId.index.tsx        (redirect → briefing)
-src/lib/briefing-room.functions.ts                              (9 parallel server fns)
-src/components/briefing-room/BriefingHeader.tsx
-src/components/briefing-room/SectionCard.tsx                    (shared header + READ ONLY chip + Edit-in-Olympus)
-src/components/briefing-room/SectionSnapshot.tsx                (#1)
-src/components/briefing-room/SectionWhyMatters.tsx              (#2)
-src/components/briefing-room/SectionNorthStar.tsx               (#3)
-src/components/briefing-room/SectionIntelligence.tsx            (#4)
-src/components/briefing-room/SectionClientStory.tsx             (#5)
-src/components/briefing-room/SectionMissionMap.tsx              (#6)
-src/components/briefing-room/SectionRisks.tsx                   (#7)
-src/components/briefing-room/SectionDocuments.tsx               (#8)
-src/components/briefing-room/SectionSignals.tsx                 (#9)
-```
+Given this, creating a brand-new `question_assignments` shape would fork the assignment system in two. Plan below extends what exists.
 
-Sidebar `AppSidebar`: add "Briefing" item active on `/missions/$id/briefing`.
+## Plan
 
-## Schema substitutions (confirmed against live DB)
+### 1. Database migration (extend `mission_assignments`)
+- Add `sme_member_ids uuid[] NOT NULL DEFAULT '{}'` (each entry is an `atlas_team_members.id`).
+- Keep existing `assigned_writer_id` as the Lead Writer (rename in UI only).
+- Tighten RLS so only mission admins/owners (mission_role in `engagement_lead`, `lead`, `owner`, `admin` plus platform admins) can `INSERT/UPDATE/DELETE`. Mission team members keep `SELECT`. Use the existing `is_mission_team_member` / `has_role` security-definer functions to avoid recursion.
+- Add a comment on the table: "Single source of truth for question assignments. Mutations only via Olympus."
 
-Spec named several tables/columns that don't exist. Mapping:
+### 2. Olympus Question Assignments UI (extend existing tab)
+File: `src/components/mission-command/TeamAssignmentsTab.tsx` → `AssignmentsSub`.
+- Add a **SMEs** column with a multi-select (popover with checkboxes over team members), persisting to `sme_member_ids`.
+- Add a **Status** column derived as: Unassigned (no writer) → yellow badge; Assigned (writer, no completion) → neutral; In Progress (acceptance = accepted) → blue; Complete (question.status complete or pens-down met) → green. Falls back to existing `acceptance_status` text where richer state isn't available.
+- Truncate the question text to ~80 chars in the row.
+- Hide editing controls (writer dropdown, SME multi-select, due-date popover, bulk actions) for non-admins/non-owners; show read-only chips instead, with a footer line: "Assignments are managed in Olympus by mission admins."
+- Reuse the existing route `/missions/$missionId/team` (subtab "Assignments") — this is the Olympus mission workspace. No new route needed.
 
-| Spec field | Actual source |
-|---|---|
-| `mission_context.*` | `mission_win_strategy.mission_significance`, `client_priorities`, `known_risks`, `value_proposition` |
-| `mission_client_profile.*` | `mission_win_strategy.discriminators`, `proof_points`, `client_priorities` |
-| `missions.estimated_contract_value` | `missions.contract_value` |
-| `missions.prime_contractor` | not in schema → render "—" |
-| `missions.intelligence_completeness_pct` | `missions.intelligence_graph_completeness` |
-| `mission_win_strategy.things_to_avoid` | `mission_win_strategy.known_risks` (array) |
-| `mission_win_strategy.evaluator_priorities` | exists ✓ |
-| `intelligence_graph_nodes.node_title/node_summary` | `label` / `description` |
-| `intelligence_feed_items.requires_action` | `recommended_action IS NOT NULL` |
-| `team_updates` | `reality_updates` (signal_type: `sos`, `pulse`, `update_reality`, `pm_update`) + `broadcasts` |
-| Question SME | `question_assignments.athena_sme_name` (mission_assignments has writer only) |
-| Question title | `mission_questions.question_text` (truncated) |
-| Question confidence | `mission_questions.iris_confidence` |
+### 3. Flight Deck Thread — read-only assignment header
+File: `src/components/flight-deck/ThreadPanel.tsx`.
+- In the panel header, add a small "On this question" row showing: Lead Writer name (or yellow "Unassigned" badge) and SME chips. Sourced from `mission_assignments` joined to `atlas_team_members`.
+- Make the entire block non-interactive. If a user clicks it, toast: "Assignments are managed in Olympus."
+- No data changes from Flight Deck.
 
-If a referenced column truly doesn't exist for `node_type='policy'/'regulatory'`, query falls back to filtering by label/keywords.
+### 4. Briefing Room / other surfaces
+- Leave `briefing-room.functions.ts`'s read of the legacy `question_assignments` text table alone (separate read-only digest).
+- No changes to mission wizard or other places — assignments stay in Olympus.
 
-## Route default landing
+## Open question
 
-Spec says `/missions/[id]` should default to briefing. Implement as `missions.$missionId.index.tsx` with `beforeLoad: throw redirect({ to: '/missions/$missionId/briefing', params })`. Current Flight Deck route stays at `/missions/$id/flight-deck`.
-
-## Data loading shape
-
-Route loader fires nothing. Component renders 9 `<Suspense>` boundaries; each section uses `useSuspenseQuery` against its own queryOptions calling its own server fn. Result: page shell + header paint immediately, each section streams in independently with skeletons. Native parallelism without `Promise.all`.
-
-Header data (`getBriefingHeader`) is awaited in loader because health badge belongs in the chrome.
-
-## Server functions (all `requireSupabaseAuth`, RLS-scoped read)
-
-1. `getBriefingHeader(missionId)` → mission core + health calc (counts at_risk questions, days to deadline, unassigned sections)
-2. `getSnapshot(missionId)` → mission + team counts + engagement lead name
-3. `getWhyMatters(missionId)` → 4 fields from `mission_win_strategy`
-4. `getNorthStar(missionId)` → central_claim, win_themes, evaluator_priorities, known_risks + top evaluator stakeholders
-5. `getIntelligence(missionId)` → parallel queries: stakeholders, incumbent, competitors, policy nodes, regulatory nodes, feed items
-6. `getClientStory(missionId)` → discriminators, proof_points, client_priorities, value_proposition
-7. `getMissionMap(missionId)` → sections + questions + assignments + question_assignments joined; returns grouped tree
-8. `getRisks(missionId)` → mission_risks + at-risk questions + actionable feed items + unresolved SOS from reality_updates
-9. `getDocuments(missionId)` → mission_documents grouped by document_type
-10. `getSignals(missionId)` → reality_updates + broadcasts, last 10 merged by created_at
-
-## Read-only enforcement
-
-- No mutation imports in any section component.
-- `<SectionCard>` accepts optional `editInOlympusHref`; only rendered when `isAdmin` from route context.
-- No `<button>`, no `<input>`, no `<a href>` on data fields. Document links in §8 are the only outbound `<a target="_blank">`.
-
-RLS: existing policies already gate writes to admin/lead roles. No new policies in this sprint — purely additive UI on existing read paths.
-
-## Design tokens (from spec, applied inline)
-
-Health: green `#7DCF7D`, amber `#EF9F27`, red `#f08080`. Gold `#C49A2B`. Backgrounds use the rgba values in the spec verbatim. Section cards: `rgba(255,255,255,0.02)` bg, `rgba(255,255,255,0.06)` border, 16px radius, 20px padding. 13/12/11/10px type ladder. No shadcn cards — bespoke divs to keep the chrome quiet.
-
-## Mobile
-
-Each grid uses `grid-cols-1 md:grid-cols-2` / `lg:grid-cols-3`. Section 6 table becomes stacked cards below `md` via duplicate render gated by `useIsMobile()`.
-
-## Out of scope (this sprint)
-
-- Real-time refresh of signals (poll on focus only)
-- "Edit in Olympus" target URLs (link to `/olympus/missions/$id/wizard?step=N` placeholders — admin still gets the affordance, deep links can be tightened later)
-- Skeleton animations beyond a simple pulsing gray block
-- IRIS "Explain This Page" button — referenced in spec but uses existing dispatch pattern, one line per section is enough
-
-## Validation checklist after build
-
-- Route renders without console errors at `/missions/{real-id}/briefing` and `/missions/fake-id/briefing` (latter → existing notFound)
-- Header health badge changes color when deadline crosses 30/14-day thresholds
-- All 9 sections render with empty-state italic placeholder when their queries return nothing
-- Non-admin sees zero `Edit in Olympus` links; admin sees one per section
-- §6 table rows are not clickable (no `cursor-pointer`, no `onClick`)
-- §8 document anchors open in new tab
-- Mobile single-column at 375px viewport
-- Build passes; no TS errors
+Do you want me to also **hide** the writer dropdown for non-admin team members (read-only for them), or keep the current behavior where any team member can reassign? Your spec implies admins-only; I'll go with admins-only unless you say otherwise.
