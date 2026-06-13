@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { formatDistanceToNow } from "date-fns";
 import { X, Eye, Send, Flag, Star, ArrowLeftRight, Bookmark } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { SaveAsInsightDialog } from "./SaveAsInsightDialog";
 import { LessonsLearnedDialog } from "./LessonsLearnedDialog";
 import {
