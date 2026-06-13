@@ -97,7 +97,11 @@ export function OverviewTab({
         </div>
       </CollapsibleSection>
 
-      {isAdminish && null /* admin-only flourishes could go here */}
+      {isAdminish && (
+        <div className="mt-6">
+          <IrisThreadExtractionPanel missionId={missionId} />
+        </div>
+      )}
     </div>
   );
 }
