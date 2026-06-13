@@ -67,10 +67,10 @@ export const analyzeMissionStep = createServerFn({ method: "POST" })
 
     const supabase = context.supabase;
 
-    // Load uploaded mission documents (text content already extracted by upload pipeline)
+    // Load uploaded mission documents (content_summary populated by upload pipeline)
     const { data: docs } = await supabase
       .from("mission_documents")
-      .select("id, title, file_url, document_type, content_text, content_summary")
+      .select("id, title, file_url, document_type, content_summary")
       .eq("mission_id", data.missionId)
       .order("created_at", { ascending: true });
 
@@ -81,7 +81,7 @@ export const analyzeMissionStep = createServerFn({ method: "POST" })
     // Build a corpus of document text. Cap each doc text to keep prompt reasonable.
     const corpus = docs
       .map((d) => {
-        const txt = (d.content_text as string | null) ?? (d.content_summary as string | null) ?? "";
+        const txt = (d.content_summary as string | null) ?? "";
         return `=== Document: ${d.title ?? "Untitled"} (id=${d.id}, type=${d.document_type ?? "other"}) ===\n${txt.slice(0, 20000)}`;
       })
       .join("\n\n");
