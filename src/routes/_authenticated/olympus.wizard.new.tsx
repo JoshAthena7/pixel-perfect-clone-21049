@@ -8,7 +8,8 @@ export const Route = createFileRoute("/_authenticated/olympus/wizard/new")({
       .from("missions")
       .insert({
         name: "Untitled Mission",
-        status: "Draft",
+        status: "setup",
+        wizard_step: 1,
         created_by: userData.user?.id ?? null,
         submission_deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       })

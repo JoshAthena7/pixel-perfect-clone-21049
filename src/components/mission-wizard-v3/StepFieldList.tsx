@@ -125,6 +125,7 @@ export function StepFieldList({
           <IrisFieldRow
             key={f.key}
             missionId={missionId}
+            wizardStep={wizardStep}
             fieldKey={f.key}
             label={f.label}
             hint={f.hint}

@@ -26,6 +26,7 @@ export type ExtractionRow = {
 
 export function IrisFieldRow({
   missionId,
+  wizardStep,
   fieldKey,
   label,
   hint,
@@ -34,6 +35,7 @@ export function IrisFieldRow({
   onChange,
 }: {
   missionId: string;
+  wizardStep: number;
   fieldKey: string;
   label: string;
   hint?: string;
@@ -69,6 +71,7 @@ export function IrisFieldRow({
       } else {
         await supabase.from("mission_iris_extractions").insert({
           mission_id: missionId,
+          wizard_step: wizardStep,
           extracted_field: fieldKey,
           extracted_value: null,
           user_override_value: value,
