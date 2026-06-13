@@ -214,14 +214,19 @@ export function Step1Fuel({
           continue;
         }
         if (!doc.file_url) continue;
-        const { data: blob, error: downloadError } = await supabase.storage.from(BUCKET).download(doc.file_url);
+        const { data: blob, error: downloadError } = await supabase.storage
+          .from(BUCKET)
+          .download(doc.file_url);
         if (downloadError || !blob) continue;
         const fileName = doc.file_url.split("/").pop() || title;
         try {
           const extracted = (await extractTextFromBlob(blob, fileName)).trim();
           if (extracted.length > 50) {
             textParts.push(`# ${title}\n\n${extracted}`);
-            await supabase.from("mission_documents").update({ content_summary: extracted.slice(0, 220_000) }).eq("id", doc.id);
+            await supabase
+              .from("mission_documents")
+              .update({ content_summary: extracted.slice(0, 220_000) })
+              .eq("id", doc.id);
           }
         } catch (e) {
           console.warn("[IRIS] Text extraction failed:", title, e);
@@ -229,7 +234,8 @@ export function Step1Fuel({
       }
 
       const primaryRfpText = textParts.join("\n\n---\n\n").slice(0, 700_000);
-      if (primaryRfpText.trim().length < 50) throw new Error("IRIS could not read text from the uploaded RFP documents.");
+      if (primaryRfpText.trim().length < 50)
+        throw new Error("IRIS could not read text from the uploaded RFP documents.");
 
       // Run RFP structure extraction (volumes/sections/questions/compliance) AND
       // basics field extraction in parallel. The RFP processor is what populates
@@ -267,7 +273,9 @@ export function Step1Fuel({
 
       <div className="space-y-6">
         <div>
-          <label className="text-[12px] uppercase tracking-[0.14em] text-white/55 mb-2 block">Mission Name *</label>
+          <label className="text-[12px] uppercase tracking-[0.14em] text-white/55 mb-2 block">
+            Mission Name *
+          </label>
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -286,7 +294,10 @@ export function Step1Fuel({
             if (e.dataTransfer.files?.length) addFiles(e.dataTransfer.files);
           }}
           className="w-full rounded-2xl py-12 px-6 flex flex-col items-center gap-3 text-center transition-all hover:bg-white/5"
-          style={{ background: "rgba(255,255,255,0.025)", border: "2px dashed rgba(201,168,76,0.4)" }}
+          style={{
+            background: "rgba(255,255,255,0.025)",
+            border: "2px dashed rgba(201,168,76,0.4)",
+          }}
         >
           <UploadCloud className="h-10 w-10" style={{ color: "#c9a84c" }} strokeWidth={1.4} />
           <div>
@@ -326,9 +337,7 @@ export function Step1Fuel({
                 {r.status === "uploading" && (
                   <span className="text-[11px] text-white/45">Uploading {r.progress}%</span>
                 )}
-                {r.status === "done" && (
-                  <span className="text-[11px] text-emerald-400">Ready</span>
-                )}
+                {r.status === "done" && <span className="text-[11px] text-emerald-400">Ready</span>}
                 {r.status === "error" && (
                   <span className="text-[11px] text-red-400">{r.error}</span>
                 )}
