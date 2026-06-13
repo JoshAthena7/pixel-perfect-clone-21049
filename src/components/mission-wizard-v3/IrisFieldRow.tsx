@@ -62,6 +62,7 @@ export function IrisFieldRow({
         await supabase
           .from("mission_iris_extractions")
           .update({
+            wizard_step: wizardStep,
             user_override_value: value,
             overridden_by_user: true,
             confirmed_by_user: true,
