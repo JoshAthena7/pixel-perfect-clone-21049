@@ -3219,11 +3219,15 @@ export type Database = {
           contact_method: string | null
           created_at: string
           expertise_areas: string[] | null
+          focus_areas: string[] | null
           id: string
+          key_insights: string[] | null
+          mission_id: string | null
           name: string
           notes: string | null
           programs: string[] | null
           role: string | null
+          source: string | null
           states: string[] | null
           tags: string[] | null
           updated_at: string
@@ -3232,11 +3236,15 @@ export type Database = {
           contact_method?: string | null
           created_at?: string
           expertise_areas?: string[] | null
+          focus_areas?: string[] | null
           id?: string
+          key_insights?: string[] | null
+          mission_id?: string | null
           name: string
           notes?: string | null
           programs?: string[] | null
           role?: string | null
+          source?: string | null
           states?: string[] | null
           tags?: string[] | null
           updated_at?: string
@@ -3245,16 +3253,28 @@ export type Database = {
           contact_method?: string | null
           created_at?: string
           expertise_areas?: string[] | null
+          focus_areas?: string[] | null
           id?: string
+          key_insights?: string[] | null
+          mission_id?: string | null
           name?: string
           notes?: string | null
           programs?: string[] | null
           role?: string | null
+          source?: string | null
           states?: string[] | null
           tags?: string[] | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "experts_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       federal_compliance_library: {
         Row: {
