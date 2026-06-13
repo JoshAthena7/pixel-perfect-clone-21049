@@ -147,7 +147,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
         </div>
         <div className="mt-2 flex items-center justify-between gap-3">
           <div className="italic" style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>
-            Oracle is configured in Olympus. Read only.
+            IRIS is configured in Olympus. Read only.
           </div>
           <div className="flex items-center gap-2">
             <RequestChangeButton
