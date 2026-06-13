@@ -101,6 +101,22 @@ function MeetIrisIntro() {
       const competitorsArr = toArray(knownCompetitors);
       const reinforceArr = toArray(reinforce);
       const avoidArr = toArray(avoid);
+
+      const stakeholderGroup = (matters: string, frust: string, success: string) => {
+        const m = matters.trim();
+        const f = frust.trim();
+        const s = success.trim();
+        if (!m && !f && !s) return null;
+        return { matters_most: m, frustrations: f, success_looks_like: s };
+      };
+      const memberObj = stakeholderGroup(memberMatters, memberFrustrations, memberSuccess);
+      const providerObj = stakeholderGroup(providerMatters, providerFrustrations, providerSuccess);
+      const evaluatorObj = stakeholderGroup(evaluatorMatters, evaluatorFrustrations, evaluatorSuccess);
+      const stakeholderIntel =
+        memberObj || providerObj || evaluatorObj
+          ? { member: memberObj, provider: providerObj, evaluator: evaluatorObj }
+          : null;
+
       const { data, error } = await supabase
         .from("missions")
         .insert({
@@ -119,6 +135,7 @@ function MeetIrisIntro() {
           win_themes_text: winThemesText.trim() || null,
           reinforce: reinforceArr.length ? reinforceArr : null,
           avoid: avoidArr.length ? avoidArr : null,
+          stakeholder_intelligence: stakeholderIntel,
         })
         .select("id")
         .single();
