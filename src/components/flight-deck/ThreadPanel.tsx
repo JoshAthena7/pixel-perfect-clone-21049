@@ -248,6 +248,12 @@ export function ThreadPanel({
         </button>
       </div>
 
+      {missionId && questionId && (
+        <AssignmentHeader missionId={missionId} questionId={questionId} />
+      )}
+
+
+
       {/* Feed */}
       <div
         ref={feedRef}
