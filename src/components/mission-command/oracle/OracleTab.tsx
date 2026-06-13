@@ -118,7 +118,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="text-white" style={{ fontSize: 18, fontWeight: 500 }}>
-              Oracle
+              IRIS
             </div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
               {subtitle}
