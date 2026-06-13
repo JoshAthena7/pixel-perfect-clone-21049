@@ -5627,36 +5627,81 @@ export type Database = {
       }
       mission_outcomes: {
         Row: {
+          award_date: string | null
+          award_value: number | null
+          awarded_to: string | null
           awarded_value_usd: number | null
+          bafo_notes: string | null
+          bafo_requested: boolean | null
           created_at: string
+          debrief_notes: string | null
+          debrief_received: boolean | null
           decided_at: string
+          final_rank: number | null
+          final_score_received: number | null
+          incumbent_retained: boolean | null
           mission_id: string
           notes: string | null
+          orals_held: boolean | null
+          orals_notes: string | null
           outcome: string
           population_impacted: number | null
+          recorded_at: string
           recorded_by: string | null
+          total_offerors: number | null
+          transition_start_date: string | null
           updated_at: string
         }
         Insert: {
+          award_date?: string | null
+          award_value?: number | null
+          awarded_to?: string | null
           awarded_value_usd?: number | null
+          bafo_notes?: string | null
+          bafo_requested?: boolean | null
           created_at?: string
+          debrief_notes?: string | null
+          debrief_received?: boolean | null
           decided_at?: string
+          final_rank?: number | null
+          final_score_received?: number | null
+          incumbent_retained?: boolean | null
           mission_id: string
           notes?: string | null
+          orals_held?: boolean | null
+          orals_notes?: string | null
           outcome: string
           population_impacted?: number | null
+          recorded_at?: string
           recorded_by?: string | null
+          total_offerors?: number | null
+          transition_start_date?: string | null
           updated_at?: string
         }
         Update: {
+          award_date?: string | null
+          award_value?: number | null
+          awarded_to?: string | null
           awarded_value_usd?: number | null
+          bafo_notes?: string | null
+          bafo_requested?: boolean | null
           created_at?: string
+          debrief_notes?: string | null
+          debrief_received?: boolean | null
           decided_at?: string
+          final_rank?: number | null
+          final_score_received?: number | null
+          incumbent_retained?: boolean | null
           mission_id?: string
           notes?: string | null
+          orals_held?: boolean | null
+          orals_notes?: string | null
           outcome?: string
           population_impacted?: number | null
+          recorded_at?: string
           recorded_by?: string | null
+          total_offerors?: number | null
+          transition_start_date?: string | null
           updated_at?: string
         }
         Relationships: []
