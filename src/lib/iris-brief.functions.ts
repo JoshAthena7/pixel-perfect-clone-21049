@@ -10,6 +10,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  loadCustomerIntelligence,
+  renderCustomerIntelligenceBlock,
+} from "@/lib/iris-enrich-mission-brief.functions";
 
 export type BriefBody = {
   whats_asked: string;
@@ -241,7 +245,17 @@ export const generateIntelligenceBrief = createServerFn({ method: "POST" })
 `
       : "";
 
-    const user = `${canvasBlock}${stakeholderBlock}${executiveBlock}Mission: ${m?.name ?? ""} | Client: ${m?.client_name ?? ""} | State: ${m?.state ?? ""} | Agency: ${m?.agency_name ?? ""} | Program: ${m?.program_type ?? ""}
+    // Customer Intelligence — stakeholder_intelligence + executive_intelligence
+    // + mission-scoped experts + stakeholder-tagged insights/signals. Best-effort.
+    let customerIntelBlock = "";
+    try {
+      const ci = await loadCustomerIntelligence(supabase, data.missionId);
+      customerIntelBlock = renderCustomerIntelligenceBlock(ci);
+    } catch (e) {
+      console.error("[iris-brief] customer intel enrichment failed", e);
+    }
+
+    const user = `${canvasBlock}${stakeholderBlock}${executiveBlock}${customerIntelBlock}Mission: ${m?.name ?? ""} | Client: ${m?.client_name ?? ""} | State: ${m?.state ?? ""} | Agency: ${m?.agency_name ?? ""} | Program: ${m?.program_type ?? ""}
 Section ${sec?.section_number ?? ""}: ${sectionName}${sectionDescription ? ` — ${sectionDescription}` : ""}
 ${qn ? `Question ${qn.question_number ?? ""}: ${questionText}` : ""}
 

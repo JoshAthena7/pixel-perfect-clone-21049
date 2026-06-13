@@ -14,6 +14,10 @@ import {
   maybePostInactivityCheckIn,
   maybePostWinThemeAlignment,
 } from "@/lib/thread.functions";
+import {
+  addExpertFromThread,
+  detectStakeholderCandidates,
+} from "@/lib/iris-enrich-mission-brief.functions";
 import { QuestionBriefPanel } from "./QuestionBriefPanel";
 
 type Props = {
@@ -110,6 +114,10 @@ export function ThreadPanel({
   const taRef = useRef<HTMLTextAreaElement | null>(null);
   const feedRef = useRef<HTMLDivElement | null>(null);
   const [lessonsOpen, setLessonsOpen] = useState(false);
+  const [stakeholderCandidates, setStakeholderCandidates] = useState<
+    Array<{ name: string; role?: string; excerpt: string }>
+  >([]);
+  const addExpert = useServerFn(addExpertFromThread);
 
   const sendMutation = useMutation({
     mutationFn: (vars: { body: string; messageType: "regular" | "decision" }) =>
@@ -122,13 +130,23 @@ export function ThreadPanel({
           mentions: mentionIds,
         },
       }),
-    onSuccess: () => {
+    onSuccess: (_d, vars) => {
+      const sentBody = vars.body;
       setText("");
       setMentionIds([]);
       qc.invalidateQueries({ queryKey: ["thread", questionId] });
       // Refetch again shortly to catch the IRIS async reply.
       setTimeout(() => qc.invalidateQueries({ queryKey: ["thread", questionId] }), 1500);
       setTimeout(() => qc.invalidateQueries({ queryKey: ["thread", questionId] }), 5000);
+      // Stakeholder capture detector — fire-and-forget UX prompt.
+      if (missionId && questionId) {
+        const cands = detectStakeholderCandidates(sentBody);
+        if (cands.length) {
+          setStakeholderCandidates(
+            cands.map((c) => ({ ...c, excerpt: sentBody.slice(0, 600) })),
+          );
+        }
+      }
     },
   });
 
@@ -323,6 +341,74 @@ export function ThreadPanel({
           );
         })()}
       </div>
+
+      {/* Stakeholder capture suggestion */}
+      {stakeholderCandidates.length > 0 && missionId && questionId && (
+        <div
+          style={{
+            borderTop: "1px solid rgba(127,119,221,0.25)",
+            background: "rgba(127,119,221,0.08)",
+            padding: "8px 10px",
+            fontSize: 11,
+            color: "rgba(220,215,255,0.9)",
+          }}
+        >
+          <div style={{ marginBottom: 6, color: "#b7afff" }}>
+            IRIS spotted potential stakeholder{stakeholderCandidates.length === 1 ? "" : "s"}:
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {stakeholderCandidates.map((c, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 999,
+                  padding: "3px 8px",
+                }}
+              >
+                <span style={{ color: "white" }}>{c.name}</span>
+                {c.role && <span style={{ color: "rgba(255,255,255,0.5)" }}>· {c.role}</span>}
+                <button
+                  type="button"
+                  onClick={() => {
+                    addExpert({
+                      data: {
+                        mission_id: missionId,
+                        question_id: questionId,
+                        name: c.name,
+                        role: c.role,
+                        excerpt: c.excerpt,
+                      },
+                    })
+                      .then((res) => {
+                        toast.success(
+                          res.skipped ? `${c.name} already tracked.` : `Added ${c.name} to mission stakeholders.`,
+                        );
+                        setStakeholderCandidates((prev) => prev.filter((p) => p.name !== c.name));
+                      })
+                      .catch((e) => toast.error(e instanceof Error ? e.message : "Could not add stakeholder."));
+                  }}
+                  style={{ color: GOLD, fontWeight: 600, cursor: "pointer" }}
+                >
+                  Add
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStakeholderCandidates((prev) => prev.filter((p) => p.name !== c.name))}
+                  style={{ color: "rgba(255,255,255,0.45)", cursor: "pointer" }}
+                  aria-label="Dismiss"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Composer */}
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: 10 }}>
