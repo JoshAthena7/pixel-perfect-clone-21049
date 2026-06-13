@@ -234,6 +234,8 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
       compliance: 0,
       checklist: 0,
     };
+    const newVolumeIds: string[] = [];
+    const newSectionIds: string[] = [];
 
     const insertQuestions = async (sectionId: string, qs: Question[]) => {
       if (qs.length === 0) return;
@@ -308,6 +310,7 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
         .single();
       if (vErr || !vRow) continue;
       counts.volumes++;
+      newVolumeIds.push(vRow.id);
 
       const sections = Array.isArray(v.sections) ? v.sections : [];
       for (let si = 0; si < sections.length; si++) {
@@ -330,6 +333,7 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
           .single();
         if (sErr || !sRow) continue;
         counts.sections++;
+        newSectionIds.push(sRow.id);
 
         await insertQuestions(sRow.id, Array.isArray(s.questions) ? s.questions : []);
 
@@ -354,11 +358,35 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
             .single();
           if (ssErr || !ssRow) continue;
           counts.sub_sections++;
+          newSectionIds.push(ssRow.id);
 
           await insertQuestions(ssRow.id, Array.isArray(ss.questions) ? ss.questions : []);
         }
       }
     }
+
+    if (counts.questions === 0 && (previousQuestions?.length ?? 0) > 0) {
+      if (newSectionIds.length > 0) await supabase.from("mission_sections").delete().in("id", newSectionIds);
+      if (newVolumeIds.length > 0) await supabase.from("mission_volumes").delete().in("id", newVolumeIds);
+      throw new Error("IRIS did not write replacement questions, so existing questions and assignments were left unchanged.");
+    }
+
+    await supabase
+      .from("mission_submission_checklist")
+      .delete()
+      .eq("mission_id", data.mission_id)
+      .eq("iris_extracted", true);
+    await supabase
+      .from("mission_compliance_requirements")
+      .delete()
+      .eq("mission_id", data.mission_id)
+      .eq("iris_extracted", true);
+    const previousQuestionIds = (previousQuestions ?? []).map((q) => q.id);
+    const previousSectionIds = (previousSections ?? []).map((s) => s.id);
+    const previousVolumeIds = (previousVolumes ?? []).map((v) => v.id);
+    if (previousQuestionIds.length > 0) await supabase.from("mission_questions").delete().in("id", previousQuestionIds);
+    if (previousSectionIds.length > 0) await supabase.from("mission_sections").delete().in("id", previousSectionIds);
+    if (previousVolumeIds.length > 0) await supabase.from("mission_volumes").delete().in("id", previousVolumeIds);
 
     const compliance = Array.isArray(parsed.compliance_requirements)
       ? parsed.compliance_requirements
