@@ -406,7 +406,8 @@ export function ThreadPanel({
   );
 }
 
-function MessageRow({ msg, onFindExpert }: { msg: ThreadMsg; onFindExpert?: (topic: string) => void }) {
+function MessageRow({ msg, missionId, onFindExpert }: { msg: ThreadMsg; missionId: string | null; onFindExpert?: (topic: string) => void }) {
+  const [saveOpen, setSaveOpen] = useState(false);
   const ago = formatDistanceToNow(new Date(msg.created_at), { addSuffix: true });
   const isIris = msg.message_type === "iris";
   const isDecision = msg.message_type === "decision";
