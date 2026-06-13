@@ -1,57 +1,74 @@
-# IRIS-Driven Mission Setup Wizard
+## Competitor Intelligence Cards — Step 4
 
-Rebuild the mission setup wizard so it becomes a **review-and-confirm** experience powered by IRIS, not a blank-form wizard. User uploads everything in Step 1, IRIS reads it all and pre-populates every downstream field, human confirms / corrects / fills gaps.
+Generate an IRIS Competitor Intelligence Card for every confirmed competitor in the Mission Setup Wizard Step 4, persist it as confirmable/editable extractions, and surface the counter-strategy in the Mission Brief and Flight Deck.
 
-This is a large rebuild. Before I start, I want to confirm scope and a few key decisions.
+### Stack adaptations (with your sign-off)
+- **Backend boundary:** TanStack `createServerFn` in `src/lib/iris-competitor-intel.functions.ts` instead of a Supabase Edge Function — this project is TanStack Start; `createServerFn` is the canonical equivalent.
+- **Model:** Lovable AI Gateway with `google/gemini-3-flash-preview` (Lovable's built-in AI, no key required) instead of Claude. Same structured-JSON prompt, identical output shape.
+- **Storage:** Reuse `mission_iris_extractions` exactly as you specified — no new tables.
 
----
+### 1. Server function: `generateCompetitorIntelligence`
+File: `src/lib/iris-competitor-intel.functions.ts`
 
-## Proposed structure
+Input: `{ mission_id, competitors: string[] }` (mission state + program type loaded server-side from `missions`).
 
-**Routes**
-- `/olympus/wizard/new` — creates a draft mission row immediately, redirects to `/olympus/wizard/:missionId?step=1`
-- `/olympus/wizard/:missionId` — resume at last saved step
-- Replaces the current 5-step wizard at `/olympus/missions/:missionId/wizard`
+Per competitor, query in this order and collect raw records:
+1. `insights` where `insight_type='competitive_intel'` and name match in `content` or `tags`
+2. `state_dna` where `state = mission.state_location` and content matches
+3. `program_dna` where `program = mission.program_type` and content matches
+4. `signals` content match, newest 5
+5. `missions` where `known_competitors @> ARRAY[name]` (status / outcome)
+6. `experts` where `organization ILIKE %name%`
 
-**Shell**
-- Top progress bar with 8 labeled steps, click-to-jump on visited steps, checkmarks on completed
-- Bottom bar: Back · Step X of 8 · Save & Continue
-- Field-level auto-save on blur
-- "Exit Wizard" returns to Olympus list; mission shows "Resume Setup"
+Call Lovable AI Gateway with your exact 8-section + `how_we_beat_them` prompt, requesting JSON. Map confidence → 0.3/0.6/0.9. Upsert one row per competitor into `mission_iris_extractions`:
+- `extracted_field = 'competitor_card_' + slug(name)`
+- `extracted_value = JSON.stringify(card)`
+- `wizard_step = 4`
+- `confidence_score` per mapping
+- `source_file_name = name` (for display)
 
-**Steps**
-1. **Fuel IRIS** — mission name + multi-zone document upload (RFP, addenda, past proposals, state plans, program guidance, win/loss, other). "Analyze with IRIS" triggers `iris-mission-analysis` edge function with a full-screen progress panel and per-step extraction summary.
-2. **Mission Basics** — 14 fields pre-populated by IRIS with gold "IRIS extracted from [file]" badges. Per-field Confirm / Edit. "Confirm All" one-click.
-3. **Strategic Foundations** — IRIS drafts North Star, Why We Win, Why We Could Lose, Biggest Concerns from RFP + state_dna + program_dna + past proposals. Use This / Edit / Write My Own per field, expandable source citations.
-4. **Competitive & Win Strategy** — IRIS suggests Competitors, State Priorities, Win Themes, Reinforce, Avoid.
-5. **Stakeholder Intelligence** (optional) — Member/Family, Provider, Evaluator cards.
-6. **Executive Intelligence** (optional) — 6 role cards × 5 fields.
-7. **Team & Assignments** — IRIS-suggested team members + IRIS-suggested lead writer per extracted question (this is the Olympus assignment surface established in the earlier turn).
-8. **Review & Launch** — read-only summary, IRIS Mission Brief generation, Approve Brief → Launch Mission.
+After all cards, generate the **Competitive Landscape Summary** paragraph (second AI call) and upsert as `extracted_field = 'competitive_landscape_summary'`, `wizard_step = 4`.
 
-**New table**: `mission_iris_extractions` (id, mission_id, source_file_name, source_file_id, extracted_field, extracted_value, confidence_score, wizard_step, confirmed_by_user, confirmed_at, overridden_by_user, user_override_value) with RLS via `is_mission_member()` + full GRANTs.
+### 2. Trigger from Step 4
+In `Step4Competitive.tsx`, add a **"Confirm Competitors & Generate Intelligence"** button. On click:
+1. Save confirmed list to `missions.known_competitors`.
+2. Invoke `generateCompetitorIntelligence` (shows progress: "IRIS is researching N competitors…").
+3. Reveal the cards section.
 
-**New edge function**: `iris-mission-analysis` — reads uploaded vault files, extracts structured data per document, cross-references `state_dna` / `program_dna` / `insights` / `experts`, writes to `mission_iris_extractions`, seeds `missions` row with confirmed basics, returns summary by wizard step.
+Re-running is allowed — server function upserts; existing user-overridden text on individual sections is preserved (we only overwrite sections where `overridden_by_user = false`).
 
-**Removals**
-- Replace the current 5-step wizard route entirely (`olympus.missions.$missionId.wizard.tsx` + `MissionWizardChrome`, `WizardShell`, `Step1BUpload`, `Step3WinStrategy`, `Step4Journey`, `Step5Team`, `Step6BlastOff` either replaced or rewired).
-- Remove Win Themes / Strategy editing from Briefing Room Strategy tab → redirect to wizard Step 4.
-- Keep Briefing Room (read-only brief display), Flight Deck, all other mission views unchanged.
+### 3. Competitor card UI
+New component `src/components/mission-wizard-v3/CompetitorCard.tsx`.
 
----
+**Header row:** name (bold), threat-level badge (HIGH/MEDIUM/LOW computed from incumbent flag + recent-wins count), IRIS confidence label, **Add Intelligence** button (opens modal).
 
-## Scope check — please confirm before I build
+**Body:** 8 collapsible sections (Incumbent Status, How They Win, Known Weaknesses, Win/Loss History, Likely Teaming, Pricing Posture, Key Personnel, Recent Signals). Gold IRIS badge on each. Inline **Edit** writes `user_override_value` per-section in a sub-extraction row (key pattern: `competitor_card_<slug>__<section>`) so card-level regeneration doesn't clobber edits.
 
-This is roughly 15–25 files of work (new wizard shell, 8 step components, edge function, migration, route swap, briefing-room redirect, type wiring). I want to make sure I'm building the right thing before committing.
+**Footer:** gold/amber highlighted **⚡ HOW WE BEAT THEM** box with `how_we_beat_them` paragraph and Edit Counter-Strategy.
 
-1. **The current 5-step wizard is the one to replace.** It was built last week as the "v2" simplified flow (Upload → Strategy → Team → Timeline → Blast Off). You want to throw that out and build the 8-step IRIS-driven flow on top of it. Confirm?
+**Empty state:** placeholder copy with prompt to use Add Intelligence.
 
-2. **Edge function vs. serverFn.** Per this project's TanStack architecture, `iris-mission-analysis` should be a `createServerFn` (in `src/lib/iris-mission-analysis.functions.ts`), not a Supabase Edge Function. It can stream a progress signal via polling on `mission_iris_extractions` row count. OK to use serverFn?
+### 4. Add Intelligence modal
+`AddCompetitorIntelModal.tsx` — title, body, tag chips (auto-tags the competitor name). Inserts into `insights` with `insight_type='competitive_intel'`. Optional "Regenerate this card with new intel" button after save.
 
-3. **IRIS extraction depth in v1.** The full spec implies IRIS extracts ~40+ structured fields across 8 steps from arbitrary PDFs. For the first cut, do you want:
-   - **(a) Full pass** — single Gemini call per document with a giant structured-output schema covering every field. Higher cost, slower, more brittle.
-   - **(b) Targeted pass** — extract Step 2 basics + Step 7 questions deterministically first (high-confidence stuff), and have Steps 3–6 IRIS suggestions generate **lazily when the user lands on that step** (cheaper, faster Step 1, suggestions feel "live"). I recommend (b).
+### 5. Competitive Landscape Summary panel
+Below all cards in Step 4 — read-only synthesis paragraph with single Regenerate button.
 
-4. **Timeline step.** The current wizard has a "Set the Timeline" step (deadline + auto-generated journey phases). Your new 8-step spec doesn't include it. Should the deadline move into Step 2 Mission Basics (IRIS already extracts it) and the journey phase generation happen automatically at launch in Step 8? Or keep a dedicated timeline step as Step 7.5?
+### 6. Wiring to Mission Brief & Flight Deck
+- **Mission Briefing Room** (`/missions/$missionId`): new read-only "Competitive Intelligence" section that renders all `competitor_card_*` extractions plus the landscape summary.
+- **Flight Deck Question Brief** (`iris-brief.functions.ts → generateQuestionBrief`): inject `how_we_beat_them` paragraphs + landscape summary into the brief-generation prompt context, and add a "Counter-Strategy" panel in the Question Brief UI that shows them inline.
 
-Once you confirm these four, I'll build the whole thing in one pass: migration → serverFn → wizard shell → all 8 steps → route swap → briefing-room redirect.
+### Technical details
+- Slug helper: lowercase, non-alphanumeric → `_`, trim.
+- Threat computation server-side from the queried records, stored as `card.threat_level`.
+- All AI calls use Lovable AI Gateway (`createLovableAiGatewayProvider`); errors (402/429) surface to the wizard with retry.
+- Idempotent: re-running upserts via unique `(mission_id, extracted_field)` index already on `mission_iris_extractions`.
+- All queries scoped server-side via `requireSupabaseAuth`; mission ownership verified before any insert.
+
+### Files touched
+- **New:** `src/lib/iris-competitor-intel.functions.ts`, `src/components/mission-wizard-v3/CompetitorCard.tsx`, `src/components/mission-wizard-v3/AddCompetitorIntelModal.tsx`, `src/components/mission-wizard-v3/CompetitiveLandscapePanel.tsx`, `src/components/mission/CompetitiveIntelligenceSection.tsx` (briefing room).
+- **Edited:** `src/components/mission-wizard-v3/Step4Competitive.tsx`, `src/routes/_authenticated/missions.$missionId.tsx`, `src/lib/iris-brief.functions.ts`, Flight Deck Question Brief component.
+
+### Out of scope (confirm if you want them in)
+- Per-section streaming UI while AI generates (kept simple with a single progress spinner).
+- Web-search augmentation when IRIS Memory is empty (your spec says "Limited intelligence available…" copy instead).
