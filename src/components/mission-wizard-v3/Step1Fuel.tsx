@@ -157,10 +157,29 @@ export function Step1Fuel({
     setAnalyzing(true);
     setAnalyzeResult(null);
     try {
-      // Run basics extraction first (deterministic, high-value)
-      const result = await analyzeFn({ data: { missionId, wizardStep: 2, fields: BASICS_FIELDS } });
-      const count = result.extractions?.length ?? 0;
-      setAnalyzeResult(`IRIS pre-populated ${count} basics fields across ${result.document_count ?? 0} documents. Steps 3–7 will generate when you visit them.`);
+      // Run RFP structure extraction (volumes/sections/questions/compliance) AND
+      // basics field extraction in parallel. The RFP processor is what populates
+      // mission_questions so Step 7 has questions to assign writers to.
+      const [rfp, basics] = await Promise.all([
+        processRfpFn({ data: { mission_id: missionId } }).catch((e) => {
+          console.warn("[IRIS] RFP processing failed:", e);
+          return null;
+        }),
+        analyzeFn({ data: { missionId, wizardStep: 2, fields: BASICS_FIELDS } }),
+      ]);
+      const basicsCount = basics.extractions?.length ?? 0;
+      const qCount = rfp?.counts?.questions ?? 0;
+      const sCount = rfp?.counts?.sections ?? 0;
+      const cCount = rfp?.counts?.compliance ?? 0;
+      const parts = [
+        `${basicsCount} basics fields`,
+        rfp ? `${qCount} questions` : null,
+        rfp ? `${sCount} sections` : null,
+        rfp ? `${cCount} compliance items` : null,
+      ].filter(Boolean);
+      setAnalyzeResult(
+        `IRIS extracted ${parts.join(", ")} from ${basics.document_count ?? 0} documents. Steps 3–7 will refine as you visit them.`,
+      );
     } catch (e) {
       setAnalyzeResult(`Analysis failed: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
