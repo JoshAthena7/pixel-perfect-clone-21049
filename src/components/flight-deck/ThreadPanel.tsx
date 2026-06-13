@@ -10,6 +10,7 @@ import {
   maybePostInactivityCheckIn,
   maybePostWinThemeAlignment,
 } from "@/lib/thread.functions";
+import { QuestionBriefPanel } from "./QuestionBriefPanel";
 
 type Props = {
   open: boolean;
