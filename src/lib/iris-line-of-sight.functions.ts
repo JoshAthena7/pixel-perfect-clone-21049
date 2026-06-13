@@ -140,10 +140,10 @@ export const buildLineOfSight = createServerFn({ method: "POST" })
     const validFeedIds = new Set((feed ?? []).map((f) => f.id as string));
 
     const system =
-      "You are IRIS. Analyze RFP question text, team-captured decisions, and Oracle intelligence to: " +
+      "You are IRIS. Analyze RFP question text, team-captured decisions, and IRIS intelligence to: " +
       "(1) identify question pairs that are thematically connected and should reinforce each other, " +
       "(2) flag genuine conflicts between decisions captured in different questions' Threads (numbers that disagree, framings that contradict, commitments that diverge), " +
-      "(3) map specific Oracle intelligence items to specific questions where they are directly relevant. " +
+      "(3) map specific IRIS intelligence items to specific questions where they are directly relevant. " +
       "You are analyzing question text and decisions ONLY — never any draft response/content. " +
       "Return STRICT JSON: " +
       '{"connections":[{"question_id_a":"uuid","question_id_b":"uuid","connection_type":"related_theme|win_theme_alignment|shared_oracle_intel|decision_conflict","iris_rationale":"<=300 chars","confidence":"high|medium|low"}],' +

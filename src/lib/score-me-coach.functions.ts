@@ -1,5 +1,5 @@
 /**
- * Score Me — IRIS coaching wired to Oracle context.
+ * Score Me — IRIS coaching wired to IRIS Memory context.
  * Coaching, not evaluator-score prediction.
  */
 import { createServerFn } from "@tanstack/react-start";
@@ -33,7 +33,7 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    // 1) Oracle context: question + section
+    // 1) IRIS Memory context: question + section
     const { data: q } = await supabase
       .from("mission_questions")
       .select("question_number, question_text, section_id")
@@ -129,7 +129,7 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
       `Question: ${questionNumber ? `${questionNumber} — ` : ""}${questionTitle || "(unspecified)"}.`,
       `Section: ${sectionName || "(unspecified)"}${sectionScoringWeight ? ` (scoring weight ${sectionScoringWeight})` : ""}.`,
       "",
-      "Oracle context for this section:",
+      "IRIS Memory context for this section:",
       `North Star: ${win.north_star_message || "(none)"}`,
       `Central Claim: ${win.central_claim || "(none)"}`,
       `Win Themes: ${winThemes.length ? winThemes.join("; ") : "(none)"}`,

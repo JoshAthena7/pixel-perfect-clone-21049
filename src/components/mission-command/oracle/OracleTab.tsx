@@ -118,7 +118,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="text-white" style={{ fontSize: 18, fontWeight: 500 }}>
-              Oracle
+              IRIS
             </div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
               {subtitle}
@@ -147,7 +147,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
         </div>
         <div className="mt-2 flex items-center justify-between gap-3">
           <div className="italic" style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>
-            Oracle is configured in Olympus. Read only.
+            IRIS is configured in Olympus. Read only.
           </div>
           <div className="flex items-center gap-2">
             <RequestChangeButton
@@ -155,7 +155,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
               missionId={missionId}
               section={TABS.find((t) => t.id === active)?.label ?? active}
             />
-            <AskIrisButton prefill={`Explain this page (Oracle) for mission ${mission?.name ?? missionId}.`} />
+            <AskIrisButton prefill={`Explain this page (IRIS) for mission ${mission?.name ?? missionId}.`} />
           </div>
         </div>
       </div>

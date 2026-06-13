@@ -150,7 +150,7 @@ export function ScoreMeDialog({
                     animation: contextStatus === "loading" ? "pulse 1.4s ease-in-out infinite" : undefined,
                   }}
                 />
-                {contextStatus === "loading" && "Loading mission context from Oracle..."}
+                {contextStatus === "loading" && "Loading mission context from IRIS..."}
                 {contextStatus === "ready" && "Ready to coach"}
                 {contextStatus === "error" && "Context unavailable — coaching will run anyway"}
               </div>

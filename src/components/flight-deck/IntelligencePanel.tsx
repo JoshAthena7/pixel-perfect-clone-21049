@@ -636,7 +636,7 @@ function LiveIntelBlock({ missionId }: { missionId: string | null }) {
           className="block text-[11px] hover:underline pt-1"
           style={{ color: GOLD }}
         >
-          View all intelligence in Oracle →
+          View all intelligence in IRIS →
         </Link>
       )}
     </div>

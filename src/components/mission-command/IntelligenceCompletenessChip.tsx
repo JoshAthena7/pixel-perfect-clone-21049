@@ -61,7 +61,7 @@ export function IntelligenceCompletenessChip({ missionId, initial = null, compac
   return (
     <button
       onClick={handleClick}
-      title="Mission Intelligence Graph completeness. Click to view the Oracle."
+      title="Mission Intelligence Graph completeness. Click to view in IRIS."
       className={cn(
         "inline-flex items-center gap-1 rounded-full border font-medium transition-colors hover:brightness-110",
         compact ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs",

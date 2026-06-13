@@ -746,7 +746,7 @@ function IntelCardView({ card, onNavigate }: { card: Extract<CardKind, { kind: "
           {it.assessment && <div className="text-white/55 mt-0.5">{it.assessment}</div>}
           <div className="flex gap-3 mt-1">
             {it.url && <a href={it.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1" style={{ color: IRIS }}>Open <ExternalLink className="h-3 w-3" /></a>}
-            <button onClick={() => onNavigate(it.href)} style={{ color: IRIS }}>View in Oracle</button>
+            <button onClick={() => onNavigate(it.href)} style={{ color: IRIS }}>View in IRIS</button>
           </div>
         </li>
       ))}
