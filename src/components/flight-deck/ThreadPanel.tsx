@@ -422,6 +422,16 @@ export function ThreadPanel({
           </button>
         </div>
       </div>
+      <LessonsLearnedDialog
+        open={lessonsOpen}
+        onOpenChange={setLessonsOpen}
+        missionId={missionId}
+        questionId={questionId}
+        onClosed={() => {
+          qc.invalidateQueries({ queryKey: ["thread", questionId] });
+          onClose();
+        }}
+      />
     </div>
   );
 }
