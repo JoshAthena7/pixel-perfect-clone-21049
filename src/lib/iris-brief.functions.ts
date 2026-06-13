@@ -497,7 +497,7 @@ ${groupByCategory(programDnaRows)}
 ${insightsRows.length === 0 ? "(none)" : insightsRows.map((i) => `- [${i.insight_type}/${i.confidence ?? "?"}] ${i.content}${i.source ? ` (src: ${i.source})` : ""}`).join("\n")}
 
 === EXPERTS available for this state ===
-${expertsList.length === 0 ? "(none)" : expertsList.map((e) => `- ${e.name}${e.role ? `, ${e.role}` : ""} | expertise=${(e.expertise_areas ?? []).join("/") || "?"} | programs=${(e.programs ?? []).join("/") || "?"}${e.contact_method ? ` | contact=${e.contact_method}` : ""}`).join("\n")}`;
+${expertsList.length === 0 ? "(none)" : expertsList.map((e) => `- ${e.name}${e.role ? `, ${e.role}` : ""} | expertise=${(e.expertise_areas ?? []).join("/") || "?"} | programs=${(e.programs ?? []).join("/") || "?"}${e.contact_method ? ` | contact=${e.contact_method}` : ""}`).join("\n")}${competitorBlock}`;
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
