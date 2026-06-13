@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useAccess";
 import { AskIrisButton } from "@/components/iris/AskIrisButton";
+import { RequestChangeButton } from "@/components/RequestChangeButton";
 import { OracleFeed } from "./OracleFeed";
 import { OracleGraph } from "./OracleGraph";
 import { OracleStakeholders } from "./OracleStakeholders";
