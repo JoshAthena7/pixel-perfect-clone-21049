@@ -106,6 +106,7 @@ export function ThreadPanel({
   const [mentionIds, setMentionIds] = useState<string[]>([]);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
   const feedRef = useRef<HTMLDivElement | null>(null);
+  const [lessonsOpen, setLessonsOpen] = useState(false);
 
   const sendMutation = useMutation({
     mutationFn: (vars: { body: string; messageType: "regular" | "decision" }) =>
