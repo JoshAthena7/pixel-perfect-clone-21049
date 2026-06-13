@@ -129,9 +129,47 @@ export const generateIntelligenceBrief = createServerFn({ method: "POST" })
       "competitive: 2-3 sentences on how to differentiate from likely competitors. Empty string if no competitor data. " +
       "iris_recommends: The single most useful, direct, specific strategic recommendation for the writer. Reference win strategy, evaluator priority, and the strongest research. Do not hedge. 3-5 sentences.";
 
-    const user = `Mission: ${m?.name ?? ""} | Client: ${m?.client_name ?? ""} | State: ${m?.state ?? ""} | Agency: ${m?.agency_name ?? ""} | Program: ${m?.program_type ?? ""}
+    const canvasBlock = canvas && (canvas.north_star || canvas.why_win || canvas.why_lose || canvas.biggest_concerns || (canvas.known_competitors?.length) || canvas.state_priorities || canvas.win_themes_text || (canvas.reinforce?.length) || (canvas.avoid?.length))
+      ? `=== MISSION CANVAS (HIGHEST PRIORITY — captured by the capture team for THIS mission) ===
+- North Star: ${canvas.north_star ?? "(none)"}
+- Why we win: ${canvas.why_win ?? "(none)"}
+- Why we lose: ${canvas.why_lose ?? "(none)"}
+- Biggest concerns: ${canvas.biggest_concerns ?? "(none)"}
+- Known competitors: ${(canvas.known_competitors ?? []).join(", ") || "(none)"}
+- State priorities: ${canvas.state_priorities ?? "(none)"}
+- Win themes (capture team): ${canvas.win_themes_text ?? "(none)"}
+- Reinforce: ${(canvas.reinforce ?? []).join(" | ") || "(none)"}
+- Avoid: ${(canvas.avoid ?? []).join(" | ") || "(none)"}
+
+`
+      : "";
+
+    const user = `${canvasBlock}Mission: ${m?.name ?? ""} | Client: ${m?.client_name ?? ""} | State: ${m?.state ?? ""} | Agency: ${m?.agency_name ?? ""} | Program: ${m?.program_type ?? ""}
 Section ${sec?.section_number ?? ""}: ${sectionName}${sectionDescription ? ` — ${sectionDescription}` : ""}
 ${qn ? `Question ${qn.question_number ?? ""}: ${questionText}` : ""}
+
+=== STATE DNA (${missionState ?? "unknown state"}) — procurement, political, stakeholder, regulatory, historical, cultural ===
+${groupByCategory(stateDnaRows)}
+
+=== PROGRAM DNA (matched to program_type / CSOC / Children) ===
+${groupByCategory(programDnaRows)}
+
+=== ATHENA GLOBAL INSIGHTS (apply across missions) ===
+  Win patterns:
+${fmtInsights(insightsByType("win_pattern"))}
+  Loss lessons:
+${fmtInsights(insightsByType("loss_lesson"))}
+  Competitive intel:
+${fmtInsights(insightsByType("competitive_intel"))}
+  Other:
+${fmtInsights(insightsRows.filter((i) => !["win_pattern","loss_lesson","competitive_intel"].includes(i.insight_type)))}
+
+=== PRIOR DECISIONS APPLICABLE TO THIS STATE ===
+${decisionsRows.length === 0 ? "(none)" : decisionsRows.map((d) => `- [${d.category ?? "general"}] ${d.title}${d.status ? ` (${d.status})` : ""}${d.rationale ? ` — ${d.rationale}` : ""}`).join("\n")}
+
+=== EXPERTS (matched on state/program) ===
+${expertsList.length === 0 ? "(none)" : expertsList.map((e) => `- ${e.name}${e.role ? `, ${e.role}` : ""} | expertise=${(e.expertise_areas ?? []).join("/") || "?"} | states=${(e.states ?? []).join("/") || "?"} | programs=${(e.programs ?? []).join("/") || "?"}${e.contact_method ? ` | contact=${e.contact_method}` : ""}`).join("\n")}
+
 
 Win Strategy:
 - Central Claim: ${w?.central_claim ?? ""}
