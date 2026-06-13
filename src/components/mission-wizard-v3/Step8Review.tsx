@@ -72,7 +72,34 @@ export function Step8Review({
     });
   });
 
-  const unconfirmedCount = Array.from(byKey.values()).filter((v) => v.value && !v.confirmed).length;
+  const unconfirmedByStep: { step: number; title: string; fields: string[] }[] = Object.entries(
+    STEP_FIELD_GROUPS,
+  )
+    .map(([stepStr, group]) => {
+      const stepNum = Number(stepStr);
+      const fields = group.keys.filter((k) => {
+        const v = byKey.get(k);
+        return v?.value && !v.confirmed;
+      });
+      return { step: stepNum, title: group.title, fields };
+    })
+    .filter((g) => g.fields.length > 0);
+  const unconfirmedCount = unconfirmedByStep.reduce((n, g) => n + g.fields.length, 0);
+
+  async function confirmAll() {
+    const fields = unconfirmedByStep.flatMap((g) => g.fields);
+    if (fields.length === 0) return;
+    const { error: upErr } = await supabase
+      .from("mission_iris_extractions")
+      .update({ confirmed_by_user: true, confirmed_at: new Date().toISOString() })
+      .eq("mission_id", missionId)
+      .in("extracted_field", fields);
+    if (upErr) {
+      setError(upErr.message);
+      return;
+    }
+    qc.invalidateQueries({ queryKey: ["wizard-review-extractions", missionId] });
+  }
 
   async function launch() {
     setLaunching(true);
@@ -140,11 +167,39 @@ export function Step8Review({
       </div>
 
       {unconfirmedCount > 0 && (
-        <div className="mt-6 flex items-start gap-2 rounded-lg p-3 border border-amber-400/30 bg-amber-400/5">
-          <AlertCircle className="h-4 w-4 text-amber-300 shrink-0 mt-0.5" />
-          <p className="text-[13px] text-amber-100">
-            {unconfirmedCount} field{unconfirmedCount === 1 ? "" : "s"} from IRIS {unconfirmedCount === 1 ? "is" : "are"} not yet confirmed. You can still launch — IRIS values are used until you override them.
-          </p>
+        <div className="mt-6 rounded-lg p-4 border border-amber-400/30 bg-amber-400/5">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 text-amber-300 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-[13px] text-amber-100">
+                {unconfirmedCount} field{unconfirmedCount === 1 ? "" : "s"} from IRIS{" "}
+                {unconfirmedCount === 1 ? "is" : "are"} not yet confirmed. You can still launch —
+                IRIS values are used until you override them.
+              </p>
+              <ul className="mt-3 space-y-2">
+                {unconfirmedByStep.map((g) => (
+                  <li key={g.step} className="text-[12.5px]">
+                    <button
+                      onClick={() => onJump(g.step)}
+                      className="text-amber-200 hover:text-white underline-offset-2 hover:underline font-medium"
+                    >
+                      Step {g.step} · {g.title}
+                    </button>
+                    <span className="text-white/70">
+                      {" — "}
+                      {g.fields.map((f) => f.replace(/_/g, " ")).join(", ")}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={confirmAll}
+                className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium border border-amber-400/40 text-amber-100 hover:bg-amber-400/10"
+              >
+                <Check className="h-3.5 w-3.5" /> Confirm all IRIS values as-is
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
