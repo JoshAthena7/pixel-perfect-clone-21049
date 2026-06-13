@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/olympus/missions/$missionI
     throw redirect({
       to: "/olympus/wizard/$missionId",
       params: { missionId: params.missionId },
-      search: { step: search.step && search.step <= 8 ? search.step : 1 },
+      search: search.step && search.step <= 8 ? { step: search.step } : {},
     });
   },
   component: () => null,

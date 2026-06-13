@@ -63,8 +63,11 @@ export function Step8Review({
 
   const byKey = new Map<string, { value: string | null; confirmed: boolean }>();
   (extractions ?? []).forEach((e) => {
+    const nextValue = e.user_override_value ?? e.extracted_value;
+    const existing = byKey.get(e.extracted_field);
+    if (existing?.confirmed && !e.confirmed_by_user) return;
     byKey.set(e.extracted_field, {
-      value: e.user_override_value ?? e.extracted_value,
+      value: nextValue,
       confirmed: e.confirmed_by_user,
     });
   });

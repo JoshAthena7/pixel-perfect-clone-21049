@@ -5,7 +5,7 @@
  * Confirm / Edit / Write My Own controls. Persists user actions to
  * mission_iris_extractions (confirmed_by_user / overridden_by_user).
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Pencil, Sparkles, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ export type ExtractionRow = {
 
 export function IrisFieldRow({
   missionId,
+  wizardStep,
   fieldKey,
   label,
   hint,
@@ -34,6 +35,7 @@ export function IrisFieldRow({
   onChange,
 }: {
   missionId: string;
+  wizardStep: number;
   fieldKey: string;
   label: string;
   hint?: string;
@@ -52,23 +54,43 @@ export function IrisFieldRow({
   const isConfirmed = extraction?.confirmed_by_user ?? false;
   const isOverridden = extraction?.overridden_by_user ?? false;
   const hasIrisValue = !!extraction?.extracted_value;
+  const lastSavedRef = useRef(currentValue);
 
-  async function upsertOverride(value: string) {
+  useEffect(() => {
+    if (!editing) setDraft(currentValue);
+    lastSavedRef.current = currentValue;
+  }, [currentValue, editing]);
+
+  async function upsertOverride(value: string, closeEditor = true) {
     setSaving(true);
     try {
-      if (extraction) {
+      let rowId = extraction?.id;
+      if (!rowId) {
+        const { data: existing } = await supabase
+          .from("mission_iris_extractions")
+          .select("id")
+          .eq("mission_id", missionId)
+          .eq("extracted_field", fieldKey)
+          .limit(1)
+          .maybeSingle();
+        rowId = existing?.id;
+      }
+
+      if (rowId) {
         await supabase
           .from("mission_iris_extractions")
           .update({
+            wizard_step: wizardStep,
             user_override_value: value,
             overridden_by_user: true,
             confirmed_by_user: true,
             confirmed_at: new Date().toISOString(),
           })
-          .eq("id", extraction.id);
+          .eq("id", rowId);
       } else {
         await supabase.from("mission_iris_extractions").insert({
           mission_id: missionId,
+          wizard_step: wizardStep,
           extracted_field: fieldKey,
           extracted_value: null,
           user_override_value: value,
@@ -77,12 +99,22 @@ export function IrisFieldRow({
           confirmed_at: new Date().toISOString(),
         });
       }
+      lastSavedRef.current = value;
       onChange?.();
     } finally {
       setSaving(false);
-      setEditing(false);
+      if (closeEditor) setEditing(false);
     }
   }
+
+  useEffect(() => {
+    if (!editing || draft === lastSavedRef.current || (!draft.trim() && !currentValue)) return;
+    const timer = window.setTimeout(() => {
+      void upsertOverride(draft, false);
+    }, 650);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, editing, currentValue]);
 
   async function confirm() {
     if (!extraction) return;

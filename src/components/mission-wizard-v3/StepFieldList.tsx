@@ -52,7 +52,12 @@ export function StepFieldList({
 
   const byField = useMemo(() => {
     const m = new Map<string, ExtractionRow>();
-    (extractions ?? []).forEach((e) => m.set(e.extracted_field, e));
+    (extractions ?? []).forEach((e) => {
+      const existing = m.get(e.extracted_field);
+      const existingRank = existing ? Number(existing.overridden_by_user) + Number(existing.confirmed_by_user) : -1;
+      const nextRank = Number(e.overridden_by_user) + Number(e.confirmed_by_user);
+      if (!existing || nextRank >= existingRank) m.set(e.extracted_field, e);
+    });
     return m;
   }, [extractions]);
 
@@ -125,6 +130,7 @@ export function StepFieldList({
           <IrisFieldRow
             key={f.key}
             missionId={missionId}
+            wizardStep={wizardStep}
             fieldKey={f.key}
             label={f.label}
             hint={f.hint}

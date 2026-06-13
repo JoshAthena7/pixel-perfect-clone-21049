@@ -12,20 +12,36 @@ import {
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId")({
   loader: async ({ params }) => {
-    const { data, error } = await supabase
-      .from("missions")
-      .select("id, status")
-      .eq("id", params.missionId)
-      .maybeSingle();
+    const [{ data, error }, { data: progressRows }] = await Promise.all([
+      supabase
+        .from("missions")
+        .select("id, status")
+        .eq("id", params.missionId)
+        .maybeSingle(),
+      supabase
+        .from("mission_iris_extractions")
+        .select("extracted_field, extracted_value, wizard_step")
+        .eq("mission_id", params.missionId)
+        .not("wizard_step", "is", null),
+    ]);
     if (error || !data) throw notFound();
-    // Drafts haven't been launched yet — keep the user in the wizard
+    // Setup drafts haven't been launched yet — keep the user in the wizard
     // instead of dropping them into a half-empty briefing room.
-    if ((data.status ?? "").toLowerCase() === "draft") {
+    if (["draft", "setup"].includes((data.status ?? "").toLowerCase())) {
+      const savedStep = Number(
+        progressRows?.find((r) => r.extracted_field === "__wizard_last_step")?.extracted_value,
+      );
+      const inferredStep = Math.max(
+        1,
+        ...(progressRows ?? [])
+          .map((r) => r.wizard_step ?? 1)
+          .filter((n) => Number.isFinite(n) && n >= 1 && n <= 8),
+      );
       const { redirect } = await import("@tanstack/react-router");
       throw redirect({
         to: "/olympus/wizard/$missionId",
         params: { missionId: params.missionId },
-        search: { step: 1 },
+        search: { step: Number.isFinite(savedStep) ? Math.min(8, Math.max(1, savedStep)) : inferredStep },
       });
     }
     return { missionId: params.missionId };
