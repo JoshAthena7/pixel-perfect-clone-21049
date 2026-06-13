@@ -41,6 +41,7 @@ export function ScoreMeDialog({
   const run = useServerFn(scoreMeCoach);
   const post = useServerFn(postScoreMeToThread);
   const prefetch = useServerFn(prefetchScoreMeContext);
+  const gapAnalysis = useServerFn(irisScoreGapAnalysis);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ScoreMeResult | null>(null);
