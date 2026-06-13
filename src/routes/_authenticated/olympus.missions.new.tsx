@@ -40,10 +40,25 @@ function MeetIrisIntro() {
   const [reinforce, setReinforce] = useState("");
   const [avoid, setAvoid] = useState("");
 
+  // Stakeholder intelligence (optional)
+  const [memberMatters, setMemberMatters] = useState("");
+  const [memberFrustrations, setMemberFrustrations] = useState("");
+  const [memberSuccess, setMemberSuccess] = useState("");
+  const [providerMatters, setProviderMatters] = useState("");
+  const [providerFrustrations, setProviderFrustrations] = useState("");
+  const [providerSuccess, setProviderSuccess] = useState("");
+  const [evaluatorMatters, setEvaluatorMatters] = useState("");
+  const [evaluatorFrustrations, setEvaluatorFrustrations] = useState("");
+  const [evaluatorSuccess, setEvaluatorSuccess] = useState("");
+
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     strategy: false,
     competitive: false,
     guidance: false,
+    stakeholders: false,
+    stk_member: false,
+    stk_provider: false,
+    stk_evaluator: false,
   });
   const toggleSection = (k: string) =>
     setOpenSections((s) => ({ ...s, [k]: !s[k] }));
