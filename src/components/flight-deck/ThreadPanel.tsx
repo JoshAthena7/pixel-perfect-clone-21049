@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { formatDistanceToNow } from "date-fns";
-import { X, Eye, Send, Flag, Star, ArrowLeftRight } from "lucide-react";
+import { X, Eye, Send, Flag, Star, ArrowLeftRight, Bookmark } from "lucide-react";
+import { SaveAsInsightDialog } from "./SaveAsInsightDialog";
 import {
   listThreadMessages,
   postThreadMessage,
@@ -286,7 +287,7 @@ export function ThreadPanel({
                       onNote={(body) => sendMutation.mutate({ body, messageType: "regular" })}
                     />
                   ) : (
-                    <MessageRow key={m.id} msg={m} onFindExpert={onRequestFindSME} />
+                    <MessageRow key={m.id} msg={m} missionId={missionId} onFindExpert={onRequestFindSME} />
                   ),
                 )
               )}
@@ -405,7 +406,8 @@ export function ThreadPanel({
   );
 }
 
-function MessageRow({ msg, onFindExpert }: { msg: ThreadMsg; onFindExpert?: (topic: string) => void }) {
+function MessageRow({ msg, missionId, onFindExpert }: { msg: ThreadMsg; missionId: string | null; onFindExpert?: (topic: string) => void }) {
+  const [saveOpen, setSaveOpen] = useState(false);
   const ago = formatDistanceToNow(new Date(msg.created_at), { addSuffix: true });
   const isIris = msg.message_type === "iris";
   const isDecision = msg.message_type === "decision";
@@ -489,6 +491,33 @@ function MessageRow({ msg, onFindExpert }: { msg: ThreadMsg; onFindExpert?: (top
           </button>
         </div>
       )}
+      <div style={{ marginTop: 6, display: "flex", justifyContent: "flex-end" }}>
+        <button
+          onClick={() => setSaveOpen(true)}
+          title="Save as Insight"
+          style={{
+            background: "transparent",
+            border: "1px solid rgba(255,255,255,0.1)",
+            color: "rgba(255,255,255,0.55)",
+            fontSize: 10,
+            padding: "2px 8px",
+            borderRadius: 6,
+            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
+          <Bookmark size={10} />
+          Save as Insight
+        </button>
+      </div>
+      <SaveAsInsightDialog
+        open={saveOpen}
+        onOpenChange={setSaveOpen}
+        initialContent={msg.message_body}
+        missionId={missionId}
+      />
     </div>
   );
 }
