@@ -1,17 +1,26 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { IrisMark } from "@/components/iris/IrisMark";
 import { logAuditEvent } from "@/lib/mission-audit";
 import { cn } from "@/lib/utils";
+import {
+  MissionCanvasLockBanner,
+  useBriefLocked,
+} from "@/components/olympus/MissionCanvasLock";
 
 export const Route = createFileRoute("/_authenticated/olympus/missions/new")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    missionId: typeof s.missionId === "string" ? s.missionId : undefined,
+  }),
   component: MeetIrisIntro,
 });
 
 function MeetIrisIntro() {
   const navigate = useNavigate();
+  const { missionId: editingMissionId } = useSearch({ from: Route.id });
+  const { isLocked } = useBriefLocked(editingMissionId);
   const [firstName, setFirstName] = useState<string>("");
   const [name, setName] = useState("");
   const [client, setClient] = useState("");
@@ -214,40 +223,19 @@ function MeetIrisIntro() {
           </div>
 
           <div className="mt-8 space-y-3">
+            {editingMissionId ? (
+              <MissionCanvasLockBanner missionId={editingMissionId} isLocked={isLocked} />
+            ) : null}
             <CollapsibleSection
               title="Mission Strategy"
               subtitle="Optional — frame the bid"
               open={openSections.strategy}
               onToggle={() => toggleSection("strategy")}
             >
-              <ChatField
-                label="North Star"
-                placeholder="What is the single most important thing we must say in this proposal?"
-                value={northStar}
-                onChange={setNorthStar}
-                multiline
-              />
-              <ChatField
-                label="Why We Win"
-                placeholder="What unique advantages do we bring that the client actually cares about?"
-                value={whyWin}
-                onChange={setWhyWin}
-                multiline
-              />
-              <ChatField
-                label="Why We Could Lose"
-                placeholder="What are our honest vulnerabilities on this pursuit?"
-                value={whyLose}
-                onChange={setWhyLose}
-                multiline
-              />
-              <ChatField
-                label="Biggest Concerns"
-                placeholder="What keeps you up at night about this bid?"
-                value={biggestConcerns}
-                onChange={setBiggestConcerns}
-                multiline
-              />
+              <ChatField label="North Star" placeholder="What is the single most important thing we must say in this proposal?" value={northStar} onChange={setNorthStar} multiline disabled={isLocked} />
+              <ChatField label="Why We Win" placeholder="What unique advantages do we bring that the client actually cares about?" value={whyWin} onChange={setWhyWin} multiline disabled={isLocked} />
+              <ChatField label="Why We Could Lose" placeholder="What are our honest vulnerabilities on this pursuit?" value={whyLose} onChange={setWhyLose} multiline disabled={isLocked} />
+              <ChatField label="Biggest Concerns" placeholder="What keeps you up at night about this bid?" value={biggestConcerns} onChange={setBiggestConcerns} multiline disabled={isLocked} />
             </CollapsibleSection>
 
             <CollapsibleSection
@@ -256,26 +244,9 @@ function MeetIrisIntro() {
               open={openSections.competitive}
               onToggle={() => toggleSection("competitive")}
             >
-              <ChatField
-                label="Known Competitors"
-                placeholder="Comma-separated, e.g. AmeriHealth, Centene, Molina"
-                value={knownCompetitors}
-                onChange={setKnownCompetitors}
-              />
-              <ChatField
-                label="State Priorities"
-                placeholder="What does this state care most about right now politically and programmatically?"
-                value={statePriorities}
-                onChange={setStatePriorities}
-                multiline
-              />
-              <ChatField
-                label="Win Themes"
-                placeholder="What 3-5 themes should run through every section of our response?"
-                value={winThemesText}
-                onChange={setWinThemesText}
-                multiline
-              />
+              <ChatField label="Known Competitors" placeholder="Comma-separated, e.g. AmeriHealth, Centene, Molina" value={knownCompetitors} onChange={setKnownCompetitors} disabled={isLocked} />
+              <ChatField label="State Priorities" placeholder="What does this state care most about right now politically and programmatically?" value={statePriorities} onChange={setStatePriorities} multiline disabled={isLocked} />
+              <ChatField label="Win Themes" placeholder="What 3-5 themes should run through every section of our response?" value={winThemesText} onChange={setWinThemesText} multiline disabled={isLocked} />
             </CollapsibleSection>
 
             <CollapsibleSection
@@ -284,18 +255,8 @@ function MeetIrisIntro() {
               open={openSections.guidance}
               onToggle={() => toggleSection("guidance")}
             >
-              <ChatField
-                label="What to Reinforce"
-                placeholder="Comma-separated key messages to repeat throughout the proposal"
-                value={reinforce}
-                onChange={setReinforce}
-              />
-              <ChatField
-                label="What to Avoid"
-                placeholder="Comma-separated topics, claims, or language to stay away from"
-                value={avoid}
-                onChange={setAvoid}
-              />
+              <ChatField label="What to Reinforce" placeholder="Comma-separated key messages to repeat throughout the proposal" value={reinforce} onChange={setReinforce} disabled={isLocked} />
+              <ChatField label="What to Avoid" placeholder="Comma-separated topics, claims, or language to stay away from" value={avoid} onChange={setAvoid} disabled={isLocked} />
             </CollapsibleSection>
           </div>
 
@@ -344,6 +305,7 @@ function ChatField({
   error,
   type = "text",
   multiline = false,
+  disabled = false,
 }: {
   label: string;
   placeholder?: string;
@@ -352,13 +314,16 @@ function ChatField({
   error?: boolean;
   type?: string;
   multiline?: boolean;
+  disabled?: boolean;
 }) {
   const baseStyle = {
-    background: "rgba(255,255,255,0.04)",
+    background: disabled ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)",
     border: `1px solid ${error ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.1)"}`,
+    opacity: disabled ? 0.6 : 1,
+    cursor: disabled ? "not-allowed" : "auto",
   } as const;
   const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    if (!error) e.currentTarget.style.borderColor = "rgba(196,154,43,0.55)";
+    if (!error && !disabled) e.currentTarget.style.borderColor = "rgba(196,154,43,0.55)";
   };
   const onBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (!error) e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
@@ -372,6 +337,8 @@ function ChatField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={3}
+          disabled={disabled}
+          readOnly={disabled}
           className="w-full rounded-lg px-4 py-3 text-[14px] text-white placeholder:text-white/30 transition-colors focus:outline-none resize-y"
           style={baseStyle}
           onFocus={onFocus}
@@ -383,6 +350,8 @@ function ChatField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
+          disabled={disabled}
+          readOnly={disabled}
           className="w-full rounded-lg px-4 py-3 text-[15px] text-white placeholder:text-white/30 transition-colors focus:outline-none"
           style={baseStyle}
           onFocus={onFocus}
