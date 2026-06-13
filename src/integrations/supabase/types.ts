@@ -3548,6 +3548,342 @@ export type Database = {
           },
         ]
       }
+      intel_entities: {
+        Row: {
+          created_at: string
+          description: string | null
+          entity_type: string
+          id: string
+          metadata: Json
+          mission_ids: string[]
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json
+          mission_ids?: string[]
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json
+          mission_ids?: string[]
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      intel_events: {
+        Row: {
+          confidence: string | null
+          content: string
+          created_at: string
+          entity_refs: string[]
+          event_type: string
+          generated_by: string | null
+          id: string
+          mission_id: string
+          source_entity_id: string | null
+          tags: string[]
+          title: string
+        }
+        Insert: {
+          confidence?: string | null
+          content: string
+          created_at?: string
+          entity_refs?: string[]
+          event_type: string
+          generated_by?: string | null
+          id?: string
+          mission_id: string
+          source_entity_id?: string | null
+          tags?: string[]
+          title: string
+        }
+        Update: {
+          confidence?: string | null
+          content?: string
+          created_at?: string
+          entity_refs?: string[]
+          event_type?: string
+          generated_by?: string | null
+          id?: string
+          mission_id?: string
+          source_entity_id?: string | null
+          tags?: string[]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intel_events_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intel_events_source_entity_id_fkey"
+            columns: ["source_entity_id"]
+            isOneToOne: false
+            referencedRelation: "intel_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      intel_organizations: {
+        Row: {
+          contract_vehicles: string[] | null
+          created_at: string
+          entity_id: string | null
+          id: string
+          incumbency_status: string | null
+          known_strengths: string[] | null
+          known_weaknesses: string[] | null
+          mission_id: string
+          notes: string | null
+          org_type: string
+          parent_entity_id: string | null
+        }
+        Insert: {
+          contract_vehicles?: string[] | null
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          incumbency_status?: string | null
+          known_strengths?: string[] | null
+          known_weaknesses?: string[] | null
+          mission_id: string
+          notes?: string | null
+          org_type: string
+          parent_entity_id?: string | null
+        }
+        Update: {
+          contract_vehicles?: string[] | null
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          incumbency_status?: string | null
+          known_strengths?: string[] | null
+          known_weaknesses?: string[] | null
+          mission_id?: string
+          notes?: string | null
+          org_type?: string
+          parent_entity_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intel_organizations_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "intel_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intel_organizations_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intel_organizations_parent_entity_id_fkey"
+            columns: ["parent_entity_id"]
+            isOneToOne: false
+            referencedRelation: "intel_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      intel_people: {
+        Row: {
+          created_at: string
+          email: string | null
+          entity_id: string | null
+          id: string
+          influence_level: string | null
+          known_priorities: string[] | null
+          mission_id: string
+          notes: string | null
+          organization_entity_id: string | null
+          phone: string | null
+          relationship_stance: string | null
+          role_type: string
+          title: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          entity_id?: string | null
+          id?: string
+          influence_level?: string | null
+          known_priorities?: string[] | null
+          mission_id: string
+          notes?: string | null
+          organization_entity_id?: string | null
+          phone?: string | null
+          relationship_stance?: string | null
+          role_type: string
+          title?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          entity_id?: string | null
+          id?: string
+          influence_level?: string | null
+          known_priorities?: string[] | null
+          mission_id?: string
+          notes?: string | null
+          organization_entity_id?: string | null
+          phone?: string | null
+          relationship_stance?: string | null
+          role_type?: string
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intel_people_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "intel_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intel_people_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intel_people_organization_entity_id_fkey"
+            columns: ["organization_entity_id"]
+            isOneToOne: false
+            referencedRelation: "intel_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      intel_relationships: {
+        Row: {
+          confidence: string | null
+          context: string | null
+          created_at: string
+          from_entity_id: string
+          id: string
+          mission_id: string | null
+          relationship_type: string
+          to_entity_id: string
+        }
+        Insert: {
+          confidence?: string | null
+          context?: string | null
+          created_at?: string
+          from_entity_id: string
+          id?: string
+          mission_id?: string | null
+          relationship_type: string
+          to_entity_id: string
+        }
+        Update: {
+          confidence?: string | null
+          context?: string | null
+          created_at?: string
+          from_entity_id?: string
+          id?: string
+          mission_id?: string | null
+          relationship_type?: string
+          to_entity_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intel_relationships_from_entity_id_fkey"
+            columns: ["from_entity_id"]
+            isOneToOne: false
+            referencedRelation: "intel_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intel_relationships_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intel_relationships_to_entity_id_fkey"
+            columns: ["to_entity_id"]
+            isOneToOne: false
+            referencedRelation: "intel_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      intel_sources: {
+        Row: {
+          author: string | null
+          created_at: string
+          credibility_score: number | null
+          entity_id: string | null
+          file_path: string | null
+          id: string
+          mission_id: string
+          published_at: string | null
+          source_type: string
+          summary: string | null
+          url: string | null
+        }
+        Insert: {
+          author?: string | null
+          created_at?: string
+          credibility_score?: number | null
+          entity_id?: string | null
+          file_path?: string | null
+          id?: string
+          mission_id: string
+          published_at?: string | null
+          source_type: string
+          summary?: string | null
+          url?: string | null
+        }
+        Update: {
+          author?: string | null
+          created_at?: string
+          credibility_score?: number | null
+          entity_id?: string | null
+          file_path?: string | null
+          id?: string
+          mission_id?: string
+          published_at?: string | null
+          source_type?: string
+          summary?: string | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intel_sources_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "intel_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intel_sources_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       intelligence_canon: {
         Row: {
           category: string
