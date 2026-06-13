@@ -195,7 +195,12 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
 
     const volumes = Array.isArray(parsed.volumes) ? parsed.volumes : [];
     const plannedQuestionCount = countPlannedQuestions(volumes);
-    const [{ data: previousQuestions }, { data: previousAssignments }] = await Promise.all([
+    const [
+      { data: previousQuestions },
+      { data: previousAssignments },
+      { data: previousSections },
+      { data: previousVolumes },
+    ] = await Promise.all([
       supabase
         .from("mission_questions")
         .select("id, question_number, question_text")
@@ -204,6 +209,8 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
         .from("mission_assignments")
         .select("question_id, assigned_writer_id, sme_member_ids, acceptance_status, writer_confidence, due_date, assigned_by, assigned_at")
         .eq("mission_id", data.mission_id),
+      supabase.from("mission_sections").select("id").eq("mission_id", data.mission_id),
+      supabase.from("mission_volumes").select("id").eq("mission_id", data.mission_id),
     ]);
     if (plannedQuestionCount === 0 && (previousQuestions?.length ?? 0) > 0) {
       throw new Error("IRIS did not find replacement questions, so existing questions and assignments were left unchanged.");
@@ -218,21 +225,6 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
         })
         .filter(Boolean) as Array<readonly [string, NonNullable<typeof previousAssignments>[number]]>,
     );
-
-    // Wipe previously-extracted IRIS data only after we know the new run has questions.
-    await supabase
-      .from("mission_submission_checklist")
-      .delete()
-      .eq("mission_id", data.mission_id)
-      .eq("iris_extracted", true);
-    await supabase
-      .from("mission_compliance_requirements")
-      .delete()
-      .eq("mission_id", data.mission_id)
-      .eq("iris_extracted", true);
-    await supabase.from("mission_questions").delete().eq("mission_id", data.mission_id);
-    await supabase.from("mission_sections").delete().eq("mission_id", data.mission_id);
-    await supabase.from("mission_volumes").delete().eq("mission_id", data.mission_id);
 
     const counts = {
       volumes: 0,
