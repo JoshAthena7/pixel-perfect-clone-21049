@@ -284,7 +284,10 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
     }
 
     const compliance = Array.isArray(parsed.compliance_requirements)
-      ? parsed.compliance_requirements.map((c) => String(c).trim()).filter(Boolean).slice(0, 200)
+      ? parsed.compliance_requirements
+          .map((c) => String(c).trim())
+          .filter(Boolean)
+          .slice(0, 200)
       : [];
     if (compliance.length > 0) {
       const { error } = await supabase.from("mission_compliance_requirements").insert(
@@ -299,7 +302,10 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
     }
 
     const checklist = Array.isArray(parsed.submission_checklist_items)
-      ? parsed.submission_checklist_items.map((c) => String(c).trim()).filter(Boolean).slice(0, 200)
+      ? parsed.submission_checklist_items
+          .map((c) => String(c).trim())
+          .filter(Boolean)
+          .slice(0, 200)
       : [];
     if (checklist.length > 0) {
       const { error } = await supabase.from("mission_submission_checklist").insert(
@@ -316,7 +322,10 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
       typeof parsed.disclaimer === "string" && parsed.disclaimer.trim().length > 0
         ? parsed.disclaimer.trim().slice(0, 2000)
         : null;
-    await supabase.from("missions").update({ iris_disclaimer: disclaimer }).eq("id", data.mission_id);
+    await supabase
+      .from("missions")
+      .update({ iris_disclaimer: disclaimer })
+      .eq("id", data.mission_id);
 
     void userId;
     return { ok: true, counts, disclaimer };
