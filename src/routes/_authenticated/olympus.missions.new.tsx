@@ -51,6 +51,27 @@ function MeetIrisIntro() {
   const [evaluatorFrustrations, setEvaluatorFrustrations] = useState("");
   const [evaluatorSuccess, setEvaluatorSuccess] = useState("");
 
+  // Executive intelligence (optional, six roles)
+  const EXEC_ROLES = [
+    { key: "executive_sponsor", label: "Executive Sponsor" },
+    { key: "market_lead", label: "Market Lead" },
+    { key: "product_clinical_lead", label: "Product / Clinical Lead" },
+    { key: "operations_lead", label: "Operations Lead" },
+    { key: "network_lead", label: "Network Lead" },
+    { key: "bd_lead", label: "BD Lead" },
+  ] as const;
+  type ExecField = "why_win" | "why_lose" | "risks" | "proof_points" | "what_matters_most";
+  const EXEC_QUESTIONS: { key: ExecField; label: string }[] = [
+    { key: "why_win", label: "Why do we win this type of pursuit?" },
+    { key: "why_lose", label: "Why do we lose this type of pursuit?" },
+    { key: "risks", label: "What are our biggest risks on this mission?" },
+    { key: "proof_points", label: "What are our strongest proof points?" },
+    { key: "what_matters_most", label: "What matters most to the evaluator on this opportunity?" },
+  ];
+  const [execIntel, setExecIntel] = useState<Record<string, Partial<Record<ExecField, string>>>>({});
+  const setExecField = (role: string, field: ExecField, value: string) =>
+    setExecIntel((prev) => ({ ...prev, [role]: { ...prev[role], [field]: value } }));
+
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     strategy: false,
     competitive: false,
@@ -59,6 +80,7 @@ function MeetIrisIntro() {
     stk_member: false,
     stk_provider: false,
     stk_evaluator: false,
+    executives: false,
   });
   const toggleSection = (k: string) =>
     setOpenSections((s) => ({ ...s, [k]: !s[k] }));
