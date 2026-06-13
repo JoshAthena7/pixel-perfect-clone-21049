@@ -20,6 +20,28 @@ function MeetIrisIntro() {
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
 
+  // Optional canvas fields
+  const [northStar, setNorthStar] = useState("");
+  const [whyWin, setWhyWin] = useState("");
+  const [whyLose, setWhyLose] = useState("");
+  const [biggestConcerns, setBiggestConcerns] = useState("");
+  const [knownCompetitors, setKnownCompetitors] = useState("");
+  const [statePriorities, setStatePriorities] = useState("");
+  const [winThemesText, setWinThemesText] = useState("");
+  const [reinforce, setReinforce] = useState("");
+  const [avoid, setAvoid] = useState("");
+
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    strategy: false,
+    competitive: false,
+    guidance: false,
+  });
+  const toggleSection = (k: string) =>
+    setOpenSections((s) => ({ ...s, [k]: !s[k] }));
+
+  const toArray = (v: string) =>
+    v.split(",").map((s) => s.trim()).filter(Boolean);
+
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getUser();
