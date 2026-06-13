@@ -241,7 +241,7 @@ export function Step3WinStrategy({ missionId }: { missionId: string }) {
     navigate({
       to: "/olympus/missions/$missionId/wizard",
       params: { missionId },
-      search: { step: 6 },
+      search: { step: 3 },
     });
   };
 

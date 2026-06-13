@@ -62,7 +62,7 @@ export function SectionRisks({ missionId, isAdmin }: { missionId: string; isAdmi
     <SectionCard
       title="Risks & Watch Items"
       showAdminEdit={isAdmin}
-      editInOlympusHref={`/olympus/missions/${missionId}/wizard?step=10`}
+      editInOlympusHref={`/olympus/missions/${missionId}/wizard?step=5`}
     >
       {items.length === 0 ? (
         <div

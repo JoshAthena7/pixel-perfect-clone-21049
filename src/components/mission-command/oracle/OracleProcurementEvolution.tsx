@@ -26,7 +26,7 @@ export function OracleProcurementEvolution({ missionId }: { missionId: string })
     return (
       <div className="rounded border bg-card p-8 text-center">
         <p className="text-sm text-muted-foreground">No procurement evolution analysis yet. Upload a prior RFP in your Intelligence Loadout to generate this analysis.</p>
-        <Button className="mt-4" onClick={() => navigate({ to: "/olympus/missions/$missionId/wizard", params: { missionId }, search: { step: 9 } as never })}>Go to Intelligence Loadout</Button>
+        <Button className="mt-4" onClick={() => navigate({ to: "/olympus/missions/$missionId/wizard", params: { missionId }, search: { step: 1 } as never })}>Go to Intelligence Loadout</Button>
       </div>
     );
   }
