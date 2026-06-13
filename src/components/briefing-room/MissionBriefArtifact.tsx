@@ -151,3 +151,51 @@ export function MissionBriefArtifact({ missionId }: { missionId: string }) {
     </section>
   );
 }
+
+function IntelligenceSourcesFooter({ missionId }: { missionId: string }) {
+  const fn = useServerFn(getMissionCustomerIntelligence);
+  const { data, isLoading } = useQuery({
+    queryKey: ["mission-customer-intel", missionId],
+    queryFn: () => fn({ data: { mission_id: missionId } }),
+    staleTime: 60_000,
+  });
+
+  if (isLoading || !data) return null;
+
+  const expertCount = data.experts.length;
+  const stakeholderCount = data.stakeholders.length;
+  const executiveCount = data.executives.length;
+  const signalCount = data.signals.length;
+  const insightCount = data.insights.length;
+  const total = expertCount + stakeholderCount + executiveCount + signalCount + insightCount;
+
+  return (
+    <details className="mt-4 group">
+      <summary className="cursor-pointer text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground">
+        Intelligence Sources Used
+        {total > 0 ? (
+          <span className="ml-2 normal-case tracking-normal text-[11px] text-muted-foreground">
+            ({total} record{total === 1 ? "" : "s"})
+          </span>
+        ) : null}
+      </summary>
+      <div className="mt-2 text-xs text-muted-foreground space-y-1">
+        {total === 0 ? (
+          <p>No stakeholder, executive, or expert intelligence captured yet for this mission.</p>
+        ) : (
+          <p>
+            Based on{" "}
+            <span className="text-foreground">{expertCount}</span> expert profile{expertCount === 1 ? "" : "s"},{" "}
+            <span className="text-foreground">{stakeholderCount}</span> stakeholder record{stakeholderCount === 1 ? "" : "s"},{" "}
+            <span className="text-foreground">{executiveCount}</span> executive record{executiveCount === 1 ? "" : "s"},{" "}
+            <span className="text-foreground">{signalCount}</span> IRIS signal{signalCount === 1 ? "" : "s"}, and{" "}
+            <span className="text-foreground">{insightCount}</span> stakeholder insight{insightCount === 1 ? "" : "s"}.
+          </p>
+        )}
+        <p className="text-[10px] text-muted-foreground/70">
+          Refreshed {new Date(data.freshness.generated_at).toLocaleTimeString()}.
+        </p>
+      </div>
+    </details>
+  );
+}
