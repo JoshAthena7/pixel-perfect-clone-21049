@@ -287,7 +287,7 @@ export function ThreadPanel({
                       onNote={(body) => sendMutation.mutate({ body, messageType: "regular" })}
                     />
                   ) : (
-                    <MessageRow key={m.id} msg={m} onFindExpert={onRequestFindSME} />
+                    <MessageRow key={m.id} msg={m} missionId={missionId} onFindExpert={onRequestFindSME} />
                   ),
                 )
               )}
