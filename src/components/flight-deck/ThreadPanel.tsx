@@ -342,6 +342,74 @@ export function ThreadPanel({
         })()}
       </div>
 
+      {/* Stakeholder capture suggestion */}
+      {stakeholderCandidates.length > 0 && missionId && questionId && (
+        <div
+          style={{
+            borderTop: "1px solid rgba(127,119,221,0.25)",
+            background: "rgba(127,119,221,0.08)",
+            padding: "8px 10px",
+            fontSize: 11,
+            color: "rgba(220,215,255,0.9)",
+          }}
+        >
+          <div style={{ marginBottom: 6, color: "#b7afff" }}>
+            IRIS spotted potential stakeholder{stakeholderCandidates.length === 1 ? "" : "s"}:
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {stakeholderCandidates.map((c, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 999,
+                  padding: "3px 8px",
+                }}
+              >
+                <span style={{ color: "white" }}>{c.name}</span>
+                {c.role && <span style={{ color: "rgba(255,255,255,0.5)" }}>· {c.role}</span>}
+                <button
+                  type="button"
+                  onClick={() => {
+                    addExpert({
+                      data: {
+                        mission_id: missionId,
+                        question_id: questionId,
+                        name: c.name,
+                        role: c.role,
+                        excerpt: c.excerpt,
+                      },
+                    })
+                      .then((res) => {
+                        toast.success(
+                          res.skipped ? `${c.name} already tracked.` : `Added ${c.name} to mission stakeholders.`,
+                        );
+                        setStakeholderCandidates((prev) => prev.filter((p) => p.name !== c.name));
+                      })
+                      .catch((e) => toast.error(e instanceof Error ? e.message : "Could not add stakeholder."));
+                  }}
+                  style={{ color: GOLD, fontWeight: 600, cursor: "pointer" }}
+                >
+                  Add
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStakeholderCandidates((prev) => prev.filter((p) => p.name !== c.name))}
+                  style={{ color: "rgba(255,255,255,0.45)", cursor: "pointer" }}
+                  aria-label="Dismiss"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Composer */}
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: 10 }}>
         <div style={{ position: "relative" }}>
