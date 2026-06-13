@@ -15,7 +15,19 @@ import { cn } from "@/lib/utils";
 
 const BUCKET = "atlas-rfp-documents";
 const MAX_BYTES = 100 * 1024 * 1024;
-const ALLOWED_EXT = [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".csv", ".txt", ".md", ".rtf"];
+const ALLOWED_EXT = [
+  ".pdf",
+  ".doc",
+  ".docx",
+  ".xls",
+  ".xlsx",
+  ".ppt",
+  ".pptx",
+  ".csv",
+  ".txt",
+  ".md",
+  ".rtf",
+];
 
 const BASICS_FIELDS = [
   { key: "client_agency", label: "Client / Agency" },
@@ -45,7 +57,12 @@ type Row = {
 
 async function extractTextFromBlob(blob: Blob, fileName: string): Promise<string> {
   const lower = fileName.toLowerCase();
-  if (lower.endsWith(".txt") || lower.endsWith(".md") || lower.endsWith(".csv") || lower.endsWith(".rtf")) {
+  if (
+    lower.endsWith(".txt") ||
+    lower.endsWith(".md") ||
+    lower.endsWith(".csv") ||
+    lower.endsWith(".rtf")
+  ) {
     return blob.text();
   }
   const file = new File([blob], fileName, { type: blob.type });
@@ -105,21 +122,31 @@ export function Step1Fuel({
   const saveName = async (v: string) => {
     setName(v);
     onMissionNameChange(v);
-    await supabase.from("missions").update({ name: v.trim() || "Untitled Mission" }).eq("id", missionId);
+    await supabase
+      .from("missions")
+      .update({ name: v.trim() || "Untitled Mission" })
+      .eq("id", missionId);
   };
 
   async function uploadRow(initial: Row, file: File) {
-    setRows((cur) => cur.map((r) => (r.uid === initial.uid ? { ...r, status: "uploading", progress: 10 } : r)));
+    setRows((cur) =>
+      cur.map((r) => (r.uid === initial.uid ? { ...r, status: "uploading", progress: 10 } : r)),
+    );
     try {
       const path = `${missionId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9_.-]/g, "_")}`;
-      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, { upsert: false });
+      const { error: upErr } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, file, { upsert: false });
       if (upErr) throw upErr;
       const { data: userData } = await supabase.auth.getUser();
       const { data: doc, error: insErr } = await supabase
         .from("mission_documents")
         .insert({
           mission_id: missionId,
-          document_type: rows.length === 0 && file.name.toLowerCase().match(/rfp|sow|solicit/) ? "primary_rfp" : "other",
+          document_type:
+            rows.length === 0 && file.name.toLowerCase().match(/rfp|sow|solicit/)
+              ? "primary_rfp"
+              : "other",
           title: file.name.replace(/\.[^.]+$/, "").slice(0, 200),
           file_url: path,
           uploaded_by: userData.user?.id ?? null,
@@ -128,11 +155,15 @@ export function Step1Fuel({
         .single();
       if (insErr) throw insErr;
       setRows((cur) =>
-        cur.map((r) => (r.uid === initial.uid ? { ...r, status: "done", progress: 100, documentId: doc.id } : r)),
+        cur.map((r) =>
+          r.uid === initial.uid ? { ...r, status: "done", progress: 100, documentId: doc.id } : r,
+        ),
       );
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Upload failed";
-      setRows((cur) => cur.map((r) => (r.uid === initial.uid ? { ...r, status: "error", error: msg } : r)));
+      setRows((cur) =>
+        cur.map((r) => (r.uid === initial.uid ? { ...r, status: "error", error: msg } : r)),
+      );
     }
   }
 
