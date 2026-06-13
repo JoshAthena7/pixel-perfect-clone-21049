@@ -1,5 +1,12 @@
 // IRIS Intelligence Brief — single server fn that returns all six section
 // bodies for a (mission, section, question) triple in one AI call.
+//
+// IRIS Memory — internal only. The tables state_dna, program_dna, insights,
+// and experts collectively form IRIS's memory (formerly surfaced as
+// "Oracle"). Never surface raw rows from these tables to users. All access
+// goes through IRIS synthesis — users only ever see the 5 IRIS Outputs.
+// The Q7 brief section "What IRIS Knows" is the user-facing label for
+// global insights drawn from this memory.
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
