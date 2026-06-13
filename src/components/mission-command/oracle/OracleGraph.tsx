@@ -50,6 +50,7 @@ export function OracleGraph({
   const [bannerDismissed, setBannerDismissed] = useState(true);
   const [userId, setUserId] = useState<string>("anon");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [hoverId, setHoverId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
