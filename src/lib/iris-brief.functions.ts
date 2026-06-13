@@ -27,8 +27,8 @@ export const generateIntelligenceBrief = createServerFn({ method: "POST" })
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("IRIS is not configured.");
 
-    // Gather all context in parallel.
-    const [mission, ws, sg, section, question, stakeholders, competitors, evol, feed, researchNodes] = await Promise.all([
+    // Gather mission-scoped context in parallel.
+    const [mission, ws, sg, section, question, stakeholders, competitors, evol, feed, researchNodes, missionCanvasRes, athenaInsightsRes] = await Promise.all([
       supabase.from("missions").select("name,state,agency_name,program_type,client_name").eq("id", data.missionId).maybeSingle(),
       supabase.from("mission_win_strategy").select("win_themes,central_claim,north_star_message,discriminators").eq("mission_id", data.missionId).maybeSingle(),
       supabase.from("mission_style_guide").select("voice_and_tone,political_sensitivities,cultural_sensitivities").eq("mission_id", data.missionId).maybeSingle(),
@@ -43,7 +43,60 @@ export const generateIntelligenceBrief = createServerFn({ method: "POST" })
       supabase.from("procurement_evolution_records").select("iris_signals,iris_summary").eq("mission_id", data.missionId).maybeSingle(),
       supabase.from("intelligence_feed_items").select("category,headline,source_name,source_url,iris_assessment,iris_relevance_score,published_at").eq("mission_id", data.missionId).gte("iris_relevance_score", 50).order("iris_relevance_score", { ascending: false }).limit(50),
       supabase.from("intelligence_graph_nodes").select("label,description").eq("mission_id", data.missionId).eq("node_type", "research").limit(15),
+      supabase.from("missions").select("north_star,why_win,why_lose,biggest_concerns,known_competitors,state_priorities,win_themes_text,reinforce,avoid").eq("id", data.missionId).maybeSingle(),
+      supabase.from("insights").select("insight_type,content,source,confidence,tags").is("mission_id", null).eq("expiry_flag", false).limit(100),
     ]);
+
+    const missionState = (mission?.data as { state?: string | null } | null)?.state ?? null;
+    const missionProgram = (mission?.data as { program_type?: string | null } | null)?.program_type ?? null;
+
+    // Second wave: queries that depend on mission state/program.
+    const programPattern = missionProgram
+      ? `program.ilike.%${missionProgram}%,program.ilike.%CSOC%,program.ilike.%Children%`
+      : `program.ilike.%CSOC%,program.ilike.%Children%`;
+    const expertsOr = [
+      missionState ? `states.cs.{${missionState}}` : null,
+      missionProgram ? `programs.cs.{${missionProgram}}` : null,
+    ].filter(Boolean).join(",");
+    const [stateDnaRes, programDnaRes, decisionsRes, expertsRes] = await Promise.all([
+      missionState
+        ? supabase.from("state_dna").select("category,attribute,value,source,confidence").eq("state", missionState).limit(200)
+        : Promise.resolve({ data: [] as any[] }),
+      supabase.from("program_dna").select("category,attribute,value,source,confidence").or(programPattern).limit(200),
+      missionState
+        ? supabase.from("mission_decisions").select("title,rationale,status,category,applies_to_states,applies_to_programs").contains("applies_to_states", [missionState]).limit(50)
+        : Promise.resolve({ data: [] as any[] }),
+      expertsOr
+        ? supabase.from("experts").select("name,role,expertise_areas,states,programs,contact_method,notes").or(expertsOr).limit(50)
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
+
+    const canvas = (missionCanvasRes?.data ?? null) as {
+      north_star?: string | null; why_win?: string | null; why_lose?: string | null;
+      biggest_concerns?: string | null; known_competitors?: string[] | null;
+      state_priorities?: string | null; win_themes_text?: string | null;
+      reinforce?: string[] | null; avoid?: string[] | null;
+    } | null;
+    const insightsRows = (athenaInsightsRes?.data ?? []) as Array<{ insight_type: string; content: string; source: string | null; confidence: string | null; tags: string[] | null }>;
+    const stateDnaRows = (stateDnaRes?.data ?? []) as Array<{ category: string; attribute: string; value: string; source: string | null; confidence: string | null }>;
+    const programDnaRows = (programDnaRes?.data ?? []) as Array<{ category: string; attribute: string; value: string; source: string | null; confidence: string | null }>;
+    const decisionsRows = (decisionsRes?.data ?? []) as Array<{ title: string; rationale: string | null; status: string | null; category: string | null }>;
+    const expertsList = (expertsRes?.data ?? []) as Array<{ name: string; role: string | null; expertise_areas: string[] | null; states: string[] | null; programs: string[] | null; contact_method: string | null; notes: string | null }>;
+
+    const groupByCategory = <T extends { category: string; attribute: string; value: string }>(rows: T[]): string => {
+      if (rows.length === 0) return "(none)";
+      const groups = new Map<string, T[]>();
+      for (const r of rows) {
+        if (!groups.has(r.category)) groups.set(r.category, []);
+        groups.get(r.category)!.push(r);
+      }
+      return Array.from(groups.entries()).map(([cat, items]) =>
+        `  [${cat}]\n${items.map((i) => `    - ${i.attribute}: ${i.value}`).join("\n")}`
+      ).join("\n");
+    };
+    const insightsByType = (type: string) => insightsRows.filter((i) => i.insight_type === type);
+    const fmtInsights = (rows: typeof insightsRows) =>
+      rows.length === 0 ? "(none)" : rows.map((i) => `    - [${i.confidence ?? "?"}] ${i.content}${i.source ? ` (src: ${i.source})` : ""}`).join("\n");
 
     const m = mission?.data as { name?: string; state?: string | null; agency_name?: string | null; program_type?: string | null; client_name?: string | null } | null;
     const w = ws?.data as { win_themes?: unknown; central_claim?: string | null; north_star_message?: string | null; discriminators?: string | null } | null;
