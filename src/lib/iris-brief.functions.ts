@@ -27,8 +27,8 @@ export const generateIntelligenceBrief = createServerFn({ method: "POST" })
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("IRIS is not configured.");
 
-    // Gather all context in parallel.
-    const [mission, ws, sg, section, question, stakeholders, competitors, evol, feed, researchNodes] = await Promise.all([
+    // Gather mission-scoped context in parallel.
+    const [mission, ws, sg, section, question, stakeholders, competitors, evol, feed, researchNodes, missionCanvasRes, athenaInsightsRes] = await Promise.all([
       supabase.from("missions").select("name,state,agency_name,program_type,client_name").eq("id", data.missionId).maybeSingle(),
       supabase.from("mission_win_strategy").select("win_themes,central_claim,north_star_message,discriminators").eq("mission_id", data.missionId).maybeSingle(),
       supabase.from("mission_style_guide").select("voice_and_tone,political_sensitivities,cultural_sensitivities").eq("mission_id", data.missionId).maybeSingle(),
@@ -43,7 +43,60 @@ export const generateIntelligenceBrief = createServerFn({ method: "POST" })
       supabase.from("procurement_evolution_records").select("iris_signals,iris_summary").eq("mission_id", data.missionId).maybeSingle(),
       supabase.from("intelligence_feed_items").select("category,headline,source_name,source_url,iris_assessment,iris_relevance_score,published_at").eq("mission_id", data.missionId).gte("iris_relevance_score", 50).order("iris_relevance_score", { ascending: false }).limit(50),
       supabase.from("intelligence_graph_nodes").select("label,description").eq("mission_id", data.missionId).eq("node_type", "research").limit(15),
+      supabase.from("missions").select("north_star,why_win,why_lose,biggest_concerns,known_competitors,state_priorities,win_themes_text,reinforce,avoid").eq("id", data.missionId).maybeSingle(),
+      supabase.from("insights").select("insight_type,content,source,confidence,tags").is("mission_id", null).eq("expiry_flag", false).limit(100),
     ]);
+
+    const missionState = (mission?.data as { state?: string | null } | null)?.state ?? null;
+    const missionProgram = (mission?.data as { program_type?: string | null } | null)?.program_type ?? null;
+
+    // Second wave: queries that depend on mission state/program.
+    const programPattern = missionProgram
+      ? `program.ilike.%${missionProgram}%,program.ilike.%CSOC%,program.ilike.%Children%`
+      : `program.ilike.%CSOC%,program.ilike.%Children%`;
+    const expertsOr = [
+      missionState ? `states.cs.{${missionState}}` : null,
+      missionProgram ? `programs.cs.{${missionProgram}}` : null,
+    ].filter(Boolean).join(",");
+    const [stateDnaRes, programDnaRes, decisionsRes, expertsRes] = await Promise.all([
+      missionState
+        ? supabase.from("state_dna").select("category,attribute,value,source,confidence").eq("state", missionState).limit(200)
+        : Promise.resolve({ data: [] as any[] }),
+      supabase.from("program_dna").select("category,attribute,value,source,confidence").or(programPattern).limit(200),
+      missionState
+        ? supabase.from("mission_decisions").select("title,rationale,status,category,applies_to_states,applies_to_programs").contains("applies_to_states", [missionState]).limit(50)
+        : Promise.resolve({ data: [] as any[] }),
+      expertsOr
+        ? supabase.from("experts").select("name,role,expertise_areas,states,programs,contact_method,notes").or(expertsOr).limit(50)
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
+
+    const canvas = (missionCanvasRes?.data ?? null) as {
+      north_star?: string | null; why_win?: string | null; why_lose?: string | null;
+      biggest_concerns?: string | null; known_competitors?: string[] | null;
+      state_priorities?: string | null; win_themes_text?: string | null;
+      reinforce?: string[] | null; avoid?: string[] | null;
+    } | null;
+    const insightsRows = (athenaInsightsRes?.data ?? []) as Array<{ insight_type: string; content: string; source: string | null; confidence: string | null; tags: string[] | null }>;
+    const stateDnaRows = (stateDnaRes?.data ?? []) as Array<{ category: string; attribute: string; value: string; source: string | null; confidence: string | null }>;
+    const programDnaRows = (programDnaRes?.data ?? []) as Array<{ category: string; attribute: string; value: string; source: string | null; confidence: string | null }>;
+    const decisionsRows = (decisionsRes?.data ?? []) as Array<{ title: string; rationale: string | null; status: string | null; category: string | null }>;
+    const expertsList = (expertsRes?.data ?? []) as Array<{ name: string; role: string | null; expertise_areas: string[] | null; states: string[] | null; programs: string[] | null; contact_method: string | null; notes: string | null }>;
+
+    const groupByCategory = <T extends { category: string; attribute: string; value: string }>(rows: T[]): string => {
+      if (rows.length === 0) return "(none)";
+      const groups = new Map<string, T[]>();
+      for (const r of rows) {
+        if (!groups.has(r.category)) groups.set(r.category, []);
+        groups.get(r.category)!.push(r);
+      }
+      return Array.from(groups.entries()).map(([cat, items]) =>
+        `  [${cat}]\n${items.map((i) => `    - ${i.attribute}: ${i.value}`).join("\n")}`
+      ).join("\n");
+    };
+    const insightsByType = (type: string) => insightsRows.filter((i) => i.insight_type === type);
+    const fmtInsights = (rows: typeof insightsRows) =>
+      rows.length === 0 ? "(none)" : rows.map((i) => `    - [${i.confidence ?? "?"}] ${i.content}${i.source ? ` (src: ${i.source})` : ""}`).join("\n");
 
     const m = mission?.data as { name?: string; state?: string | null; agency_name?: string | null; program_type?: string | null; client_name?: string | null } | null;
     const w = ws?.data as { win_themes?: unknown; central_claim?: string | null; north_star_message?: string | null; discriminators?: string | null } | null;
@@ -76,9 +129,47 @@ export const generateIntelligenceBrief = createServerFn({ method: "POST" })
       "competitive: 2-3 sentences on how to differentiate from likely competitors. Empty string if no competitor data. " +
       "iris_recommends: The single most useful, direct, specific strategic recommendation for the writer. Reference win strategy, evaluator priority, and the strongest research. Do not hedge. 3-5 sentences.";
 
-    const user = `Mission: ${m?.name ?? ""} | Client: ${m?.client_name ?? ""} | State: ${m?.state ?? ""} | Agency: ${m?.agency_name ?? ""} | Program: ${m?.program_type ?? ""}
+    const canvasBlock = canvas && (canvas.north_star || canvas.why_win || canvas.why_lose || canvas.biggest_concerns || (canvas.known_competitors?.length) || canvas.state_priorities || canvas.win_themes_text || (canvas.reinforce?.length) || (canvas.avoid?.length))
+      ? `=== MISSION CANVAS (HIGHEST PRIORITY — captured by the capture team for THIS mission) ===
+- North Star: ${canvas.north_star ?? "(none)"}
+- Why we win: ${canvas.why_win ?? "(none)"}
+- Why we lose: ${canvas.why_lose ?? "(none)"}
+- Biggest concerns: ${canvas.biggest_concerns ?? "(none)"}
+- Known competitors: ${(canvas.known_competitors ?? []).join(", ") || "(none)"}
+- State priorities: ${canvas.state_priorities ?? "(none)"}
+- Win themes (capture team): ${canvas.win_themes_text ?? "(none)"}
+- Reinforce: ${(canvas.reinforce ?? []).join(" | ") || "(none)"}
+- Avoid: ${(canvas.avoid ?? []).join(" | ") || "(none)"}
+
+`
+      : "";
+
+    const user = `${canvasBlock}Mission: ${m?.name ?? ""} | Client: ${m?.client_name ?? ""} | State: ${m?.state ?? ""} | Agency: ${m?.agency_name ?? ""} | Program: ${m?.program_type ?? ""}
 Section ${sec?.section_number ?? ""}: ${sectionName}${sectionDescription ? ` — ${sectionDescription}` : ""}
 ${qn ? `Question ${qn.question_number ?? ""}: ${questionText}` : ""}
+
+=== STATE DNA (${missionState ?? "unknown state"}) — procurement, political, stakeholder, regulatory, historical, cultural ===
+${groupByCategory(stateDnaRows)}
+
+=== PROGRAM DNA (matched to program_type / CSOC / Children) ===
+${groupByCategory(programDnaRows)}
+
+=== ATHENA GLOBAL INSIGHTS (apply across missions) ===
+  Win patterns:
+${fmtInsights(insightsByType("win_pattern"))}
+  Loss lessons:
+${fmtInsights(insightsByType("loss_lesson"))}
+  Competitive intel:
+${fmtInsights(insightsByType("competitive_intel"))}
+  Other:
+${fmtInsights(insightsRows.filter((i) => !["win_pattern","loss_lesson","competitive_intel"].includes(i.insight_type)))}
+
+=== PRIOR DECISIONS APPLICABLE TO THIS STATE ===
+${decisionsRows.length === 0 ? "(none)" : decisionsRows.map((d) => `- [${d.category ?? "general"}] ${d.title}${d.status ? ` (${d.status})` : ""}${d.rationale ? ` — ${d.rationale}` : ""}`).join("\n")}
+
+=== EXPERTS (matched on state/program) ===
+${expertsList.length === 0 ? "(none)" : expertsList.map((e) => `- ${e.name}${e.role ? `, ${e.role}` : ""} | expertise=${(e.expertise_areas ?? []).join("/") || "?"} | states=${(e.states ?? []).join("/") || "?"} | programs=${(e.programs ?? []).join("/") || "?"}${e.contact_method ? ` | contact=${e.contact_method}` : ""}`).join("\n")}
+
 
 Win Strategy:
 - Central Claim: ${w?.central_claim ?? ""}
