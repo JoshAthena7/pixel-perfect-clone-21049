@@ -162,7 +162,11 @@ export const generateIntelligenceBrief = createServerFn({ method: "POST" })
       biggest_concerns?: string | null; known_competitors?: string[] | null;
       state_priorities?: string | null; win_themes_text?: string | null;
       reinforce?: string[] | null; avoid?: string[] | null;
+      stakeholder_intelligence?: StakeholderIntel;
+      executive_intelligence?: ExecutiveIntel;
     } | null;
+    const stakeholderBlock = formatStakeholderBlock(canvas?.stakeholder_intelligence);
+    const executiveBlock = formatExecutiveBlock(canvas?.executive_intelligence);
     const insightsRows = (athenaInsightsRes?.data ?? []) as Array<{ insight_type: string; content: string; source: string | null; confidence: string | null; tags: string[] | null }>;
     const stateDnaRows = (stateDnaRes?.data ?? []) as Array<{ category: string; attribute: string; value: string; source: string | null; confidence: string | null }>;
     const programDnaRows = (programDnaRes?.data ?? []) as Array<{ category: string; attribute: string; value: string; source: string | null; confidence: string | null }>;
