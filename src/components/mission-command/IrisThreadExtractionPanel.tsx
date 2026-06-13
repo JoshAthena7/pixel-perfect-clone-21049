@@ -5,6 +5,7 @@ import { Loader2, Sparkles, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { batchExtractMissionThreads } from "@/lib/iris-extract-thread-intelligence.functions";
+import { batchExtractMissionScoreGaps } from "@/lib/iris-score-gap-analysis.functions";
 
 /**
  * Admin/lead-only panel that runs IRIS thread intelligence extraction across
