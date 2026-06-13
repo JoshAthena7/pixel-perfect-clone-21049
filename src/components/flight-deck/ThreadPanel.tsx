@@ -491,6 +491,33 @@ function MessageRow({ msg, missionId, onFindExpert }: { msg: ThreadMsg; missionI
           </button>
         </div>
       )}
+      <div style={{ marginTop: 6, display: "flex", justifyContent: "flex-end" }}>
+        <button
+          onClick={() => setSaveOpen(true)}
+          title="Save as Insight"
+          style={{
+            background: "transparent",
+            border: "1px solid rgba(255,255,255,0.1)",
+            color: "rgba(255,255,255,0.55)",
+            fontSize: 10,
+            padding: "2px 8px",
+            borderRadius: 6,
+            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
+          <Bookmark size={10} />
+          Save as Insight
+        </button>
+      </div>
+      <SaveAsInsightDialog
+        open={saveOpen}
+        onOpenChange={setSaveOpen}
+        initialContent={msg.message_body}
+        missionId={missionId}
+      />
     </div>
   );
 }
