@@ -14,6 +14,10 @@ import {
   maybePostInactivityCheckIn,
   maybePostWinThemeAlignment,
 } from "@/lib/thread.functions";
+import {
+  addExpertFromThread,
+  detectStakeholderCandidates,
+} from "@/lib/iris-enrich-mission-brief.functions";
 import { QuestionBriefPanel } from "./QuestionBriefPanel";
 
 type Props = {
