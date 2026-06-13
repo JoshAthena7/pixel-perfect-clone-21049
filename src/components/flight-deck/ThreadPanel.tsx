@@ -230,6 +230,13 @@ export function ThreadPanel({
         ref={feedRef}
         style={{ flex: 1, overflowY: "auto", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10 }}
       >
+        {missionId && questionId && (
+          <QuestionBriefPanel
+            missionId={missionId}
+            questionId={questionId}
+            questionText={questionText ?? ""}
+          />
+        )}
         {/* IRIS context block (always shown once at top) */}
         <div
           style={{
