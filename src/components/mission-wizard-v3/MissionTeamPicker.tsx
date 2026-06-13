@@ -44,7 +44,10 @@ export function MissionTeamPicker({ missionId }: { missionId: string }) {
         .from("mission_iris_extractions")
         .select("id, extracted_field, user_override_value")
         .eq("mission_id", missionId)
-        .in("extracted_field", ROLES.map((r) => r.key));
+        .in(
+          "extracted_field",
+          ROLES.map((r) => r.key),
+        );
       return (data ?? []) as Array<{
         id: string;
         extracted_field: string;
@@ -69,21 +72,33 @@ export function MissionTeamPicker({ missionId }: { missionId: string }) {
 
   async function setRole(roleKey: string, value: string) {
     setPending((p) => ({ ...p, [roleKey]: value }));
-    const { error } = await supabase
+    const { data: existingRows, error: lookupError } = await supabase
       .from("mission_iris_extractions")
-      .upsert(
-        {
-          mission_id: missionId,
-          extracted_field: roleKey,
-          extracted_value: null,
-          user_override_value: value || null,
-          overridden_by_user: !!value,
-          confirmed_by_user: !!value,
-          confirmed_at: value ? new Date().toISOString() : null,
-          wizard_step: 2,
-        },
-        { onConflict: "mission_id,extracted_field" },
-      );
+      .select("id")
+      .eq("mission_id", missionId)
+      .eq("extracted_field", roleKey)
+      .limit(1);
+
+    const payload = {
+      mission_id: missionId,
+      extracted_field: roleKey,
+      extracted_value: null,
+      user_override_value: value || null,
+      overridden_by_user: !!value,
+      confirmed_by_user: !!value,
+      confirmed_at: value ? new Date().toISOString() : null,
+      wizard_step: 2,
+    };
+
+    const existingId = existingRows?.[0]?.id;
+    const { error } = lookupError
+      ? { error: lookupError }
+      : existingId
+        ? await supabase.from("mission_iris_extractions").update(payload).eq("id", existingId)
+        : value
+          ? await supabase.from("mission_iris_extractions").insert(payload)
+          : { error: null };
+
     if (error) {
       console.error("[MissionTeamPicker] upsert failed", error);
       alert(`Could not save team role: ${error.message}`);
