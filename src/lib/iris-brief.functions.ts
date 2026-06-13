@@ -234,7 +234,7 @@ export const generateIntelligenceBrief = createServerFn({ method: "POST" })
 `
       : "";
 
-    const user = `${canvasBlock}Mission: ${m?.name ?? ""} | Client: ${m?.client_name ?? ""} | State: ${m?.state ?? ""} | Agency: ${m?.agency_name ?? ""} | Program: ${m?.program_type ?? ""}
+    const user = `${canvasBlock}${stakeholderBlock}${executiveBlock}Mission: ${m?.name ?? ""} | Client: ${m?.client_name ?? ""} | State: ${m?.state ?? ""} | Agency: ${m?.agency_name ?? ""} | Program: ${m?.program_type ?? ""}
 Section ${sec?.section_number ?? ""}: ${sectionName}${sectionDescription ? ` — ${sectionDescription}` : ""}
 ${qn ? `Question ${qn.question_number ?? ""}: ${questionText}` : ""}
 
