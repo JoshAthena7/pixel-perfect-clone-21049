@@ -94,7 +94,6 @@ export function MissionOutcomeCard({ missionId }: { missionId: string }) {
           <Link
             to="/missions/$missionId/insights"
             params={{ missionId }}
-            search={{ filter: "lesson" } as never}
             className="rounded-md px-3 py-1.5 text-[11px] font-medium"
             style={{
               border: "1px solid rgba(201,168,76,0.4)",
