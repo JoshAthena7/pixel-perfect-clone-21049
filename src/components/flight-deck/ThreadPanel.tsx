@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { formatDistanceToNow } from "date-fns";
 import { X, Eye, Send, Flag, Star, ArrowLeftRight, Bookmark } from "lucide-react";
 import { SaveAsInsightDialog } from "./SaveAsInsightDialog";
+import { LessonsLearnedDialog } from "./LessonsLearnedDialog";
 import {
   listThreadMessages,
   postThreadMessage,
@@ -106,6 +107,7 @@ export function ThreadPanel({
   const [mentionIds, setMentionIds] = useState<string[]>([]);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
   const feedRef = useRef<HTMLDivElement | null>(null);
+  const [lessonsOpen, setLessonsOpen] = useState(false);
 
   const sendMutation = useMutation({
     mutationFn: (vars: { body: string; messageType: "regular" | "decision" }) =>
@@ -211,6 +213,24 @@ export function ThreadPanel({
             {questionText ?? "No question selected"}
           </div>
         </div>
+        {questionId && (
+          <button
+            onClick={() => setLessonsOpen(true)}
+            title="Mark question complete"
+            style={{
+              background: "transparent",
+              border: "1px solid rgba(196,154,43,0.45)",
+              color: GOLD,
+              fontSize: 10.5,
+              padding: "3px 8px",
+              borderRadius: 6,
+              cursor: "pointer",
+              marginRight: 6,
+            }}
+          >
+            Mark Complete
+          </button>
+        )}
         <button
           onClick={onClose}
           aria-label="Close thread"
@@ -402,6 +422,16 @@ export function ThreadPanel({
           </button>
         </div>
       </div>
+      <LessonsLearnedDialog
+        open={lessonsOpen}
+        onOpenChange={setLessonsOpen}
+        missionId={missionId}
+        questionId={questionId}
+        onClosed={() => {
+          qc.invalidateQueries({ queryKey: ["thread", questionId] });
+          onClose();
+        }}
+      />
     </div>
   );
 }
