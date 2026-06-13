@@ -112,9 +112,9 @@ function tryParseJSON(s: string): Extracted | null {
   }
 }
 
-function questionKey(q: Pick<Question, "number" | "text"> | { question_number?: string | null; question_text?: string | null }) {
-  const number = "question_number" in q ? q.question_number : q.number;
-  const text = "question_text" in q ? q.question_text : q.text;
+function questionKey(q: Partial<Question> & { question_number?: string | null; question_text?: string | null }) {
+  const number = q.question_number ?? q.number;
+  const text = q.question_text ?? q.text;
   return `${String(number ?? "").trim().toLowerCase()}::${String(text ?? "")
     .trim()
     .toLowerCase()
@@ -270,23 +270,32 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
         .select("id, question_number, question_text");
       if (qErr) throw qErr;
       counts.questions += inserted?.length ?? 0;
-      const restoreRows = (inserted ?? [])
-        .map((newQuestion) => {
-          const previous = previousAssignmentByQuestionKey.get(questionKey(newQuestion));
-          if (!previous) return null;
-          return {
-            mission_id: data.mission_id,
-            question_id: newQuestion.id,
-            assigned_writer_id: previous.assigned_writer_id,
-            sme_member_ids: previous.sme_member_ids ?? [],
-            acceptance_status: previous.acceptance_status ?? "pending",
-            writer_confidence: previous.writer_confidence ?? "not_set",
-            due_date: previous.due_date,
-            assigned_by: previous.assigned_by,
-            assigned_at: previous.assigned_at ?? new Date().toISOString(),
-          };
-        })
-        .filter(Boolean);
+      const restoreRows: Array<{
+        mission_id: string;
+        question_id: string;
+        assigned_writer_id: string | null;
+        sme_member_ids: string[];
+        acceptance_status: string;
+        writer_confidence: string;
+        due_date: string | null;
+        assigned_by: string | null;
+        assigned_at: string;
+      }> = [];
+      for (const newQuestion of inserted ?? []) {
+        const previous = previousAssignmentByQuestionKey.get(questionKey(newQuestion));
+        if (!previous) continue;
+        restoreRows.push({
+          mission_id: data.mission_id,
+          question_id: newQuestion.id,
+          assigned_writer_id: previous.assigned_writer_id,
+          sme_member_ids: previous.sme_member_ids ?? [],
+          acceptance_status: previous.acceptance_status ?? "pending",
+          writer_confidence: previous.writer_confidence ?? "not_set",
+          due_date: previous.due_date,
+          assigned_by: previous.assigned_by,
+          assigned_at: previous.assigned_at ?? new Date().toISOString(),
+        });
+      }
       if (restoreRows.length > 0) {
         const { error: restoreErr } = await supabase.from("mission_assignments").upsert(restoreRows, {
           onConflict: "mission_id,question_id",
