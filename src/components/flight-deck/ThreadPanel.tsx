@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { formatDistanceToNow } from "date-fns";
 import { X, Eye, Send, Flag, Star, ArrowLeftRight, Bookmark } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { SaveAsInsightDialog } from "./SaveAsInsightDialog";
 import { LessonsLearnedDialog } from "./LessonsLearnedDialog";
 import {
@@ -245,6 +247,12 @@ export function ThreadPanel({
           <X size={16} />
         </button>
       </div>
+
+      {missionId && questionId && (
+        <AssignmentHeader missionId={missionId} questionId={questionId} />
+      )}
+
+
 
       {/* Feed */}
       <div
@@ -818,6 +826,106 @@ function CrossReferenceRow({ msg, onNote }: { msg: ThreadMsg; onNote: (body: str
           </button>
         ) : null}
       </div>
+    </div>
+  );
+}
+
+function AssignmentHeader({ missionId, questionId }: { missionId: string; questionId: string }) {
+  const { data } = useQuery({
+    queryKey: ["thread-assignment", missionId, questionId],
+    queryFn: async () => {
+      const { data: a } = await supabase
+        .from("mission_assignments")
+        .select("assigned_writer_id, sme_member_ids" as any)
+        .eq("mission_id", missionId)
+        .eq("question_id", questionId)
+        .maybeSingle();
+      if (!a) return { writer: null as null | { id: string; name: string }, smes: [] as { id: string; name: string }[] };
+      const writerId = (a as any).assigned_writer_id as string | null;
+      const smeIds: string[] = Array.isArray((a as any).sme_member_ids) ? (a as any).sme_member_ids : [];
+      const ids = [writerId, ...smeIds].filter(Boolean) as string[];
+      let members: { id: string; first_name: string | null; last_name: string | null }[] = [];
+      if (ids.length) {
+        const { data: m } = await supabase
+          .from("atlas_team_members")
+          .select("id, first_name, last_name")
+          .in("id", ids);
+        members = (m as any) ?? [];
+      }
+      const nameOf = (id: string) => {
+        const m = members.find((x) => x.id === id);
+        return m ? `${m.first_name ?? ""} ${m.last_name ?? ""}`.trim() || "—" : "—";
+      };
+      return {
+        writer: writerId ? { id: writerId, name: nameOf(writerId) } : null,
+        smes: smeIds.map((id) => ({ id, name: nameOf(id) })),
+      };
+    },
+    enabled: !!missionId && !!questionId,
+  });
+
+  const notify = () => toast("Assignments are managed in Olympus.");
+
+  return (
+    <div
+      onClick={notify}
+      title="Assignments are managed in Olympus."
+      style={{
+        padding: "8px 14px",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        flexWrap: "wrap",
+        fontSize: 11,
+        color: "rgba(255,255,255,0.65)",
+        cursor: "default",
+        userSelect: "none",
+      }}
+    >
+      <span style={{ color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: 0.5, fontSize: 10 }}>
+        On this question
+      </span>
+      <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
+      <span style={{ color: "rgba(255,255,255,0.5)" }}>Lead Writer:</span>
+      {data?.writer ? (
+        <span style={{ color: "white" }}>{data.writer.name}</span>
+      ) : (
+        <span
+          style={{
+            background: "rgba(245,158,11,0.15)",
+            color: "#fbbf24",
+            border: "1px solid rgba(245,158,11,0.3)",
+            borderRadius: 4,
+            padding: "1px 6px",
+            fontSize: 10,
+            fontWeight: 600,
+          }}
+        >
+          Unassigned
+        </span>
+      )}
+      {(data?.smes?.length ?? 0) > 0 && (
+        <>
+          <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
+          <span style={{ color: "rgba(255,255,255,0.5)" }}>SMEs:</span>
+          {data!.smes.map((s) => (
+            <span
+              key={s.id}
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 4,
+                padding: "1px 6px",
+                color: "rgba(255,255,255,0.85)",
+                fontSize: 10,
+              }}
+            >
+              {s.name}
+            </span>
+          ))}
+        </>
+      )}
     </div>
   );
 }

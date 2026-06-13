@@ -4626,6 +4626,7 @@ export type Database = {
           id: string
           mission_id: string
           question_id: string
+          sme_member_ids: string[]
           updated_at: string
           writer_confidence: string
         }
@@ -4640,6 +4641,7 @@ export type Database = {
           id?: string
           mission_id: string
           question_id: string
+          sme_member_ids?: string[]
           updated_at?: string
           writer_confidence?: string
         }
@@ -4654,6 +4656,7 @@ export type Database = {
           id?: string
           mission_id?: string
           question_id?: string
+          sme_member_ids?: string[]
           updated_at?: string
           writer_confidence?: string
         }
@@ -9411,6 +9414,10 @@ export type Database = {
         Returns: string
       }
       call_hook: { Args: { path: string }; Returns: undefined }
+      can_manage_mission_assignments: {
+        Args: { _mission_id: string; _user_id: string }
+        Returns: boolean
+      }
       cleanup_quick_chats: { Args: never; Returns: undefined }
       current_atlas_member_id: { Args: never; Returns: string }
       current_user_is_admin_or_founder: { Args: never; Returns: boolean }

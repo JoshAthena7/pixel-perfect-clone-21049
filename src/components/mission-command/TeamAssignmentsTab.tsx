@@ -348,9 +348,24 @@ function AddMemberSheet({
   );
 }
 
+function truncate(s: string | null | undefined, n = 80) {
+  if (!s) return "";
+  return s.length > n ? s.slice(0, n - 1) + "…" : s;
+}
+
+function deriveAssignmentStatus(a: any): { label: string; cls: string } {
+  const qStatus = (a?.mission_questions?.status ?? "").toLowerCase();
+  if (qStatus === "complete" || qStatus === "completed")
+    return { label: "Complete", cls: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30" };
+  if (!a?.assigned_writer_id)
+    return { label: "Unassigned", cls: "bg-amber-500/15 text-amber-500 border-amber-500/30" };
+  if (a?.acceptance_status === "accepted")
+    return { label: "In Progress", cls: "bg-blue-500/15 text-blue-500 border-blue-500/30" };
+  return { label: "Assigned", cls: "bg-slate-500/15 text-slate-300 border-slate-500/30" };
+}
+
 function AssignmentsSub({ missionId, missionName }: { missionId: string; missionName: string }) {
   const qc = useQueryClient();
-  const [sectionFilter, setSectionFilter] = useState("all");
   const [writerFilter, setWriterFilter] = useState("all");
   const [acceptFilter, setAcceptFilter] = useState("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -358,15 +373,28 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
   const [bulkWriter, setBulkWriter] = useState<string | null>(null);
   const [bulkDate, setBulkDate] = useState<Date | undefined>();
 
+  const { data: canManage = false } = useQuery({
+    queryKey: ["mt-can-manage", missionId],
+    queryFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u?.user?.id) return false;
+      const { data } = await supabase.rpc("can_manage_mission_assignments", {
+        _mission_id: missionId,
+        _user_id: u.user.id,
+      });
+      return Boolean(data);
+    },
+  });
+
   const { data: assignments, isLoading, isError, refetch } = useQuery({
     queryKey: ["mt-assignments", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("mission_assignments")
         .select(`
-          id, question_id, assigned_writer_id, acceptance_status, writer_confidence,
+          id, question_id, assigned_writer_id, sme_member_ids, acceptance_status, writer_confidence,
           due_date, assigned_at,
-          mission_questions(id, question_number, question_text, section_id, mission_sections(name, section_number))
+          mission_questions(id, question_number, question_text, status, section_id, mission_sections(name, section_number))
         `)
         .eq("mission_id", missionId);
       return data ?? [];
@@ -393,17 +421,17 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
 
   const filtered = useMemo(() => {
     return (assignments ?? []).filter((a: any) => {
-      if (sectionFilter !== "all" && a.mission_questions?.section_id !== sectionFilter) return false;
       if (writerFilter !== "all" && a.assigned_writer_id !== writerFilter) return false;
       if (acceptFilter !== "all" && a.acceptance_status !== acceptFilter) return false;
       return true;
     });
-  }, [assignments, sectionFilter, writerFilter, acceptFilter]);
+  }, [assignments, writerFilter, acceptFilter]);
 
   const totalCount = assignments?.length ?? 0;
   const assignedCount = (assignments ?? []).filter((a: any) => a.assigned_writer_id).length;
 
   const reassign = async (assignmentId: string, oldWriterId: string | null, newWriterId: string) => {
+    if (!canManage) { toast.error("Only mission admins can change assignments."); return; }
     const { error } = await supabase
       .from("mission_assignments")
       .update({
@@ -436,7 +464,18 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
   };
 
   const updateDue = async (id: string, d: Date | undefined) => {
+    if (!canManage) { toast.error("Only mission admins can change assignments."); return; }
     await supabase.from("mission_assignments").update({ due_date: d ? d.toISOString() : null }).eq("id", id);
+    qc.invalidateQueries({ queryKey: ["mt-assignments", missionId] });
+  };
+
+  const updateSmes = async (id: string, ids: string[]) => {
+    if (!canManage) { toast.error("Only mission admins can change assignments."); return; }
+    const { error } = await supabase
+      .from("mission_assignments")
+      .update({ sme_member_ids: ids })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["mt-assignments", missionId] });
   };
 
@@ -468,10 +507,16 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold">
-          Question Assignments
-          <span className="text-muted-foreground font-normal"> ({assignedCount} of {totalCount} assigned)</span>
-        </h3>
+        <div>
+          <h3 className="font-semibold">
+            Question Assignments
+            <span className="text-muted-foreground font-normal"> ({assignedCount} of {totalCount} assigned)</span>
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Olympus is the single source of truth for question assignments. Flight Deck and Threads show this read-only.
+            {!canManage && " Assignments are managed in Olympus by mission admins."}
+          </p>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2 items-center">
@@ -494,7 +539,7 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
             <SelectItem value="capacity_concern">Capacity Concern</SelectItem>
           </SelectContent>
         </Select>
-        {selected.size > 0 && (
+        {canManage && selected.size > 0 && (
           <div className="ml-auto flex items-center gap-2 text-sm">
             <span>{selected.size} selected</span>
             <Button size="sm" variant="outline" onClick={() => setBulkOpen("writer")}>Bulk Reassign</Button>
@@ -510,77 +555,122 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
             <tr>
-              <th className="px-2 py-2"></th>
+              {canManage && <th className="px-2 py-2"></th>}
               <th className="px-2 py-2 text-left">Q#</th>
               <th className="px-2 py-2 text-left">Section</th>
               <th className="px-2 py-2 text-left">Question</th>
-              <th className="px-2 py-2 text-left">Writer</th>
+              <th className="px-2 py-2 text-left">Lead Writer</th>
+              <th className="px-2 py-2 text-left">SMEs</th>
               <th className="px-2 py-2 text-left">Due</th>
-              <th className="px-2 py-2 text-left">Accept</th>
-              <th className="px-2 py-2 text-left">Confidence</th>
+              <th className="px-2 py-2 text-left">Status</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((a: any) => {
-              const ageMs = a.assigned_at && a.acceptance_status === "pending"
-                ? Date.now() - new Date(a.assigned_at).getTime() : 0;
-              const tintCls = ageMs > 48 * 3600 * 1000
-                ? "bg-red-500/5"
-                : ageMs > 24 * 3600 * 1000 ? "bg-amber-500/5" : "";
               const q = a.mission_questions;
+              const status = deriveAssignmentStatus(a);
+              const smeIds: string[] = Array.isArray(a.sme_member_ids) ? a.sme_member_ids : [];
               return (
-                <tr key={a.id} className={cn("border-t", tintCls)}>
-                  <td className="px-2 py-2">
-                    <Checkbox
-                      checked={selected.has(a.id)}
-                      onCheckedChange={(v) => {
-                        const n = new Set(selected);
-                        v ? n.add(a.id) : n.delete(a.id);
-                        setSelected(n);
-                      }}
-                    />
-                  </td>
+                <tr key={a.id} className="border-t">
+                  {canManage && (
+                    <td className="px-2 py-2">
+                      <Checkbox
+                        checked={selected.has(a.id)}
+                        onCheckedChange={(v) => {
+                          const n = new Set(selected);
+                          v ? n.add(a.id) : n.delete(a.id);
+                          setSelected(n);
+                        }}
+                      />
+                    </td>
+                  )}
                   <td className="px-2 py-2 text-primary font-medium">{q?.question_number ?? "—"}</td>
                   <td className="px-2 py-2 text-xs text-muted-foreground">
                     {q?.mission_sections?.section_number} {q?.mission_sections?.name}
                   </td>
-                  <td className="px-2 py-2 max-w-xs truncate">{q?.question_text}</td>
+                  <td className="px-2 py-2 max-w-xs">{truncate(q?.question_text, 80)}</td>
                   <td className="px-2 py-2">
-                    <Select
-                      value={a.assigned_writer_id ?? "none"}
-                      onValueChange={(v) => reassign(a.id, a.assigned_writer_id, v)}
-                    >
-                      <SelectTrigger className="h-8 text-xs w-40"><SelectValue placeholder="Unassigned" /></SelectTrigger>
-                      <SelectContent>
-                        {(team ?? []).map((m: any) => (
-                          <SelectItem key={m.member_id} value={m.member_id}>{teamName(m.member_id)}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {canManage ? (
+                      <Select
+                        value={a.assigned_writer_id ?? "none"}
+                        onValueChange={(v) => reassign(a.id, a.assigned_writer_id, v)}
+                      >
+                        <SelectTrigger className="h-8 text-xs w-40"><SelectValue placeholder="Unassigned" /></SelectTrigger>
+                        <SelectContent>
+                          {(team ?? []).map((m: any) => (
+                            <SelectItem key={m.member_id} value={m.member_id}>{teamName(m.member_id)}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      a.assigned_writer_id
+                        ? <span className="text-xs">{teamName(a.assigned_writer_id)}</span>
+                        : <Badge variant="outline" className="bg-amber-500/15 text-amber-500 border-amber-500/30">Unassigned</Badge>
+                    )}
                   </td>
                   <td className="px-2 py-2">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 text-xs">
-                          <CalendarIcon className="size-3 mr-1" />
-                          {a.due_date ? format(new Date(a.due_date), "MMM d") : "—"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={a.due_date ? new Date(a.due_date) : undefined}
-                                  onSelect={(d) => updateDue(a.id, d)} className="pointer-events-auto" />
-                      </PopoverContent>
-                    </Popover>
+                    {canManage ? (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 text-xs w-40 justify-start">
+                            {smeIds.length === 0 ? "Add SMEs" : `${smeIds.length} SME${smeIds.length === 1 ? "" : "s"}`}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64 p-2 pointer-events-auto" align="start">
+                          <div className="max-h-64 overflow-y-auto space-y-1">
+                            {(team ?? []).length === 0 && (
+                              <div className="text-xs text-muted-foreground p-2">No team members.</div>
+                            )}
+                            {(team ?? []).map((m: any) => {
+                              const checked = smeIds.includes(m.member_id);
+                              return (
+                                <label key={m.member_id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted cursor-pointer text-sm">
+                                  <Checkbox
+                                    checked={checked}
+                                    onCheckedChange={(v) => {
+                                      const next = v
+                                        ? Array.from(new Set([...smeIds, m.member_id]))
+                                        : smeIds.filter((x) => x !== m.member_id);
+                                      updateSmes(a.id, next);
+                                    }}
+                                  />
+                                  <span>{teamName(m.member_id)}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    ) : (
+                      <div className="flex flex-wrap gap-1">
+                        {smeIds.length === 0
+                          ? <span className="text-xs text-muted-foreground">—</span>
+                          : smeIds.map((id) => (
+                              <Badge key={id} variant="outline" className="text-xs">{teamName(id)}</Badge>
+                            ))}
+                      </div>
+                    )}
                   </td>
                   <td className="px-2 py-2">
-                    <Badge variant="outline" className={ACCEPT_COLOR[a.acceptance_status] ?? ""}>
-                      {a.acceptance_status}
-                    </Badge>
+                    {canManage ? (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 text-xs">
+                            <CalendarIcon className="size-3 mr-1" />
+                            {a.due_date ? format(new Date(a.due_date), "MMM d") : "—"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={a.due_date ? new Date(a.due_date) : undefined}
+                                    onSelect={(d) => updateDue(a.id, d)} className="pointer-events-auto" />
+                        </PopoverContent>
+                      </Popover>
+                    ) : (
+                      <span className="text-xs">{a.due_date ? format(new Date(a.due_date), "MMM d") : "—"}</span>
+                    )}
                   </td>
                   <td className="px-2 py-2">
-                    <Badge variant="outline" className={CONF_COLOR[a.writer_confidence ?? "not_set"] ?? ""}>
-                      {a.writer_confidence ?? "not_set"}
-                    </Badge>
+                    <Badge variant="outline" className={status.cls}>{status.label}</Badge>
                   </td>
                 </tr>
               );
