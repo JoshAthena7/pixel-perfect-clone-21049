@@ -176,6 +176,26 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
 
     const counts = { volumes: 0, sections: 0, sub_sections: 0, questions: 0, compliance: 0, checklist: 0 };
 
+    const insertQuestions = async (sectionId: string, qs: Question[]) => {
+      if (qs.length === 0) return;
+      const qRows = qs
+        .map((q) => ({
+          mission_id: data.mission_id,
+          section_id: sectionId,
+          question_number: q.number ? String(q.number).slice(0, 50) : null,
+          question_text: String(q.text ?? "").slice(0, 4000),
+          word_limit: safeNum(q.word_limit),
+          page_limit: safeNum(q.page_limit),
+          evaluation_criteria: q.evaluation_criteria ? String(q.evaluation_criteria).slice(0, 2000) : null,
+          iris_confidence: conf(q.confidence),
+          status: "not_started",
+        }))
+        .filter((r) => r.question_text.trim().length > 0);
+      if (qRows.length === 0) return;
+      const { error: qErr } = await supabase.from("mission_questions").insert(qRows);
+      if (!qErr) counts.questions += qRows.length;
+    };
+
     const volumes = Array.isArray(parsed.volumes) ? parsed.volumes : [];
     for (let vi = 0; vi < volumes.length; vi++) {
       const v = volumes[vi] ?? {};
@@ -213,6 +233,8 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
         if (sErr || !sRow) continue;
         counts.sections++;
 
+        await insertQuestions(sRow.id, Array.isArray(s.questions) ? s.questions : []);
+
         const subs = Array.isArray(s.sub_sections) ? s.sub_sections : [];
         for (let ssi = 0; ssi < subs.length; ssi++) {
           const ss = subs[ssi] ?? ({} as SubSection);
@@ -235,25 +257,7 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
           if (ssErr || !ssRow) continue;
           counts.sub_sections++;
 
-          const qs = Array.isArray(ss.questions) ? ss.questions : [];
-          if (qs.length === 0) continue;
-          const qRows = qs
-            .map((q) => ({
-              mission_id: data.mission_id,
-              section_id: ssRow.id,
-              question_number: q.number ? String(q.number).slice(0, 50) : null,
-              question_text: String(q.text ?? "").slice(0, 4000),
-              word_limit: safeNum(q.word_limit),
-              page_limit: safeNum(q.page_limit),
-              evaluation_criteria: q.evaluation_criteria ? String(q.evaluation_criteria).slice(0, 2000) : null,
-              iris_confidence: conf(q.confidence),
-              status: "not_started",
-            }))
-            .filter((r) => r.question_text.trim().length > 0);
-          if (qRows.length > 0) {
-            const { error: qErr } = await supabase.from("mission_questions").insert(qRows);
-            if (!qErr) counts.questions += qRows.length;
-          }
+          await insertQuestions(ssRow.id, Array.isArray(ss.questions) ? ss.questions : []);
         }
       }
     }
