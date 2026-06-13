@@ -114,6 +114,10 @@ export function ThreadPanel({
   const taRef = useRef<HTMLTextAreaElement | null>(null);
   const feedRef = useRef<HTMLDivElement | null>(null);
   const [lessonsOpen, setLessonsOpen] = useState(false);
+  const [stakeholderCandidates, setStakeholderCandidates] = useState<
+    Array<{ name: string; role?: string; excerpt: string }>
+  >([]);
+  const addExpert = useServerFn(addExpertFromThread);
 
   const sendMutation = useMutation({
     mutationFn: (vars: { body: string; messageType: "regular" | "decision" }) =>
@@ -126,13 +130,23 @@ export function ThreadPanel({
           mentions: mentionIds,
         },
       }),
-    onSuccess: () => {
+    onSuccess: (_d, vars) => {
+      const sentBody = vars.body;
       setText("");
       setMentionIds([]);
       qc.invalidateQueries({ queryKey: ["thread", questionId] });
       // Refetch again shortly to catch the IRIS async reply.
       setTimeout(() => qc.invalidateQueries({ queryKey: ["thread", questionId] }), 1500);
       setTimeout(() => qc.invalidateQueries({ queryKey: ["thread", questionId] }), 5000);
+      // Stakeholder capture detector — fire-and-forget UX prompt.
+      if (missionId && questionId) {
+        const cands = detectStakeholderCandidates(sentBody);
+        if (cands.length) {
+          setStakeholderCandidates(
+            cands.map((c) => ({ ...c, excerpt: sentBody.slice(0, 600) })),
+          );
+        }
+      }
     },
   });
 
