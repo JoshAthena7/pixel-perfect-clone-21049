@@ -71,6 +71,7 @@ export function IrisFieldRow({
           .select("id")
           .eq("mission_id", missionId)
           .eq("extracted_field", fieldKey)
+          .limit(1)
           .maybeSingle();
         rowId = existing?.id;
       }

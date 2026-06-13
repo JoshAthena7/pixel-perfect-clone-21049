@@ -75,6 +75,7 @@ function WizardPage() {
       .select("id")
       .eq("mission_id", missionId)
       .eq("extracted_field", "__wizard_last_step")
+      .limit(1)
       .maybeSingle();
     if (existing?.id) {
       await supabase

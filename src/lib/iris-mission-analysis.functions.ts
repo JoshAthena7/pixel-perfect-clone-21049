@@ -169,6 +169,7 @@ export const analyzeMissionStep = createServerFn({ method: "POST" })
         .eq("mission_id", data.missionId)
         .eq("extracted_field", e.field_key)
         .or("confirmed_by_user.eq.true,overridden_by_user.eq.true")
+        .limit(1)
         .maybeSingle();
 
       if (humanRow?.id) continue;
