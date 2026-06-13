@@ -224,6 +224,10 @@ export function MissionPulsePanel({ open, onOpenChange, missionId, prefill, onPr
 
           {/* RIGHT: Team → IRIS */}
           <div style={{ padding: 16, overflowY: "auto", maxHeight: "70vh", display: "flex", flexDirection: "column" }}>
+            <div style={{ fontSize: 12, fontWeight: 500, color: "white", marginBottom: 4 }}>New Signal</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginBottom: 10, lineHeight: 1.5 }}>
+              What did you learn today? (Real-time observations — for strategic changes, use Update Reality)
+            </div>
             <div style={{ fontSize: 12, fontWeight: 500, color: "white", marginBottom: 10 }}>From the team</div>
 
             {/* Submission area */}
