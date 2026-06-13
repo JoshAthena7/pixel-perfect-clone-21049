@@ -45,8 +45,16 @@ const CONF_COLOR: Record<string, string> = {
   not_set: "bg-muted text-muted-foreground",
 };
 
-export function TeamAssignmentsTab({ missionId, missionName }: { missionId: string; missionName: string }) {
-  const [sub, setSub] = useState<"team" | "assignments">("team");
+export function TeamAssignmentsTab({
+  missionId,
+  missionName,
+  initialSub = "team",
+}: {
+  missionId: string;
+  missionName: string;
+  initialSub?: "team" | "assignments";
+}) {
+  const [sub, setSub] = useState<"team" | "assignments">(initialSub);
   return (
     <div className="space-y-4">
       <div>
