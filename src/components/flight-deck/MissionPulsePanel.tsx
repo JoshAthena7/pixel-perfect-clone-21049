@@ -224,7 +224,11 @@ export function MissionPulsePanel({ open, onOpenChange, missionId, prefill, onPr
 
           {/* RIGHT: Team → IRIS */}
           <div style={{ padding: 16, overflowY: "auto", maxHeight: "70vh", display: "flex", flexDirection: "column" }}>
-            <div style={{ fontSize: 12, fontWeight: 500, color: "white", marginBottom: 10 }}>From the team</div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: "white", marginBottom: 4 }}>New Signal</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginBottom: 10, lineHeight: 1.5 }}>
+              What did you learn today? (Real-time observations — for strategic changes, use Update Reality)
+            </div>
+            
 
             {/* Submission area */}
             <div style={{ padding: 12, border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, background: "rgba(255,255,255,0.02)", marginBottom: 16 }}>
@@ -256,7 +260,7 @@ export function MissionPulsePanel({ open, onOpenChange, missionId, prefill, onPr
                 data-mission-pulse-textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder="What does the mission need to know?"
+                placeholder="What did you learn today? Quick observation, contact intel, news, risk flag…"
                 rows={3}
                 style={{
                   width: "100%",
@@ -296,6 +300,7 @@ export function MissionPulsePanel({ open, onOpenChange, missionId, prefill, onPr
             </div>
 
             {/* Team feed */}
+            <div style={{ fontSize: 12, fontWeight: 500, color: "white", marginBottom: 10 }}>From the team</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {team.length === 0 && !loading ? (
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", padding: "12px 4px" }}>

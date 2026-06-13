@@ -46,8 +46,13 @@ export function UpdateRealityDialog({ open, onOpenChange, missionId, onSent }: {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle>Update Reality</DialogTitle></DialogHeader>
-        <Textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="What changed?" rows={5} />
+        <DialogHeader>
+          <DialogTitle>Update Reality — Use when mission strategy needs to change</DialogTitle>
+        </DialogHeader>
+        <p className="text-xs text-muted-foreground -mt-1">
+          For significant shifts to mission direction (north star, why-win/lose, state priorities, competitive landscape). For real-time observations or daily intel, use Mission Pulse instead.
+        </p>
+        <Textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="What changed about the mission strategy?" rows={5} />
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button onClick={submit} disabled={busy || !text.trim()}>{busy ? "Sending…" : "Send to team"}</Button>
