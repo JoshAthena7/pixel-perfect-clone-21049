@@ -5,8 +5,8 @@
 export type RFPFileKind = "pdf" | "docx" | "doc";
 
 export const MAX_RFP_BYTES = 100 * 1024 * 1024; // 100 MB
-const MAX_PAGES = 120;
-const MAX_CHARS = 220_000;
+const MAX_PAGES = 200;
+const MAX_CHARS = 600_000;
 
 export function detectRFPKind(file: File): RFPFileKind | null {
   const n = file.name.toLowerCase();
