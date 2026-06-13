@@ -281,6 +281,25 @@ export const runIrisSweep = createServerFn({ method: "POST" })
         const arr = existingTokensByCat.get(cat) ?? [];
         for (const r of rows) arr.push(tokens(r.headline));
         existingTokensByCat.set(cat, arr);
+
+        // Fire-and-forget mirror into intel_events.
+        try {
+          const { writeIntelEvents } = await import("@/lib/intel-events-writer");
+          writeIntelEvents(
+            rows.map((r) => ({
+              mission_id: data.missionId,
+              event_type: `sweep_${cat}`,
+              title: r.headline,
+              content: `${r.summary}\n\nIRIS: ${r.iris_assessment ?? ""}`,
+              confidence:
+                r.iris_relevance_score >= 80 ? "high" : r.iris_relevance_score >= 60 ? "medium" : "low",
+              generated_by: "iris_sweep",
+              tags: [cat, CATEGORY_LABEL[cat as SweepCategory].toLowerCase()],
+            })),
+          );
+        } catch (e) {
+          console.error("[iris-sweep] intel_events mirror failed", e);
+        }
       }
     }
 
