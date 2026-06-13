@@ -157,6 +157,8 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
               <BriefList title="Things to Avoid" items={brief.things_to_avoid} accent="#e57373" />
               <BriefList title="Proof Points to Consider" items={brief.proof_points} />
               <BriefList title="Suggested SMEs" items={brief.suggested_smes} />
+              <CounterStrategyBlock missionId={missionId} />
+
 
               <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 4 }}>
                 <button
@@ -237,3 +239,82 @@ function BriefList({ title, items, accent }: { title: string; items: string[]; a
     </div>
   );
 }
+
+function CounterStrategyBlock({ missionId }: { missionId: string }) {
+  const { data } = useQuery({
+    queryKey: ["counter-strategies", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_iris_extractions")
+        .select("extracted_field, extracted_value, user_override_value")
+        .eq("mission_id", missionId)
+        .like("extracted_field", "competitor_card_%");
+      return (data ?? []) as Array<{
+        extracted_field: string;
+        extracted_value: string | null;
+        user_override_value: string | null;
+      }>;
+    },
+  });
+  const items = (data ?? [])
+    .map((r) => {
+      try {
+        const c = JSON.parse((r.user_override_value ?? r.extracted_value) || "null") as {
+          competitor_name?: string;
+          how_we_beat_them?: string;
+          threat_level?: string;
+        } | null;
+        if (!c?.how_we_beat_them) return null;
+        return c;
+      } catch {
+        return null;
+      }
+    })
+    .filter((c): c is { competitor_name?: string; how_we_beat_them?: string; threat_level?: string } => !!c);
+  if (items.length === 0) return null;
+  return (
+    <div
+      style={{
+        background: "rgba(196,154,43,0.08)",
+        border: "1px solid rgba(196,154,43,0.30)",
+        borderRadius: 6,
+        padding: "10px 12px",
+      }}
+    >
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 600,
+          letterSpacing: "0.10em",
+          color: "#fde68a",
+          marginBottom: 6,
+        }}
+      >
+        ⚡ HOW WE BEAT THEM — IRIS COUNTER-STRATEGY
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {items.map((c, i) => (
+          <div key={i}>
+            <div style={{ fontSize: 11, color: "#fde68a", fontWeight: 600 }}>
+              {c.competitor_name}
+              {c.threat_level ? (
+                <span style={{ opacity: 0.65, fontWeight: 400 }}> · {c.threat_level}</span>
+              ) : null}
+            </div>
+            <div
+              style={{
+                fontSize: 11.5,
+                color: "rgba(255,255,255,0.88)",
+                lineHeight: 1.55,
+                marginTop: 2,
+              }}
+            >
+              {c.how_we_beat_them}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+

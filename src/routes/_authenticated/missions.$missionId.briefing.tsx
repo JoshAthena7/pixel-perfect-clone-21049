@@ -15,6 +15,8 @@ import { SectionSignals } from "@/components/briefing-room/SectionSignals";
 import { SectionTimeline } from "@/components/briefing-room/SectionTimeline";
 import { StrategyView } from "@/components/mission-command/StrategyView";
 import { MissionBriefArtifact } from "@/components/briefing-room/MissionBriefArtifact";
+import { CompetitorIntelPanel } from "@/components/mission-wizard-v3/CompetitorIntelPanel";
+
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/briefing")({
   component: BriefingPage,
@@ -78,6 +80,18 @@ function BriefingPage() {
       {tab === "brief" ? (
         <div className="space-y-4">
           <MissionBriefArtifact missionId={missionId} />
+
+          <div className="pt-2">
+            <div className="flex items-center gap-3 mb-3">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                Competitive Intelligence
+              </h3>
+              <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
+            </div>
+            <CompetitorIntelPanel missionId={missionId} readOnly />
+          </div>
+
+
 
           <div className="pt-2">
             <div className="flex items-center gap-3 mb-3">
