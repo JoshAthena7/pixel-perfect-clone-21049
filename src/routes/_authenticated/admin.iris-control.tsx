@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -296,6 +296,18 @@ function IrisControlPage() {
       [m.name, m.client_name, m.state].some((v) => (v ?? "").toLowerCase().includes(q)),
     );
   }, [missions, filter]);
+
+  // Auto-select the first visible mission so "Refresh IRIS" is usable without
+  // an extra click in the listbox.
+  useEffect(() => {
+    if (missionId) {
+      if (filtered.length > 0 && !filtered.some((m) => m.id === missionId)) {
+        setMissionId(filtered[0]!.id);
+      }
+      return;
+    }
+    if (filtered.length > 0) setMissionId(filtered[0]!.id);
+  }, [filtered, missionId]);
 
   const refreshFn = useServerFn(refreshIrisAllForMission);
   const mutation = useMutation({
