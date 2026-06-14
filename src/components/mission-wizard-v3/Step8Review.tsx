@@ -55,6 +55,7 @@ export function Step8Review({
   const [enriching, setEnriching] = useState(false);
   const [enrichMsg, setEnrichMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showLaunch, setShowLaunch] = useState(false);
 
   const { data: extractions } = useQuery({
     queryKey: ["wizard-review-extractions", missionId],
