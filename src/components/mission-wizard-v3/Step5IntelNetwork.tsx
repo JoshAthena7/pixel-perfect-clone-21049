@@ -150,7 +150,7 @@ export function Step5IntelNetwork({
     setChips((cur) => cur.map((c) => (c.url === url ? { ...c, category } : c)));
   }
 
-  function addToMission() {
+  async function addToMission() {
     flushText();
     const list = chips.length
       ? chips
@@ -161,8 +161,16 @@ export function Step5IntelNetwork({
     }
     setBusy(true);
 
+    // Skip URLs already saved for this mission to avoid duplicates.
+    const { data: existing } = await supabase
+      .from("intel_sources")
+      .select("url")
+      .eq("mission_id", missionId);
+    const existingUrls = new Set((existing ?? []).map((r) => r.url));
+    const toInsert = list.filter((c) => !existingUrls.has(c.url));
+
     // Fire-and-forget inserts — never block
-    for (const c of list) {
+    for (const c of toInsert) {
       supabase
         .from("intel_sources")
         .insert({
@@ -178,6 +186,14 @@ export function Step5IntelNetwork({
           if (error) console.log("Intel source insert failed:", error.message);
         });
     }
+
+    // Fire-and-forget IRIS scan
+    triggerScan({ data: { missionId, urls: list.map((c) => c.url) } }).catch((e) =>
+      console.log("IRIS seed scan trigger failed:", e),
+    );
+
+    onAdvance();
+  }
 
     // Fire-and-forget IRIS scan
     triggerScan({ data: { missionId, urls: list.map((c) => c.url) } }).catch((e) =>
