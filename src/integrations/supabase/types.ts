@@ -5342,6 +5342,59 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_daily_focus: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          focus_date: string
+          focus_text: string
+          generated_by: string | null
+          id: string
+          iris_confidence: string | null
+          mission_id: string
+          priority_areas: string[] | null
+          reason: string | null
+          status: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          focus_date?: string
+          focus_text: string
+          generated_by?: string | null
+          id?: string
+          iris_confidence?: string | null
+          mission_id: string
+          priority_areas?: string[] | null
+          reason?: string | null
+          status?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          focus_date?: string
+          focus_text?: string
+          generated_by?: string | null
+          id?: string
+          iris_confidence?: string | null
+          mission_id?: string
+          priority_areas?: string[] | null
+          reason?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_daily_focus_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_debriefs: {
         Row: {
           captured_by: string | null
@@ -5936,6 +5989,50 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_milestones: {
+        Row: {
+          created_at: string | null
+          id: string
+          milestone_date: string
+          milestone_type: string
+          mission_id: string
+          notes: string | null
+          owner_id: string | null
+          status: string | null
+          title: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          milestone_date: string
+          milestone_type: string
+          mission_id: string
+          notes?: string | null
+          owner_id?: string | null
+          status?: string | null
+          title?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          milestone_date?: string
+          milestone_type?: string
+          mission_id?: string
+          notes?: string | null
+          owner_id?: string | null
+          status?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_milestones_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_monitoring_sources: {
         Row: {
           created_at: string
@@ -5980,6 +6077,53 @@ export type Database = {
           url?: string | null
         }
         Relationships: []
+      }
+      mission_north_star: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          content: string
+          created_at: string | null
+          id: string
+          iris_suggested: boolean | null
+          mission_id: string
+          notes: string | null
+          status: string
+          version: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          iris_suggested?: boolean | null
+          mission_id: string
+          notes?: string | null
+          status?: string
+          version?: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          iris_suggested?: boolean | null
+          mission_id?: string
+          notes?: string | null
+          status?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_north_star_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mission_outcomes: {
         Row: {
@@ -7194,6 +7338,65 @@ export type Database = {
           },
         ]
       }
+      mission_win_themes: {
+        Row: {
+          alignment_score: number | null
+          created_at: string | null
+          display_order: number | null
+          icon: string | null
+          id: string
+          mission_id: string
+          proof_points: string[] | null
+          related_intel_ids: string[] | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          watch_outs: string[] | null
+          what_theyre_buying: string | null
+          why_it_matters: string | null
+        }
+        Insert: {
+          alignment_score?: number | null
+          created_at?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          mission_id: string
+          proof_points?: string[] | null
+          related_intel_ids?: string[] | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          watch_outs?: string[] | null
+          what_theyre_buying?: string | null
+          why_it_matters?: string | null
+        }
+        Update: {
+          alignment_score?: number | null
+          created_at?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          mission_id?: string
+          proof_points?: string[] | null
+          related_intel_ids?: string[] | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          watch_outs?: string[] | null
+          what_theyre_buying?: string | null
+          why_it_matters?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_win_themes_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       missions: {
         Row: {
           agency_code: string | null
@@ -7211,7 +7414,9 @@ export type Database = {
           created_at: string
           created_by: string | null
           executive_intelligence: Json | null
+          health_score: number | null
           id: string
+          intel_coverage_score: number | null
           intelligence_graph_completeness: number
           intelligence_loadout_step: number
           iris_disclaimer: string | null
@@ -7221,6 +7426,7 @@ export type Database = {
           north_star: string | null
           primary_contact_email: string | null
           primary_contact_name: string | null
+          prime_contractor: string | null
           procurement_evolution_analysis: string | null
           procurement_type: string | null
           program_type: string | null
@@ -7231,10 +7437,13 @@ export type Database = {
           state_priorities: string | null
           status: string
           submission_deadline: string
+          team_readiness_score: number | null
           updated_at: string
+          why_it_matters: string | null
           why_lose: string | null
           why_win: string | null
           win_themes_text: string | null
+          writing_signals: Json | null
         }
         Insert: {
           agency_code?: string | null
@@ -7252,7 +7461,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           executive_intelligence?: Json | null
+          health_score?: number | null
           id?: string
+          intel_coverage_score?: number | null
           intelligence_graph_completeness?: number
           intelligence_loadout_step?: number
           iris_disclaimer?: string | null
@@ -7262,6 +7473,7 @@ export type Database = {
           north_star?: string | null
           primary_contact_email?: string | null
           primary_contact_name?: string | null
+          prime_contractor?: string | null
           procurement_evolution_analysis?: string | null
           procurement_type?: string | null
           program_type?: string | null
@@ -7272,10 +7484,13 @@ export type Database = {
           state_priorities?: string | null
           status?: string
           submission_deadline: string
+          team_readiness_score?: number | null
           updated_at?: string
+          why_it_matters?: string | null
           why_lose?: string | null
           why_win?: string | null
           win_themes_text?: string | null
+          writing_signals?: Json | null
         }
         Update: {
           agency_code?: string | null
@@ -7293,7 +7508,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           executive_intelligence?: Json | null
+          health_score?: number | null
           id?: string
+          intel_coverage_score?: number | null
           intelligence_graph_completeness?: number
           intelligence_loadout_step?: number
           iris_disclaimer?: string | null
@@ -7303,6 +7520,7 @@ export type Database = {
           north_star?: string | null
           primary_contact_email?: string | null
           primary_contact_name?: string | null
+          prime_contractor?: string | null
           procurement_evolution_analysis?: string | null
           procurement_type?: string | null
           program_type?: string | null
@@ -7313,10 +7531,13 @@ export type Database = {
           state_priorities?: string | null
           status?: string
           submission_deadline?: string
+          team_readiness_score?: number | null
           updated_at?: string
+          why_it_matters?: string | null
           why_lose?: string | null
           why_win?: string | null
           win_themes_text?: string | null
+          writing_signals?: Json | null
         }
         Relationships: [
           {
