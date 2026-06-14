@@ -98,7 +98,7 @@ export function OracleGraph({
         };
       };
       const [peopleRes, orgsRes, sourcesRes, relsRes, legacyN, legacyE] = await Promise.all([
-        sb.from("intel_people").select("id,entity_id,role_type,title,notes").eq("mission_id", missionId),
+        sb.from("intel_people").select("id,entity_id,name,role_type,title,organization,notes").eq("mission_id", missionId),
         sb.from("intel_organizations").select("id,entity_id,org_type,notes").eq("mission_id", missionId),
         sb.from("intel_sources").select("id,entity_id,source_type,summary,url").eq("mission_id", missionId),
         sb.from("intel_relationships").select("id,from_entity_id,to_entity_id,relationship_type,confidence").eq("mission_id", missionId),
@@ -128,28 +128,31 @@ export function OracleGraph({
         }));
       }
 
-      // Build node list from intel_* (entity-first)
+      // Build node list — entity-first when entity_id exists, otherwise fall
+      // back to the row's own id + native name column. Without this fallback,
+      // people inserted without an entity (current seed behavior) are invisible.
       const nodes: Node[] = [];
       const nodeIds = new Set<string>();
       const addNode = (n: Node) => { if (!nodeIds.has(n.id)) { nodes.push(n); nodeIds.add(n.id); } };
 
       (peopleRes.data ?? []).forEach((row: unknown) => {
-        const r = row as { entity_id: string | null; role_type: string; title: string | null; notes: string | null };
-        if (!r.entity_id) return;
-        const meta = entityNames.get(r.entity_id);
-        addNode({ id: r.entity_id, node_type: "person", label: meta?.name ?? r.title ?? "Person", description: r.notes ?? meta?.description ?? null });
+        const r = row as { id: string; entity_id: string | null; name: string | null; role_type: string; title: string | null; organization: string | null; notes: string | null };
+        const meta = r.entity_id ? entityNames.get(r.entity_id) : undefined;
+        const id = r.entity_id ?? r.id;
+        const label = meta?.name ?? r.name ?? r.title ?? "Person";
+        addNode({ id, node_type: "person", label, description: r.notes ?? meta?.description ?? r.organization ?? null });
       });
       (orgsRes.data ?? []).forEach((row: unknown) => {
-        const r = row as { entity_id: string | null; org_type: string; notes: string | null };
-        if (!r.entity_id) return;
-        const meta = entityNames.get(r.entity_id);
-        addNode({ id: r.entity_id, node_type: r.org_type === "competitor" ? "competitor" : "organization", label: meta?.name ?? "Organization", description: r.notes ?? meta?.description ?? null });
+        const r = row as { id: string; entity_id: string | null; org_type: string; notes: string | null };
+        const meta = r.entity_id ? entityNames.get(r.entity_id) : undefined;
+        const id = r.entity_id ?? r.id;
+        addNode({ id, node_type: r.org_type === "competitor" ? "competitor" : "organization", label: meta?.name ?? "Organization", description: r.notes ?? meta?.description ?? null });
       });
       (sourcesRes.data ?? []).forEach((row: unknown) => {
-        const r = row as { entity_id: string | null; source_type: string; summary: string | null; url: string | null };
-        if (!r.entity_id) return;
-        const meta = entityNames.get(r.entity_id);
-        addNode({ id: r.entity_id, node_type: "source", label: meta?.name ?? r.source_type, description: r.summary ?? r.url ?? null });
+        const r = row as { id: string; entity_id: string | null; source_type: string; summary: string | null; url: string | null };
+        const meta = r.entity_id ? entityNames.get(r.entity_id) : undefined;
+        const id = r.entity_id ?? r.id;
+        addNode({ id, node_type: "source", label: meta?.name ?? r.source_type, description: r.summary ?? r.url ?? null });
       });
 
       const edges: Edge[] = (relsRes.data ?? []).map((row: unknown) => {
