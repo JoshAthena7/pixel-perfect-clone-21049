@@ -306,11 +306,12 @@ function MissionSwitcher({ missionId }: { missionId: string }) {
 export function MissionBottomTabs({ missionId }: { missionId: string }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const seg = pathname.split("/")[3] ?? "";
-  const items = buildItems(missionId);
+  const { isAdmin } = useIsAdmin();
+  const items = buildItems(missionId).filter((it) => it.id !== "olympus" || isAdmin);
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 grid grid-cols-4"
+      className={`md:hidden fixed bottom-0 left-0 right-0 z-40 grid grid-cols-${items.length}`}
       style={{
         background: "#070f1c",
         borderTop: "1px solid rgba(255,255,255,0.08)",
