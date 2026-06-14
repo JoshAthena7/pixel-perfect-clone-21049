@@ -107,6 +107,8 @@ export function AskIrisPanel() {
   const [updateOpen, setUpdateOpen] = useState(false);
   const [nudgeFor, setNudgeFor] = useState<{ questionId: string; questionNumber: string | null } | null>(null);
   const [lastQuestionId, setLastQuestionId] = useState<string | null>(null);
+  const [mode, setMode] = useState<AskMode>("quick");
+  const [researchPhase, setResearchPhase] = useState(0);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
