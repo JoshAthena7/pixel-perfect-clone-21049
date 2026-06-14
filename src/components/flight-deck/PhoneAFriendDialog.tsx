@@ -128,8 +128,10 @@ export function PhoneAFriendDialog({
           missionId,
           questionId,
           questionNumber: questionNumber ?? undefined,
+          questionText: questionText ?? undefined,
           expertUserId: m.user_id,
           expertName: m.name,
+          expertTitle: m.top_expertise_match ?? undefined,
           whyIrisRecommends: m.why_iris_recommends || "recommended by IRIS",
         },
       });
