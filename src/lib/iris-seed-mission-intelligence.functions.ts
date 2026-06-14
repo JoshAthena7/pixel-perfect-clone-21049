@@ -37,13 +37,16 @@ export const seedMissionIntelligence = createServerFn({ method: "POST" })
     const { missionId } = data;
 
     try {
-      // Guard: only seed when truly empty.
-      const { count } = await supabase
-        .from("intel_events")
-        .select("id", { count: "exact", head: true })
-        .eq("mission_id", missionId);
-      if ((count ?? 0) > 0) {
-        return { ok: true, skipped: "already_seeded", inserted: 0 };
+      // Guard: skip empty-mission auto-seed when events already exist,
+      // unless the caller explicitly forced a refresh.
+      if (!data.force) {
+        const { count } = await supabase
+          .from("intel_events")
+          .select("id", { count: "exact", head: true })
+          .eq("mission_id", missionId);
+        if ((count ?? 0) > 0) {
+          return { ok: true, skipped: "already_seeded", inserted: 0 };
+        }
       }
 
       const { data: m } = await supabase
