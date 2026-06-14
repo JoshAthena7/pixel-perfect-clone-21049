@@ -134,7 +134,9 @@ export function Step8Review({
       const clientAgency = get("client_agency");
       const competitorsList = splitList(get("known_competitors"));
 
-      const updates: Record<string, unknown> = { status: "active" };
+      const updates: Parameters<ReturnType<typeof supabase.from<"missions">>["update"]>[0] = {
+        status: "active",
+      };
       if (dueIso && /^\d{4}-\d{2}-\d{2}/.test(dueIso)) {
         updates.submission_deadline = `${dueIso}T17:00:00Z`;
       }
@@ -152,12 +154,11 @@ export function Step8Review({
       if (get("biggest_concerns")) updates.biggest_concerns = get("biggest_concerns");
       if (get("state_priorities")) updates.state_priorities = get("state_priorities");
       if (get("win_themes")) updates.win_themes_text = get("win_themes");
-      if (get("things_to_reinforce")) updates.reinforce = get("things_to_reinforce");
-      if (get("things_to_avoid")) updates.avoid = get("things_to_avoid");
+      const reinforceList = splitList(get("things_to_reinforce"));
+      if (reinforceList.length) updates.reinforce = reinforceList;
+      const avoidList = splitList(get("things_to_avoid"));
+      if (avoidList.length) updates.avoid = avoidList;
       if (competitorsList.length) updates.known_competitors = competitorsList;
-      if (get("prime_or_sub")?.toLowerCase().includes("prime")) {
-        // Leave prime_contractor for user; just mark we're prime in known_competitors metadata path
-      }
 
       const { error: upErr } = await supabase.from("missions").update(updates).eq("id", missionId);
       if (upErr) throw upErr;
