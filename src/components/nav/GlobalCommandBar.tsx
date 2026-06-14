@@ -117,7 +117,7 @@ export function GlobalCommandBar({ email, isAdmin = false }: { email?: string | 
           </Link>
         ) : (
           <Link
-            to={isAdmin ? "/olympus/missions" : "/missions"}
+            to={isAdmin ? "/admin" : "/missions"}
             className="shrink-0 inline-flex items-center select-none"
             aria-label="ATLAS"
           >
