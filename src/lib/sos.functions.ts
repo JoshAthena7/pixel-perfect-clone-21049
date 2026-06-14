@@ -128,7 +128,7 @@ export const raiseSOS = createServerFn({ method: "POST" })
             "X-Lovable-AIG-SDK": "raw",
           },
           body: JSON.stringify({
-            model: "google/gemini-3-flash-preview",
+            model: "gpt-4o-mini",
             messages: [
               {
                 role: "system",

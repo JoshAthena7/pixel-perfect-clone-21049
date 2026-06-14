@@ -288,7 +288,7 @@ ${sourceBlock}`;
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gpt-4o-mini",
         response_format: { type: "json_object" },
         max_tokens: 2000,
         messages: [
@@ -354,7 +354,7 @@ ${block || "(no competitors)"}`;
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gpt-4o-mini",
         max_tokens: 700,
         messages: [
           { role: "system", content: system },
