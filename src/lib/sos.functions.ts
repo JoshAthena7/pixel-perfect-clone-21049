@@ -63,6 +63,19 @@ export const raiseSOS = createServerFn({ method: "POST" })
     if (insErr) throw insErr;
     const sosId = (inserted as unknown as { id: string }).id;
 
+    // Fire-and-forget: oracle escalation log + IRIS pattern check
+    try {
+      logEscalationAndCheckPattern({
+        missionId: data.missionId,
+        submittedBy: userId,
+        escalationType: data.severity,
+        contextSummary: data.body,
+        sosUpdateId: sosId,
+      });
+    } catch (e) {
+      console.error("[sos] escalation log trigger failed", e);
+    }
+
     // Step 2 — escalate question health
     if (data.questionId && (data.severity === "at_risk" || data.severity === "blocked")) {
       await supabaseAdmin
