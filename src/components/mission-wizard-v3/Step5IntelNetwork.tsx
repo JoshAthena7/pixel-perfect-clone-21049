@@ -61,6 +61,34 @@ export function Step5IntelNetwork({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const triggerScan = useServerFn(scanSeededIntelSources);
 
+  // Hydrate chips from any URLs already saved for this mission so they don't
+  // appear to "disappear" when the user revisits this step.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("intel_sources")
+        .select("url, source_category")
+        .eq("mission_id", missionId)
+        .not("url", "is", null);
+      if (cancelled || error || !data) return;
+      const loaded: Chip[] = [];
+      const seen = new Set<string>();
+      for (const r of data) {
+        const url = (r.url ?? "").trim();
+        if (!url || seen.has(url)) continue;
+        seen.add(url);
+        const cat = (CATEGORIES.find((c) => c.value === r.source_category)?.value ??
+          inferCategory(url)) as Category;
+        loaded.push({ url, category: cat });
+      }
+      if (loaded.length) setChips(loaded);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [missionId]);
+
   const merge = useMemo(
     () => (urls: string[]) => {
       setChips((prev) => {
