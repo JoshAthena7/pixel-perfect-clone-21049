@@ -45,7 +45,8 @@ type CardKind =
   | { kind: "draft"; draft: string }
   | { kind: "score"; total: number; breakdown: Array<{ label: string; score: number; max: number }>; gaps: string[]; detail: string }
   | { kind: "risks"; items: Array<{ label: string; detail: string; href: string }> }
-  | { kind: "intel"; items: Array<{ headline: string; url: string | null; assessment: string | null; href: string }> };
+  | { kind: "intel"; items: Array<{ headline: string; url: string | null; assessment: string | null; href: string }> }
+  | { kind: "sources"; answer: string; citations: Array<{ url: string; domain: string }> };
 
 type Msg = {
   id: string;
