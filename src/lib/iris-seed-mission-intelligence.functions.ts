@@ -183,29 +183,41 @@ State: ${m.state ?? "n/a"}
 Program Area: ${m.program_type ?? ""}
 Brief: ${briefSnippet || "(none)"}
 
-Return a single JSON object with THREE arrays — "people", "organizations", and "events". Generate concrete, named entities (real agency names, real likely competitors for this program area in this state). Do not return placeholders like "TBD" or "Unknown Person".
+Return a single JSON object with THREE arrays — "people", "organizations", and "events". Generate concrete, named entities (real agency names, real likely competitors for this program area in this state). Do not return placeholders like "TBD" or "Unknown Person". Do NOT limit yourself to people/orgs literally named in the brief — infer who is likely involved based on the state, agency, and program area.
 
 {
-  "people": [  // 4-6 specific decision-makers, stakeholders, influencers
+  "people": [  // 8-12 specific people — cover ALL of these buckets explicitly:
+                //   (1) current incumbent leadership at the issuing agency (Medicaid director, deputy, program director)
+                //   (2) named evaluation committee members if any are known or commonly disclosed
+                //   (3) other key decision-makers and procurement officials (procurement officer, contracting officer, CIO, CFO)
+                //   (4) relevant advocacy / provider-association leaders for this program area in this state
+                //   (5) known legislative supporters or opponents (committee chairs, oversight legislators)
+                //   (6) subject matter experts likely to influence the buy
     {
-      "name": "Full name (real person likely involved)",
+      "name": "Full name of the real person likely involved",
       "title": "Their job title",
       "organization": "Org name they work at",
-      "role_type": "stakeholder|evaluator|influencer|champion|decision_maker|advocate|legislator",
+      "role_type": "decision_maker|evaluator|advocate|legislator|adversary|expert|stakeholder|influencer|champion|contact|media",
       "influence_level": "high|medium|low",
       "relationship_stance": "ally|neutral|unknown|hostile",
       "known_priorities": ["priority 1", "priority 2"],
-      "notes": "2-3 sentence intel summary on this person"
+      "notes": "2-3 sentence intel summary on this person — why they matter to this bid"
     }
   ],
-  "organizations": [  // 4-6 specific orgs: competitors, the agency, key providers/advocacy groups
+  "organizations": [  // 8-12 specific orgs — cover ALL of these buckets explicitly:
+                       //   (1) the issuing agency / client itself (org_type: agency)
+                       //   (2) likely incumbent vendors and the top 3-5 competing vendors (org_type: competitor)
+                       //   (3) realistic subcontractors or teaming partners for this scope (org_type: partner or subcontractor)
+                       //   (4) advocacy organizations, coalitions, and provider associations active on this program in this state (org_type: advocacy)
+                       //   (5) oversight, regulatory, or sister agencies that influence the buy — CMS regional office, state auditor, legislative oversight (org_type: agency for regulators, or vendor/provider as appropriate)
+                       //   (6) major providers / provider networks affected (org_type: provider)
     {
       "name": "Organization name",
-      "org_type": "competitor|agency|provider|advocacy|vendor|partner|subcontractor",
+      "org_type": "agency|competitor|partner|subcontractor|advocacy|provider|vendor|unknown",
       "incumbency_status": "incumbent|challenger|unknown",
       "known_strengths": ["strength 1", "strength 2"],
       "known_weaknesses": ["weakness 1"],
-      "notes": "2-3 sentence intel summary on this org"
+      "notes": "2-3 sentence intel summary — what this org does and why it matters to this bid"
     }
   ],
   "events": [  // 3-4 follow-up intel events
@@ -219,7 +231,7 @@ Return a single JSON object with THREE arrays — "people", "organizations", and
   ]
 }
 
-Return ONLY the JSON object. No preamble, no code fence.`;
+You MUST include at least one person in each of buckets (1), (3), (4) and at least one organization in each of buckets (1), (2), (3), (4), (5) above. Return ONLY the JSON object. No preamble, no code fence.`;
 
         const cres = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
