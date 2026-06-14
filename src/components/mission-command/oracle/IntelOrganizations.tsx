@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Plus, X } from "lucide-react";
+import { Loader2, Plus, X, Sparkles } from "lucide-react";
+import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 
 const GOLD = "#C49A2B";
 
