@@ -3892,8 +3892,12 @@ export type Database = {
           entity_id: string | null
           file_path: string | null
           id: string
+          last_monitored_at: string | null
           mission_id: string
+          monitor_daily: boolean | null
           published_at: string | null
+          seeded_at_setup: boolean | null
+          source_category: string | null
           source_type: string
           summary: string | null
           url: string | null
@@ -3905,8 +3909,12 @@ export type Database = {
           entity_id?: string | null
           file_path?: string | null
           id?: string
+          last_monitored_at?: string | null
           mission_id: string
+          monitor_daily?: boolean | null
           published_at?: string | null
+          seeded_at_setup?: boolean | null
+          source_category?: string | null
           source_type: string
           summary?: string | null
           url?: string | null
@@ -3918,8 +3926,12 @@ export type Database = {
           entity_id?: string | null
           file_path?: string | null
           id?: string
+          last_monitored_at?: string | null
           mission_id?: string
+          monitor_daily?: boolean | null
           published_at?: string | null
+          seeded_at_setup?: boolean | null
+          source_category?: string | null
           source_type?: string
           summary?: string | null
           url?: string | null

@@ -8,6 +8,7 @@ import { Step1Fuel } from "@/components/mission-wizard-v3/Step1Fuel";
 import { Step2Basics } from "@/components/mission-wizard-v3/Step2Basics";
 import { Step3Strategy } from "@/components/mission-wizard-v3/Step3Strategy";
 import { Step4Competitive } from "@/components/mission-wizard-v3/Step4Competitive";
+import { Step5IntelNetwork } from "@/components/mission-wizard-v3/Step5IntelNetwork";
 import { Step5Stakeholder } from "@/components/mission-wizard-v3/Step5Stakeholder";
 import { Step6Executive } from "@/components/mission-wizard-v3/Step6Executive";
 import { Step7Team } from "@/components/mission-wizard-v3/Step7Team";
@@ -16,8 +17,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 type WizardMission = { id: string; name: string; status: string | null; lastStep: number };
 
+const TOTAL = 9;
 const searchSchema = z.object({
-  step: z.coerce.number().int().min(1).max(8).optional(),
+  step: z.coerce.number().int().min(1).max(TOTAL).optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/olympus/wizard/$missionId")({
@@ -55,9 +57,9 @@ function WizardPage() {
         1,
         ...(progressRows ?? [])
           .map((r) => r.wizard_step ?? 1)
-          .filter((n) => Number.isFinite(n) && n >= 1 && n <= 8),
+          .filter((n) => Number.isFinite(n) && n >= 1 && n <= TOTAL),
       );
-      return { ...data, lastStep: Number.isFinite(savedStep) ? Math.min(8, Math.max(1, savedStep)) : inferredStep };
+      return { ...data, lastStep: Number.isFinite(savedStep) ? Math.min(TOTAL, Math.max(1, savedStep)) : inferredStep };
     },
   });
 
@@ -69,7 +71,7 @@ function WizardPage() {
   }, [step]);
 
   async function saveProgress(s: number) {
-    const safeStep = Math.min(8, Math.max(1, s));
+    const safeStep = Math.min(TOTAL, Math.max(1, s));
     const { data: existing } = await supabase
       .from("mission_iris_extractions")
       .select("id")
@@ -131,10 +133,11 @@ function WizardPage() {
       {step === 2 && <Step2Basics missionId={missionId} onBack={back} onAdvance={() => go(3)} />}
       {step === 3 && <Step3Strategy missionId={missionId} onBack={back} onAdvance={() => go(4)} />}
       {step === 4 && <Step4Competitive missionId={missionId} onBack={back} onAdvance={() => go(5)} />}
-      {step === 5 && <Step5Stakeholder missionId={missionId} onBack={back} onAdvance={() => go(6)} />}
-      {step === 6 && <Step6Executive missionId={missionId} onBack={back} onAdvance={() => go(7)} />}
-      {step === 7 && <Step7Team missionId={missionId} onBack={back} onAdvance={() => go(8)} />}
-      {step === 8 && <Step8Review missionId={missionId} onBack={back} onJump={go} />}
+      {step === 5 && <Step5IntelNetwork missionId={missionId} onBack={back} onAdvance={() => go(6)} />}
+      {step === 6 && <Step5Stakeholder missionId={missionId} onBack={back} onAdvance={() => go(7)} />}
+      {step === 7 && <Step6Executive missionId={missionId} onBack={back} onAdvance={() => go(8)} />}
+      {step === 8 && <Step7Team missionId={missionId} onBack={back} onAdvance={() => go(9)} />}
+      {step === 9 && <Step8Review missionId={missionId} onBack={back} onJump={go} />}
     </WizardShellV3>
   );
 }
