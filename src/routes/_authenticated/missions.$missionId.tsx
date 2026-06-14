@@ -1,14 +1,7 @@
-import { createFileRoute, Outlet, Link, notFound, useRouterState, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Check } from "lucide-react";
+import { createFileRoute, Outlet, Link, notFound } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { MissionSidebar, MissionBottomTabs } from "@/components/nav/MissionSidebar";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId")({
   loader: async ({ params }) => {
@@ -51,99 +44,24 @@ export const Route = createFileRoute("/_authenticated/missions/$missionId")({
   notFoundComponent: () => <MissionNotFound />,
 });
 
-const TABS = [
-  { id: "briefing", label: "Briefing", to: "/missions/$missionId/briefing" as const },
-  { id: "oracle", label: "IRIS", to: "/missions/$missionId/oracle" as const },
-  { id: "insights", label: "Insights", to: "/missions/$missionId/insights" as const },
-];
-
 function MissionLayout() {
   const { missionId } = Route.useParams();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const navigate = useNavigate();
+  const [email, setEmail] = useState<string | null>(null);
 
-  const tabbedSegments = ["briefing", "oracle", "insights"];
-  const seg = pathname.split("/")[3] ?? "";
-  const showTabs = tabbedSegments.includes(seg) || seg === "";
-
-  const { data: missions = [] } = useQuery({
-    queryKey: ["mission-switcher"],
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("missions")
-        .select("id, name, status, updated_at")
-        .order("updated_at", { ascending: false })
-        .limit(50);
-      return (data ?? []) as { id: string; name: string; status: string | null; updated_at: string }[];
-    },
-  });
-
-  const current = missions.find((m) => m.id === missionId);
-  const currentName = current?.name ?? "Mission";
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      setEmail(data.user?.email ?? null);
+    })();
+  }, []);
 
   return (
-    <div>
-      {showTabs && (
-        <div
-          className="sticky top-12 z-30 flex items-center gap-1 px-6 h-10"
-          style={{ background: "#070f1c", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
-        >
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className="inline-flex items-center gap-1.5 mr-3 px-2 py-1 rounded-md hover:bg-white/[0.05] focus:outline-none max-w-[280px]"
-              style={{ color: "white", fontSize: 12, fontWeight: 500 }}
-            >
-              <span className="truncate">{currentName}</span>
-              <ChevronDown className="h-3.5 w-3.5 shrink-0" style={{ color: "rgba(255,255,255,0.5)" }} />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-72 max-h-96 overflow-y-auto">
-              {missions.map((m) => {
-                const active = m.id === missionId;
-                return (
-                  <DropdownMenuItem
-                    key={m.id}
-                    onSelect={() =>
-                      navigate({ to: "/missions/$missionId/briefing", params: { missionId: m.id } })
-                    }
-                    className="flex items-center justify-between gap-2"
-                  >
-                    <span className="truncate">{m.name}</span>
-                    {active && <Check className="h-3.5 w-3.5 text-[#c9a84c] shrink-0" />}
-                  </DropdownMenuItem>
-                );
-              })}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => navigate({ to: "/home" })}>
-                ← All missions
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <span className="mr-3" style={{ color: "rgba(255,255,255,0.2)", fontSize: 12 }}>·</span>
-
-          {TABS.map((t) => {
-            const active = seg === t.id || (seg === "" && t.id === "briefing");
-            return (
-              <Link
-                key={t.id}
-                to={t.to}
-                params={{ missionId }}
-                className="px-3 py-1.5 rounded-md transition-colors hover:bg-white/[0.05]"
-                style={{
-                  fontSize: 12,
-                  color: active ? "#c9a84c" : "rgba(255,255,255,0.55)",
-                  fontWeight: active ? 600 : 400,
-                  borderBottom: active ? "2px solid #c9a84c" : "2px solid transparent",
-                }}
-              >
-                {t.label}
-              </Link>
-            );
-          })}
-        </div>
-      )}
-      <Outlet />
+    <div className="flex" style={{ minHeight: "calc(100vh - 48px)" }}>
+      <MissionSidebar missionId={missionId} email={email} />
+      <div className="flex-1 min-w-0 pb-16 md:pb-0">
+        <Outlet />
+      </div>
+      <MissionBottomTabs missionId={missionId} />
     </div>
   );
 }
