@@ -424,7 +424,9 @@ function FlightRisks({ missionId }: { missionId: string }) {
         .eq("mission_id", missionId)
         .eq("status", "active");
       const order: Record<string, number> = { critical: 1, high: 2, medium: 3, low: 4 };
-      return (data ?? []).sort((a, b) => (order[a.severity] ?? 9) - (order[b.severity] ?? 9));
+      return ((data ?? []) as any[]).sort(
+        (a, b) => (order[a.severity ?? ""] ?? 9) - (order[b.severity ?? ""] ?? 9),
+      );
     },
   });
 
