@@ -1,11 +1,44 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { addManualIntelEvent } from "@/lib/intel-events-manual.functions";
 
 const GOLD = "#C49A2B";
+const PURPLE = "#a855f7";
 
-const EVENT_TYPES = [
+type FilterId =
+  | "all"
+  | "signal"
+  | "risk"
+  | "research_finding"
+  | "competitive_update"
+  | "stakeholder_update"
+  | "lesson"
+  | "atrium";
+
+const EVENT_FILTERS: { id: FilterId; label: string; color?: string }[] = [
   { id: "all", label: "All" },
   { id: "signal", label: "Signals" },
   { id: "risk", label: "Risks" },
@@ -13,7 +46,8 @@ const EVENT_TYPES = [
   { id: "competitive_update", label: "Competitive" },
   { id: "stakeholder_update", label: "Stakeholder" },
   { id: "lesson", label: "Lessons" },
-] as const;
+  { id: "atrium", label: "Regulatory", color: PURPLE },
+];
 
 const TYPE_COLORS: Record<string, string> = {
   signal: "#3b82f6",
@@ -29,7 +63,8 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export function IntelFeed({ missionId }: { missionId: string }) {
-  const [filter, setFilter] = useState<string>("all");
+  const [filter, setFilter] = useState<FilterId>("all");
+  const [addOpen, setAddOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["intel-events", missionId],
@@ -46,10 +81,11 @@ export function IntelFeed({ missionId }: { missionId: string }) {
   });
 
   const events = (data ?? []) as any[];
-  const filtered = useMemo(
-    () => (filter === "all" ? events : events.filter((e) => e.event_type === filter)),
-    [events, filter],
-  );
+  const filtered = useMemo(() => {
+    if (filter === "all") return events;
+    if (filter === "atrium") return events.filter((e) => e.source_type === "atrium");
+    return events.filter((e) => e.event_type === filter);
+  }, [events, filter]);
 
   const stats = useMemo(() => {
     const week = Date.now() - 7 * 86400 * 1000;
@@ -62,18 +98,34 @@ export function IntelFeed({ missionId }: { missionId: string }) {
   return (
     <div className="space-y-4">
       <div
-        className="rounded-lg px-4 py-3 flex flex-wrap gap-6"
+        className="rounded-lg px-4 py-3 flex flex-wrap gap-6 items-center"
         style={{ background: "rgba(5,13,24,0.4)", border: "1px solid rgba(255,255,255,0.06)" }}
       >
         <Stat label="Total Events" value={stats.total} />
         <Stat label="This Week" value={stats.recent} />
         <Stat label="IRIS Generated" value={stats.iris} />
         <Stat label="Human Added" value={stats.human} />
+        <div className="ml-auto">
+          <button
+            onClick={() => setAddOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full transition-colors"
+            style={{
+              padding: "5px 12px",
+              fontSize: 11,
+              color: GOLD,
+              background: "rgba(196,154,43,0.1)",
+              border: "0.5px solid rgba(196,154,43,0.3)",
+            }}
+          >
+            <Plus className="h-3 w-3" /> Add Intel
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {EVENT_TYPES.map((t) => {
+        {EVENT_FILTERS.map((t) => {
           const active = filter === t.id;
+          const accent = t.color ?? GOLD;
           return (
             <button
               key={t.id}
@@ -82,9 +134,13 @@ export function IntelFeed({ missionId }: { missionId: string }) {
               style={{
                 padding: "4px 12px",
                 fontSize: 11,
-                color: active ? GOLD : "rgba(255,255,255,0.5)",
-                background: active ? "rgba(196,154,43,0.12)" : "transparent",
-                border: `0.5px solid ${active ? "rgba(196,154,43,0.3)" : "rgba(255,255,255,0.08)"}`,
+                color: active ? accent : t.color ?? "rgba(255,255,255,0.5)",
+                background: active
+                  ? `${accent}22`
+                  : t.color
+                    ? `${accent}10`
+                    : "transparent",
+                border: `0.5px solid ${active ? `${accent}55` : t.color ? `${accent}30` : "rgba(255,255,255,0.08)"}`,
               }}
             >
               {t.label}
@@ -106,12 +162,19 @@ export function IntelFeed({ missionId }: { missionId: string }) {
           ))}
         </div>
       )}
+
+      <AddIntelDialog
+        missionId={missionId}
+        open={addOpen}
+        onOpenChange={setAddOpen}
+      />
     </div>
   );
 }
 
 function EventCard({ event }: { event: any }) {
   const color = TYPE_COLORS[event.event_type] || "#64748b";
+  const isAtrium = event.source_type === "atrium";
   return (
     <div
       className="rounded-lg p-3"
@@ -132,12 +195,29 @@ function EventCard({ event }: { event: any }) {
             whiteSpace: "nowrap",
           }}
         >
-          {event.event_type.replace(/_/g, " ")}
+          {String(event.event_type).replace(/_/g, " ")}
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-sm text-white font-medium">{event.title}</div>
           <div className="text-xs text-white/60 mt-1 line-clamp-3">{event.content}</div>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
+            {isAtrium && (
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  padding: "1px 6px",
+                  borderRadius: 3,
+                  background: `${PURPLE}22`,
+                  color: PURPLE,
+                  border: `1px solid ${PURPLE}55`,
+                }}
+              >
+                Regulatory
+              </span>
+            )}
             {event.confidence && (
               <span
                 style={{
@@ -186,5 +266,187 @@ function Stat({ label, value }: { label: string; value: number }) {
       </div>
       <div style={{ fontSize: 18, color: GOLD, fontWeight: 600 }}>{value}</div>
     </div>
+  );
+}
+
+type SourceOpt = {
+  value: "atrium" | "manual" | "document" | "external";
+  label: string;
+};
+
+const SOURCE_OPTIONS: SourceOpt[] = [
+  { value: "manual", label: "Manual Note" },
+  { value: "atrium", label: "Regulatory / Policy" },
+  { value: "document", label: "Document" },
+  { value: "external", label: "External Source" },
+];
+
+const EVENT_TYPE_OPTIONS = [
+  "signal",
+  "risk",
+  "research_finding",
+  "competitive_update",
+  "stakeholder_update",
+  "lesson",
+  "manual",
+];
+
+function AddIntelDialog({
+  missionId,
+  open,
+  onOpenChange,
+}: {
+  missionId: string;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const qc = useQueryClient();
+  const addFn = useServerFn(addManualIntelEvent);
+
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [sourceType, setSourceType] = useState<SourceOpt["value"]>("manual");
+  const [eventType, setEventType] = useState<string>("manual");
+  const [confidence, setConfidence] = useState<"high" | "medium" | "low" | "">("");
+
+  const reset = () => {
+    setTitle("");
+    setContent("");
+    setSourceType("manual");
+    setEventType("manual");
+    setConfidence("");
+  };
+
+  const mutation = useMutation({
+    mutationFn: async () =>
+      addFn({
+        data: {
+          mission_id: missionId,
+          title: title.trim(),
+          content: content.trim(),
+          source_type: sourceType,
+          event_type: eventType,
+          confidence: confidence || null,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Intel added to Feed");
+      qc.invalidateQueries({ queryKey: ["intel-events", missionId] });
+      qc.invalidateQueries({ queryKey: ["intel-counts", missionId] });
+      reset();
+      onOpenChange(false);
+    },
+    onError: (e: any) => {
+      console.error("[intel-feed] add failed", e);
+      toast.error("Could not add intel");
+    },
+  });
+
+  const canSave = title.trim().length > 0 && content.trim().length > 0;
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) reset();
+        onOpenChange(v);
+      }}
+    >
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Add Intel</DialogTitle>
+          <DialogDescription>
+            Add an entry to the Intelligence Feed for this mission.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label htmlFor="intel-title">Title</Label>
+            <Input
+              id="intel-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Short headline..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="intel-content">Content</Label>
+            <Textarea
+              id="intel-content"
+              rows={5}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="What's the intel?"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Source Type</Label>
+              <Select value={sourceType} onValueChange={(v) => setSourceType(v as SourceOpt["value"])}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SOURCE_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Event Type</Label>
+              <Select value={eventType} onValueChange={setEventType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {EVENT_TYPE_OPTIONS.map((o) => (
+                    <SelectItem key={o} value={o}>
+                      {o.replace(/_/g, " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Confidence (optional)</Label>
+            <Select value={confidence || "none"} onValueChange={(v) => setConfidence(v === "none" ? "" : (v as any))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">—</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={mutation.isPending}>
+            Cancel
+          </Button>
+          <Button onClick={() => mutation.mutate()} disabled={!canSave || mutation.isPending}>
+            {mutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving…
+              </>
+            ) : (
+              "Add to Feed"
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -3592,6 +3592,7 @@ export type Database = {
           id: string
           mission_id: string
           source_entity_id: string | null
+          source_type: string | null
           tags: string[]
           title: string
         }
@@ -3605,6 +3606,7 @@ export type Database = {
           id?: string
           mission_id: string
           source_entity_id?: string | null
+          source_type?: string | null
           tags?: string[]
           title: string
         }
@@ -3618,6 +3620,7 @@ export type Database = {
           id?: string
           mission_id?: string
           source_entity_id?: string | null
+          source_type?: string | null
           tags?: string[]
           title?: string
         }
