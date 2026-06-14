@@ -122,3 +122,112 @@ export const runIrisPipeline = createServerFn({ method: "POST" })
       body,
     };
   });
+
+export type WiringSnapshot = {
+  windowHours: number;
+  generatedAt: string;
+  counts: {
+    intelEvents24h: number;
+    feedItems24h: number;
+    feedItemsHighRelevance24h: number;
+    activeFeedConfigs: number;
+    irisExtractions24h: number;
+    briefCacheRows: number;
+    missionsWithLaunchBriefs: number;
+    missionsTotal: number;
+    openHealthFlags: number;
+    highSeverityFlags: number;
+    hookFailures24h: number;
+    hookFailuresUnacked: number;
+  };
+  recentHookFailures: Array<{
+    id: string;
+    hook_name: string | null;
+    status_code: number | null;
+    error_message: string | null;
+    created_at: string;
+    acknowledged_at: string | null;
+  }>;
+  openFlags: Array<{
+    id: string;
+    severity: string | null;
+    trigger_code: string | null;
+    title: string | null;
+    detail: string | null;
+    mission_id: string | null;
+    raised_at: string | null;
+  }>;
+};
+
+export const getIrisWiringSnapshot = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<WiringSnapshot> => {
+    const { supabase, userId } = context as any;
+    await assertAdmin(supabase, userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const c = (q: any) => q.then((r: any) => r.count ?? 0).catch(() => 0);
+
+    const [
+      intelEvents24h,
+      feedItems24h,
+      feedItemsHigh,
+      activeFeedConfigs,
+      irisExtractions24h,
+      briefCacheRows,
+      missionsWithLaunchBriefs,
+      missionsTotal,
+      openHealthFlags,
+      highSeverityFlags,
+      hookFailures24h,
+      hookFailuresUnacked,
+      recentFailuresRes,
+      openFlagsRes,
+    ] = await Promise.all([
+      c(supabaseAdmin.from("intel_events").select("id", { count: "exact", head: true }).gte("created_at", since)),
+      c(supabaseAdmin.from("intelligence_feed_items").select("id", { count: "exact", head: true }).gte("created_at", since)),
+      c(supabaseAdmin.from("intelligence_feed_items").select("id", { count: "exact", head: true }).gte("created_at", since).gte("iris_relevance_score", 60)),
+      c(supabaseAdmin.from("intelligence_feed_configs").select("id", { count: "exact", head: true }).eq("is_active", true)),
+      c(supabaseAdmin.from("mission_iris_extractions").select("id", { count: "exact", head: true }).gte("created_at", since)),
+      c(supabaseAdmin.from("iris_brief_cache").select("mission_id", { count: "exact", head: true })),
+      c(supabaseAdmin.from("mission_launch_briefs").select("mission_id", { count: "exact", head: true })),
+      c(supabaseAdmin.from("missions").select("id", { count: "exact", head: true })),
+      c(supabaseAdmin.from("iris_health_flags").select("id", { count: "exact", head: true }).eq("status", "open")),
+      c(supabaseAdmin.from("iris_health_flags").select("id", { count: "exact", head: true }).eq("status", "open").in("severity", ["high", "critical"])),
+      c(supabaseAdmin.from("hook_failures").select("id", { count: "exact", head: true }).gte("created_at", since)),
+      c(supabaseAdmin.from("hook_failures").select("id", { count: "exact", head: true }).is("acknowledged_at", null)),
+      supabaseAdmin
+        .from("hook_failures")
+        .select("id, hook_name, status_code, error_message, created_at, acknowledged_at")
+        .order("created_at", { ascending: false })
+        .limit(10),
+      supabaseAdmin
+        .from("iris_health_flags")
+        .select("id, severity, trigger_code, title, detail, mission_id, raised_at")
+        .eq("status", "open")
+        .order("raised_at", { ascending: false })
+        .limit(10),
+    ]);
+
+    return {
+      windowHours: 24,
+      generatedAt: new Date().toISOString(),
+      counts: {
+        intelEvents24h,
+        feedItems24h,
+        feedItemsHighRelevance24h: feedItemsHigh,
+        activeFeedConfigs,
+        irisExtractions24h,
+        briefCacheRows,
+        missionsWithLaunchBriefs,
+        missionsTotal,
+        openHealthFlags,
+        highSeverityFlags,
+        hookFailures24h,
+        hookFailuresUnacked,
+      },
+      recentHookFailures: (recentFailuresRes?.data ?? []) as any,
+      openFlags: (openFlagsRes?.data ?? []) as any,
+    };
+  });
