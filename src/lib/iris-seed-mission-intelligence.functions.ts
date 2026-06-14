@@ -271,7 +271,7 @@ Return ONLY the JSON object. No preamble, no code fence.`;
                 notes: p?.notes ? String(p.notes).slice(0, 2000) : null,
               };
             })
-            .filter((r: any) => r !== null);
+            .filter((r): r is NonNullable<typeof r> => r !== null);
 
           if (peopleRows.length > 0) {
             const { error: pErr } = await supabase
@@ -298,7 +298,7 @@ Return ONLY the JSON object. No preamble, no code fence.`;
                 notes: `${name}${o?.notes ? " — " + String(o.notes) : ""}`.slice(0, 2000),
               };
             })
-            .filter((r: any) => r !== null);
+            .filter((r): r is NonNullable<typeof r> => r !== null);
 
           if (orgRows.length > 0) {
             const { error: oErr } = await supabase.from("intel_organizations").insert(orgRows);
@@ -337,7 +337,7 @@ Return ONLY the JSON object. No preamble, no code fence.`;
                 tags: ["iris_cascade", "auto_seeded"],
               };
             })
-            .filter((r: any) => r !== null);
+            .filter((r): r is NonNullable<typeof r> => r !== null);
 
           if (crows.length > 0) {
             const { error: cInsErr } = await supabase.from("intel_events").insert(crows);
