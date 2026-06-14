@@ -66,7 +66,7 @@ function BriefingPage() {
       const { data } = await supabase
         .from("missions")
         .select(
-          "name, client_name, status, health_score, state_code, state, submission_deadline, blast_off_at, iris_disclaimer, why_it_matters, why_win",
+          "name, client_name, status, health_score, state_code, state, submission_deadline, blast_off_at, iris_disclaimer, why_it_matters, why_win, today_focus, how_we_win, mission_journey, watch_items",
         )
         .eq("id", missionId)
         .maybeSingle();
@@ -88,8 +88,8 @@ function BriefingPage() {
           <HeroCard missionId={missionId} mission={mission} />
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-            <div className="lg:col-span-3"><TodaysFocusCard missionId={missionId} /></div>
-            <div className="lg:col-span-2"><HowWeWinCard missionId={missionId} /></div>
+            <div className="lg:col-span-3"><TodaysFocusCard missionId={missionId} mission={mission} /></div>
+            <div className="lg:col-span-2"><HowWeWinCard missionId={missionId} mission={mission} /></div>
           </div>
 
           <MissionJourneyCard mission={mission} />
@@ -100,7 +100,7 @@ function BriefingPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <WatchItemsCard missionId={missionId} />
+            <WatchItemsCard missionId={missionId} mission={mission} />
             <WhatChangedCard missionId={missionId} />
             <LeadershipBroadcastCard />
           </div>
@@ -262,7 +262,7 @@ function StateMap({ stateCode }: { stateCode?: string | null }) {
 }
 
 /* ───────────────── 2a. Today's Focus ───────────────── */
-function TodaysFocusCard({ missionId }: { missionId: string }) {
+function TodaysFocusCard({ missionId, mission }: { missionId: string; mission?: any }) {
   const { data: brief } = useQuery({
     queryKey: ["briefing-todays-focus", missionId],
     queryFn: async () => {
@@ -278,6 +278,11 @@ function TodaysFocusCard({ missionId }: { missionId: string }) {
   });
 
   const items = extractFocusItems(brief?.content, brief?.key_intelligence_summary);
+  const fallback = (mission?.today_focus ?? "").trim();
+  const fallbackItems = fallback
+    ? fallback.split(/\n+/).map((s: string) => s.trim()).filter(Boolean)
+    : [];
+  const finalItems = items.length > 0 ? items : fallbackItems;
   const time = brief?.created_at
     ? new Date(brief.created_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
     : null;
@@ -294,11 +299,11 @@ function TodaysFocusCard({ missionId }: { missionId: string }) {
           </div>
         )}
       </div>
-      {items.length === 0 ? (
-        <EmptyState>IRIS will generate today's focus items. Check back soon.</EmptyState>
+      {finalItems.length === 0 ? (
+        <EmptyState>IRIS will generate today's focus items. Check back soon, or add a manual focus note in mission settings.</EmptyState>
       ) : (
         <ol className="space-y-4">
-          {items.slice(0, 4).map((item, i) => (
+          {finalItems.slice(0, 4).map((item: string, i: number) => (
             <li key={i} className="flex gap-4">
               <span
                 className="shrink-0 grid place-items-center rounded-lg font-bold"
@@ -332,7 +337,7 @@ function extractFocusItems(content: any, summary?: string | null): string[] {
 }
 
 /* ───────────────── 2b. How We Win ───────────────── */
-function HowWeWinCard({ missionId }: { missionId: string }) {
+function HowWeWinCard({ missionId, mission }: { missionId: string; mission?: any }) {
   const { data: themes = [] } = useQuery({
     queryKey: ["briefing-win-themes", missionId],
     queryFn: async () => {
@@ -360,7 +365,13 @@ function HowWeWinCard({ missionId }: { missionId: string }) {
         <Trophy size={14} /> How We Win
       </div>
       {themes.length === 0 ? (
-        <EmptyState>Add win themes in the Setup Wizard.</EmptyState>
+        (mission?.how_we_win ?? "").trim() ? (
+          <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+            {mission.how_we_win}
+          </div>
+        ) : (
+          <EmptyState>Add win themes in the Setup Wizard.</EmptyState>
+        )
       ) : (
         <div className="grid grid-cols-2 gap-3">
           {themes.map((t: any, i: number) => {
@@ -526,6 +537,22 @@ function MissionJourneyCard({ mission }: { mission: any }) {
           )}
         </div>
       </div>
+      {(mission?.mission_journey ?? "").trim() && (
+        <div
+          className="mt-6 p-4"
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            borderRadius: 12,
+            fontSize: 13.5,
+            color: "rgba(255,255,255,0.8)",
+            lineHeight: 1.6,
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {mission.mission_journey}
+        </div>
+      )}
     </section>
   );
 }
@@ -670,7 +697,7 @@ function LensItem({ icon: Icon, color, label }: { icon: any; color: string; labe
 }
 
 /* ───────────────── 5a. Watch Items ───────────────── */
-function WatchItemsCard({ missionId }: { missionId: string }) {
+function WatchItemsCard({ missionId, mission }: { missionId: string; mission?: any }) {
   const { data: items = [] } = useQuery({
     queryKey: ["briefing-watch-items", missionId],
     queryFn: async () => {
@@ -686,12 +713,24 @@ function WatchItemsCard({ missionId }: { missionId: string }) {
   });
 
   if (items.length === 0) {
+    const fallback = (mission?.watch_items ?? "").trim();
     return (
       <section style={glass}>
         <div className="flex items-center gap-2 mb-4" style={cardLabel}>
           <AlertTriangle size={14} /> Watch Items
         </div>
-        <EmptyState>No active watch items.</EmptyState>
+        {fallback ? (
+          <ul className="space-y-3">
+            {fallback.split(/\n+/).map((line: string, i: number) => line.trim() && (
+              <li key={i} className="flex items-start gap-3">
+                <span className="shrink-0 mt-1.5" style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b" }} />
+                <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.9)", lineHeight: 1.5 }}>{line.trim()}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState>No active watch items.</EmptyState>
+        )}
       </section>
     );
   }

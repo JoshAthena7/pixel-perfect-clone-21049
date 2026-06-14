@@ -7658,12 +7658,14 @@ export type Database = {
           debrief_completed: boolean
           executive_intelligence: Json | null
           health_score: number | null
+          how_we_win: string | null
           id: string
           intel_coverage_score: number | null
           intelligence_graph_completeness: number
           intelligence_loadout_step: number
           iris_disclaimer: string | null
           known_competitors: string[] | null
+          mission_journey: string | null
           monitoring_schedule: string
           name: string
           north_star: string | null
@@ -7681,7 +7683,9 @@ export type Database = {
           status: string
           submission_deadline: string
           team_readiness_score: number | null
+          today_focus: string | null
           updated_at: string
+          watch_items: string | null
           why_it_matters: string | null
           why_lose: string | null
           why_win: string | null
@@ -7706,12 +7710,14 @@ export type Database = {
           debrief_completed?: boolean
           executive_intelligence?: Json | null
           health_score?: number | null
+          how_we_win?: string | null
           id?: string
           intel_coverage_score?: number | null
           intelligence_graph_completeness?: number
           intelligence_loadout_step?: number
           iris_disclaimer?: string | null
           known_competitors?: string[] | null
+          mission_journey?: string | null
           monitoring_schedule?: string
           name: string
           north_star?: string | null
@@ -7729,7 +7735,9 @@ export type Database = {
           status?: string
           submission_deadline: string
           team_readiness_score?: number | null
+          today_focus?: string | null
           updated_at?: string
+          watch_items?: string | null
           why_it_matters?: string | null
           why_lose?: string | null
           why_win?: string | null
@@ -7754,12 +7762,14 @@ export type Database = {
           debrief_completed?: boolean
           executive_intelligence?: Json | null
           health_score?: number | null
+          how_we_win?: string | null
           id?: string
           intel_coverage_score?: number | null
           intelligence_graph_completeness?: number
           intelligence_loadout_step?: number
           iris_disclaimer?: string | null
           known_competitors?: string[] | null
+          mission_journey?: string | null
           monitoring_schedule?: string
           name?: string
           north_star?: string | null
@@ -7777,7 +7787,9 @@ export type Database = {
           status?: string
           submission_deadline?: string
           team_readiness_score?: number | null
+          today_focus?: string | null
           updated_at?: string
+          watch_items?: string | null
           why_it_matters?: string | null
           why_lose?: string | null
           why_win?: string | null

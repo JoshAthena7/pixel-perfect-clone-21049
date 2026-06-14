@@ -85,6 +85,23 @@ type Props = {
 
 type Filter = "all" | "not_started" | "in_progress" | "needs_review" | "complete";
 
+// Look up the caller's atlas_team_members.id via email. The legacy
+// `current_atlas_member_id()` RPC does the same join under the hood, but
+// returns null when SECURITY DEFINER + email mismatch silently fails,
+// which produced bad `assigned_writer_id=eq.` URLs and surfaced as
+// "no questions assigned" + error states across the deck.
+async function fetchMyAtlasMemberId(): Promise<string | null> {
+  const { data: u } = await supabase.auth.getUser();
+  const email = u.user?.email;
+  if (!email) return null;
+  const { data } = await supabase
+    .from("atlas_team_members")
+    .select("id")
+    .ilike("email", email)
+    .maybeSingle();
+  return (data as { id?: string } | null)?.id ?? null;
+}
+
 export function FlightDeckV2({ missionId }: Props) {
   const { open, setOpen } = useMissionCloseDebriefTrigger(missionId);
   return (
@@ -235,8 +252,8 @@ function WorkQueue({ missionId }: { missionId: string }) {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.rpc("current_atlas_member_id");
-      setMemberId((data as string) ?? null);
+      const id = await fetchMyAtlasMemberId();
+      setMemberId(id);
     })();
   }, []);
 
@@ -853,25 +870,28 @@ function DailyPulse({ missionId }: { missionId: string }) {
       const weekStart = new Date();
       weekStart.setDate(weekStart.getDate() - 7);
 
-      const { data: asgs } = await supabase
-        .from("mission_assignments")
-        .select("question_id")
-        .eq("mission_id", missionId)
-        .eq("assigned_writer_id", (await supabase.rpc("current_atlas_member_id")).data ?? "");
-      const qids = (asgs ?? []).map((a: any) => a.question_id).filter(Boolean);
-
+      const memberId = await fetchMyAtlasMemberId();
       let completed = 0;
       let inFlight = 0;
-      if (qids.length > 0) {
-        const { data: qs } = await supabase
-          .from("mission_questions")
-          .select("status, updated_at")
-          .in("id", qids);
-        for (const q of (qs ?? []) as any[]) {
-          if (q.status === "complete") {
-            if (q.updated_at && new Date(q.updated_at).getTime() >= weekStart.getTime()) completed++;
-          } else if (q.status === "in_progress") {
-            inFlight++;
+      if (memberId) {
+        const { data: asgs } = await supabase
+          .from("mission_assignments")
+          .select("question_id")
+          .eq("mission_id", missionId)
+          .eq("assigned_writer_id", memberId);
+        const qids = (asgs ?? []).map((a: any) => a.question_id).filter(Boolean);
+
+        if (qids.length > 0) {
+          const { data: qs } = await supabase
+            .from("mission_questions")
+            .select("status, updated_at")
+            .in("id", qids);
+          for (const q of (qs ?? []) as any[]) {
+            if (q.status === "complete") {
+              if (q.updated_at && new Date(q.updated_at).getTime() >= weekStart.getTime()) completed++;
+            } else if (q.status === "in_progress") {
+              inFlight++;
+            }
           }
         }
       }
@@ -1115,8 +1135,7 @@ function IrisAssistsSummary({ missionId }: { missionId: string }) {
   const { data } = useQuery({
     queryKey: ["fd-iris-summary", missionId],
     queryFn: async () => {
-      const { data: memberRes } = await supabase.rpc("current_atlas_member_id");
-      const memberId = (memberRes as string) ?? null;
+      const memberId = await fetchMyAtlasMemberId();
       if (!memberId) return null;
       const { data: asgs } = await supabase
         .from("mission_assignments")
