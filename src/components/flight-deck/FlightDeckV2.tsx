@@ -85,6 +85,23 @@ type Props = {
 
 type Filter = "all" | "not_started" | "in_progress" | "needs_review" | "complete";
 
+// Look up the caller's atlas_team_members.id via email. The legacy
+// `current_atlas_member_id()` RPC does the same join under the hood, but
+// returns null when SECURITY DEFINER + email mismatch silently fails,
+// which produced bad `assigned_writer_id=eq.` URLs and surfaced as
+// "no questions assigned" + error states across the deck.
+async function fetchMyAtlasMemberId(): Promise<string | null> {
+  const { data: u } = await supabase.auth.getUser();
+  const email = u.user?.email;
+  if (!email) return null;
+  const { data } = await supabase
+    .from("atlas_team_members")
+    .select("id")
+    .ilike("email", email)
+    .maybeSingle();
+  return (data as { id?: string } | null)?.id ?? null;
+}
+
 export function FlightDeckV2({ missionId }: Props) {
   const { open, setOpen } = useMissionCloseDebriefTrigger(missionId);
   return (
