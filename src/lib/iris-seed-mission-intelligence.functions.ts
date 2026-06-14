@@ -183,19 +183,43 @@ State: ${m.state ?? "n/a"}
 Program Area: ${m.program_type ?? ""}
 Brief: ${briefSnippet || "(none)"}
 
-Generate 6 follow-up intelligence items distributed as:
-- 2 items of event_type "stakeholder_update" (people / decision-makers / influencers relevant to this procurement)
-- 2 items of event_type "competitive_update" (likely competitors, prior awardees, market posture)
-- 2 items of event_type "research_finding" (organizational / agency background the team should know)
+Return a single JSON object with THREE arrays — "people", "organizations", and "events". Generate concrete, named entities (real agency names, real likely competitors for this program area in this state). Do not return placeholders like "TBD" or "Unknown Person".
 
-For each item return:
-{ "title": "Short title (max 8 words)",
-  "summary": "2-3 sentence intelligence summary",
-  "event_type": "stakeholder_update|competitive_update|research_finding",
-  "signal_category": one of [stakeholder, competitor, market_movement, federal_policy, state_policy, procurement, decision_intelligence, relationship_intelligence],
-  "iris_recommendation": "1 sentence next step" }
+{
+  "people": [  // 4-6 specific decision-makers, stakeholders, influencers
+    {
+      "name": "Full name (real person likely involved)",
+      "title": "Their job title",
+      "organization": "Org name they work at",
+      "role_type": "stakeholder|evaluator|influencer|champion|decision_maker|advocate|legislator",
+      "influence_level": "high|medium|low",
+      "relationship_stance": "ally|neutral|unknown|hostile",
+      "known_priorities": ["priority 1", "priority 2"],
+      "notes": "2-3 sentence intel summary on this person"
+    }
+  ],
+  "organizations": [  // 4-6 specific orgs: competitors, the agency, key providers/advocacy groups
+    {
+      "name": "Organization name",
+      "org_type": "competitor|agency|provider|advocacy|vendor|partner|subcontractor",
+      "incumbency_status": "incumbent|challenger|unknown",
+      "known_strengths": ["strength 1", "strength 2"],
+      "known_weaknesses": ["weakness 1"],
+      "notes": "2-3 sentence intel summary on this org"
+    }
+  ],
+  "events": [  // 3-4 follow-up intel events
+    {
+      "title": "Short title (max 8 words)",
+      "summary": "2-3 sentence intelligence summary",
+      "event_type": "stakeholder_update|competitive_update|research_finding",
+      "signal_category": "stakeholder|competitor|market_movement|procurement|decision_intelligence|relationship_intelligence",
+      "iris_recommendation": "1 sentence next step"
+    }
+  ]
+}
 
-Return ONLY a JSON array. No preamble.`;
+Return ONLY the JSON object. No preamble, no code fence.`;
 
         const cres = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
@@ -207,29 +231,89 @@ Return ONLY a JSON array. No preamble.`;
             model: "google/gemini-2.5-flash",
             messages: [
               { role: "system", content: CASCADE_SYSTEM },
-              { role: "user", content: "Generate the JSON array now." },
+              { role: "user", content: "Generate the JSON object now." },
             ],
+            response_format: { type: "json_object" },
           }),
         });
         if (cres.ok) {
           const cjson = (await cres.json()) as { choices?: Array<{ message?: { content?: string } }> };
           const craw = (cjson.choices?.[0]?.message?.content ?? "").trim();
           const cclean = craw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
-          let cparsed: Array<Record<string, unknown>> = [];
+          let cobj: { people?: any[]; organizations?: any[]; events?: any[] } = {};
           try {
-            const cj = JSON.parse(cclean);
-            cparsed = Array.isArray(cj) ? cj : Array.isArray((cj as any)?.items) ? (cj as any).items : [];
+            cobj = JSON.parse(cclean);
           } catch {
             console.log("[iris-seed] cascade invalid JSON; skipping");
           }
+
+          // ---- intel_people ----
+          const ALLOWED_ROLE = new Set(["stakeholder","evaluator","influencer","champion","expert","adversary","contact","decision_maker","advocate","legislator","media"]);
+          const ALLOWED_INFL = new Set(["high","medium","low"]);
+          const ALLOWED_STANCE = new Set(["ally","neutral","unknown","hostile"]);
+          const peopleRows = (Array.isArray(cobj.people) ? cobj.people : [])
+            .map((p: any) => {
+              const name = String(p?.name ?? "").trim();
+              if (!name) return null;
+              const role_type = ALLOWED_ROLE.has(String(p?.role_type)) ? String(p.role_type) : "stakeholder";
+              const influence_level = ALLOWED_INFL.has(String(p?.influence_level)) ? String(p.influence_level) : null;
+              const relationship_stance = ALLOWED_STANCE.has(String(p?.relationship_stance)) ? String(p.relationship_stance) : "unknown";
+              const known_priorities = Array.isArray(p?.known_priorities) ? p.known_priorities.map((x: any) => String(x)).slice(0, 8) : [];
+              return {
+                mission_id: missionId,
+                name: name.slice(0, 200),
+                title: p?.title ? String(p.title).slice(0, 200) : null,
+                organization: p?.organization ? String(p.organization).slice(0, 200) : null,
+                role_type,
+                influence_level,
+                relationship_stance,
+                known_priorities,
+                notes: p?.notes ? String(p.notes).slice(0, 2000) : null,
+              };
+            })
+            .filter((r): r is NonNullable<typeof r> => r !== null);
+
+          if (peopleRows.length > 0) {
+            const { error: pErr } = await supabase
+              .from("intel_people")
+              .upsert(peopleRows, { onConflict: "mission_id,name,organization", ignoreDuplicates: true });
+            if (pErr) console.log("[iris-seed] people insert failed", pErr.message);
+          }
+
+          // ---- intel_organizations ----
+          const ALLOWED_ORG = new Set(["competitor","agency","provider","advocacy","vendor","partner","subcontractor","unknown"]);
+          const ALLOWED_INCUMB = new Set(["incumbent","challenger","unknown"]);
+          const orgRows = (Array.isArray(cobj.organizations) ? cobj.organizations : [])
+            .map((o: any) => {
+              const name = String(o?.name ?? "").trim();
+              if (!name) return null;
+              const org_type = ALLOWED_ORG.has(String(o?.org_type)) ? String(o.org_type) : "unknown";
+              const incumbency_status = ALLOWED_INCUMB.has(String(o?.incumbency_status)) ? String(o.incumbency_status) : "unknown";
+              return {
+                mission_id: missionId,
+                org_type,
+                incumbency_status,
+                known_strengths: Array.isArray(o?.known_strengths) ? o.known_strengths.map((x: any) => String(x)).slice(0, 8) : [],
+                known_weaknesses: Array.isArray(o?.known_weaknesses) ? o.known_weaknesses.map((x: any) => String(x)).slice(0, 8) : [],
+                notes: `${name}${o?.notes ? " — " + String(o.notes) : ""}`.slice(0, 2000),
+              };
+            })
+            .filter((r): r is NonNullable<typeof r> => r !== null);
+
+          if (orgRows.length > 0) {
+            const { error: oErr } = await supabase.from("intel_organizations").insert(orgRows);
+            if (oErr) console.log("[iris-seed] orgs insert failed", oErr.message);
+          }
+
+          // ---- intel_events (cascade events) ----
           const ALLOWED_EVENT = new Set(["stakeholder_update", "competitive_update", "research_finding"]);
-          const crows = cparsed
-            .map((p) => {
-              const title = String(p.title ?? "").trim().slice(0, 200);
-              const summary = String(p.summary ?? "").trim();
-              const event_type = String(p.event_type ?? "").trim();
-              const signal_category = String(p.signal_category ?? "").trim();
-              const iris_recommendation = String(p.iris_recommendation ?? "").trim() || null;
+          const crows = (Array.isArray(cobj.events) ? cobj.events : [])
+            .map((p: any) => {
+              const title = String(p?.title ?? "").trim().slice(0, 200);
+              const summary = String(p?.summary ?? "").trim();
+              const event_type = String(p?.event_type ?? "").trim();
+              const signal_category = String(p?.signal_category ?? "").trim();
+              const iris_recommendation = String(p?.iris_recommendation ?? "").trim() || null;
               if (!title || !summary) return null;
               if (!ALLOWED_EVENT.has(event_type)) return null;
               return {
@@ -238,9 +322,7 @@ Return ONLY a JSON array. No preamble.`;
                 output_type:
                   event_type === "stakeholder_update"
                     ? "stakeholder_profile"
-                    : event_type === "competitive_update"
-                      ? "intel_card_candidate"
-                      : "intel_card_candidate",
+                    : "intel_card_candidate",
                 signal_category: ALLOWED_CATEGORIES.has(signal_category) ? signal_category : null,
                 title,
                 content: summary,
