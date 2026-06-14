@@ -170,6 +170,10 @@ export const postThreadMessage = createServerFn({ method: "POST" })
           missionId: data.missionId,
           questionId: data.questionId,
         }).catch((e: unknown) => console.error("[thread] iris extraction failed", e));
+        void triggerKnowledgeExtraction({
+          missionId: data.missionId,
+          questionId: data.questionId,
+        }).catch((e: unknown) => console.error("[thread] knowledge extraction failed", e));
       }
     } catch (e) {
       console.error("[thread] extraction-trigger check failed", e);
@@ -183,6 +187,15 @@ async function triggerThreadExtraction(args: { missionId: string; questionId: st
     "@/lib/iris-extract-thread-intelligence.functions"
   );
   await extractThreadIntelligence({
+    data: { mission_id: args.missionId, question_id: args.questionId },
+  });
+}
+
+async function triggerKnowledgeExtraction(args: { missionId: string; questionId: string }) {
+  const { extractThreadKnowledge } = await import(
+    "@/lib/iris-extract-thread-knowledge.functions"
+  );
+  await extractThreadKnowledge({
     data: { mission_id: args.missionId, question_id: args.questionId },
   });
 }
