@@ -96,7 +96,8 @@ function activeForSeg(item: NavItem, seg: string, pathname: string): boolean {
 export function MissionSidebar({ missionId, email }: { missionId: string; email?: string | null }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const seg = pathname.split("/")[3] ?? "";
-  const items = buildItems(missionId);
+  const { isAdmin } = useIsAdmin();
+  const items = buildItems(missionId).filter((it) => it.id !== "olympus" || isAdmin);
   const intel = useIntelSummary(missionId);
 
   return (
