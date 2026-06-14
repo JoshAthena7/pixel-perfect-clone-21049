@@ -94,5 +94,15 @@ export const upsertIntelPerson = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
-    return { id: (row as unknown as { id: string }).id, created: true };
+    const newId = (row as unknown as { id: string }).id;
+
+    // Fire-and-forget IRIS Perplexity enrichment for newly-added stakeholders.
+    try {
+      const { enrichStakeholderWithPerplexity } = await import("./intel-people-enrich.functions");
+      void enrichStakeholderWithPerplexity({ data: { personId: newId } });
+    } catch (e) {
+      console.error("[intel-people-upsert] enrich trigger failure", e);
+    }
+
+    return { id: newId, created: true };
   });
