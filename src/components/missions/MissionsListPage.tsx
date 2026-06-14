@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Users, ListChecks, Calendar, X, Trash2 } from "lucide-react";
+import { Plus, Search, Users, ListChecks, Calendar, X, Trash2, ClipboardList, Rocket } from "lucide-react";
 import { formatDistanceToNowStrict, format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
