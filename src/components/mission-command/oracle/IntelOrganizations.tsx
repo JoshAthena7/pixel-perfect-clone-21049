@@ -52,7 +52,7 @@ export function IntelOrganizations({ missionId }: { missionId: string }) {
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="h-5 w-5 animate-spin text-white/40" /></div>
       ) : orgs.length === 0 ? (
-        <EmptyState onAdd={() => setShowAdd(true)} />
+        <EmptyState missionId={missionId} onAdd={() => setShowAdd(true)} onSeeded={() => qc.invalidateQueries({ queryKey: ["intel-orgs", missionId] })} />
       ) : (
         <div className="space-y-6">
           {ORG_GROUPS.map((g) => {
