@@ -320,6 +320,7 @@ async function runMonitor(request: Request): Promise<Response> {
       // Firecrawl (with graceful fallback to raw fetch if no key / failure).
       let rawBody: string;
       let usedSource: "firecrawl" | "fetch" = "fetch";
+      void usedSource;
       if (t === "rss") {
         try {
           const res = await fetch(fetchUrl, {
