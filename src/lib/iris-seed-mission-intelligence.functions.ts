@@ -274,35 +274,70 @@ Return ONLY the JSON object. No preamble, no code fence.`;
             .filter((r): r is NonNullable<typeof r> => r !== null);
 
           if (peopleRows.length > 0) {
-            const { error: pErr } = await supabase
-              .from("intel_people")
-              .upsert(peopleRows, { onConflict: "mission_id,name,organization", ignoreDuplicates: true });
+            // Plain insert — the unique index uses lower(name)/lower(organization)
+            // expressions that PostgREST onConflict can't target. On an empty
+            // first-seed table there are no duplicates to worry about.
+            const { error: pErr } = await supabase.from("intel_people").insert(peopleRows);
             if (pErr) console.log("[iris-seed] people insert failed", pErr.message);
           }
 
           // ---- intel_organizations ----
+          // intel_organizations has NO `name` column — names live on the linked
+          // intel_entities row. Create the entity first, then link.
           const ALLOWED_ORG = new Set(["competitor","agency","provider","advocacy","vendor","partner","subcontractor","unknown"]);
           const ALLOWED_INCUMB = new Set(["incumbent","challenger","unknown"]);
-          const orgRows = (Array.isArray(cobj.organizations) ? cobj.organizations : [])
+          const orgsClean = (Array.isArray(cobj.organizations) ? cobj.organizations : [])
             .map((o: any) => {
               const name = String(o?.name ?? "").trim();
               if (!name) return null;
               const org_type = ALLOWED_ORG.has(String(o?.org_type)) ? String(o.org_type) : "unknown";
               const incumbency_status = ALLOWED_INCUMB.has(String(o?.incumbency_status)) ? String(o.incumbency_status) : "unknown";
               return {
-                mission_id: missionId,
+                name: name.slice(0, 200),
                 org_type,
                 incumbency_status,
                 known_strengths: Array.isArray(o?.known_strengths) ? o.known_strengths.map((x: any) => String(x)).slice(0, 8) : [],
                 known_weaknesses: Array.isArray(o?.known_weaknesses) ? o.known_weaknesses.map((x: any) => String(x)).slice(0, 8) : [],
-                notes: `${name}${o?.notes ? " — " + String(o.notes) : ""}`.slice(0, 2000),
+                notes: String(o?.notes ?? "").slice(0, 2000) || null,
               };
             })
             .filter((r): r is NonNullable<typeof r> => r !== null);
 
-          if (orgRows.length > 0) {
-            const { error: oErr } = await supabase.from("intel_organizations").insert(orgRows);
-            if (oErr) console.log("[iris-seed] orgs insert failed", oErr.message);
+          if (orgsClean.length > 0) {
+            const entityRows = orgsClean.map((o) => ({
+              entity_type: "organization",
+              name: o.name,
+              description: o.notes,
+              mission_ids: [missionId],
+            }));
+            const { data: ents, error: eErr } = await supabase
+              .from("intel_entities")
+              .insert(entityRows)
+              .select("id, name");
+            if (eErr) {
+              console.log("[iris-seed] entity insert failed", eErr.message);
+            } else if (ents) {
+              const byName = new Map(ents.map((e: any) => [String(e.name), String(e.id)]));
+              const orgRows = orgsClean
+                .map((o) => {
+                  const entity_id = byName.get(o.name);
+                  if (!entity_id) return null;
+                  return {
+                    mission_id: missionId,
+                    entity_id,
+                    org_type: o.org_type,
+                    incumbency_status: o.incumbency_status,
+                    known_strengths: o.known_strengths,
+                    known_weaknesses: o.known_weaknesses,
+                    notes: o.notes,
+                  };
+                })
+                .filter((r): r is NonNullable<typeof r> => r !== null);
+              if (orgRows.length > 0) {
+                const { error: oErr } = await supabase.from("intel_organizations").insert(orgRows);
+                if (oErr) console.log("[iris-seed] orgs insert failed", oErr.message);
+              }
+            }
           }
 
           // ---- intel_events (cascade events) ----
