@@ -195,7 +195,7 @@ function NorthStar({ missionId }: { missionId: string }) {
 
   return (
     <section className="text-center py-8">
-      <div style={sectionLabel}>North Star</div>
+      <div style={sectionLabel}>North Star<BriefSectionDot missionId={missionId} section="north_star" /></div>
       {data?.content ? (
         <>
           <p
