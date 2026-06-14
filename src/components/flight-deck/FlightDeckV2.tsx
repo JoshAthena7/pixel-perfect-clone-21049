@@ -86,6 +86,7 @@ type Props = {
 type Filter = "all" | "not_started" | "in_progress" | "needs_review" | "complete";
 
 export function FlightDeckV2({ missionId }: Props) {
+  const { open, setOpen } = useMissionCloseDebriefTrigger(missionId);
   return (
     <div className="space-y-12">
       <ContextStrip missionId={missionId} />
@@ -93,6 +94,7 @@ export function FlightDeckV2({ missionId }: Props) {
       <ToolDock missionId={missionId} />
       <DailyPulse missionId={missionId} />
       <IrisAssistsSummary missionId={missionId} />
+      <MissionCloseDebriefDialog missionId={missionId} open={open} onOpenChange={setOpen} />
     </div>
   );
 }
