@@ -46,7 +46,29 @@ type CardKind =
   | { kind: "score"; total: number; breakdown: Array<{ label: string; score: number; max: number }>; gaps: string[]; detail: string }
   | { kind: "risks"; items: Array<{ label: string; detail: string; href: string }> }
   | { kind: "intel"; items: Array<{ headline: string; url: string | null; assessment: string | null; href: string }> }
-  | { kind: "sources"; answer: string; citations: Array<{ url: string; domain: string }> };
+  | { kind: "sources"; answer: string; citations: Array<{ url: string; domain: string }>; research?: boolean };
+
+type AskMode = "quick" | "research";
+
+const RESEARCH_DOMAIN_FILTER = [
+  "cms.gov",
+  "medicaid.gov",
+  "kff.org",
+  "nashp.org",
+  "macpac.gov",
+  "healthmanagement.com",
+  "shvs.org",
+  "commonwealthfund.org",
+  "ccf.georgetown.edu",
+  "managedhealthcareexecutive.com",
+];
+
+const RESEARCH_LOADER_MESSAGES = [
+  "Searching CMS and federal policy sources…",
+  "Scanning state Medicaid intelligence…",
+  "Cross-referencing KFF, MACPAC, and NASHP…",
+  "Synthesizing cited intelligence…",
+];
 
 type Msg = {
   id: string;
@@ -85,6 +107,8 @@ export function AskIrisPanel() {
   const [updateOpen, setUpdateOpen] = useState(false);
   const [nudgeFor, setNudgeFor] = useState<{ questionId: string; questionNumber: string | null } | null>(null);
   const [lastQuestionId, setLastQuestionId] = useState<string | null>(null);
+  const [mode, setMode] = useState<AskMode>("quick");
+  const [researchPhase, setResearchPhase] = useState(0);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -200,7 +224,7 @@ export function AskIrisPanel() {
     const text = raw.trim();
     if (!text || streaming) return;
 
-    if (/^\/(sources|web|cite)\b/i.test(text)) return runAskWithSources(text.replace(/^\/(sources|web|cite)\s*/i, ""));
+    if (/^\/(sources|web|cite|research)\b/i.test(text)) return runResearch(text.replace(/^\/(sources|web|cite|research)\s*/i, ""));
     if (/^score (my|this) draft/i.test(text)) return runScore(text);
     if (/^draft (a |the )?response/i.test(text)) return runDraft(text);
     if (/(what'?s|whats|what is).*at risk|risk(s)? right now/i.test(text)) return runRisks(text);
@@ -209,33 +233,88 @@ export function AskIrisPanel() {
       if (/latest intelligence|recent intelligence|what.*new intel/i.test(text)) return runLatestIntel(text);
     }
 
+    if (mode === "research") return runResearch(text);
+
     const userMsg: Msg = { id: crypto.randomUUID(), role: "user", text, at: Date.now() };
     setMessages((m) => [...m, userMsg]);
     setInput("");
     await streamReply([...messages, userMsg]);
   };
 
-  const runAskWithSources = async (query: string) => {
+  const runResearch = async (query: string) => {
     const q = query.trim();
     if (!q) {
-      toast.info("Type a question after /sources to search with citations.");
+      toast.info("Type a question to search with cited live sources.");
       return;
     }
     setMessages((m) => [...m, { id: crypto.randomUUID(), role: "user", text: q, at: Date.now() }]);
     setInput("");
     const assistantId = crypto.randomUUID();
-    setMessages((m) => [...m, { id: assistantId, role: "assistant", text: "Searching live sources…", at: Date.now() }]);
+    setMessages((m) => [...m, { id: assistantId, role: "assistant", text: "", at: Date.now() }]);
     setStreaming(true);
+    setResearchPhase(0);
+    const phaseTimer = window.setInterval(() => {
+      setResearchPhase((p) => (p + 1) % RESEARCH_LOADER_MESSAGES.length);
+    }, 2000);
+
+    const historySnapshot = messages;
     try {
-      const r = await askWithSourcesFn({ data: { query: q } });
+      const r = await askWithSourcesFn({
+        data: {
+          query: q,
+          model: "sonar-pro",
+          recencyFilter: "month",
+          domainFilter: RESEARCH_DOMAIN_FILTER,
+        },
+      });
+
+      // Fail-soft: Perplexity unreachable or empty → silent fallback to Quick.
+      if (!r?.ok || !r.content || r.content.trim().length === 0) {
+        window.clearInterval(phaseTimer);
+        setMessages((m) => m.filter((mm) => mm.id !== assistantId));
+        const userMsg: Msg = { id: crypto.randomUUID(), role: "user", text: q, at: Date.now() };
+        await streamReply([...historySnapshot, userMsg]);
+        return;
+      }
+
       setMessages((m) => m.map((mm) => mm.id === assistantId
-        ? { ...mm, text: r.content || "No answer.", card: { kind: "sources", answer: r.content, citations: r.citations } }
+        ? { ...mm, text: r.content, card: { kind: "sources", answer: r.content, citations: r.citations, research: true } }
         : mm));
+
+      // Fire-and-forget: archive cited answer into intel_events. Never blocks UI.
+      void supabase.from("intel_events").insert({
+        mission_id: iris.current_mission_id,
+        event_type: "iris_research",
+        title: `Research: ${q.slice(0, 200)}`,
+        content: r.content,
+        output_type: "intel_card_candidate",
+        signal_category: "decision_intelligence",
+        source_type: "perplexity",
+        source_url: r.citations?.[0]?.url ?? null,
+        source_title: r.citations?.[0]?.domain ?? null,
+        source_published_at: new Date().toISOString(),
+        extracted_summary: r.content.slice(0, 500),
+        iris_recommendation: `Surfaced via Research Mode query: ${q.slice(0, 100)}`,
+        tags: (r.citations ?? []).slice(0, 10).map((c) => c.url),
+        routing_status: "unreviewed",
+        relevance_score: 75,
+        confidence_score: 85,
+        confidence: "medium",
+        generated_by: "iris-perplexity",
+      } as never).then(({ error }) => {
+        if (error) console.log("[Research Mode] intel_events write failed:", error.message);
+      });
     } catch (e) {
-      setMessages((m) => m.map((mm) => mm.id === assistantId
-        ? { ...mm, text: `Source search failed: ${(e as Error).message}` }
-        : mm));
+      window.clearInterval(phaseTimer);
+      setMessages((m) => m.filter((mm) => mm.id !== assistantId));
+      const userMsg: Msg = { id: crypto.randomUUID(), role: "user", text: q, at: Date.now() };
+      try {
+        await streamReply([...historySnapshot, userMsg]);
+      } catch {
+        console.log("[Research Mode] fallback also failed", e);
+      }
     } finally {
+      window.clearInterval(phaseTimer);
       setStreaming(false);
     }
   };
@@ -514,6 +593,7 @@ export function AskIrisPanel() {
             <ConversationState
               messages={messages}
               waitingFirstToken={waitingFirstToken && streaming}
+              researchLoader={mode === "research" && streaming ? RESEARCH_LOADER_MESSAGES[researchPhase] : null}
               onBack={clearConversation}
               onNavigate={navigateTo}
               onOpenInThread={(draft) => {
@@ -554,27 +634,56 @@ export function AskIrisPanel() {
               }}
             />
             <button
-              onClick={() => runAskWithSources(input)}
-              disabled={streaming || !input.trim()}
-              className="h-8 w-8 inline-flex items-center justify-center rounded-full disabled:opacity-50"
-              style={{ background: "rgba(255,255,255,0.08)", border: "0.5px solid rgba(127,119,221,0.4)", color: "white" }}
-              title="Ask with live sources (Perplexity)"
-            >
-              <Globe className="h-4 w-4" />
-            </button>
-            <button
               onClick={() => send(input)}
               disabled={streaming || !input.trim()}
               className="h-8 w-8 inline-flex items-center justify-center rounded-full disabled:opacity-50"
-              style={{ background: "rgba(127,119,221,0.8)", color: "white" }}
-              title="Send"
+              style={{
+                background: mode === "research" ? GOLD : "rgba(127,119,221,0.8)",
+                color: mode === "research" ? "#0D1B3E" : "white",
+              }}
+              title={mode === "research" ? "Search live sources (Research)" : "Send (Quick)"}
             >
-              <Send className="h-4 w-4" />
+              {mode === "research" ? <Globe className="h-4 w-4" /> : <Send className="h-4 w-4" />}
             </button>
           </div>
-          <div className="text-[10px] text-white/35 mt-1.5">Shift+Enter for newline · ` to toggle · Globe or /sources for cited answers</div>
+
+          {/* Mode toggle pills */}
+          <div className="flex items-center gap-1.5 mt-2">
+            <button
+              type="button"
+              onClick={() => setMode("quick")}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition"
+              style={{
+                background: mode === "quick" ? "rgba(127,119,221,0.18)" : "rgba(255,255,255,0.04)",
+                border: mode === "quick" ? `0.5px solid ${IRIS_BORDER}` : "0.5px solid rgba(255,255,255,0.08)",
+                color: mode === "quick" ? "white" : "rgba(255,255,255,0.55)",
+              }}
+              title="Fast answers from IRIS (no live web search)"
+            >
+              <span aria-hidden>⚡</span> Quick
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("research")}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition"
+              style={{
+                background: mode === "research" ? "rgba(196,154,43,0.18)" : "rgba(255,255,255,0.04)",
+                border: mode === "research" ? `0.5px solid ${GOLD}66` : "0.5px solid rgba(255,255,255,0.08)",
+                color: mode === "research" ? GOLD : "rgba(255,255,255,0.55)",
+              }}
+              title="Searches live sources including CMS, KFF, MACPAC, and state Medicaid sites. Returns cited answers."
+            >
+              <span aria-hidden>🔍</span> Research
+            </button>
+            <div className="ml-auto text-[10px] text-white/35">
+              {mode === "research"
+                ? "Cited live web intelligence · 3–8s"
+                : "Shift+Enter for newline · ` to toggle"}
+            </div>
+          </div>
         </div>
       </div>
+
 
       {/* Inline overlays kept simple as small popovers via the existing modals */}
       <PostUpdateOverlay
@@ -663,6 +772,7 @@ function ActionCard({ icon, label, sub, onClick, danger }: { icon: ReactNode; la
 function ConversationState(props: {
   messages: Msg[];
   waitingFirstToken: boolean;
+  researchLoader: string | null;
   onBack: () => void;
   onNavigate: (href: string) => void;
   onOpenInThread: (draft: string) => void;
@@ -673,7 +783,16 @@ function ConversationState(props: {
       {props.messages.map((m) => (
         <MessageRow key={m.id} m={m} onNavigate={props.onNavigate} onOpenInThread={props.onOpenInThread} />
       ))}
-      {props.waitingFirstToken && (
+      {props.researchLoader && (
+        <div
+          className="flex items-center gap-2 rounded-md px-3 py-2 text-[12px]"
+          style={{ background: "rgba(196,154,43,0.06)", border: `0.5px solid ${GOLD}55`, color: GOLD }}
+        >
+          <Globe className="h-3.5 w-3.5 animate-pulse" />
+          <span className="text-white/85">{props.researchLoader}</span>
+        </div>
+      )}
+      {props.waitingFirstToken && !props.researchLoader && (
         <div className="flex gap-1 items-center pl-2">
           <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: IRIS, animationDelay: "0ms" }} />
           <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: IRIS, animationDelay: "150ms" }} />
@@ -796,33 +915,72 @@ function IntelCardView({ card, onNavigate }: { card: Extract<CardKind, { kind: "
 }
 
 function SourcesCardView({ card }: { card: Extract<CardKind, { kind: "sources" }> }) {
-  if (!card.citations.length) return null;
+  const [expanded, setExpanded] = useState(false);
+  if (!card.citations.length) {
+    return card.research ? <ResearchBadge /> : null;
+  }
+  const MAX = 6;
+  const visible = expanded ? card.citations : card.citations.slice(0, MAX);
+  const overflow = card.citations.length - MAX;
   return (
     <div className="mt-2">
-      <div className="text-[10px] uppercase tracking-wider mb-1.5 inline-flex items-center gap-1" style={{ color: IRIS }}>
-        <Globe className="h-3 w-3" /> Live sources ({card.citations.length})
+      {card.research && <ResearchBadge />}
+      <div
+        className="my-2 flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-white/45"
+        aria-hidden
+      >
+        <span className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />
+        Sources
+        <span className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />
       </div>
       <ul className="space-y-1.5">
-        {card.citations.map((c, i) => (
+        {visible.map((c, i) => (
           <li key={i}>
             <a
               href={c.url}
               target="_blank"
-              rel="noreferrer"
-              className="block text-[11px] rounded p-2 border hover:bg-white/5"
-              style={{ borderColor: "rgba(127,119,221,0.25)" }}
+              rel="noopener noreferrer"
+              className="block text-[11px] rounded-md p-2 border hover:bg-white/5 transition"
+              style={{ borderColor: "rgba(127,119,221,0.25)", background: "rgba(0,0,0,0.2)" }}
             >
-              <div className="font-semibold text-white truncate inline-flex items-center gap-1">
-                {c.domain} <ExternalLink className="h-3 w-3 opacity-60" />
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="text-[10px] font-mono px-1.5 py-0.5 rounded"
+                  style={{ background: "rgba(127,119,221,0.15)", color: "rgba(255,255,255,0.85)" }}
+                >
+                  {c.domain}
+                </span>
+                <ExternalLink className="h-3 w-3 text-white/40" />
               </div>
-              <div className="text-white/45 truncate">{c.url}</div>
+              <div className="text-white/65 truncate mt-1">{c.url}</div>
             </a>
           </li>
         ))}
       </ul>
+      {!expanded && overflow > 0 && (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="mt-1.5 text-[11px] text-white/55 hover:text-white"
+        >
+          View all {card.citations.length} sources →
+        </button>
+      )}
     </div>
   );
 }
+
+function ResearchBadge() {
+  return (
+    <div
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold mb-1"
+      style={{ background: "rgba(196,154,43,0.15)", color: GOLD, border: `0.5px solid ${GOLD}55` }}
+    >
+      <span aria-hidden>🔍</span> IRIS Research
+    </div>
+  );
+}
+
 
 function fmtTime(at: number) {
   return new Date(at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
