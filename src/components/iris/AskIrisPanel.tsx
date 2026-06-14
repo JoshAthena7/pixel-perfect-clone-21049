@@ -74,6 +74,7 @@ const proactiveFiredFor = new Set<string>();
 export function AskIrisPanel() {
   const iris = useIris();
   const navigate = useNavigate();
+  const askWithSourcesFn = useServerFn(askIrisWithSources);
   const [state, setState] = useState<PanelState>(() => loadPanelState());
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
