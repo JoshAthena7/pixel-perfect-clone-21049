@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { refreshIrisAllForMission } from "@/lib/iris-refresh-all-for-mission.functions";
+import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 import { getIrisPipelineStatus, getIrisWiringSnapshot } from "@/lib/iris-health.functions";
 import {
   RefreshCw,
@@ -310,8 +311,15 @@ function IrisControlPage() {
   }, [filtered, missionId]);
 
   const refreshFn = useServerFn(refreshIrisAllForMission);
+  const seedFn = useServerFn(seedMissionIntelligence);
   const mutation = useMutation({
-    mutationFn: () => refreshFn({ data: { missionId } }),
+    mutationFn: () => {
+      // Fire-and-forget force re-seed (re-runs the people/orgs population stage).
+      seedFn({ data: { missionId, force: true } }).catch((e) =>
+        console.log("[iris-control] force seed failed", e),
+      );
+      return refreshFn({ data: { missionId } });
+    },
     onSuccess: (res) => {
       toast.success(
         `IRIS refresh complete — ${res.summary.succeeded}/${res.summary.total} tasks ok`,

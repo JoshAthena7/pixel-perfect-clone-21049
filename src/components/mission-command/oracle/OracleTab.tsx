@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useAccess";
 import { AskIrisButton } from "@/components/iris/AskIrisButton";
@@ -9,6 +10,7 @@ import { IntelPeople } from "./IntelPeople";
 import { IntelOrganizations } from "./IntelOrganizations";
 import { IntelSources } from "./IntelSources";
 import { OracleGraph } from "./OracleGraph";
+import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 
 const GOLD = "#C49A2B";
 
@@ -89,6 +91,28 @@ export function OracleTab({ missionId }: { missionId: string }) {
     if (counts.rels > 0) pct += 20;
     return pct;
   })();
+
+  // Auto-recover: if events were seeded before the people/orgs cascade existed,
+  // fire a one-shot force re-seed in the background to populate them.
+  const qc = useQueryClient();
+  const seedFn = useServerFn(seedMissionIntelligence);
+  const autoSeededRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!counts) return;
+    if (autoSeededRef.current.has(missionId)) return;
+    if (counts.events > 0 && counts.people === 0 && counts.orgs === 0) {
+      autoSeededRef.current.add(missionId);
+      seedFn({ data: { missionId, force: true } })
+        .then((res) => {
+          if (res?.ok) {
+            qc.invalidateQueries({ queryKey: ["intel-counts", missionId] });
+            qc.invalidateQueries({ queryKey: ["intel-people", missionId] });
+            qc.invalidateQueries({ queryKey: ["intel-orgs", missionId] });
+          }
+        })
+        .catch((e) => console.log("[oracle-tab] auto re-seed failed", e));
+    }
+  }, [counts, missionId, seedFn, qc]);
 
   const clientLabel = mission?.client_name ?? mission?.agency_name ?? mission?.name ?? "this mission";
   const subtitle = mission?.program_type

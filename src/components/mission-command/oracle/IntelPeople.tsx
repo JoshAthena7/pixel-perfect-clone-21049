@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Plus, X } from "lucide-react";
+import { Loader2, Plus, X, Sparkles } from "lucide-react";
 import { upsertIntelPerson } from "@/lib/intel-people-upsert.functions";
+import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 
 const GOLD = "#C49A2B";
 
@@ -52,7 +53,7 @@ export function IntelPeople({ missionId }: { missionId: string }) {
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="h-5 w-5 animate-spin text-white/40" /></div>
       ) : people.length === 0 ? (
-        <EmptyState onAdd={() => setShowAdd(true)} />
+        <EmptyState missionId={missionId} onAdd={() => setShowAdd(true)} onSeeded={() => qc.invalidateQueries({ queryKey: ["intel-people", missionId] })} />
       ) : (
         <div className="space-y-6">
           {ROLE_GROUPS.map((g) => {
@@ -137,11 +138,35 @@ function Badge({ label }: { label: string }) {
   );
 }
 
-function EmptyState({ onAdd }: { onAdd: () => void }) {
+function EmptyState({ missionId, onAdd, onSeeded }: { missionId: string; onAdd: () => void; onSeeded: () => void }) {
+  const seedFn = useServerFn(seedMissionIntelligence);
+  const [seeding, setSeeding] = useState(false);
+  const generate = async () => {
+    setSeeding(true);
+    try {
+      await seedFn({ data: { missionId, force: true } });
+      onSeeded();
+    } catch (e) {
+      console.log("[intel-people] generate failed", e);
+    } finally {
+      setSeeding(false);
+    }
+  };
   return (
     <div className="rounded-lg py-12 text-center" style={{ background: "rgba(5,13,24,0.4)", border: "1px dashed rgba(255,255,255,0.1)" }}>
       <div className="text-sm text-white/60">No people captured yet.</div>
-      <button onClick={onAdd} className="mt-3 text-xs underline" style={{ color: GOLD }}>Add your first person</button>
+      <div className="mt-3 flex items-center justify-center gap-3">
+        <button
+          onClick={generate}
+          disabled={seeding}
+          className="inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-xs disabled:opacity-50"
+          style={{ background: "rgba(196,154,43,0.12)", color: GOLD, border: "0.5px solid rgba(196,154,43,0.3)" }}
+        >
+          {seeding ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+          {seeding ? "Generating…" : "Generate with IRIS"}
+        </button>
+        <button onClick={onAdd} className="text-xs underline" style={{ color: GOLD }}>Add manually</button>
+      </div>
     </div>
   );
 }
