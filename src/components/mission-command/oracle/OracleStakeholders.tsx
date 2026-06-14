@@ -2,9 +2,19 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ErrorBanner, EmptyState, SkeletonList, OlympusLink } from "./OracleShared";
-import type { Database } from "@/integrations/supabase/types";
 
-type Profile = Database["public"]["Tables"]["stakeholder_profiles"]["Row"];
+type Person = {
+  id: string;
+  mission_id: string;
+  name: string | null;
+  title: string | null;
+  organization: string | null;
+  role_type: string;
+  influence_level: string | null;
+  relationship_stance: string | null;
+  notes: string | null;
+  known_priorities: string[] | null;
+};
 
 type OracleCtx = {
   client: string | null;
@@ -13,21 +23,23 @@ type OracleCtx = {
   program: string | null;
 };
 
+// Oracle's Stakeholders view shows the canonical role types that count as
+// "stakeholders" in the strategic sense — drawn straight from intel_people.
+const ORACLE_ROLE_TYPES = ["decision_maker", "evaluator", "stakeholder", "advocate"];
+
 const BASE_TYPES = [
   { id: "all", label: "All" },
   { id: "evaluator", label: "Evaluator" },
-  { id: "influencer", label: "Influencer" },
-  { id: "advocacy", label: "Advocacy" },
-  { id: "legislative", label: "Legislative" },
-  { id: "federal", label: "Federal" },
+  { id: "decision_maker", label: "Decision Maker" },
+  { id: "stakeholder", label: "Stakeholder" },
+  { id: "advocate", label: "Advocate" },
 ];
 
-const CONFIDENCE_RANK: Record<string, number> = { high: 3, medium: 2, inferred: 1, low: 0 };
-const CONFIDENCE_LABEL: Record<string, { label: string; color: string }> = {
-  high: { label: "High confidence", color: "#7DCF7D" },
-  medium: { label: "Medium confidence", color: "#EF9F27" },
-  inferred: { label: "Inferred", color: "rgba(140,130,230,0.9)" },
-  low: { label: "Low", color: "rgba(255,255,255,0.4)" },
+const STANCE_COLOR: Record<string, string> = {
+  ally: "#7DCF7D",
+  neutral: "rgba(255,255,255,0.5)",
+  unknown: "rgba(140,130,230,0.9)",
+  hostile: "#E04A4A",
 };
 
 export function OracleStakeholders({ missionId, isAdmin, ctx }: { missionId: string; isAdmin: boolean; ctx?: OracleCtx }) {
@@ -37,35 +49,27 @@ export function OracleStakeholders({ missionId, isAdmin, ctx }: { missionId: str
     if (!agencyTag) return t;
     if (t.id === "all") return { ...t, label: `All ${agencyTag}` };
     if (t.id === "evaluator") return { ...t, label: `${agencyTag} Evaluators` };
-    if (t.id === "influencer") return { ...t, label: `${agencyTag} Influencers` };
-    if (t.id === "advocacy") return { ...t, label: "Advocacy" };
-    if (t.id === "legislative") return { ...t, label: "Legislative" };
-    if (t.id === "federal") return { ...t, label: "Federal" };
     return t;
   });
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["oracle-ro-stakeholders", missionId],
+    queryKey: ["oracle-stakeholders", missionId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("stakeholder_profiles")
-        .select("*")
-        .eq("mission_id", missionId);
+      const { data, error } = await (supabase as any)
+        .from("intel_people")
+        .select("id,mission_id,name,title,organization,role_type,influence_level,relationship_stance,notes,known_priorities")
+        .eq("mission_id", missionId)
+        .in("role_type", ORACLE_ROLE_TYPES);
       if (error) throw error;
-      return (data ?? []) as Profile[];
+      return (data ?? []) as Person[];
     },
     staleTime: 60_000,
   });
 
   const filtered = useMemo(() => {
     const list = data ?? [];
-    const f = type === "all" ? list : list.filter((s) => (s.stakeholder_type ?? "").toLowerCase() === type);
-    return [...f].sort((a, b) => {
-      const ar = CONFIDENCE_RANK[(a.iris_confidence ?? "").toLowerCase()] ?? 0;
-      const br = CONFIDENCE_RANK[(b.iris_confidence ?? "").toLowerCase()] ?? 0;
-      if (br !== ar) return br - ar;
-      return (a.stakeholder_type ?? "").localeCompare(b.stakeholder_type ?? "");
-    });
+    const f = type === "all" ? list : list.filter((s) => s.role_type === type);
+    return [...f].sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
   }, [data, type]);
 
   if (isError) return <ErrorBanner>Could not load this intelligence. Try refreshing.</ErrorBanner>;
@@ -100,7 +104,7 @@ export function OracleStakeholders({ missionId, isAdmin, ctx }: { missionId: str
       {isLoading ? (
         <SkeletonList count={2} />
       ) : filtered.length === 0 ? (
-        <EmptyState>{agencyTag ? `No stakeholder profiles for ${agencyTag} yet. Add them in Olympus.` : "No stakeholder profiles configured. Add them in Olympus."}</EmptyState>
+        <EmptyState>{agencyTag ? `No stakeholders for ${agencyTag} yet. Add them in Olympus.` : "No stakeholders configured. Add them in Olympus."}</EmptyState>
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {filtered.map((s) => (
@@ -110,7 +114,7 @@ export function OracleStakeholders({ missionId, isAdmin, ctx }: { missionId: str
       )}
 
       <div className="italic text-center pt-2" style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>
-        Stakeholder profiles built by IRIS from public record. Configured and enriched in Olympus.
+        Stakeholders are the canonical contact set from Intelligence → People. Add or edit in Olympus.
       </div>
     </div>
   );
@@ -121,8 +125,9 @@ function initials(name: string) {
   return ((parts[0]?.[0] ?? "") + (parts[parts.length - 1]?.[0] ?? "")).toUpperCase() || "?";
 }
 
-function StakeholderCard({ profile }: { profile: Profile }) {
-  const conf = CONFIDENCE_LABEL[(profile.iris_confidence ?? "").toLowerCase()];
+function StakeholderCard({ profile }: { profile: Person }) {
+  const stance = profile.relationship_stance ?? null;
+  const stanceColor = stance ? STANCE_COLOR[stance] ?? "rgba(255,255,255,0.5)" : null;
   return (
     <div
       className="rounded-lg p-3"
@@ -146,7 +151,7 @@ function StakeholderCard({ profile }: { profile: Profile }) {
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="text-white truncate" style={{ fontSize: 13, fontWeight: 500 }}>
-                {profile.name}
+                {profile.name ?? "Unnamed"}
               </div>
               <div className="truncate" style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
                 {profile.title ?? ""}
@@ -154,61 +159,40 @@ function StakeholderCard({ profile }: { profile: Profile }) {
               </div>
             </div>
             <div className="flex flex-col items-end gap-1 shrink-0">
-              {profile.stakeholder_type && (
-                <span
-                  className="rounded"
-                  style={{
-                    padding: "1px 6px",
-                    fontSize: 9,
-                    background: "rgba(255,255,255,0.06)",
-                    color: "rgba(255,255,255,0.6)",
-                  }}
-                >
-                  {profile.stakeholder_type}
-                </span>
-              )}
-              {conf && (
+              <span
+                className="rounded"
+                style={{
+                  padding: "1px 6px",
+                  fontSize: 9,
+                  background: "rgba(255,255,255,0.06)",
+                  color: "rgba(255,255,255,0.6)",
+                  textTransform: "capitalize",
+                }}
+              >
+                {profile.role_type.replace(/_/g, " ")}
+              </span>
+              {stance && stanceColor && (
                 <span
                   className="rounded"
                   style={{
                     padding: "1px 6px",
                     fontSize: 9,
                     background: "rgba(255,255,255,0.04)",
-                    color: conf.color,
+                    color: stanceColor,
+                    textTransform: "capitalize",
                   }}
                 >
-                  {conf.label}
+                  {stance}
                 </span>
               )}
             </div>
           </div>
+          {profile.notes && (
+            <div className="mt-2" style={{ fontSize: 11, lineHeight: 1.5, color: "rgba(255,255,255,0.6)" }}>
+              {profile.notes}
+            </div>
+          )}
         </div>
-      </div>
-
-      <div className="grid gap-2 mt-3">
-        <SubCard label="Public Priorities" tone="green">
-          {profile.public_priorities || <span className="italic">Not yet profiled.</span>}
-        </SubCard>
-        <SubCard label="Known Concerns" tone="amber">
-          {profile.known_concerns || <span className="italic">Not yet profiled.</span>}
-        </SubCard>
-      </div>
-    </div>
-  );
-}
-
-function SubCard({ label, tone, children }: { label: string; tone: "green" | "amber"; children: React.ReactNode }) {
-  const palette =
-    tone === "green"
-      ? { bg: "rgba(125,207,125,0.05)", border: "rgba(125,207,125,0.18)", fg: "#7DCF7D" }
-      : { bg: "rgba(239,159,39,0.05)", border: "rgba(239,159,39,0.2)", fg: "#EF9F27" };
-  return (
-    <div className="rounded-md p-2" style={{ background: palette.bg, border: `1px solid ${palette.border}` }}>
-      <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.06em", color: palette.fg, fontWeight: 600 }}>
-        {label}
-      </div>
-      <div className="mt-1" style={{ fontSize: 11, lineHeight: 1.5, color: "rgba(255,255,255,0.65)" }}>
-        {children}
       </div>
     </div>
   );
