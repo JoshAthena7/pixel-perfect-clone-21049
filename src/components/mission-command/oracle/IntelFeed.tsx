@@ -211,7 +211,42 @@ export function IntelFeed({ missionId }: { missionId: string }) {
         <Stat label="This Week" value={stats.recent} />
         <Stat label="IRIS Generated" value={stats.iris} />
         <Stat label="Human Added" value={stats.human} />
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={async () => {
+              if (seeding) return;
+              setSeeding(true);
+              try {
+                const res = await seedFn({ data: { missionId, force: true } });
+                if (res?.inserted || (res as any)?.cascadeInserted) {
+                  toast.success(
+                    `IRIS generated ${res?.inserted ?? 0} + ${(res as any)?.cascadeInserted ?? 0} cascade events`,
+                  );
+                } else {
+                  toast.message("IRIS refresh complete");
+                }
+                qc.invalidateQueries({ queryKey: ["intel-events", missionId] });
+                qc.invalidateQueries({ queryKey: ["intel-counts", missionId] });
+              } catch (e) {
+                console.log("[intel-feed] refresh failed", e);
+                toast.error("IRIS refresh failed");
+              } finally {
+                setSeeding(false);
+              }
+            }}
+            disabled={seeding}
+            className="inline-flex items-center gap-1.5 rounded-full transition-colors disabled:opacity-50"
+            style={{
+              padding: "5px 12px",
+              fontSize: 11,
+              color: GOLD,
+              background: "rgba(196,154,43,0.1)",
+              border: "0.5px solid rgba(196,154,43,0.3)",
+            }}
+          >
+            {seeding ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+            Refresh IRIS
+          </button>
           <button
             onClick={() => setAddOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-full transition-colors"
@@ -226,6 +261,7 @@ export function IntelFeed({ missionId }: { missionId: string }) {
             <Plus className="h-3 w-3" /> Add Intel
           </button>
         </div>
+
       </div>
 
       <div className="flex flex-wrap gap-2">
