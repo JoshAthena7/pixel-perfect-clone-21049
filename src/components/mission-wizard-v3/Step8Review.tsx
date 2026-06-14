@@ -114,6 +114,12 @@ export function Step8Review({
       }
       const { error: upErr } = await supabase.from("missions").update(updates).eq("id", missionId);
       if (upErr) throw upErr;
+      // Fire-and-forget IRIS historical launch brief generation.
+      try {
+        void triggerLaunchBrief({ data: { missionId } });
+      } catch (e) {
+        console.error("[launch-brief] trigger error", e);
+      }
       qc.invalidateQueries({ queryKey: ["mission-meta", missionId] });
       navigate({ to: "/missions/$missionId/briefing", params: { missionId } });
     } catch (e) {
