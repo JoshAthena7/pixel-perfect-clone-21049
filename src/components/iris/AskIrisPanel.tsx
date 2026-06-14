@@ -27,7 +27,10 @@ import {
   AlertTriangle,
   Copy,
   ExternalLink,
+  Globe,
 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { askIrisWithSources } from "@/lib/iris/perplexity.functions";
 import ReactMarkdown from "react-markdown";
 import { IrisMark } from "@/components/iris/IrisMark";
 import { useIris, getPageLabel } from "@/components/iris/IrisContext";
@@ -42,7 +45,8 @@ type CardKind =
   | { kind: "draft"; draft: string }
   | { kind: "score"; total: number; breakdown: Array<{ label: string; score: number; max: number }>; gaps: string[]; detail: string }
   | { kind: "risks"; items: Array<{ label: string; detail: string; href: string }> }
-  | { kind: "intel"; items: Array<{ headline: string; url: string | null; assessment: string | null; href: string }> };
+  | { kind: "intel"; items: Array<{ headline: string; url: string | null; assessment: string | null; href: string }> }
+  | { kind: "sources"; answer: string; citations: Array<{ url: string; domain: string }> };
 
 type Msg = {
   id: string;
@@ -70,6 +74,7 @@ const proactiveFiredFor = new Set<string>();
 export function AskIrisPanel() {
   const iris = useIris();
   const navigate = useNavigate();
+  const askWithSourcesFn = useServerFn(askIrisWithSources);
   const [state, setState] = useState<PanelState>(() => loadPanelState());
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -195,6 +200,7 @@ export function AskIrisPanel() {
     const text = raw.trim();
     if (!text || streaming) return;
 
+    if (/^\/(sources|web|cite)\b/i.test(text)) return runAskWithSources(text.replace(/^\/(sources|web|cite)\s*/i, ""));
     if (/^score (my|this) draft/i.test(text)) return runScore(text);
     if (/^draft (a |the )?response/i.test(text)) return runDraft(text);
     if (/(what'?s|whats|what is).*at risk|risk(s)? right now/i.test(text)) return runRisks(text);
@@ -207,6 +213,31 @@ export function AskIrisPanel() {
     setMessages((m) => [...m, userMsg]);
     setInput("");
     await streamReply([...messages, userMsg]);
+  };
+
+  const runAskWithSources = async (query: string) => {
+    const q = query.trim();
+    if (!q) {
+      toast.info("Type a question after /sources to search with citations.");
+      return;
+    }
+    setMessages((m) => [...m, { id: crypto.randomUUID(), role: "user", text: q, at: Date.now() }]);
+    setInput("");
+    const assistantId = crypto.randomUUID();
+    setMessages((m) => [...m, { id: assistantId, role: "assistant", text: "Searching live sources…", at: Date.now() }]);
+    setStreaming(true);
+    try {
+      const r = await askWithSourcesFn({ data: { query: q } });
+      setMessages((m) => m.map((mm) => mm.id === assistantId
+        ? { ...mm, text: r.content || "No answer.", card: { kind: "sources", answer: r.content, citations: r.citations } }
+        : mm));
+    } catch (e) {
+      setMessages((m) => m.map((mm) => mm.id === assistantId
+        ? { ...mm, text: `Source search failed: ${(e as Error).message}` }
+        : mm));
+    } finally {
+      setStreaming(false);
+    }
   };
 
   const streamReply = async (history: Msg[]) => {
@@ -523,6 +554,15 @@ export function AskIrisPanel() {
               }}
             />
             <button
+              onClick={() => runAskWithSources(input)}
+              disabled={streaming || !input.trim()}
+              className="h-8 w-8 inline-flex items-center justify-center rounded-full disabled:opacity-50"
+              style={{ background: "rgba(255,255,255,0.08)", border: "0.5px solid rgba(127,119,221,0.4)", color: "white" }}
+              title="Ask with live sources (Perplexity)"
+            >
+              <Globe className="h-4 w-4" />
+            </button>
+            <button
               onClick={() => send(input)}
               disabled={streaming || !input.trim()}
               className="h-8 w-8 inline-flex items-center justify-center rounded-full disabled:opacity-50"
@@ -532,7 +572,7 @@ export function AskIrisPanel() {
               <Send className="h-4 w-4" />
             </button>
           </div>
-          <div className="text-[10px] text-white/35 mt-1.5">Shift+Enter for new line · Press ` to toggle</div>
+          <div className="text-[10px] text-white/35 mt-1.5">Shift+Enter for newline · ` to toggle · Globe or /sources for cited answers</div>
         </div>
       </div>
 
@@ -671,6 +711,7 @@ function MessageRow({ m, onNavigate, onOpenInThread }: { m: Msg; onNavigate: (h:
         {m.card?.kind === "score" && <ScoreCardView card={m.card} />}
         {m.card?.kind === "risks" && <RiskCardView card={m.card} onNavigate={onNavigate} />}
         {m.card?.kind === "intel" && <IntelCardView card={m.card} onNavigate={onNavigate} />}
+        {m.card?.kind === "sources" && <SourcesCardView card={m.card} />}
         <div className="text-[10px] text-white/35 mt-1">{fmtTime(m.at)}</div>
       </div>
     </div>
@@ -751,6 +792,35 @@ function IntelCardView({ card, onNavigate }: { card: Extract<CardKind, { kind: "
         </li>
       ))}
     </ul>
+  );
+}
+
+function SourcesCardView({ card }: { card: Extract<CardKind, { kind: "sources" }> }) {
+  if (!card.citations.length) return null;
+  return (
+    <div className="mt-2">
+      <div className="text-[10px] uppercase tracking-wider mb-1.5 inline-flex items-center gap-1" style={{ color: IRIS }}>
+        <Globe className="h-3 w-3" /> Live sources ({card.citations.length})
+      </div>
+      <ul className="space-y-1.5">
+        {card.citations.map((c, i) => (
+          <li key={i}>
+            <a
+              href={c.url}
+              target="_blank"
+              rel="noreferrer"
+              className="block text-[11px] rounded p-2 border hover:bg-white/5"
+              style={{ borderColor: "rgba(127,119,221,0.25)" }}
+            >
+              <div className="font-semibold text-white truncate inline-flex items-center gap-1">
+                {c.domain} <ExternalLink className="h-3 w-3 opacity-60" />
+              </div>
+              <div className="text-white/45 truncate">{c.url}</div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
