@@ -15,8 +15,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "team", label: "Team" },
   { id: "journey", label: "Journey" },
-  { id: "compliance", label: "Compliance" },
-  { id: "reports", label: "Reports" },
 ];
 
 type Mission = {
