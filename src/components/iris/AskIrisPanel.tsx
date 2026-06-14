@@ -200,6 +200,7 @@ export function AskIrisPanel() {
     const text = raw.trim();
     if (!text || streaming) return;
 
+    if (/^\/(sources|web|cite)\b/i.test(text)) return runAskWithSources(text.replace(/^\/(sources|web|cite)\s*/i, ""));
     if (/^score (my|this) draft/i.test(text)) return runScore(text);
     if (/^draft (a |the )?response/i.test(text)) return runDraft(text);
     if (/(what'?s|whats|what is).*at risk|risk(s)? right now/i.test(text)) return runRisks(text);
@@ -212,6 +213,31 @@ export function AskIrisPanel() {
     setMessages((m) => [...m, userMsg]);
     setInput("");
     await streamReply([...messages, userMsg]);
+  };
+
+  const runAskWithSources = async (query: string) => {
+    const q = query.trim();
+    if (!q) {
+      toast.info("Type a question after /sources to search with citations.");
+      return;
+    }
+    setMessages((m) => [...m, { id: crypto.randomUUID(), role: "user", text: q, at: Date.now() }]);
+    setInput("");
+    const assistantId = crypto.randomUUID();
+    setMessages((m) => [...m, { id: assistantId, role: "assistant", text: "Searching live sources…", at: Date.now() }]);
+    setStreaming(true);
+    try {
+      const r = await askWithSourcesFn({ data: { query: q } });
+      setMessages((m) => m.map((mm) => mm.id === assistantId
+        ? { ...mm, text: r.content || "No answer.", card: { kind: "sources", answer: r.content, citations: r.citations } }
+        : mm));
+    } catch (e) {
+      setMessages((m) => m.map((mm) => mm.id === assistantId
+        ? { ...mm, text: `Source search failed: ${(e as Error).message}` }
+        : mm));
+    } finally {
+      setStreaming(false);
+    }
   };
 
   const streamReply = async (history: Msg[]) => {
