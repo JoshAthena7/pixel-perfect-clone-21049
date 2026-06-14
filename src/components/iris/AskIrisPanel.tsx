@@ -772,6 +772,7 @@ function ActionCard({ icon, label, sub, onClick, danger }: { icon: ReactNode; la
 function ConversationState(props: {
   messages: Msg[];
   waitingFirstToken: boolean;
+  researchLoader: string | null;
   onBack: () => void;
   onNavigate: (href: string) => void;
   onOpenInThread: (draft: string) => void;
@@ -782,7 +783,16 @@ function ConversationState(props: {
       {props.messages.map((m) => (
         <MessageRow key={m.id} m={m} onNavigate={props.onNavigate} onOpenInThread={props.onOpenInThread} />
       ))}
-      {props.waitingFirstToken && (
+      {props.researchLoader && (
+        <div
+          className="flex items-center gap-2 rounded-md px-3 py-2 text-[12px]"
+          style={{ background: "rgba(196,154,43,0.06)", border: `0.5px solid ${GOLD}55`, color: GOLD }}
+        >
+          <Globe className="h-3.5 w-3.5 animate-pulse" />
+          <span className="text-white/85">{props.researchLoader}</span>
+        </div>
+      )}
+      {props.waitingFirstToken && !props.researchLoader && (
         <div className="flex gap-1 items-center pl-2">
           <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: IRIS, animationDelay: "0ms" }} />
           <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: IRIS, animationDelay: "150ms" }} />
