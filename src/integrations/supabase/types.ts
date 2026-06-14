@@ -7413,6 +7413,7 @@ export type Database = {
           contract_value: number | null
           created_at: string
           created_by: string | null
+          debrief_completed: boolean
           executive_intelligence: Json | null
           health_score: number | null
           id: string
@@ -7460,6 +7461,7 @@ export type Database = {
           contract_value?: number | null
           created_at?: string
           created_by?: string | null
+          debrief_completed?: boolean
           executive_intelligence?: Json | null
           health_score?: number | null
           id?: string
@@ -7507,6 +7509,7 @@ export type Database = {
           contract_value?: number | null
           created_at?: string
           created_by?: string | null
+          debrief_completed?: boolean
           executive_intelligence?: Json | null
           health_score?: number | null
           id?: string
@@ -7710,6 +7713,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "oracle_knowledge_base_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oracle_mission_outcomes: {
+        Row: {
+          competitor_observations: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          mission_id: string | null
+          outcome: string | null
+          outcome_factor: string | null
+          top_lesson: string | null
+          win_theme_notes: string | null
+        }
+        Insert: {
+          competitor_observations?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          mission_id?: string | null
+          outcome?: string | null
+          outcome_factor?: string | null
+          top_lesson?: string | null
+          win_theme_notes?: string | null
+        }
+        Update: {
+          competitor_observations?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          mission_id?: string | null
+          outcome?: string | null
+          outcome_factor?: string | null
+          top_lesson?: string | null
+          win_theme_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_mission_outcomes_mission_id_fkey"
             columns: ["mission_id"]
             isOneToOne: false
             referencedRelation: "missions"
