@@ -633,27 +633,56 @@ export function AskIrisPanel() {
               }}
             />
             <button
-              onClick={() => runAskWithSources(input)}
-              disabled={streaming || !input.trim()}
-              className="h-8 w-8 inline-flex items-center justify-center rounded-full disabled:opacity-50"
-              style={{ background: "rgba(255,255,255,0.08)", border: "0.5px solid rgba(127,119,221,0.4)", color: "white" }}
-              title="Ask with live sources (Perplexity)"
-            >
-              <Globe className="h-4 w-4" />
-            </button>
-            <button
               onClick={() => send(input)}
               disabled={streaming || !input.trim()}
               className="h-8 w-8 inline-flex items-center justify-center rounded-full disabled:opacity-50"
-              style={{ background: "rgba(127,119,221,0.8)", color: "white" }}
-              title="Send"
+              style={{
+                background: mode === "research" ? GOLD : "rgba(127,119,221,0.8)",
+                color: mode === "research" ? "#0D1B3E" : "white",
+              }}
+              title={mode === "research" ? "Search live sources (Research)" : "Send (Quick)"}
             >
-              <Send className="h-4 w-4" />
+              {mode === "research" ? <Globe className="h-4 w-4" /> : <Send className="h-4 w-4" />}
             </button>
           </div>
-          <div className="text-[10px] text-white/35 mt-1.5">Shift+Enter for newline · ` to toggle · Globe or /sources for cited answers</div>
+
+          {/* Mode toggle pills */}
+          <div className="flex items-center gap-1.5 mt-2">
+            <button
+              type="button"
+              onClick={() => setMode("quick")}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition"
+              style={{
+                background: mode === "quick" ? "rgba(127,119,221,0.18)" : "rgba(255,255,255,0.04)",
+                border: mode === "quick" ? `0.5px solid ${IRIS_BORDER}` : "0.5px solid rgba(255,255,255,0.08)",
+                color: mode === "quick" ? "white" : "rgba(255,255,255,0.55)",
+              }}
+              title="Fast answers from IRIS (no live web search)"
+            >
+              <span aria-hidden>⚡</span> Quick
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("research")}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition"
+              style={{
+                background: mode === "research" ? "rgba(196,154,43,0.18)" : "rgba(255,255,255,0.04)",
+                border: mode === "research" ? `0.5px solid ${GOLD}66` : "0.5px solid rgba(255,255,255,0.08)",
+                color: mode === "research" ? GOLD : "rgba(255,255,255,0.55)",
+              }}
+              title="Searches live sources including CMS, KFF, MACPAC, and state Medicaid sites. Returns cited answers."
+            >
+              <span aria-hidden>🔍</span> Research
+            </button>
+            <div className="ml-auto text-[10px] text-white/35">
+              {mode === "research"
+                ? "Cited live web intelligence · 3–8s"
+                : "Shift+Enter for newline · ` to toggle"}
+            </div>
+          </div>
         </div>
       </div>
+
 
       {/* Inline overlays kept simple as small popovers via the existing modals */}
       <PostUpdateOverlay
