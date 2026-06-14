@@ -57,7 +57,7 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
     }
 
     // 2) Parallel context fetch
-    const [winRes, complianceRes, insightsRes, evalRes, missionRes] = await Promise.all([
+    const [winRes, complianceRes, insightsRes, evalRes, missionRes, winThemesActiveRes] = await Promise.all([
       supabase
         .from("mission_win_strategy")
         .select("north_star_message, central_claim, win_themes, things_to_avoid, discriminators")
