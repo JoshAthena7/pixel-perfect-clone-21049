@@ -374,7 +374,11 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
     if (counts.questions === 0 && (previousQuestions?.length ?? 0) > 0) {
       if (newSectionIds.length > 0) await supabase.from("mission_sections").delete().in("id", newSectionIds);
       if (newVolumeIds.length > 0) await supabase.from("mission_volumes").delete().in("id", newVolumeIds);
-      throw new Error("IRIS did not write replacement questions, so existing questions and assignments were left unchanged.");
+      return {
+        ok: false,
+        counts: { volumes: 0, sections: 0, sub_sections: 0, questions: 0, compliance: 0, checklist: 0 },
+        disclaimer: "IRIS did not write replacement questions in this run. Your existing questions and assignments were left unchanged.",
+      };
     }
 
     await supabase
