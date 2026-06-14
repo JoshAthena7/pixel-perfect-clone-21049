@@ -262,7 +262,7 @@ function StateMap({ stateCode }: { stateCode?: string | null }) {
 }
 
 /* ───────────────── 2a. Today's Focus ───────────────── */
-function TodaysFocusCard({ missionId }: { missionId: string }) {
+function TodaysFocusCard({ missionId, mission }: { missionId: string; mission?: any }) {
   const { data: brief } = useQuery({
     queryKey: ["briefing-todays-focus", missionId],
     queryFn: async () => {
@@ -278,6 +278,11 @@ function TodaysFocusCard({ missionId }: { missionId: string }) {
   });
 
   const items = extractFocusItems(brief?.content, brief?.key_intelligence_summary);
+  const fallback = (mission?.today_focus ?? "").trim();
+  const fallbackItems = fallback
+    ? fallback.split(/\n+/).map((s: string) => s.trim()).filter(Boolean)
+    : [];
+  const finalItems = items.length > 0 ? items : fallbackItems;
   const time = brief?.created_at
     ? new Date(brief.created_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
     : null;
@@ -294,11 +299,11 @@ function TodaysFocusCard({ missionId }: { missionId: string }) {
           </div>
         )}
       </div>
-      {items.length === 0 ? (
-        <EmptyState>IRIS will generate today's focus items. Check back soon.</EmptyState>
+      {finalItems.length === 0 ? (
+        <EmptyState>IRIS will generate today's focus items. Check back soon, or add a manual focus note in mission settings.</EmptyState>
       ) : (
         <ol className="space-y-4">
-          {items.slice(0, 4).map((item, i) => (
+          {finalItems.slice(0, 4).map((item, i) => (
             <li key={i} className="flex gap-4">
               <span
                 className="shrink-0 grid place-items-center rounded-lg font-bold"
