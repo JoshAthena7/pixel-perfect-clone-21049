@@ -96,9 +96,10 @@ function AdminMissionsPage() {
             const dot = statusColor(b);
             const staff = counts[m.id] ?? 0;
             return (
-              <button
+              <div
                 key={m.id}
-                type="button"
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   if (b === "Draft") {
                     navigate({ to: "/olympus/wizard/$missionId", params: { missionId: m.id } });
@@ -106,7 +107,17 @@ function AdminMissionsPage() {
                     navigate({ to: "/admin/missions/$missionId", params: { missionId: m.id } });
                   }
                 }}
-                className="group w-full text-left rounded-lg px-4 py-3.5 flex items-center gap-4 transition-colors"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    if (b === "Draft") {
+                      navigate({ to: "/olympus/wizard/$missionId", params: { missionId: m.id } });
+                    } else {
+                      navigate({ to: "/admin/missions/$missionId", params: { missionId: m.id } });
+                    }
+                  }
+                }}
+                className="group w-full text-left rounded-lg px-4 py-3.5 flex items-center gap-4 transition-colors cursor-pointer"
                 style={{
                   background: "rgba(255,255,255,0.02)",
                   border: "1px solid rgba(255,255,255,0.06)",
