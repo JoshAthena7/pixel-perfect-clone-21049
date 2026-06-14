@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import { addManualIntelEvent } from "@/lib/intel-events-manual.functions";
 
 export function UpdateRealityDialog({ open, onOpenChange, missionId, onSent }: { open: boolean; onOpenChange: (v: boolean) => void; missionId: string | null; onSent: () => void }) {
   const [text, setText] = useState("");
@@ -35,6 +36,17 @@ export function UpdateRealityDialog({ open, onOpenChange, missionId, onSent }: {
         actor_id: user?.id ?? null,
         details: { text },
       } as never);
+      // Fire-and-forget: mirror to intel_events so the signal appears in the Intelligence Feed.
+      void addManualIntelEvent({
+        data: {
+          mission_id: missionId,
+          event_type: "signal",
+          title: `Team Signal: Update Reality`,
+          content: text,
+          source_type: "manual",
+          significance: "medium",
+        },
+      }).catch((e) => console.error("[update-reality] intel_events write failed", e));
       toast.success("Reality update sent to the team.");
       setText("");
       onOpenChange(false);
