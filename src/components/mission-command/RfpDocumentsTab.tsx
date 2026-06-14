@@ -476,6 +476,13 @@ function UploadModal({
 
       try { await summarize({ data: { document_id: row.id, extra_text: text } }); } catch {}
 
+      // Fire-and-forget IRIS RFP parse → intel_events
+      try {
+        void parseDocumentToIntel({
+          data: { mission_id: missionId, document_id: row.id, extra_text: text || undefined },
+        }).catch((e) => console.error("[vault] parseDocumentToIntel failed", e));
+      } catch (e) { console.error("[vault] parseDocumentToIntel threw", e); }
+
       if (docType === "amendment") {
         onAmendmentReady(row.id, text);
         reset();
