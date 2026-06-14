@@ -297,6 +297,18 @@ function IrisControlPage() {
     );
   }, [missions, filter]);
 
+  // Auto-select the first visible mission so "Refresh IRIS" is usable without
+  // an extra click in the listbox.
+  useEffect(() => {
+    if (missionId) {
+      if (filtered.length > 0 && !filtered.some((m) => m.id === missionId)) {
+        setMissionId(filtered[0]!.id);
+      }
+      return;
+    }
+    if (filtered.length > 0) setMissionId(filtered[0]!.id);
+  }, [filtered, missionId]);
+
   const refreshFn = useServerFn(refreshIrisAllForMission);
   const mutation = useMutation({
     mutationFn: () => refreshFn({ data: { missionId } }),
