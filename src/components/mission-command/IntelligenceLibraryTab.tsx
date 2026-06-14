@@ -20,6 +20,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { generateDocumentSummary, suggestSectionTags } from "@/lib/iris-intel-tabs.functions";
+import { parseDocumentToIntel } from "@/lib/iris-parse-document.functions";
 import { formatDate, isValidUrl, DOC_TYPE_LABEL } from "./intel-shared";
 
 type Doc = {
