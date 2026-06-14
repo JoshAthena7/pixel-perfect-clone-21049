@@ -95,6 +95,27 @@ export function PhoneAFriendDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, missionId, questionId]);
 
+  // Load Oracle SME profiles for current matches
+  useEffect(() => {
+    if (matches.length === 0) return;
+    const userIds = matches.map((m) => m.user_id);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetchSmeProfiles({ data: { userIds } });
+        if (cancelled) return;
+        const map: Record<string, SmeProfileSummary> = {};
+        for (const p of res.profiles) map[p.user_id] = p;
+        setSmeProfiles(map);
+      } catch (e) {
+        console.error("[phone-a-friend] sme profile load failed", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [matches, fetchSmeProfiles]);
+
   const handleAdd = async (m: ExpertMatch) => {
     if (!missionId || !questionId) {
       toast.error("Open this from a question to add to its Thread.");
