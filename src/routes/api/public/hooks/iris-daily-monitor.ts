@@ -316,35 +316,50 @@ async function runMonitor(request: Request): Promise<Response> {
         continue;
       }
 
-      // Fetch
-      let res: Response;
-      try {
-        res = await fetch(fetchUrl, {
-          headers: { "User-Agent": "ATLAS-IRIS-Monitor/1.0 (+https://athenacommandcenter.com)" },
-          redirect: "follow",
-        });
-      } catch (e) {
-        console.log("[iris-daily-monitor] fetch threw", s.id, e);
-        await recordFailure(supabaseAdmin, s);
-        summary.sources_failed += 1;
-        continue;
-      }
-
-      if (!res.ok) {
-        console.log("[iris-daily-monitor] fetch !ok", s.id, fetchUrl, res.status);
-        if (res.status === 404 || res.status === 403) {
+      // Fetch — RSS uses raw fetch (we need XML); everything else goes through
+      // Firecrawl (with graceful fallback to raw fetch if no key / failure).
+      let rawBody: string;
+      let usedSource: "firecrawl" | "fetch" = "fetch";
+      void usedSource;
+      if (t === "rss") {
+        try {
+          const res = await fetch(fetchUrl, {
+            headers: { "User-Agent": "ATLAS-IRIS-Monitor/1.0 (+https://athenacommandcenter.com)" },
+            redirect: "follow",
+          });
+          if (!res.ok) {
+            console.log("[iris-daily-monitor] rss fetch !ok", s.id, fetchUrl, res.status);
+            if (res.status === 404 || res.status === 403) await recordFailure(supabaseAdmin, s);
+            else await supabaseAdmin.from("intel_sources").update({ last_checked_at: new Date().toISOString() }).eq("id", s.id);
+            summary.sources_failed += 1;
+            continue;
+          }
+          rawBody = await res.text();
+        } catch (e) {
+          console.log("[iris-daily-monitor] rss fetch threw", s.id, e);
           await recordFailure(supabaseAdmin, s);
-        } else {
-          await supabaseAdmin
-            .from("intel_sources")
-            .update({ last_checked_at: new Date().toISOString() })
-            .eq("id", s.id);
+          summary.sources_failed += 1;
+          continue;
         }
-        summary.sources_failed += 1;
-        continue;
+      } else {
+        const { scrapeUrl } = await import("@/lib/iris/firecrawl.server");
+        const scraped = await scrapeUrl(fetchUrl);
+        if (!scraped) {
+          await recordFailure(supabaseAdmin, s);
+          summary.sources_failed += 1;
+          continue;
+        }
+        if (scraped.status >= 400) {
+          console.log("[iris-daily-monitor] scrape !ok", s.id, fetchUrl, scraped.status);
+          if (scraped.status === 404 || scraped.status === 403) await recordFailure(supabaseAdmin, s);
+          else await supabaseAdmin.from("intel_sources").update({ last_checked_at: new Date().toISOString() }).eq("id", s.id);
+          summary.sources_failed += 1;
+          continue;
+        }
+        rawBody = scraped.content;
+        usedSource = scraped.source;
       }
 
-      const rawBody = await res.text();
       const hashHex = await sha256Hex(rawBody);
 
       if (s.last_content_hash && s.last_content_hash === hashHex) {
