@@ -224,7 +224,7 @@ export function AskIrisPanel() {
     const text = raw.trim();
     if (!text || streaming) return;
 
-    if (/^\/(sources|web|cite)\b/i.test(text)) return runAskWithSources(text.replace(/^\/(sources|web|cite)\s*/i, ""));
+    if (/^\/(sources|web|cite|research)\b/i.test(text)) return runResearch(text.replace(/^\/(sources|web|cite|research)\s*/i, ""));
     if (/^score (my|this) draft/i.test(text)) return runScore(text);
     if (/^draft (a |the )?response/i.test(text)) return runDraft(text);
     if (/(what'?s|whats|what is).*at risk|risk(s)? right now/i.test(text)) return runRisks(text);
@@ -233,33 +233,88 @@ export function AskIrisPanel() {
       if (/latest intelligence|recent intelligence|what.*new intel/i.test(text)) return runLatestIntel(text);
     }
 
+    if (mode === "research") return runResearch(text);
+
     const userMsg: Msg = { id: crypto.randomUUID(), role: "user", text, at: Date.now() };
     setMessages((m) => [...m, userMsg]);
     setInput("");
     await streamReply([...messages, userMsg]);
   };
 
-  const runAskWithSources = async (query: string) => {
+  const runResearch = async (query: string) => {
     const q = query.trim();
     if (!q) {
-      toast.info("Type a question after /sources to search with citations.");
+      toast.info("Type a question to search with cited live sources.");
       return;
     }
     setMessages((m) => [...m, { id: crypto.randomUUID(), role: "user", text: q, at: Date.now() }]);
     setInput("");
     const assistantId = crypto.randomUUID();
-    setMessages((m) => [...m, { id: assistantId, role: "assistant", text: "Searching live sources…", at: Date.now() }]);
+    setMessages((m) => [...m, { id: assistantId, role: "assistant", text: "", at: Date.now() }]);
     setStreaming(true);
+    setResearchPhase(0);
+    const phaseTimer = window.setInterval(() => {
+      setResearchPhase((p) => (p + 1) % RESEARCH_LOADER_MESSAGES.length);
+    }, 2000);
+
+    const historySnapshot = messages;
     try {
-      const r = await askWithSourcesFn({ data: { query: q } });
+      const r = await askWithSourcesFn({
+        data: {
+          query: q,
+          model: "sonar-pro",
+          recencyFilter: "month",
+          domainFilter: RESEARCH_DOMAIN_FILTER,
+        },
+      });
+
+      // Fail-soft: Perplexity unreachable or empty → silent fallback to Quick.
+      if (!r?.ok || !r.content || r.content.trim().length === 0) {
+        window.clearInterval(phaseTimer);
+        setMessages((m) => m.filter((mm) => mm.id !== assistantId));
+        const userMsg: Msg = { id: crypto.randomUUID(), role: "user", text: q, at: Date.now() };
+        await streamReply([...historySnapshot, userMsg]);
+        return;
+      }
+
       setMessages((m) => m.map((mm) => mm.id === assistantId
-        ? { ...mm, text: r.content || "No answer.", card: { kind: "sources", answer: r.content, citations: r.citations } }
+        ? { ...mm, text: r.content, card: { kind: "sources", answer: r.content, citations: r.citations, research: true } }
         : mm));
+
+      // Fire-and-forget: archive cited answer into intel_events. Never blocks UI.
+      void supabase.from("intel_events").insert({
+        mission_id: iris.current_mission_id,
+        event_type: "iris_research",
+        title: `Research: ${q.slice(0, 200)}`,
+        content: r.content,
+        output_type: "intel_card_candidate",
+        signal_category: "decision_intelligence",
+        source_type: "perplexity",
+        source_url: r.citations?.[0]?.url ?? null,
+        source_title: r.citations?.[0]?.domain ?? null,
+        source_published_at: new Date().toISOString(),
+        extracted_summary: r.content.slice(0, 500),
+        iris_recommendation: `Surfaced via Research Mode query: ${q.slice(0, 100)}`,
+        tags: (r.citations ?? []).slice(0, 10).map((c) => c.url),
+        routing_status: "unreviewed",
+        relevance_score: 75,
+        confidence_score: 85,
+        confidence: "medium",
+        generated_by: "iris-perplexity",
+      } as never).then(({ error }) => {
+        if (error) console.log("[Research Mode] intel_events write failed:", error.message);
+      });
     } catch (e) {
-      setMessages((m) => m.map((mm) => mm.id === assistantId
-        ? { ...mm, text: `Source search failed: ${(e as Error).message}` }
-        : mm));
+      window.clearInterval(phaseTimer);
+      setMessages((m) => m.filter((mm) => mm.id !== assistantId));
+      const userMsg: Msg = { id: crypto.randomUUID(), role: "user", text: q, at: Date.now() };
+      try {
+        await streamReply([...historySnapshot, userMsg]);
+      } catch {
+        console.log("[Research Mode] fallback also failed", e);
+      }
     } finally {
+      window.clearInterval(phaseTimer);
       setStreaming(false);
     }
   };
