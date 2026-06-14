@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { UserMenu } from "@/components/nav/UserMenu";
 import { useMissionMeta } from "@/hooks/useMissionMeta";
+import { useIsAdmin } from "@/hooks/useAccess";
 
 const GOLD = "#d4a843";
 const MUTED = "#666680";
@@ -95,7 +96,8 @@ function activeForSeg(item: NavItem, seg: string, pathname: string): boolean {
 export function MissionSidebar({ missionId, email }: { missionId: string; email?: string | null }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const seg = pathname.split("/")[3] ?? "";
-  const items = buildItems(missionId);
+  const { isAdmin } = useIsAdmin();
+  const items = buildItems(missionId).filter((it) => it.id !== "olympus" || isAdmin);
   const intel = useIntelSummary(missionId);
 
   return (
@@ -182,6 +184,7 @@ function MissionSwitcher({ missionId }: { missionId: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { data: currentMeta } = useMissionMeta(missionId);
+  const { isAdmin } = useIsAdmin();
 
   const { data: missions = [] } = useQuery({
     queryKey: ["sidebar-mission-switcher"],
@@ -264,33 +267,50 @@ function MissionSwitcher({ missionId }: { missionId: string }) {
             missions.map((m) => {
               const isCurrent = m.id === missionId;
               return (
-                <button
+                <div
                   key={m.id}
-                  type="button"
-                  onClick={() => {
-                    setOpen(false);
-                    if (!isCurrent) {
-                      navigate({ to: "/missions/$missionId/briefing", params: { missionId: m.id } });
-                    }
-                  }}
-                  className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left transition-colors hover:bg-white/[0.05]"
-                  style={{
-                    background: isCurrent ? "rgba(212,168,67,0.08)" : "transparent",
-                  }}
+                  className="w-full flex items-center justify-between gap-1 transition-colors hover:bg-white/[0.05]"
+                  style={{ background: isCurrent ? "rgba(212,168,67,0.08)" : "transparent" }}
                 >
-                  <span
-                    className="truncate"
-                    style={{
-                      fontSize: 12,
-                      color: isCurrent ? GOLD : "rgba(255,255,255,0.85)",
-                      fontWeight: isCurrent ? 600 : 500,
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(false);
+                      if (!isCurrent) {
+                        navigate({ to: "/missions/$missionId/briefing", params: { missionId: m.id } });
+                      }
                     }}
-                    title={m.name}
+                    className="flex-1 min-w-0 flex items-center justify-between gap-2 px-3 py-2 text-left"
                   >
-                    {m.name}
-                  </span>
-                  {isCurrent && <Check size={12} style={{ color: GOLD, flexShrink: 0 }} />}
-                </button>
+                    <span
+                      className="truncate"
+                      style={{
+                        fontSize: 12,
+                        color: isCurrent ? GOLD : "rgba(255,255,255,0.85)",
+                        fontWeight: isCurrent ? 600 : 500,
+                      }}
+                      title={m.name}
+                    >
+                      {m.name}
+                    </span>
+                    {isCurrent && <Check size={12} style={{ color: GOLD, flexShrink: 0 }} />}
+                  </button>
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpen(false);
+                        navigate({ to: "/olympus/wizard/$missionId", params: { missionId: m.id } });
+                      }}
+                      aria-label={`Edit setup for ${m.name}`}
+                      title="Edit setup"
+                      className="shrink-0 p-1.5 mr-1 rounded hover:bg-white/[0.08] transition-colors"
+                    >
+                      <Settings size={12} style={{ color: "rgba(255,255,255,0.55)" }} />
+                    </button>
+                  )}
+                </div>
               );
             })
           )}
@@ -304,11 +324,12 @@ function MissionSwitcher({ missionId }: { missionId: string }) {
 export function MissionBottomTabs({ missionId }: { missionId: string }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const seg = pathname.split("/")[3] ?? "";
-  const items = buildItems(missionId);
+  const { isAdmin } = useIsAdmin();
+  const items = buildItems(missionId).filter((it) => it.id !== "olympus" || isAdmin);
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 grid grid-cols-4"
+      className={`md:hidden fixed bottom-0 left-0 right-0 z-40 grid ${items.length === 4 ? "grid-cols-4" : "grid-cols-3"}`}
       style={{
         background: "#070f1c",
         borderTop: "1px solid rgba(255,255,255,0.08)",

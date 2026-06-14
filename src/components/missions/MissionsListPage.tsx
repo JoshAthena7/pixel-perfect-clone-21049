@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Users, ListChecks, Calendar, X, Trash2 } from "lucide-react";
+import { Plus, Search, Users, ListChecks, Calendar, X, Trash2, ClipboardList, Rocket } from "lucide-react";
 import { formatDistanceToNowStrict, format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -267,6 +267,28 @@ function MissionCard({ m, onEdit }: { m: MissionRow; onEdit: () => void }) {
 
   return (
     <div className="relative group">
+      <div className="absolute top-3 right-12 z-10 flex items-center gap-1">
+        <Link
+          to="/missions/$missionId/briefing"
+          params={{ missionId: m.id }}
+          onClick={(e) => e.stopPropagation()}
+          aria-label="Open Brief"
+          title="Open Brief"
+          className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-border/60 bg-background/70 text-muted-foreground hover:text-[var(--athena-gold)] hover:bg-surface transition-colors"
+        >
+          <ClipboardList className="h-4 w-4" />
+        </Link>
+        <Link
+          to="/missions/$missionId/flight-deck"
+          params={{ missionId: m.id }}
+          onClick={(e) => e.stopPropagation()}
+          aria-label="Open Flight Deck"
+          title="Open Flight Deck"
+          className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-border/60 bg-background/70 text-muted-foreground hover:text-[var(--athena-gold)] hover:bg-surface transition-colors"
+        >
+          <Rocket className="h-4 w-4" />
+        </Link>
+      </div>
       <MissionCardMenu
         missionId={m.id}
         missionName={m.name}
