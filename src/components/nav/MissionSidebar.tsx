@@ -184,6 +184,7 @@ function MissionSwitcher({ missionId }: { missionId: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { data: currentMeta } = useMissionMeta(missionId);
+  const { isAdmin } = useIsAdmin();
 
   const { data: missions = [] } = useQuery({
     queryKey: ["sidebar-mission-switcher"],
