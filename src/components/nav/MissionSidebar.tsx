@@ -7,9 +7,10 @@
  * On viewports < 768px, the sidebar hides itself and a bottom tab bar
  * with the same destinations is rendered instead (see MissionBottomTabs).
  */
-import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ClipboardList, Eye, Rocket, Settings } from "lucide-react";
+import { ChevronDown, ClipboardList, Eye, Rocket, Settings, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { UserMenu } from "@/components/nav/UserMenu";
