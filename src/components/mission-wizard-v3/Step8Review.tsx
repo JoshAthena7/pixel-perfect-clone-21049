@@ -123,6 +123,12 @@ export function Step8Review({
       } catch (e) {
         console.error("[launch-brief] trigger error", e);
       }
+      // Fire-and-forget IRIS Perplexity enrichment (state landscape, incumbent, population research).
+      try {
+        void enrichMissionWithPerplexity({ data: { missionId } });
+      } catch (e) {
+        console.error("[perplexity-enrich] trigger error", e);
+      }
       qc.invalidateQueries({ queryKey: ["mission-meta", missionId] });
       navigate({ to: "/missions/$missionId/briefing", params: { missionId } });
     } catch (e) {
