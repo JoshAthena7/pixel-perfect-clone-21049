@@ -11,6 +11,7 @@ import type { TablesUpdate } from "@/integrations/supabase/types";
 import { triggerLaunchBrief } from "@/lib/iris-launch-brief.functions";
 import { enrichMissionWithPerplexity } from "@/lib/iris/perplexity-enrich.functions";
 import { WIZARD_STEPS, WizardStepHeading, WizardFooter } from "./WizardShellV3";
+import { LaunchSequence } from "./LaunchSequence";
 
 const STEP_FIELD_GROUPS: Record<number, { title: string; keys: string[] }> = {
   2: {
@@ -54,6 +55,7 @@ export function Step8Review({
   const [enriching, setEnriching] = useState(false);
   const [enrichMsg, setEnrichMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showLaunch, setShowLaunch] = useState(false);
 
   const { data: extractions } = useQuery({
     queryKey: ["wizard-review-extractions", missionId],
@@ -135,7 +137,10 @@ export function Step8Review({
       const clientAgency = get("client_agency");
       const competitorsList = splitList(get("known_competitors"));
 
-      const updates: TablesUpdate<"missions"> = { status: "active" };
+      const updates: TablesUpdate<"missions"> = {
+        status: "active",
+        blast_off_at: new Date().toISOString(),
+      };
       if (dueIso && /^\d{4}-\d{2}-\d{2}/.test(dueIso)) {
         updates.submission_deadline = `${dueIso}T17:00:00Z`;
       }
@@ -174,9 +179,9 @@ export function Step8Review({
         console.error("[perplexity-enrich] trigger error", e);
       }
       qc.invalidateQueries({ queryKey: ["mission-meta", missionId] });
-      navigate({ to: "/missions/$missionId/briefing", params: { missionId } });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
+      throw e;
     } finally {
       setLaunching(false);
     }
@@ -311,15 +316,27 @@ export function Step8Review({
           ← Back
         </button>
         <button
-          onClick={launch}
-          disabled={launching}
+          onClick={() => {
+            setError(null);
+            setShowLaunch(true);
+          }}
+          disabled={launching || showLaunch}
           className="inline-flex items-center gap-2 px-6 py-2.5 rounded-md text-[14px] font-medium disabled:opacity-50"
           style={{ background: "#C49A2B", color: "#0D1B3E" }}
         >
-          {launching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
-          {launching ? "Launching…" : "Launch Mission"}
+          <Rocket className="h-4 w-4" />
+          Launch Mission
         </button>
       </div>
+
+      {showLaunch && (
+        <LaunchSequence
+          onLaunch={launch}
+          onComplete={() =>
+            navigate({ to: "/missions/$missionId/briefing", params: { missionId } })
+          }
+        />
+      )}
     </div>
   );
 }
