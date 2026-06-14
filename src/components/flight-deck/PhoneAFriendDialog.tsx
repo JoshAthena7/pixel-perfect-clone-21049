@@ -39,6 +39,7 @@ export function PhoneAFriendDialog({
 }: Props) {
   const find = useServerFn(findExperts);
   const addToThread = useServerFn(addExpertToThread);
+  const fetchSmeProfiles = useServerFn(getSmeProfilesByUserIds);
 
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,6 +47,7 @@ export function PhoneAFriendDialog({
   const [irisMessage, setIrisMessage] = useState("");
   const [sectionName, setSectionName] = useState("");
   const [addingId, setAddingId] = useState<string | null>(null);
+  const [smeProfiles, setSmeProfiles] = useState<Record<string, SmeProfileSummary>>({});
   const ranAutoSearch = useRef<string | null>(null);
 
   const headerContext = useMemo(() => {
