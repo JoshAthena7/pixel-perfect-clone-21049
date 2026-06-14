@@ -525,7 +525,11 @@ async function recordFailure(
   s: Source,
 ): Promise<void> {
   const { hash, count } = nextFailureHash(s.last_content_hash);
-  const patch: Record<string, unknown> = {
+  const patch: {
+    last_checked_at: string;
+    last_content_hash: string;
+    is_active?: boolean;
+  } = {
     last_checked_at: new Date().toISOString(),
     last_content_hash: hash,
   };
