@@ -170,6 +170,10 @@ export const postThreadMessage = createServerFn({ method: "POST" })
           missionId: data.missionId,
           questionId: data.questionId,
         }).catch((e: unknown) => console.error("[thread] iris extraction failed", e));
+        void triggerKnowledgeExtraction({
+          missionId: data.missionId,
+          questionId: data.questionId,
+        }).catch((e: unknown) => console.error("[thread] knowledge extraction failed", e));
       }
     } catch (e) {
       console.error("[thread] extraction-trigger check failed", e);
