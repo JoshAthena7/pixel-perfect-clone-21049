@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, Loader2, Plus } from "lucide-react";
+import { Eye, Loader2, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
