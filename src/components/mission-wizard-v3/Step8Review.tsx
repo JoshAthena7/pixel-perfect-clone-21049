@@ -316,15 +316,27 @@ export function Step8Review({
           ← Back
         </button>
         <button
-          onClick={launch}
-          disabled={launching}
+          onClick={() => {
+            setError(null);
+            setShowLaunch(true);
+          }}
+          disabled={launching || showLaunch}
           className="inline-flex items-center gap-2 px-6 py-2.5 rounded-md text-[14px] font-medium disabled:opacity-50"
           style={{ background: "#C49A2B", color: "#0D1B3E" }}
         >
-          {launching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
-          {launching ? "Launching…" : "Launch Mission"}
+          <Rocket className="h-4 w-4" />
+          Launch Mission
         </button>
       </div>
+
+      {showLaunch && (
+        <LaunchSequence
+          onLaunch={launch}
+          onComplete={() =>
+            navigate({ to: "/missions/$missionId/briefing", params: { missionId } })
+          }
+        />
+      )}
     </div>
   );
 }
