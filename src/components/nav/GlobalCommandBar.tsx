@@ -95,19 +95,24 @@ export function GlobalCommandBar({ email, isAdmin = false }: { email?: string | 
       )}
       <div className="mx-auto max-w-7xl h-full flex items-center gap-3 min-w-0">
         {/* LEFT — Wordmark + primary nav */}
-        <Link
-          to={logoMissionId ? "/missions/$missionId/briefing" : isAdmin ? "/olympus/missions" : "/missions"}
-          params={logoMissionId ? { missionId: logoMissionId } : undefined}
-          className="shrink-0 inline-flex items-center select-none"
-          aria-label="ATLAS"
-        >
-          <img
-            src={atlasWordmark.url}
-            alt="ATLAS"
-            draggable={false}
-            style={{ height: 18, width: "auto", objectFit: "contain" }}
-          />
-        </Link>
+        {logoMissionId ? (
+          <Link
+            to="/missions/$missionId/briefing"
+            params={{ missionId: logoMissionId }}
+            className="shrink-0 inline-flex items-center select-none"
+            aria-label="ATLAS"
+          >
+            <AtlasLogo />
+          </Link>
+        ) : (
+          <Link
+            to={isAdmin ? "/olympus/missions" : "/missions"}
+            className="shrink-0 inline-flex items-center select-none"
+            aria-label="ATLAS"
+          >
+            <AtlasLogo />
+          </Link>
+        )}
         <span className="hidden sm:inline-block h-5 w-px shrink-0" style={{ background: "rgba(255,255,255,0.08)" }} />
 
 
