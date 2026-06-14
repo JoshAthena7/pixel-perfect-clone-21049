@@ -57,9 +57,9 @@ function WizardPage() {
         1,
         ...(progressRows ?? [])
           .map((r) => r.wizard_step ?? 1)
-          .filter((n) => Number.isFinite(n) && n >= 1 && n <= 8),
+          .filter((n) => Number.isFinite(n) && n >= 1 && n <= TOTAL),
       );
-      return { ...data, lastStep: Number.isFinite(savedStep) ? Math.min(8, Math.max(1, savedStep)) : inferredStep };
+      return { ...data, lastStep: Number.isFinite(savedStep) ? Math.min(TOTAL, Math.max(1, savedStep)) : inferredStep };
     },
   });
 
