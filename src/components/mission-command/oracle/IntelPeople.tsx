@@ -9,14 +9,21 @@ import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.fu
 const GOLD = "#C49A2B";
 
 const ROLE_GROUPS = [
+  { id: "decision_maker", label: "Decision Makers", color: "#ef4444" },
   { id: "evaluator", label: "Evaluators", color: "#ef4444" },
   { id: "stakeholder", label: "Stakeholders", color: "#3b82f6" },
   { id: "influencer", label: "Influencers", color: "#f59e0b" },
   { id: "champion", label: "Champions", color: "#10b981" },
+  { id: "advocate", label: "Advocates", color: "#10b981" },
   { id: "expert", label: "Experts", color: "#8b5cf6" },
+  { id: "legislator", label: "Legislators", color: "#0ea5e9" },
+  { id: "media", label: "Media", color: "#a855f7" },
   { id: "adversary", label: "Adversaries", color: "#dc2626" },
   { id: "contact", label: "Contacts", color: "#64748b" },
 ];
+
+// Fallback bucket so any future role_type still renders rather than disappearing.
+const FALLBACK_GROUP = { id: "_other", label: "Other", color: "#64748b" };
 
 export function IntelPeople({ missionId }: { missionId: string }) {
   const [showAdd, setShowAdd] = useState(false);
@@ -56,8 +63,12 @@ export function IntelPeople({ missionId }: { missionId: string }) {
         <EmptyState missionId={missionId} onAdd={() => setShowAdd(true)} onSeeded={() => qc.invalidateQueries({ queryKey: ["intel-people", missionId] })} />
       ) : (
         <div className="space-y-6">
-          {ROLE_GROUPS.map((g) => {
-            const items = people.filter((p) => p.role_type === g.id);
+          {[...ROLE_GROUPS, FALLBACK_GROUP].map((g) => {
+            const knownIds = new Set(ROLE_GROUPS.map((r) => r.id));
+            const items =
+              g.id === "_other"
+                ? people.filter((p) => !knownIds.has(p.role_type))
+                : people.filter((p) => p.role_type === g.id);
             if (!items.length) return null;
             return (
               <section key={g.id}>
