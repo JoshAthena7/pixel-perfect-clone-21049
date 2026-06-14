@@ -197,7 +197,7 @@ export const submitMissionSignal = createServerFn({ method: "POST" })
             "X-Lovable-AIG-SDK": "raw",
           },
           body: JSON.stringify({
-            model: "gpt-4o-mini",
+            model: "google/gemini-2.5-flash",
             messages: [
               {
                 role: "system",

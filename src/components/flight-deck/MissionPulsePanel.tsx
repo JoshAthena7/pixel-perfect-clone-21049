@@ -113,9 +113,10 @@ export function MissionPulsePanel({ open, onOpenChange, missionId, prefill, onPr
       setBody("");
       toast.success("Signal sent. IRIS is routing it.");
       await refresh();
-    } catch (e) {
-      console.error(e);
-      toast.error("Could not send signal");
+    } catch (e: any) {
+      console.error("[mission-pulse] submit failed", e);
+      const msg = e?.message || e?.body?.message || (typeof e === "string" ? e : "Unknown error");
+      toast.error("Could not send signal", { description: msg });
     } finally {
       setSending(false);
     }
