@@ -303,7 +303,7 @@ function TodaysFocusCard({ missionId, mission }: { missionId: string; mission?: 
         <EmptyState>IRIS will generate today's focus items. Check back soon, or add a manual focus note in mission settings.</EmptyState>
       ) : (
         <ol className="space-y-4">
-          {finalItems.slice(0, 4).map((item, i) => (
+          {finalItems.slice(0, 4).map((item: string, i: number) => (
             <li key={i} className="flex gap-4">
               <span
                 className="shrink-0 grid place-items-center rounded-lg font-bold"
