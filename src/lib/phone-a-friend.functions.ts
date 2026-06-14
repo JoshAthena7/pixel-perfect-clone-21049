@@ -192,8 +192,10 @@ const AddInput = z.object({
   missionId: z.string().uuid(),
   questionId: z.string().uuid(),
   questionNumber: z.string().nullable().optional(),
+  questionText: z.string().nullable().optional(),
   expertUserId: z.string().uuid(),
   expertName: z.string().min(1),
+  expertTitle: z.string().nullable().optional(),
   whyIrisRecommends: z.string().min(1),
 });
 
