@@ -175,6 +175,130 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+/* -------------------- Mission Switcher -------------------- */
+function MissionSwitcher({ missionId }: { missionId: string }) {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const { data: currentMeta } = useMissionMeta(missionId);
+
+  const { data: missions = [] } = useQuery({
+    queryKey: ["sidebar-mission-switcher"],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("missions")
+        .select("id,name,status")
+        .in("status", ["active", "setup"])
+        .order("name", { ascending: true });
+      return data ?? [];
+    },
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+
+  const currentName = currentMeta?.name ?? "Select mission";
+
+  return (
+    <div ref={ref} className="relative px-3 pt-3 pb-2">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between gap-2 rounded-md px-2.5 py-2 transition-colors hover:bg-white/[0.04]"
+        style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}
+      >
+        <div className="min-w-0 text-left">
+          <div
+            style={{
+              fontSize: 9,
+              letterSpacing: "0.1em",
+              color: "rgba(255,255,255,0.4)",
+              fontWeight: 600,
+              textTransform: "uppercase",
+            }}
+          >
+            Mission
+          </div>
+          <div
+            className="truncate"
+            style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.88)", letterSpacing: "0.02em" }}
+            title={currentName}
+          >
+            {currentName}
+          </div>
+        </div>
+        <ChevronDown
+          size={14}
+          style={{
+            color: "rgba(255,255,255,0.5)",
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 150ms",
+            flexShrink: 0,
+          }}
+        />
+      </button>
+
+      {open && (
+        <div
+          className="absolute z-50 left-3 right-3 mt-1 rounded-md overflow-hidden shadow-xl"
+          style={{
+            background: "#0c1525",
+            border: "1px solid rgba(255,255,255,0.1)",
+            maxHeight: 320,
+            overflowY: "auto",
+          }}
+        >
+          {missions.length === 0 ? (
+            <div className="px-3 py-2" style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
+              No missions
+            </div>
+          ) : (
+            missions.map((m) => {
+              const isCurrent = m.id === missionId;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    if (!isCurrent) {
+                      navigate({ to: "/missions/$missionId/briefing", params: { missionId: m.id } });
+                    }
+                  }}
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left transition-colors hover:bg-white/[0.05]"
+                  style={{
+                    background: isCurrent ? "rgba(212,168,67,0.08)" : "transparent",
+                  }}
+                >
+                  <span
+                    className="truncate"
+                    style={{
+                      fontSize: 12,
+                      color: isCurrent ? GOLD : "rgba(255,255,255,0.85)",
+                      fontWeight: isCurrent ? 600 : 500,
+                    }}
+                    title={m.name}
+                  >
+                    {m.name}
+                  </span>
+                  {isCurrent && <Check size={12} style={{ color: GOLD, flexShrink: 0 }} />}
+                </button>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* -------------------- Mobile Bottom Tab Bar -------------------- */
 export function MissionBottomTabs({ missionId }: { missionId: string }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
