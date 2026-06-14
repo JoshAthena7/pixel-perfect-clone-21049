@@ -795,6 +795,35 @@ function IntelCardView({ card, onNavigate }: { card: Extract<CardKind, { kind: "
   );
 }
 
+function SourcesCardView({ card }: { card: Extract<CardKind, { kind: "sources" }> }) {
+  if (!card.citations.length) return null;
+  return (
+    <div className="mt-2">
+      <div className="text-[10px] uppercase tracking-wider mb-1.5 inline-flex items-center gap-1" style={{ color: IRIS }}>
+        <Globe className="h-3 w-3" /> Live sources ({card.citations.length})
+      </div>
+      <ul className="space-y-1.5">
+        {card.citations.map((c, i) => (
+          <li key={i}>
+            <a
+              href={c.url}
+              target="_blank"
+              rel="noreferrer"
+              className="block text-[11px] rounded p-2 border hover:bg-white/5"
+              style={{ borderColor: "rgba(127,119,221,0.25)" }}
+            >
+              <div className="font-semibold text-white truncate inline-flex items-center gap-1">
+                {c.domain} <ExternalLink className="h-3 w-3 opacity-60" />
+              </div>
+              <div className="text-white/45 truncate">{c.url}</div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function fmtTime(at: number) {
   return new Date(at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
