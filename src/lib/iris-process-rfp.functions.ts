@@ -191,7 +191,14 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
     const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const content = json.choices?.[0]?.message?.content?.trim() ?? "";
     const parsed = tryParseJSON(content);
-    if (!parsed) throw new Error("IRIS could not extract a valid structure.");
+    if (!parsed) {
+      console.warn("IRIS could not extract a valid structure — keeping existing data unchanged.");
+      return {
+        ok: true,
+        counts: { volumes: 0, sections: 0, sub_sections: 0, questions: 0, compliance: 0, checklist: 0 },
+        disclaimer: "IRIS could not parse this document. Existing questions and assignments were left unchanged.",
+      };
+    }
 
     const volumes = Array.isArray(parsed.volumes) ? parsed.volumes : [];
     const plannedQuestionCount = countPlannedQuestions(volumes);
@@ -213,10 +220,9 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
       supabase.from("mission_volumes").select("id").eq("mission_id", data.mission_id),
     ]);
     if (plannedQuestionCount === 0 && (previousQuestions?.length ?? 0) > 0) {
-      // Safety: AI extraction returned nothing, but existing questions exist.
-      // Return a soft no-op so the UI doesn't crash; existing data is preserved.
+      console.warn("IRIS did not return replacement questions — keeping existing questions unchanged.");
       return {
-        ok: false,
+        ok: true,
         counts: { volumes: 0, sections: 0, sub_sections: 0, questions: 0, compliance: 0, checklist: 0 },
         disclaimer: "IRIS did not find replacement questions in this run. Your existing questions and assignments were left unchanged.",
       };
@@ -372,10 +378,11 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
     }
 
     if (counts.questions === 0 && (previousQuestions?.length ?? 0) > 0) {
+      console.warn("IRIS did not write replacement questions — keeping existing questions unchanged.");
       if (newSectionIds.length > 0) await supabase.from("mission_sections").delete().in("id", newSectionIds);
       if (newVolumeIds.length > 0) await supabase.from("mission_volumes").delete().in("id", newVolumeIds);
       return {
-        ok: false,
+        ok: true,
         counts: { volumes: 0, sections: 0, sub_sections: 0, questions: 0, compliance: 0, checklist: 0 },
         disclaimer: "IRIS did not write replacement questions in this run. Your existing questions and assignments were left unchanged.",
       };
