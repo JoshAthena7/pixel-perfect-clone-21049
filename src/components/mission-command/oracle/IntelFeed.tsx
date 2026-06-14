@@ -171,6 +171,38 @@ export function IntelFeed({ missionId }: { missionId: string }) {
 
   return (
     <div className="space-y-4">
+      {seeding && (
+        <div
+          className="rounded-lg px-4 py-3 flex items-center gap-3"
+          style={{
+            background: "rgba(196,154,43,0.06)",
+            border: "1px solid rgba(196,154,43,0.25)",
+          }}
+        >
+          <Eye className="h-4 w-4" style={{ color: GOLD }} />
+          <div className="flex-1">
+            <div style={{ fontSize: 12, color: GOLD, fontWeight: 600 }}>IRIS</div>
+            <div className="text-xs text-white/70 mt-0.5">
+              Running first-pass intelligence analysis on this mission…
+            </div>
+            <div
+              className="mt-2 h-0.5 w-full overflow-hidden rounded-full"
+              style={{ background: "rgba(196,154,43,0.12)" }}
+            >
+              <div
+                className="h-full"
+                style={{
+                  width: "40%",
+                  background: GOLD,
+                  animation: "iris-seed-progress 1.6s ease-in-out infinite",
+                }}
+              />
+            </div>
+          </div>
+          <style>{`@keyframes iris-seed-progress { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }`}</style>
+        </div>
+      )}
+
       <div
         className="rounded-lg px-4 py-3 flex flex-wrap gap-6 items-center"
         style={{ background: "rgba(5,13,24,0.4)", border: "1px solid rgba(255,255,255,0.06)" }}
