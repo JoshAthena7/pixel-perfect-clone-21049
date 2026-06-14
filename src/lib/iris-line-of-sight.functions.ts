@@ -37,7 +37,7 @@ async function callAI(system: string, user: string): Promise<string> {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
+      model: "gpt-4o-mini",
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: system },

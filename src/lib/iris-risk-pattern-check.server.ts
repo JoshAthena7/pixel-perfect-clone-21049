@@ -73,7 +73,7 @@ export function triggerRiskPatternCheck(args: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-3-flash-preview",
+            model: "gpt-4o-mini",
             response_format: { type: "json_object" },
             max_tokens: 400,
             messages: [

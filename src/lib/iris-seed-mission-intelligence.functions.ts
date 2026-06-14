@@ -93,7 +93,7 @@ Return as a JSON array. No preamble. No explanation. Only the array.`;
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: "gpt-4o-mini",
           messages: [
             { role: "system", content: SYSTEM },
             { role: "user", content: "Generate the JSON array now." },

@@ -38,7 +38,7 @@ and updates hashes/timestamps, but IRIS classification is skipped (logged).
 3. SHA-256 hash compared to `last_content_hash`. Unchanged sources update
    `last_checked_at` and skip classification.
 4. New content is sent to IRIS via the Lovable AI Gateway
-   (`google/gemini-3-flash-preview`) and parsed as a JSON array of signals.
+   (`gpt-4o-mini`) and parsed as a JSON array of signals.
 5. Each signal is written to `intel_events` with
    `event_type='signal'`, `output_type` and `signal_category` from IRIS, and
    `routing_status='unreviewed'`. High-relevance intel cards (≥70) are also

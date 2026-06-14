@@ -124,7 +124,7 @@ export function triggerMissionLaunchBrief(args: { missionId: string }): void {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: "gpt-4o-mini",
           max_tokens: 600,
           messages: [
             {

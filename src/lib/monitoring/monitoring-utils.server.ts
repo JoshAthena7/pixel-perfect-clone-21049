@@ -191,7 +191,7 @@ News item summary: ${item.description.slice(0, 1500)}`;
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gpt-4o-mini",
         max_tokens: 500,
         response_format: { type: "json_object" },
         messages: [
