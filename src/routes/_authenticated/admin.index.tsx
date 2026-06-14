@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Plus, Users as UsersIcon } from "lucide-react";
+import { ChevronRight, Plus, Users as UsersIcon, ClipboardList, Rocket, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
@@ -96,9 +96,10 @@ function AdminMissionsPage() {
             const dot = statusColor(b);
             const staff = counts[m.id] ?? 0;
             return (
-              <button
+              <div
                 key={m.id}
-                type="button"
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   if (b === "Draft") {
                     navigate({ to: "/olympus/wizard/$missionId", params: { missionId: m.id } });
@@ -106,7 +107,17 @@ function AdminMissionsPage() {
                     navigate({ to: "/admin/missions/$missionId", params: { missionId: m.id } });
                   }
                 }}
-                className="group w-full text-left rounded-lg px-4 py-3.5 flex items-center gap-4 transition-colors"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    if (b === "Draft") {
+                      navigate({ to: "/olympus/wizard/$missionId", params: { missionId: m.id } });
+                    } else {
+                      navigate({ to: "/admin/missions/$missionId", params: { missionId: m.id } });
+                    }
+                  }
+                }}
+                className="group w-full text-left rounded-lg px-4 py-3.5 flex items-center gap-4 transition-colors cursor-pointer"
                 style={{
                   background: "rgba(255,255,255,0.02)",
                   border: "1px solid rgba(255,255,255,0.06)",
@@ -133,6 +144,38 @@ function AdminMissionsPage() {
                 <div className="hidden sm:flex items-center gap-1.5 text-xs shrink-0" style={{ color: "rgba(255,255,255,0.5)" }}>
                   <UsersIcon className="h-3.5 w-3.5" />
                   {staff}
+                </div>
+                <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <Link
+                    to="/missions/$missionId/briefing"
+                    params={{ missionId: m.id }}
+                    aria-label="Open Brief"
+                    title="Open Brief"
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-md transition-colors hover:bg-white/[0.06]"
+                    style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.65)" }}
+                  >
+                    <ClipboardList className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    to="/missions/$missionId/flight-deck"
+                    params={{ missionId: m.id }}
+                    aria-label="Open Flight Deck"
+                    title="Open Flight Deck"
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-md transition-colors hover:bg-white/[0.06]"
+                    style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.65)" }}
+                  >
+                    <Rocket className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    to="/olympus/wizard/$missionId"
+                    params={{ missionId: m.id }}
+                    aria-label="Edit Setup"
+                    title="Edit Setup (wizard)"
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-md transition-colors hover:bg-white/[0.06]"
+                    style={{ border: "1px solid rgba(201,168,76,0.35)", color: "#c9a84c" }}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Link>
                 </div>
                 {b === "Draft" && (
                   <span
@@ -165,7 +208,8 @@ function AdminMissionsPage() {
                   className="h-4 w-4 shrink-0 transition-colors"
                   style={{ color: "rgba(255,255,255,0.3)" }}
                 />
-              </button>
+
+              </div>
 
             );
           })}
