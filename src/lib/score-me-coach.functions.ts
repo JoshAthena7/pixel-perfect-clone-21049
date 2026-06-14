@@ -111,6 +111,8 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
     if ((missionRes as any)?.error) {
       console.error("[score-me] writing_signals fetch failed", (missionRes as any).error);
     }
+    const winThemesRes = arguments as any; // placeholder removed below
+
 
     const winThemes = Array.isArray(win.win_themes)
       ? win.win_themes
