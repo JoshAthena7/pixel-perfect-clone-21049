@@ -7670,6 +7670,53 @@ export type Database = {
         }
         Relationships: []
       }
+      oracle_knowledge_base: {
+        Row: {
+          applicable_mission_types: string[] | null
+          confidence: string | null
+          core_insight: string
+          created_at: string | null
+          extracted_by: string | null
+          id: string
+          mission_id: string | null
+          source_summary: string | null
+          thread_id: string | null
+          topic_tags: string[] | null
+        }
+        Insert: {
+          applicable_mission_types?: string[] | null
+          confidence?: string | null
+          core_insight: string
+          created_at?: string | null
+          extracted_by?: string | null
+          id?: string
+          mission_id?: string | null
+          source_summary?: string | null
+          thread_id?: string | null
+          topic_tags?: string[] | null
+        }
+        Update: {
+          applicable_mission_types?: string[] | null
+          confidence?: string | null
+          core_insight?: string
+          created_at?: string | null
+          extracted_by?: string | null
+          id?: string
+          mission_id?: string | null
+          source_summary?: string | null
+          thread_id?: string | null
+          topic_tags?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_knowledge_base_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oracle_thread_queries: {
         Row: {
           created_at: string
