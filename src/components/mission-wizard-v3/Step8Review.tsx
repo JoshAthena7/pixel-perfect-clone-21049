@@ -50,6 +50,8 @@ export function Step8Review({
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [launching, setLaunching] = useState(false);
+  const [enriching, setEnriching] = useState(false);
+  const [enrichMsg, setEnrichMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const { data: extractions } = useQuery({
