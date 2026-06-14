@@ -309,6 +309,23 @@ export function PhoneAFriendDialog({
                       <div className="text-white" style={{ fontSize: 13, fontWeight: 500 }}>
                         {m.name}
                       </div>
+                      {(() => {
+                        const p = smeProfiles[m.user_id];
+                        if (!p || p.total_sessions <= 0) return null;
+                        const tags = p.domain_tags.slice(0, 2).join(", ");
+                        return (
+                          <div
+                            style={{
+                              fontSize: 10,
+                              color: "rgba(255,255,255,0.45)",
+                              marginTop: 2,
+                            }}
+                          >
+                            {p.total_sessions} session{p.total_sessions === 1 ? "" : "s"}
+                            {tags ? ` · ${tags}` : ""}
+                          </div>
+                        );
+                      })()}
                       <div
                         className="mt-1 italic"
                         style={{ fontSize: 11, color: "rgba(200,193,255,0.85)", lineHeight: 1.5 }}
