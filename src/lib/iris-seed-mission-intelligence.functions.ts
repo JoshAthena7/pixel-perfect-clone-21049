@@ -45,7 +45,7 @@ export const seedMissionIntelligence = createServerFn({ method: "POST" })
 
       const { data: m } = await supabase
         .from("missions")
-        .select("name, state, program_type, description, north_star, win_themes_text")
+        .select("name, state, program_type, why_it_matters, biggest_concerns, north_star, win_themes_text")
         .eq("id", missionId)
         .maybeSingle();
       if (!m) {
@@ -59,7 +59,7 @@ export const seedMissionIntelligence = createServerFn({ method: "POST" })
         return { ok: false, inserted: 0, error: "no_api_key" };
       }
 
-      const briefSnippet = (m.description ?? "").slice(0, 1500);
+      const briefSnippet = [m.why_it_matters, m.biggest_concerns].filter(Boolean).join("\n\n").slice(0, 1500);
       const SYSTEM = `You are IRIS, the intelligence engine for ATLAS. You are performing a first-pass intelligence analysis on a new mission.
 
 Mission: ${m.name ?? "(unnamed)"}
