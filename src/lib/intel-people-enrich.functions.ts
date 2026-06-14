@@ -25,7 +25,7 @@ export const enrichStakeholderWithPerplexity = createServerFn({ method: "POST" }
       .eq("id", data.personId)
       .maybeSingle();
     if (error || !person) return { ok: false as const, reason: "person_not_found" };
-    const p = person as {
+    const p = person as unknown as {
       id: string;
       mission_id: string | null;
       name: string;
