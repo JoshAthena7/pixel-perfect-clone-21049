@@ -311,7 +311,7 @@ export function MissionBottomTabs({ missionId }: { missionId: string }) {
 
   return (
     <nav
-      className={`md:hidden fixed bottom-0 left-0 right-0 z-40 grid grid-cols-${items.length}`}
+      className={`md:hidden fixed bottom-0 left-0 right-0 z-40 grid ${items.length === 4 ? "grid-cols-4" : "grid-cols-3"}`}
       style={{
         background: "#070f1c",
         borderTop: "1px solid rgba(255,255,255,0.08)",
