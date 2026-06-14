@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Check, Edit2, Loader2, Rocket, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { triggerLaunchBrief } from "@/lib/iris-launch-brief.functions";
 import { WIZARD_STEPS, WizardStepHeading, WizardFooter } from "./WizardShellV3";
 
 const STEP_FIELD_GROUPS: Record<number, { title: string; keys: string[] }> = {
@@ -113,6 +114,12 @@ export function Step8Review({
       }
       const { error: upErr } = await supabase.from("missions").update(updates).eq("id", missionId);
       if (upErr) throw upErr;
+      // Fire-and-forget IRIS historical launch brief generation.
+      try {
+        void triggerLaunchBrief({ data: { missionId } });
+      } catch (e) {
+        console.error("[launch-brief] trigger error", e);
+      }
       qc.invalidateQueries({ queryKey: ["mission-meta", missionId] });
       navigate({ to: "/missions/$missionId/briefing", params: { missionId } });
     } catch (e) {

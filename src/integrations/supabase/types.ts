@@ -6022,6 +6022,38 @@ export type Database = {
           },
         ]
       }
+      mission_launch_briefs: {
+        Row: {
+          brief_text: string
+          created_at: string | null
+          generated_by: string | null
+          id: string
+          mission_id: string | null
+        }
+        Insert: {
+          brief_text: string
+          created_at?: string | null
+          generated_by?: string | null
+          id?: string
+          mission_id?: string | null
+        }
+        Update: {
+          brief_text?: string
+          created_at?: string | null
+          generated_by?: string | null
+          id?: string
+          mission_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_launch_briefs_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_member_expertise: {
         Row: {
           created_at: string
