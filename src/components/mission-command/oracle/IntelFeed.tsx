@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Plus } from "lucide-react";
+import { Eye, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -24,29 +24,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { addManualIntelEvent } from "@/lib/intel-events-manual.functions";
+import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 
 const GOLD = "#C49A2B";
 const PURPLE = "#a855f7";
 
 type FilterId =
   | "all"
-  | "signal"
-  | "risk"
-  | "research_finding"
-  | "competitive_update"
-  | "stakeholder_update"
-  | "lesson"
-  | "atrium";
+  | "signals"
+  | "risks"
+  | "research"
+  | "competitive"
+  | "stakeholder"
+  | "lessons"
+  | "regulatory";
 
 const EVENT_FILTERS: { id: FilterId; label: string; color?: string }[] = [
   { id: "all", label: "All" },
-  { id: "signal", label: "Signals" },
-  { id: "risk", label: "Risks" },
-  { id: "research_finding", label: "Research" },
-  { id: "competitive_update", label: "Competitive" },
-  { id: "stakeholder_update", label: "Stakeholder" },
-  { id: "lesson", label: "Lessons" },
-  { id: "atrium", label: "Regulatory", color: PURPLE },
+  { id: "signals", label: "Signals" },
+  { id: "risks", label: "Risks" },
+  { id: "research", label: "Research" },
+  { id: "competitive", label: "Competitive" },
+  { id: "stakeholder", label: "Stakeholder" },
+  { id: "lessons", label: "Lessons" },
+  { id: "regulatory", label: "Regulatory", color: PURPLE },
 ];
 
 const TYPE_COLORS: Record<string, string> = {
@@ -55,16 +56,62 @@ const TYPE_COLORS: Record<string, string> = {
   lesson: "#10b981",
   alert: "#f59e0b",
   risk: "#ef4444",
+  risk_candidate: "#ef4444",
+  opportunity: "#22c55e",
+  intel_card_candidate: "#94a3b8",
+  oracle_memory_candidate: "#10b981",
   extraction: "#64748b",
   amendment_change: "#f97316",
   competitive_update: "#ec4899",
   stakeholder_update: "#06b6d4",
   research_finding: "#a3e635",
+  iris_seed: "#C49A2B",
 };
+
+function tabMatches(filter: FilterId, e: any): boolean {
+  const ot = e.output_type as string | null;
+  const cat = e.signal_category as string | null;
+  const et = e.event_type as string | null;
+  switch (filter) {
+    case "all":
+      return true;
+    case "signals":
+      return ot === "signal" || ot === "opportunity" || et === "signal";
+    case "risks":
+      return ot === "risk_candidate" || et === "risk";
+    case "research":
+      return (
+        ot === "intel_card_candidate" ||
+        (cat ? ["federal_policy", "state_policy", "waiver"].includes(cat) : false) ||
+        et === "research_finding"
+      );
+    case "competitive":
+      return (cat ? ["competitor", "market_movement"].includes(cat) : false) ||
+        et === "competitive_update";
+    case "stakeholder":
+      return (cat
+        ? ["stakeholder", "relationship_intelligence", "decision_intelligence"].includes(cat)
+        : false) || et === "stakeholder_update";
+    case "lessons":
+      return ot === "oracle_memory_candidate" || et === "lesson";
+    case "regulatory":
+      return (
+        (cat
+          ? ["federal_policy", "state_policy", "waiver", "rates", "behavioral_health"].includes(cat)
+          : false) || e.source_type === "atrium"
+      );
+    default:
+      return false;
+  }
+}
 
 export function IntelFeed({ missionId }: { missionId: string }) {
   const [filter, setFilter] = useState<FilterId>("all");
   const [addOpen, setAddOpen] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+  const seedTriedRef = useRef<Set<string>>(new Set());
+  const qc = useQueryClient();
+  const seedFn = useServerFn(seedMissionIntelligence);
 
   const { data, isLoading } = useQuery({
     queryKey: ["intel-events", missionId],
@@ -81,11 +128,37 @@ export function IntelFeed({ missionId }: { missionId: string }) {
   });
 
   const events = (data ?? []) as any[];
-  const filtered = useMemo(() => {
-    if (filter === "all") return events;
-    if (filter === "atrium") return events.filter((e) => e.source_type === "atrium");
-    return events.filter((e) => e.event_type === filter);
-  }, [events, filter]);
+
+  // Fire-and-forget first-pass IRIS seed when the feed is empty.
+  // Only triggers once per mission per browser session; the server fn also
+  // re-checks count===0 before inserting, so race conditions are safe.
+  useEffect(() => {
+    if (isLoading) return;
+    if (events.length > 0) return;
+    if (seedTriedRef.current.has(missionId)) return;
+    seedTriedRef.current.add(missionId);
+    setSeeding(true);
+    (async () => {
+      try {
+        const res = await seedFn({ data: { missionId } });
+        if (res?.inserted && res.inserted > 0) {
+          qc.invalidateQueries({ queryKey: ["intel-events", missionId] });
+          qc.invalidateQueries({ queryKey: ["intel-counts", missionId] });
+        } else if (!res?.ok) {
+          console.log("[intel-feed] iris seed skipped", res);
+        }
+      } catch (e) {
+        console.log("[intel-feed] iris seed failed", e);
+      } finally {
+        setSeeding(false);
+      }
+    })();
+  }, [isLoading, events.length, missionId, seedFn, qc]);
+
+  const filtered = useMemo(
+    () => (filter === "all" ? events : events.filter((e) => tabMatches(filter, e))),
+    [events, filter],
+  );
 
   const stats = useMemo(() => {
     const week = Date.now() - 7 * 86400 * 1000;
@@ -94,6 +167,7 @@ export function IntelFeed({ missionId }: { missionId: string }) {
     const human = events.filter((e) => e.generated_by === "human").length;
     return { total: events.length, recent, iris, human };
   }, [events]);
+
 
   return (
     <div className="space-y-4">
