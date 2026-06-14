@@ -133,10 +133,11 @@ function WizardPage() {
       {step === 2 && <Step2Basics missionId={missionId} onBack={back} onAdvance={() => go(3)} />}
       {step === 3 && <Step3Strategy missionId={missionId} onBack={back} onAdvance={() => go(4)} />}
       {step === 4 && <Step4Competitive missionId={missionId} onBack={back} onAdvance={() => go(5)} />}
-      {step === 5 && <Step5Stakeholder missionId={missionId} onBack={back} onAdvance={() => go(6)} />}
-      {step === 6 && <Step6Executive missionId={missionId} onBack={back} onAdvance={() => go(7)} />}
-      {step === 7 && <Step7Team missionId={missionId} onBack={back} onAdvance={() => go(8)} />}
-      {step === 8 && <Step8Review missionId={missionId} onBack={back} onJump={go} />}
+      {step === 5 && <Step5IntelNetwork missionId={missionId} onBack={back} onAdvance={() => go(6)} />}
+      {step === 6 && <Step5Stakeholder missionId={missionId} onBack={back} onAdvance={() => go(7)} />}
+      {step === 7 && <Step6Executive missionId={missionId} onBack={back} onAdvance={() => go(8)} />}
+      {step === 8 && <Step7Team missionId={missionId} onBack={back} onAdvance={() => go(9)} />}
+      {step === 9 && <Step8Review missionId={missionId} onBack={back} onJump={go} />}
     </WizardShellV3>
   );
 }
