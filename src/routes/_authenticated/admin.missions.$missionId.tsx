@@ -163,17 +163,32 @@ function AdminMissionDetail() {
         <div className="flex items-center gap-1">
           {TABS.map((t) => {
             const active = tab === t.id;
+            const baseStyle = {
+              color: active ? "#c9a84c" : "rgba(255,255,255,0.5)",
+              borderBottom: active ? "2px solid #c9a84c" : "2px solid transparent",
+              marginBottom: -1,
+            };
+            const className = "px-4 py-2.5 text-xs font-medium transition-colors relative";
+            if (t.id === "wizard") {
+              return (
+                <Link
+                  key={t.id}
+                  to="/olympus/wizard/$missionId"
+                  params={{ missionId }}
+                  className={className}
+                  style={baseStyle}
+                >
+                  {t.label}
+                </Link>
+              );
+            }
             return (
               <button
                 key={t.id}
                 type="button"
                 onClick={() => setTab(t.id)}
-                className="px-4 py-2.5 text-xs font-medium transition-colors relative"
-                style={{
-                  color: active ? "#c9a84c" : "rgba(255,255,255,0.5)",
-                  borderBottom: active ? "2px solid #c9a84c" : "2px solid transparent",
-                  marginBottom: -1,
-                }}
+                className={className}
+                style={baseStyle}
               >
                 {t.label}
               </button>
@@ -199,18 +214,6 @@ function AdminMissionDetail() {
         )}
         {tab === "overview" && (
           <OverviewTab form={form} update={update} />
-        )}
-        {tab === "wizard" && (
-          <div className="flex flex-col gap-8">
-            <TeamTab missionId={missionId} />
-            <JourneyTab
-              missionId={missionId}
-              setDirty={setDirty}
-              registerSaver={(fn) => {
-                journeySaverRef.current = fn;
-              }}
-            />
-          </div>
         )}
       </div>
     </div>
