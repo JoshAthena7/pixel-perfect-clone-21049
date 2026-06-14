@@ -20,6 +20,7 @@
  * stubbed into intel_events with routing_status='needs_pdf_extraction'.
  */
 import { createFileRoute } from "@tanstack/react-router";
+import { askPerplexity } from "@/lib/iris/perplexity.server";
 
 type Source = {
   id: string;
