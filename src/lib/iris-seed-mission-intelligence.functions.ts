@@ -170,7 +170,110 @@ Return as a JSON array. No preamble. No explanation. Only the array.`;
         console.warn("[iris-seed] insert failed", insErr.message);
         return { ok: false, inserted: 0, error: insErr.message };
       }
-      return { ok: true, inserted: rows.length };
+
+      // Cascade: fire a second IRIS pass for people / org / competitive intel.
+      // Fire-and-forget within the handler — any failure logs and is swallowed
+      // so the primary seed result is never blocked.
+      let cascadeInserted = 0;
+      try {
+        const CASCADE_SYSTEM = `You are IRIS performing follow-up intelligence enrichment for this mission.
+
+Mission: ${m.name ?? "(unnamed)"}
+State: ${m.state ?? "n/a"}
+Program Area: ${m.program_type ?? ""}
+Brief: ${briefSnippet || "(none)"}
+
+Generate 6 follow-up intelligence items distributed as:
+- 2 items of event_type "stakeholder_update" (people / decision-makers / influencers relevant to this procurement)
+- 2 items of event_type "competitive_update" (likely competitors, prior awardees, market posture)
+- 2 items of event_type "research_finding" (organizational / agency background the team should know)
+
+For each item return:
+{ "title": "Short title (max 8 words)",
+  "summary": "2-3 sentence intelligence summary",
+  "event_type": "stakeholder_update|competitive_update|research_finding",
+  "signal_category": one of [stakeholder, competitor, market_movement, federal_policy, state_policy, procurement, decision_intelligence, relationship_intelligence],
+  "iris_recommendation": "1 sentence next step" }
+
+Return ONLY a JSON array. No preamble.`;
+
+        const cres = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
+              { role: "system", content: CASCADE_SYSTEM },
+              { role: "user", content: "Generate the JSON array now." },
+            ],
+          }),
+        });
+        if (cres.ok) {
+          const cjson = (await cres.json()) as { choices?: Array<{ message?: { content?: string } }> };
+          const craw = (cjson.choices?.[0]?.message?.content ?? "").trim();
+          const cclean = craw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+          let cparsed: Array<Record<string, unknown>> = [];
+          try {
+            const cj = JSON.parse(cclean);
+            cparsed = Array.isArray(cj) ? cj : Array.isArray((cj as any)?.items) ? (cj as any).items : [];
+          } catch {
+            console.log("[iris-seed] cascade invalid JSON; skipping");
+          }
+          const ALLOWED_EVENT = new Set(["stakeholder_update", "competitive_update", "research_finding"]);
+          const crows = cparsed
+            .map((p) => {
+              const title = String(p.title ?? "").trim().slice(0, 200);
+              const summary = String(p.summary ?? "").trim();
+              const event_type = String(p.event_type ?? "").trim();
+              const signal_category = String(p.signal_category ?? "").trim();
+              const iris_recommendation = String(p.iris_recommendation ?? "").trim() || null;
+              if (!title || !summary) return null;
+              if (!ALLOWED_EVENT.has(event_type)) return null;
+              return {
+                mission_id: missionId,
+                event_type,
+                output_type:
+                  event_type === "stakeholder_update"
+                    ? "stakeholder_profile"
+                    : event_type === "competitive_update"
+                      ? "intel_card_candidate"
+                      : "intel_card_candidate",
+                signal_category: ALLOWED_CATEGORIES.has(signal_category) ? signal_category : null,
+                title,
+                content: summary,
+                extracted_summary: summary,
+                iris_recommendation,
+                confidence: "medium",
+                routing_status: "auto_seeded",
+                source_title: "IRIS Cascade",
+                source_type: "iris",
+                generated_by: "iris",
+                state: m.state ?? null,
+                tags: ["iris_cascade", "auto_seeded"],
+              };
+            })
+            .filter((r): r is NonNullable<typeof r> => r !== null);
+
+          if (crows.length > 0) {
+            const { error: cInsErr } = await supabase.from("intel_events").insert(crows);
+            if (cInsErr) {
+              console.log("[iris-seed] cascade insert failed", cInsErr.message);
+            } else {
+              cascadeInserted = crows.length;
+            }
+          }
+        } else {
+          console.log("[iris-seed] cascade gateway", cres.status);
+        }
+      } catch (e) {
+        console.log("[iris-seed] cascade threw", e instanceof Error ? e.message : String(e));
+      }
+
+      return { ok: true, inserted: rows.length, cascadeInserted };
+
     } catch (e) {
       console.warn("[iris-seed] unexpected", e instanceof Error ? e.message : String(e));
       return { ok: false, inserted: 0, error: "unexpected" };
