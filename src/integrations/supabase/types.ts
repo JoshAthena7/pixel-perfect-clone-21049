@@ -3629,46 +3629,85 @@ export type Database = {
       intel_events: {
         Row: {
           confidence: string | null
+          confidence_score: number | null
           content: string
           created_at: string
           entity_refs: string[]
           event_type: string
+          extracted_summary: string | null
           generated_by: string | null
           id: string
+          iris_recommendation: string | null
           mission_id: string
+          output_type: string | null
+          population: string | null
+          relevance_score: number | null
+          routing_status: string | null
+          signal_category: string | null
           significance: string | null
           source_entity_id: string | null
+          source_id: string | null
+          source_published_at: string | null
+          source_title: string | null
           source_type: string | null
+          source_url: string | null
+          state: string | null
           tags: string[]
           title: string
         }
         Insert: {
           confidence?: string | null
+          confidence_score?: number | null
           content: string
           created_at?: string
           entity_refs?: string[]
           event_type: string
+          extracted_summary?: string | null
           generated_by?: string | null
           id?: string
+          iris_recommendation?: string | null
           mission_id: string
+          output_type?: string | null
+          population?: string | null
+          relevance_score?: number | null
+          routing_status?: string | null
+          signal_category?: string | null
           significance?: string | null
           source_entity_id?: string | null
+          source_id?: string | null
+          source_published_at?: string | null
+          source_title?: string | null
           source_type?: string | null
+          source_url?: string | null
+          state?: string | null
           tags?: string[]
           title: string
         }
         Update: {
           confidence?: string | null
+          confidence_score?: number | null
           content?: string
           created_at?: string
           entity_refs?: string[]
           event_type?: string
+          extracted_summary?: string | null
           generated_by?: string | null
           id?: string
+          iris_recommendation?: string | null
           mission_id?: string
+          output_type?: string | null
+          population?: string | null
+          relevance_score?: number | null
+          routing_status?: string | null
+          signal_category?: string | null
           significance?: string | null
           source_entity_id?: string | null
+          source_id?: string | null
+          source_published_at?: string | null
+          source_title?: string | null
           source_type?: string | null
+          source_url?: string | null
+          state?: string | null
           tags?: string[]
           title?: string
         }
@@ -3685,6 +3724,13 @@ export type Database = {
             columns: ["source_entity_id"]
             isOneToOne: false
             referencedRelation: "intel_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intel_events_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "intel_sources"
             referencedColumns: ["id"]
           },
         ]
@@ -3831,32 +3877,50 @@ export type Database = {
       }
       intel_relationships: {
         Row: {
+          co_occurrence_count: number | null
           confidence: string | null
           context: string | null
           created_at: string
+          evidence_source_ids: string[] | null
+          first_seen_at: string | null
           from_entity_id: string
           id: string
+          last_seen_at: string | null
           mission_id: string | null
+          relationship_context: string | null
+          relationship_strength: number | null
           relationship_type: string
           to_entity_id: string
         }
         Insert: {
+          co_occurrence_count?: number | null
           confidence?: string | null
           context?: string | null
           created_at?: string
+          evidence_source_ids?: string[] | null
+          first_seen_at?: string | null
           from_entity_id: string
           id?: string
+          last_seen_at?: string | null
           mission_id?: string | null
+          relationship_context?: string | null
+          relationship_strength?: number | null
           relationship_type: string
           to_entity_id: string
         }
         Update: {
+          co_occurrence_count?: number | null
           confidence?: string | null
           context?: string | null
           created_at?: string
+          evidence_source_ids?: string[] | null
+          first_seen_at?: string | null
           from_entity_id?: string
           id?: string
+          last_seen_at?: string | null
           mission_id?: string | null
+          relationship_context?: string | null
+          relationship_strength?: number | null
           relationship_type?: string
           to_entity_id?: string
         }
@@ -3892,14 +3956,24 @@ export type Database = {
           entity_id: string | null
           file_path: string | null
           id: string
+          is_active: boolean | null
+          last_checked_at: string | null
+          last_content_hash: string | null
           last_monitored_at: string | null
-          mission_id: string
+          last_successful_check_at: string | null
+          mission_id: string | null
+          monitor_cadence: string | null
           monitor_daily: boolean | null
+          notes: string | null
           published_at: string | null
+          rss_url: string | null
+          scrape_url: string | null
           seeded_at_setup: boolean | null
+          signal_category: string | null
           source_category: string | null
           source_type: string
           summary: string | null
+          tier: number | null
           url: string | null
         }
         Insert: {
@@ -3909,14 +3983,24 @@ export type Database = {
           entity_id?: string | null
           file_path?: string | null
           id?: string
+          is_active?: boolean | null
+          last_checked_at?: string | null
+          last_content_hash?: string | null
           last_monitored_at?: string | null
-          mission_id: string
+          last_successful_check_at?: string | null
+          mission_id?: string | null
+          monitor_cadence?: string | null
           monitor_daily?: boolean | null
+          notes?: string | null
           published_at?: string | null
+          rss_url?: string | null
+          scrape_url?: string | null
           seeded_at_setup?: boolean | null
+          signal_category?: string | null
           source_category?: string | null
           source_type: string
           summary?: string | null
+          tier?: number | null
           url?: string | null
         }
         Update: {
@@ -3926,14 +4010,24 @@ export type Database = {
           entity_id?: string | null
           file_path?: string | null
           id?: string
+          is_active?: boolean | null
+          last_checked_at?: string | null
+          last_content_hash?: string | null
           last_monitored_at?: string | null
-          mission_id?: string
+          last_successful_check_at?: string | null
+          mission_id?: string | null
+          monitor_cadence?: string | null
           monitor_daily?: boolean | null
+          notes?: string | null
           published_at?: string | null
+          rss_url?: string | null
+          scrape_url?: string | null
           seeded_at_setup?: boolean | null
+          signal_category?: string | null
           source_category?: string | null
           source_type?: string
           summary?: string | null
+          tier?: number | null
           url?: string | null
         }
         Relationships: [
@@ -7820,6 +7914,98 @@ export type Database = {
           user_name?: string | null
         }
         Relationships: []
+      }
+      oracle_decision_intelligence: {
+        Row: {
+          client_name: string | null
+          competitor_dynamics: string | null
+          confidence_score: number | null
+          created_at: string | null
+          created_by: string | null
+          decision_summary: string | null
+          decision_type: string | null
+          evaluator_priorities: string | null
+          id: string
+          key_influencers: string | null
+          lessons_for_future_missions: string | null
+          mission_id: string | null
+          outcome: string | null
+          procurement_name: string | null
+          reusable_oracle_memory: string | null
+          risks_that_mattered: string | null
+          signals_that_preceded_it: string | null
+          source_reference: string | null
+          source_type: string | null
+          stakeholder_dynamics: string | null
+          state: string | null
+          updated_at: string | null
+          why_it_happened: string | null
+          win_themes_that_failed: string | null
+          win_themes_that_landed: string | null
+        }
+        Insert: {
+          client_name?: string | null
+          competitor_dynamics?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          decision_summary?: string | null
+          decision_type?: string | null
+          evaluator_priorities?: string | null
+          id?: string
+          key_influencers?: string | null
+          lessons_for_future_missions?: string | null
+          mission_id?: string | null
+          outcome?: string | null
+          procurement_name?: string | null
+          reusable_oracle_memory?: string | null
+          risks_that_mattered?: string | null
+          signals_that_preceded_it?: string | null
+          source_reference?: string | null
+          source_type?: string | null
+          stakeholder_dynamics?: string | null
+          state?: string | null
+          updated_at?: string | null
+          why_it_happened?: string | null
+          win_themes_that_failed?: string | null
+          win_themes_that_landed?: string | null
+        }
+        Update: {
+          client_name?: string | null
+          competitor_dynamics?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          decision_summary?: string | null
+          decision_type?: string | null
+          evaluator_priorities?: string | null
+          id?: string
+          key_influencers?: string | null
+          lessons_for_future_missions?: string | null
+          mission_id?: string | null
+          outcome?: string | null
+          procurement_name?: string | null
+          reusable_oracle_memory?: string | null
+          risks_that_mattered?: string | null
+          signals_that_preceded_it?: string | null
+          source_reference?: string | null
+          source_type?: string | null
+          stakeholder_dynamics?: string | null
+          state?: string | null
+          updated_at?: string | null
+          why_it_happened?: string | null
+          win_themes_that_failed?: string | null
+          win_themes_that_landed?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_decision_intelligence_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       oracle_escalation_log: {
         Row: {
