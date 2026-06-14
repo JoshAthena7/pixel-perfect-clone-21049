@@ -66,7 +66,7 @@ function BriefingPage() {
       const { data } = await supabase
         .from("missions")
         .select(
-          "name, client_name, status, health_score, state_code, state, submission_deadline, blast_off_at, iris_disclaimer, why_it_matters, why_win",
+          "name, client_name, status, health_score, state_code, state, submission_deadline, blast_off_at, iris_disclaimer, why_it_matters, why_win, today_focus, how_we_win, mission_journey, watch_items",
         )
         .eq("id", missionId)
         .maybeSingle();
