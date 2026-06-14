@@ -49,29 +49,60 @@ export function FlightDeckLayout({
   const iris = useIris();
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const { isAdmin } = useIsAdmin();
 
-  // Fetch this writer's assignments + question rows
+  // Fetch assignments. Writers see only their own. Admins/PMs see ALL
+  // assignments on the active mission so they can verify cascading from
+  // Mission Setup and preview any writer's Flight Deck context.
   const { data } = useQuery({
-    queryKey: ["fd-assignments", memberId, activeMissionId],
-    enabled: !!memberId,
+    queryKey: ["fd-assignments", memberId, activeMissionId, isAdmin],
+    enabled: !!memberId || (isAdmin && !!activeMissionId),
     queryFn: async () => {
-      const { data: asgs } = await supabase
-        .from("mission_assignments")
-        .select("id, question_id, mission_id, due_date, writer_confidence, acceptance_status")
-        .eq("assigned_writer_id", memberId!)
-        .limit(100);
-      const filteredAsgs = (asgs ?? []).filter((a: any) =>
-        !activeMissionId || a.mission_id === activeMissionId,
+      let asgs: any[] = [];
+      if (isAdmin && activeMissionId) {
+        const { data: all } = await supabase
+          .from("mission_assignments")
+          .select("id, question_id, mission_id, assigned_writer_id, due_date, writer_confidence, acceptance_status")
+          .eq("mission_id", activeMissionId)
+          .limit(500);
+        asgs = all ?? [];
+      } else if (memberId) {
+        const { data: mine } = await supabase
+          .from("mission_assignments")
+          .select("id, question_id, mission_id, assigned_writer_id, due_date, writer_confidence, acceptance_status")
+          .eq("assigned_writer_id", memberId)
+          .limit(100);
+        asgs = (mine ?? []).filter((a: any) => !activeMissionId || a.mission_id === activeMissionId);
+      }
+      const qids = asgs.map((a: any) => a.question_id).filter(Boolean);
+      const writerIds = Array.from(
+        new Set(asgs.map((a: any) => a.assigned_writer_id).filter(Boolean)),
+      ) as string[];
+      const [qsRes, writersRes] = await Promise.all([
+        qids.length
+          ? supabase
+              .from("mission_questions")
+              .select("id, question_number, question_text, section_id, due_date, health_status, status")
+              .in("id", qids)
+          : Promise.resolve({ data: [] as any[] } as any),
+        writerIds.length
+          ? supabase
+              .from("atlas_team_members")
+              .select("id, first_name, last_name")
+              .in("id", writerIds)
+          : Promise.resolve({ data: [] as any[] } as any),
+      ]);
+      const writerMap = new Map<string, string>(
+        ((writersRes as any).data ?? []).map((w: any) => [
+          w.id,
+          `${w.first_name ?? ""} ${w.last_name ?? ""}`.trim(),
+        ]),
       );
-      const qids = filteredAsgs.map((a: any) => a.question_id).filter(Boolean);
-      if (!qids.length) return { asgs: filteredAsgs, qs: [] };
-      const { data: qs } = await supabase
-        .from("mission_questions")
-        .select("id, question_number, question_text, section_id, due_date, health_status, status")
-        .in("id", qids);
-      return { asgs: filteredAsgs, qs: qs ?? [] };
+      return { asgs, qs: ((qsRes as any).data ?? []) as any[], writerMap };
     },
   });
+
+  const writerMap = data?.writerMap;
 
   // Sort by section then question number
   const sortedQs = useMemo(() => {
