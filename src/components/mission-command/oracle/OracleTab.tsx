@@ -92,6 +92,28 @@ export function OracleTab({ missionId }: { missionId: string }) {
     return pct;
   })();
 
+  // Auto-recover: if events were seeded before the people/orgs cascade existed,
+  // fire a one-shot force re-seed in the background to populate them.
+  const qc = useQueryClient();
+  const seedFn = useServerFn(seedMissionIntelligence);
+  const autoSeededRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!counts) return;
+    if (autoSeededRef.current.has(missionId)) return;
+    if (counts.events > 0 && counts.people === 0 && counts.orgs === 0) {
+      autoSeededRef.current.add(missionId);
+      seedFn({ data: { missionId, force: true } })
+        .then((res) => {
+          if (res?.ok) {
+            qc.invalidateQueries({ queryKey: ["intel-counts", missionId] });
+            qc.invalidateQueries({ queryKey: ["intel-people", missionId] });
+            qc.invalidateQueries({ queryKey: ["intel-orgs", missionId] });
+          }
+        })
+        .catch((e) => console.log("[oracle-tab] auto re-seed failed", e));
+    }
+  }, [counts, missionId, seedFn, qc]);
+
   const clientLabel = mission?.client_name ?? mission?.agency_name ?? mission?.name ?? "this mission";
   const subtitle = mission?.program_type
     ? `IRIS intelligence layer for ${clientLabel} — ${mission.program_type}`
