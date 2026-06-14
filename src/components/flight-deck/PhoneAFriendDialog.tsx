@@ -2,7 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useServerFn } from "@tanstack/react-start";
-import { findExperts, addExpertToThread, type ExpertMatch } from "@/lib/phone-a-friend.functions";
+import {
+  findExperts,
+  addExpertToThread,
+  getSmeProfilesByUserIds,
+  type ExpertMatch,
+  type SmeProfileSummary,
+} from "@/lib/phone-a-friend.functions";
 import { Eye, MessageCircle, Plus, Search, X } from "lucide-react";
 import { toast } from "sonner";
 
