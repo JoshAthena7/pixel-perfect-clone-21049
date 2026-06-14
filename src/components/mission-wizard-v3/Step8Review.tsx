@@ -137,7 +137,10 @@ export function Step8Review({
       const clientAgency = get("client_agency");
       const competitorsList = splitList(get("known_competitors"));
 
-      const updates: TablesUpdate<"missions"> = { status: "active" };
+      const updates: TablesUpdate<"missions"> = {
+        status: "active",
+        blast_off_at: new Date().toISOString(),
+      };
       if (dueIso && /^\d{4}-\d{2}-\d{2}/.test(dueIso)) {
         updates.submission_deadline = `${dueIso}T17:00:00Z`;
       }
