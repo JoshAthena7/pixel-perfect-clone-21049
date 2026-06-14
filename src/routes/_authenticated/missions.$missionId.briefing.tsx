@@ -337,7 +337,7 @@ function extractFocusItems(content: any, summary?: string | null): string[] {
 }
 
 /* ───────────────── 2b. How We Win ───────────────── */
-function HowWeWinCard({ missionId }: { missionId: string }) {
+function HowWeWinCard({ missionId, mission }: { missionId: string; mission?: any }) {
   const { data: themes = [] } = useQuery({
     queryKey: ["briefing-win-themes", missionId],
     queryFn: async () => {
