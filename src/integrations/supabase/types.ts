@@ -6686,36 +6686,42 @@ export type Database = {
           created_at: string | null
           created_by_system: boolean
           description: string | null
+          historical_note: string | null
           id: string
           mission_id: string
           owner: string | null
           question_id: string | null
           severity: string | null
           status: string | null
+          times_seen_historically: number | null
           title: string
         }
         Insert: {
           created_at?: string | null
           created_by_system?: boolean
           description?: string | null
+          historical_note?: string | null
           id?: string
           mission_id: string
           owner?: string | null
           question_id?: string | null
           severity?: string | null
           status?: string | null
+          times_seen_historically?: number | null
           title: string
         }
         Update: {
           created_at?: string | null
           created_by_system?: boolean
           description?: string | null
+          historical_note?: string | null
           id?: string
           mission_id?: string
           owner?: string | null
           question_id?: string | null
           severity?: string | null
           status?: string | null
+          times_seen_historically?: number | null
           title?: string
         }
         Relationships: []
@@ -7861,6 +7867,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      oracle_risk_patterns: {
+        Row: {
+          created_at: string
+          example_missions: string[]
+          id: string
+          last_seen_at: string
+          risk_category: string | null
+          risk_title: string
+          times_materialized: number
+          times_seen: number
+        }
+        Insert: {
+          created_at?: string
+          example_missions?: string[]
+          id?: string
+          last_seen_at?: string
+          risk_category?: string | null
+          risk_title: string
+          times_materialized?: number
+          times_seen?: number
+        }
+        Update: {
+          created_at?: string
+          example_missions?: string[]
+          id?: string
+          last_seen_at?: string
+          risk_category?: string | null
+          risk_title?: string
+          times_materialized?: number
+          times_seen?: number
+        }
+        Relationships: []
       }
       oracle_thread_queries: {
         Row: {

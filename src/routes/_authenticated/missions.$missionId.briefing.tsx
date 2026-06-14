@@ -461,8 +461,22 @@ function FlightRisks({ missionId }: { missionId: string }) {
             }}
           >
             <AlertTriangle size={14} style={{ color: sevColor(r.severity ?? ""), marginTop: 2 }} />
-            <div className="font-bold" style={{ fontSize: 13 }}>
-              {r.title}
+            <div className="min-w-0">
+              <div className="font-bold" style={{ fontSize: 13 }}>
+                {r.title}
+              </div>
+              {r.historical_note ? (
+                <div
+                  className="mt-1 italic"
+                  style={{
+                    fontSize: 10,
+                    color: "rgba(255,255,255,0.4)",
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {r.historical_note}
+                </div>
+              ) : null}
             </div>
           </div>
         ))}
