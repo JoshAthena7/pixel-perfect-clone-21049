@@ -9,11 +9,11 @@ export const Route = createFileRoute("/_authenticated/admin/missions/$missionId"
   component: AdminMissionDetail,
 });
 
-type Tab = "overview" | "team" | "journey" | "compliance" | "reports";
+type Tab = "overview" | "wizard";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
-  { id: "team", label: "Team" },
+  { id: "wizard", label: "Setup Wizard" },
 ];
 
 type Mission = {
@@ -144,6 +144,15 @@ function AdminMissionDetail() {
             {saving ? "Saving…" : "Save & cascade"}
           </button>
         )}
+        <Link
+          to="/missions/$missionId"
+          params={{ missionId }}
+          className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold"
+          style={{ background: "#c9a84c", color: "#080c14" }}
+        >
+          <BookOpen className="h-3.5 w-3.5" />
+          Enter Briefing
+        </Link>
         {cascaded && (
           <span
             className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold transition-opacity duration-700"
@@ -200,18 +209,18 @@ function AdminMissionDetail() {
         {tab === "overview" && (
           <OverviewTab form={form} update={update} />
         )}
-        {tab === "team" && <TeamTab missionId={missionId} />}
-        {tab === "journey" && (
-          <JourneyTab
-            missionId={missionId}
-            setDirty={setDirty}
-            registerSaver={(fn) => {
-              journeySaverRef.current = fn;
-            }}
-          />
+        {tab === "wizard" && (
+          <div className="flex flex-col gap-8">
+            <TeamTab missionId={missionId} />
+            <JourneyTab
+              missionId={missionId}
+              setDirty={setDirty}
+              registerSaver={(fn) => {
+                journeySaverRef.current = fn;
+              }}
+            />
+          </div>
         )}
-        {tab === "compliance" && <ComplianceTab missionId={missionId} />}
-        {tab === "reports" && <ReportsTab missionId={missionId} />}
       </div>
     </div>
   );
