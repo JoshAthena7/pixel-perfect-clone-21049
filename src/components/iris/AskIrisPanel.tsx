@@ -915,33 +915,72 @@ function IntelCardView({ card, onNavigate }: { card: Extract<CardKind, { kind: "
 }
 
 function SourcesCardView({ card }: { card: Extract<CardKind, { kind: "sources" }> }) {
-  if (!card.citations.length) return null;
+  const [expanded, setExpanded] = useState(false);
+  if (!card.citations.length) {
+    return card.research ? <ResearchBadge /> : null;
+  }
+  const MAX = 6;
+  const visible = expanded ? card.citations : card.citations.slice(0, MAX);
+  const overflow = card.citations.length - MAX;
   return (
     <div className="mt-2">
-      <div className="text-[10px] uppercase tracking-wider mb-1.5 inline-flex items-center gap-1" style={{ color: IRIS }}>
-        <Globe className="h-3 w-3" /> Live sources ({card.citations.length})
+      {card.research && <ResearchBadge />}
+      <div
+        className="my-2 flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-white/45"
+        aria-hidden
+      >
+        <span className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />
+        Sources
+        <span className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />
       </div>
       <ul className="space-y-1.5">
-        {card.citations.map((c, i) => (
+        {visible.map((c, i) => (
           <li key={i}>
             <a
               href={c.url}
               target="_blank"
-              rel="noreferrer"
-              className="block text-[11px] rounded p-2 border hover:bg-white/5"
-              style={{ borderColor: "rgba(127,119,221,0.25)" }}
+              rel="noopener noreferrer"
+              className="block text-[11px] rounded-md p-2 border hover:bg-white/5 transition"
+              style={{ borderColor: "rgba(127,119,221,0.25)", background: "rgba(0,0,0,0.2)" }}
             >
-              <div className="font-semibold text-white truncate inline-flex items-center gap-1">
-                {c.domain} <ExternalLink className="h-3 w-3 opacity-60" />
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="text-[10px] font-mono px-1.5 py-0.5 rounded"
+                  style={{ background: "rgba(127,119,221,0.15)", color: "rgba(255,255,255,0.85)" }}
+                >
+                  {c.domain}
+                </span>
+                <ExternalLink className="h-3 w-3 text-white/40" />
               </div>
-              <div className="text-white/45 truncate">{c.url}</div>
+              <div className="text-white/65 truncate mt-1">{c.url}</div>
             </a>
           </li>
         ))}
       </ul>
+      {!expanded && overflow > 0 && (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="mt-1.5 text-[11px] text-white/55 hover:text-white"
+        >
+          View all {card.citations.length} sources →
+        </button>
+      )}
     </div>
   );
 }
+
+function ResearchBadge() {
+  return (
+    <div
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold mb-1"
+      style={{ background: "rgba(196,154,43,0.15)", color: GOLD, border: `0.5px solid ${GOLD}55` }}
+    >
+      <span aria-hidden>🔍</span> IRIS Research
+    </div>
+  );
+}
+
 
 function fmtTime(at: number) {
   return new Date(at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
