@@ -3638,7 +3638,7 @@ export type Database = {
           generated_by: string | null
           id: string
           iris_recommendation: string | null
-          mission_id: string
+          mission_id: string | null
           output_type: string | null
           population: string | null
           relevance_score: number | null
@@ -3666,7 +3666,7 @@ export type Database = {
           generated_by?: string | null
           id?: string
           iris_recommendation?: string | null
-          mission_id: string
+          mission_id?: string | null
           output_type?: string | null
           population?: string | null
           relevance_score?: number | null
@@ -3694,7 +3694,7 @@ export type Database = {
           generated_by?: string | null
           id?: string
           iris_recommendation?: string | null
-          mission_id?: string
+          mission_id?: string | null
           output_type?: string | null
           population?: string | null
           relevance_score?: number | null
