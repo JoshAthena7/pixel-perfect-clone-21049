@@ -49,29 +49,35 @@ export const getIrisPipelineStatus = createServerFn({ method: "GET" })
     const { data: jobs, error: jobsErr } = await supabase.rpc("iris_pipeline_jobs");
     if (jobsErr) throw new Error(jobsErr.message);
 
-    const out: Array<PipelineJob & { runs: PipelineRun[] }> = [];
-    for (const j of (jobs ?? []) as any[]) {
-      const { data: runs, error: runsErr } = await supabase.rpc(
-        "iris_pipeline_recent_runs",
-        { _jobid: j.jobid, _limit: 20 },
-      );
-      if (runsErr) throw new Error(runsErr.message);
-      out.push({
-        jobid: Number(j.jobid),
-        jobname: j.jobname,
-        schedule: j.schedule,
-        active: j.active,
-        hookPath: JOB_HOOK_PATHS[j.jobname] ?? null,
-        runs: (runs ?? []).map((r: any) => ({
-          runid: Number(r.runid),
-          status: r.status,
-          return_message: r.return_message,
-          start_time: r.start_time,
-          end_time: r.end_time,
-        })),
-      });
-    }
+    const jobList = (jobs ?? []) as any[];
+    const runsResults = await Promise.all(
+      jobList.map((j) =>
+        supabase
+          .rpc("iris_pipeline_recent_runs", { _jobid: j.jobid, _limit: 5 })
+          .then((r: any) => ({ jobid: j.jobid, runs: r.data ?? [], error: r.error }))
+          .catch((e: any) => ({ jobid: j.jobid, runs: [], error: e })),
+      ),
+    );
+    const runsByJob = new Map<number, any[]>(
+      runsResults.map((r) => [Number(r.jobid), r.runs]),
+    );
+
+    const out: Array<PipelineJob & { runs: PipelineRun[] }> = jobList.map((j) => ({
+      jobid: Number(j.jobid),
+      jobname: j.jobname,
+      schedule: j.schedule,
+      active: j.active,
+      hookPath: JOB_HOOK_PATHS[j.jobname] ?? null,
+      runs: (runsByJob.get(Number(j.jobid)) ?? []).map((r: any) => ({
+        runid: Number(r.runid),
+        status: r.status,
+        return_message: r.return_message,
+        start_time: r.start_time,
+        end_time: r.end_time,
+      })),
+    }));
     return { jobs: out };
+
   });
 
 export const runIrisPipeline = createServerFn({ method: "POST" })
