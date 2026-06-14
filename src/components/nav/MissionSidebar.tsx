@@ -108,6 +108,9 @@ export function MissionSidebar({ missionId, email }: { missionId: string; email?
         minHeight: "calc(100vh - 48px)",
       }}
     >
+      <MissionSwitcher missionId={missionId} />
+      <div style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
+
       <nav className="flex flex-col py-2">
         {items.map((it) => {
           const active = activeForSeg(it, seg, pathname);
