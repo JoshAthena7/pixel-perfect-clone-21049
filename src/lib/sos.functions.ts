@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { logEscalationAndCheckPattern } from "./oracle-escalation-log.server";
 import { z } from "zod";
 
 const SEVERITIES = ["watch", "at_risk", "blocked"] as const;
