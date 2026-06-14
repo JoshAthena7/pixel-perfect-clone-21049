@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { refreshIrisAllForMission } from "@/lib/iris-refresh-all-for-mission.functions";
+import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 import { getIrisPipelineStatus, getIrisWiringSnapshot } from "@/lib/iris-health.functions";
 import {
   RefreshCw,
