@@ -98,6 +98,7 @@ export function MissionSidebar({ missionId, email }: { missionId: string; email?
   const seg = pathname.split("/")[3] ?? "";
   const items = buildItems(missionId);
   const intel = useIntelSummary(missionId);
+  const { isAdmin } = useIsAdmin();
 
   return (
     <aside
