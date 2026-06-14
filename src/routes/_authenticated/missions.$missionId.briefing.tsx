@@ -641,12 +641,12 @@ function EvaluatorLensCard({ mission }: { mission: any }) {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
         <ul className="space-y-3">
-          {left.map((it, i) => (
+          {left.map((it: typeof defaults[number], i: number) => (
             <LensItem key={`l-${i}`} {...it} />
           ))}
         </ul>
         <ul className="space-y-3">
-          {right.map((it, i) => (
+          {right.map((it: typeof defaults[number], i: number) => (
             <LensItem key={`r-${i}`} {...it} />
           ))}
         </ul>
