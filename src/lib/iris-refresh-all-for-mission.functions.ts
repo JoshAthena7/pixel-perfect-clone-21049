@@ -73,11 +73,14 @@ export const refreshIrisAllForMission = createServerFn({ method: "POST" })
     // Pre-fetch intel_sources URLs for the Firecrawl rescan task.
     const { data: sources } = await supabase
       .from("intel_sources")
-      .select("source_url")
-      .eq("mission_id", missionId)
-      .not("source_url", "is", null);
+      .select("url, scrape_url")
+      .eq("mission_id", missionId);
     const urls = Array.from(
-      new Set((sources ?? []).map((s) => s.source_url).filter((u): u is string => !!u)),
+      new Set(
+        (sources ?? [])
+          .map((s) => s.url ?? s.scrape_url)
+          .filter((u): u is string => !!u && /^https?:\/\//i.test(u)),
+      ),
     ).slice(0, 200);
 
     // Academic sweep is mission-agnostic; invoke the cron endpoint server-side.
