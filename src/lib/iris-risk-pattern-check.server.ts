@@ -108,7 +108,7 @@ export function triggerRiskPatternCheck(args: {
                 typeof parsed.times_seen === "number" && Number.isFinite(parsed.times_seen)
                   ? Math.max(0, Math.floor(parsed.times_seen))
                   : null;
-              const update: Record<string, unknown> = {};
+              const update: { historical_note?: string; times_seen_historically?: number } = {};
               if (note) update.historical_note = note;
               if (seen !== null) update.times_seen_historically = seen;
               if (Object.keys(update).length > 0) {
