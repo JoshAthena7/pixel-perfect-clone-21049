@@ -172,8 +172,7 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          response_format: { type: "json_object" },
+          model: "gpt-4o-mini",
           messages: [
             { role: "system", content: SYSTEM },
             { role: "user", content: data.primary_rfp_text },
@@ -188,9 +187,27 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
     if (res.status === 429) throw new Error("IRIS is rate limited. Try again shortly.");
     if (!res.ok) throw new Error(`IRIS gateway returned ${res.status}.`);
 
-    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-    const content = json.choices?.[0]?.message?.content?.trim() ?? "";
-    const parsed = tryParseJSON(content);
+    let parsed: Extracted | null = null;
+    try {
+      const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+      const content = json.choices?.[0]?.message?.content?.trim() ?? "";
+      if (!content) {
+        console.warn("IRIS returned an empty response — keeping existing data unchanged.");
+        return {
+          ok: true,
+          counts: { volumes: 0, sections: 0, sub_sections: 0, questions: 0, compliance: 0, checklist: 0 },
+          disclaimer: "IRIS returned no content. Existing questions and assignments were left unchanged.",
+        };
+      }
+      parsed = tryParseJSON(content);
+    } catch (err) {
+      console.warn("IRIS response parsing failed — keeping existing data unchanged.", err);
+      return {
+        ok: true,
+        counts: { volumes: 0, sections: 0, sub_sections: 0, questions: 0, compliance: 0, checklist: 0 },
+        disclaimer: "IRIS response could not be parsed. Existing questions and assignments were left unchanged.",
+      };
+    }
     if (!parsed) {
       console.warn("IRIS could not extract a valid structure — keeping existing data unchanged.");
       return {
