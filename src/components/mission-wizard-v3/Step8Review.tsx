@@ -138,12 +138,53 @@ export function Step8Review({
     }
   }
 
+  async function enrichNow() {
+    setEnriching(true);
+    setEnrichMsg(null);
+    try {
+      const res = await enrichMissionWithPerplexity({ data: { missionId } });
+      if (res?.ok) {
+        setEnrichMsg(
+          "IRIS is enriching the brief in the background — state landscape, incumbent intel, and population research will appear in a moment.",
+        );
+      } else {
+        setEnrichMsg("IRIS couldn't reach the source network. The brief will launch without enrichment.");
+      }
+    } catch (e) {
+      setEnrichMsg(e instanceof Error ? e.message : String(e));
+    } finally {
+      setEnriching(false);
+    }
+  }
+
   return (
     <div>
       <WizardStepHeading
         title="Everything is set. Review and launch."
         subtitle="Confirm every field looks right. Yellow chips flag values IRIS suggested but you have not yet confirmed."
       />
+
+      <div className="mb-5 flex items-center justify-between rounded-lg border border-white/10 bg-gradient-to-r from-amber-400/[0.04] to-transparent p-3.5">
+        <div className="flex items-start gap-2.5">
+          <Sparkles className="h-4 w-4 text-amber-300 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-[13px] text-white font-medium">Enrich this brief with live, cited intelligence</p>
+            <p className="text-[12px] text-white/55 mt-0.5">
+              IRIS will pull state landscape, incumbent flight risks, and population evidence — all with sources.
+            </p>
+            {enrichMsg && <p className="text-[12px] text-amber-200 mt-1.5">{enrichMsg}</p>}
+          </div>
+        </div>
+        <button
+          onClick={enrichNow}
+          disabled={enriching}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12.5px] font-medium border border-amber-400/40 text-amber-100 hover:bg-amber-400/10 disabled:opacity-50 shrink-0"
+        >
+          {enriching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+          {enriching ? "Enriching…" : "Enrich with IRIS"}
+        </button>
+      </div>
+
 
       <div className="space-y-6">
         {Object.entries(STEP_FIELD_GROUPS).map(([stepStr, group]) => {
