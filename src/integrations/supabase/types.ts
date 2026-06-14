@@ -9084,6 +9084,59 @@ export type Database = {
         }
         Relationships: []
       }
+      score_me_sessions: {
+        Row: {
+          coaching_summary: string | null
+          created_at: string | null
+          gaps: string[] | null
+          id: string
+          message_discipline_score: number | null
+          mission_id: string | null
+          overall_score: number | null
+          response_text: string | null
+          scored_by: string | null
+          section_name: string | null
+          strengths: string[] | null
+          win_theme_alignment_score: number | null
+        }
+        Insert: {
+          coaching_summary?: string | null
+          created_at?: string | null
+          gaps?: string[] | null
+          id?: string
+          message_discipline_score?: number | null
+          mission_id?: string | null
+          overall_score?: number | null
+          response_text?: string | null
+          scored_by?: string | null
+          section_name?: string | null
+          strengths?: string[] | null
+          win_theme_alignment_score?: number | null
+        }
+        Update: {
+          coaching_summary?: string | null
+          created_at?: string | null
+          gaps?: string[] | null
+          id?: string
+          message_discipline_score?: number | null
+          mission_id?: string | null
+          overall_score?: number | null
+          response_text?: string | null
+          scored_by?: string | null
+          section_name?: string | null
+          strengths?: string[] | null
+          win_theme_alignment_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "score_me_sessions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       section_briefs: {
         Row: {
           answers_submitted_at: string | null
