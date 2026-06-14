@@ -1135,8 +1135,7 @@ function IrisAssistsSummary({ missionId }: { missionId: string }) {
   const { data } = useQuery({
     queryKey: ["fd-iris-summary", missionId],
     queryFn: async () => {
-      const { data: memberRes } = await supabase.rpc("current_atlas_member_id");
-      const memberId = (memberRes as string) ?? null;
+      const memberId = await fetchMyAtlasMemberId();
       if (!memberId) return null;
       const { data: asgs } = await supabase
         .from("mission_assignments")
