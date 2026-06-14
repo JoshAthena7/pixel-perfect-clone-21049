@@ -711,6 +711,7 @@ function MessageRow({ m, onNavigate, onOpenInThread }: { m: Msg; onNavigate: (h:
         {m.card?.kind === "score" && <ScoreCardView card={m.card} />}
         {m.card?.kind === "risks" && <RiskCardView card={m.card} onNavigate={onNavigate} />}
         {m.card?.kind === "intel" && <IntelCardView card={m.card} onNavigate={onNavigate} />}
+        {m.card?.kind === "sources" && <SourcesCardView card={m.card} />}
         <div className="text-[10px] text-white/35 mt-1">{fmtTime(m.at)}</div>
       </div>
     </div>
