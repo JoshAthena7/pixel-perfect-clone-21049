@@ -115,20 +115,11 @@ function AdminMissionDetail() {
 
   return (
     <div className="min-h-[calc(100vh-48px)]" style={{ background: "#080c14" }}>
-      {/* Top bar */}
+      {/* Top bar — sits below the admin layout's tab strip (h-10 at top-12) */}
       <div
-        className="sticky top-12 z-10 px-6 py-3 flex items-center gap-4"
-        style={{ background: "#0a121f", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        className="sticky z-10 px-6 py-3 flex items-center gap-4"
+        style={{ top: 88, background: "#0a121f", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
       >
-        <Link
-          to="/admin"
-          className="inline-flex items-center gap-1.5 text-xs hover:text-white transition-colors"
-          style={{ color: "rgba(255,255,255,0.5)" }}
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Missions
-        </Link>
-        <div className="h-4 w-px" style={{ background: "rgba(255,255,255,0.1)" }} />
         <div className="text-white font-medium text-sm truncate flex-1">
           {form.name ?? "Mission"}
         </div>
