@@ -104,7 +104,8 @@ function AuthenticatedLayout() {
   // Mission setup wizard is a full-page experience — no nav chrome.
   const isWizard =
     path === "/olympus/missions/new" ||
-    /^\/olympus\/missions\/[^/]+\/wizard$/.test(path);
+    /^\/olympus\/missions\/[^/]+\/wizard$/.test(path) ||
+    /^\/olympus\/wizard\/[^/]+$/.test(path);
   // Hide nav chrome (sidebar + global bar) for onboarding/welcome surfaces.
   const isChromeless =
     isWizard ||
