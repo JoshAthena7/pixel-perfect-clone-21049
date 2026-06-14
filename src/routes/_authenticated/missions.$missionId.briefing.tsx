@@ -537,6 +537,22 @@ function MissionJourneyCard({ mission }: { mission: any }) {
           )}
         </div>
       </div>
+      {(mission?.mission_journey ?? "").trim() && (
+        <div
+          className="mt-6 p-4"
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            borderRadius: 12,
+            fontSize: 13.5,
+            color: "rgba(255,255,255,0.8)",
+            lineHeight: 1.6,
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {mission.mission_journey}
+        </div>
+      )}
     </section>
   );
 }
