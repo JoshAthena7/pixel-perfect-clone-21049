@@ -593,6 +593,7 @@ export function AskIrisPanel() {
             <ConversationState
               messages={messages}
               waitingFirstToken={waitingFirstToken && streaming}
+              researchLoader={mode === "research" && streaming ? RESEARCH_LOADER_MESSAGES[researchPhase] : null}
               onBack={clearConversation}
               onNavigate={navigateTo}
               onOpenInThread={(draft) => {
