@@ -365,7 +365,13 @@ function HowWeWinCard({ missionId, mission }: { missionId: string; mission?: any
         <Trophy size={14} /> How We Win
       </div>
       {themes.length === 0 ? (
-        <EmptyState>Add win themes in the Setup Wizard.</EmptyState>
+        (mission?.how_we_win ?? "").trim() ? (
+          <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+            {mission.how_we_win}
+          </div>
+        ) : (
+          <EmptyState>Add win themes in the Setup Wizard.</EmptyState>
+        )
       ) : (
         <div className="grid grid-cols-2 gap-3">
           {themes.map((t: any, i: number) => {
