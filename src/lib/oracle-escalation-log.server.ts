@@ -91,7 +91,6 @@ export function logEscalationAndCheckPattern(args: {
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",
-          response_format: { type: "json_object" },
           max_tokens: 200,
           messages: [
             {

@@ -177,8 +177,7 @@ export const parseAtlasResume = createServerFn({ method: "POST" })
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
-          ],
-          response_format: { type: "json_object" },
+          ]
         }),
       });
 

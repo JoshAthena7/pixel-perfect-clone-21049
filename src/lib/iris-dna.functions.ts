@@ -203,7 +203,6 @@ async function callLovableAiForDna(rfpText: string): Promise<MissionDna> {
               { role: "system", content: withPersonFirst(system) },
               { role: "user", content: `RFP TEXT:\n\n${body}` },
             ],
-            response_format: { type: "json_object" },
             temperature: 0.2,
           }),
           signal: AbortSignal.timeout(180_000),

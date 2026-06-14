@@ -196,7 +196,6 @@ Return ONLY a JSON object: { "lessons": [ { "lesson_type": "strategy" | "writing
           headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
             model: "gpt-4o-mini",
-            response_format: { type: "json_object" },
             max_tokens: 3000,
             messages: [
               { role: "system", content: system },

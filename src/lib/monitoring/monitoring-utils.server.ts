@@ -193,7 +193,6 @@ News item summary: ${item.description.slice(0, 1500)}`;
       body: JSON.stringify({
         model: "gpt-4o-mini",
         max_tokens: 500,
-        response_format: { type: "json_object" },
         messages: [
           { role: "system", content: system },
           { role: "user", content: user },

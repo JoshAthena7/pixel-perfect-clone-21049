@@ -139,8 +139,7 @@ export const raiseSOS = createServerFn({ method: "POST" })
                 role: "user",
                 content: `Mission: ${missionName}. Sender: ${senderName}. Severity: ${data.severity}. Description: ${data.body}. Question context: ${questionTitle ?? "Mission-level (no specific question)"}. Return JSON: { "escalation_path": "who needs to act", "recommended_actions": ["max 3 short strings"], "iris_acknowledgment": "max 200 chars for Mission Pulse" }`,
               },
-            ],
-            response_format: { type: "json_object" },
+            ]
           }),
         });
         if (res.ok) {

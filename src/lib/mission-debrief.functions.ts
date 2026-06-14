@@ -104,8 +104,7 @@ async function synthesizeCanonSuggestions(debrief: any): Promise<Array<{ title: 
         messages: [
           { role: "system", content: 'You convert mission debriefs into 3-5 short, durable Canon items for Athena Strategy Group. Each item is a firm-wide rule, reference, or lesson worth memorizing. Return STRICT JSON: { "items": [{"title": string, "body": string, "category": "Lessons Learned" | "CMS Guidance" | "State Procurement" | "Win Themes"}] }. No prose outside JSON.' },
           { role: "user", content: JSON.stringify(debrief).slice(0, 12000) },
-        ],
-        response_format: { type: "json_object" },
+        ]
       }),
     });
     if (!res.ok) return [];

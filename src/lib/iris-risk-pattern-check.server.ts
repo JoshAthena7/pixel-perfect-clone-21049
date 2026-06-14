@@ -74,7 +74,6 @@ export function triggerRiskPatternCheck(args: {
           },
           body: JSON.stringify({
             model: "gpt-4o-mini",
-            response_format: { type: "json_object" },
             max_tokens: 400,
             messages: [
               { role: "system", content: system },

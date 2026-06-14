@@ -93,7 +93,6 @@ export const generateSectionIntelligence = createServerFn({ method: "POST" })
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",
-          response_format: { type: "json_object" },
           messages: [
             { role: "system", content: SYSTEM },
             { role: "user", content: prompt },
