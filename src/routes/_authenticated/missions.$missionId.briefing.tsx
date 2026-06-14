@@ -15,6 +15,7 @@ import {
   X,
   ArrowRight,
 } from "lucide-react";
+import { BriefSectionDot } from "@/components/briefing-room/BriefSectionDot";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/briefing")({
   component: BriefingPage,
