@@ -204,15 +204,13 @@ function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolea
   const inAdmin = pathname.startsWith("/admin");
   const hideSidebar = onDesk || inMission || inAdmin;
   const sidebarWidth = hideSidebar ? 0 : (isMobile ? 48 : 200);
-  const railWidth = 48;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <GlobalCommandBar email={email} isAdmin={isAdmin} />
-      <IconRail />
       {!hideSidebar && <AppSidebar userName={userName} userRole={userRole} />}
 
-      <main style={{ marginLeft: sidebarWidth + railWidth, paddingTop: 0, position: "relative" }}>
+      <main style={{ marginLeft: sidebarWidth, paddingTop: 0, position: "relative" }}>
         <IrisExplainThisPage />
         <Outlet />
       </main>
