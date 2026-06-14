@@ -46,7 +46,29 @@ type CardKind =
   | { kind: "score"; total: number; breakdown: Array<{ label: string; score: number; max: number }>; gaps: string[]; detail: string }
   | { kind: "risks"; items: Array<{ label: string; detail: string; href: string }> }
   | { kind: "intel"; items: Array<{ headline: string; url: string | null; assessment: string | null; href: string }> }
-  | { kind: "sources"; answer: string; citations: Array<{ url: string; domain: string }> };
+  | { kind: "sources"; answer: string; citations: Array<{ url: string; domain: string }>; research?: boolean };
+
+type AskMode = "quick" | "research";
+
+const RESEARCH_DOMAIN_FILTER = [
+  "cms.gov",
+  "medicaid.gov",
+  "kff.org",
+  "nashp.org",
+  "macpac.gov",
+  "healthmanagement.com",
+  "shvs.org",
+  "commonwealthfund.org",
+  "ccf.georgetown.edu",
+  "managedhealthcareexecutive.com",
+];
+
+const RESEARCH_LOADER_MESSAGES = [
+  "Searching CMS and federal policy sources…",
+  "Scanning state Medicaid intelligence…",
+  "Cross-referencing KFF, MACPAC, and NASHP…",
+  "Synthesizing cited intelligence…",
+];
 
 type Msg = {
   id: string;
