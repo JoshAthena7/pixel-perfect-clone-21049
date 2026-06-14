@@ -107,16 +107,18 @@ function WizardPage() {
     [missionId, qc, mission],
   );
 
+  const isLive = !!mission && !["setup", "draft"].includes((mission.status ?? "").toLowerCase());
+
   if (isLoading || !mission) {
     return (
-      <WizardShellV3 missionId={missionId} step={step} visitedSteps={visited} onJump={go}>
+      <WizardShellV3 missionId={missionId} step={step} visitedSteps={visited} onJump={go} isLive={false}>
         <Skeleton className="h-10 w-2/3 bg-white/10" />
       </WizardShellV3>
     );
   }
 
   return (
-    <WizardShellV3 missionId={missionId} step={step} visitedSteps={visited} onJump={go}>
+    <WizardShellV3 missionId={missionId} step={step} visitedSteps={visited} onJump={go} isLive={isLive}>
       {step === 1 && (
         <Step1Fuel
           missionId={missionId}
