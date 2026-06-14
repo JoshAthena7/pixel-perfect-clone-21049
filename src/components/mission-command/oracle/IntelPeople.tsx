@@ -206,8 +206,10 @@ function AddPersonDialog({
           <Input label="Name *" value={name} onChange={setName} />
           <Input label="Title" value={title} onChange={setTitle} />
           <Select label="Role" value={roleType} onChange={setRoleType} options={ROLE_GROUPS.map((g) => ({ value: g.id, label: g.label }))} />
-          <Select label="Influence" value={influence} onChange={setInfluence} options={[{ value: "high", label: "High" }, { value: "medium", label: "Medium" }, { value: "low", label: "Low" }]} />
-          <Select label="Stance" value={stance} onChange={setStance} options={[{ value: "ally", label: "Ally" }, { value: "neutral", label: "Neutral" }, { value: "unknown", label: "Unknown" }, { value: "hostile", label: "Hostile" }]} />
+          <Select label="Influence" value={influence} onChange={(v) => setInfluence(v as typeof influence)} options={[{ value: "high", label: "High" }, { value: "medium", label: "Medium" }, { value: "low", label: "Low" }]} />
+          <Select label="Stance" value={stance} onChange={(v) => setStance(v as typeof stance)} options={[{ value: "ally", label: "Ally" }, { value: "neutral", label: "Neutral" }, { value: "unknown", label: "Unknown" }, { value: "hostile", label: "Hostile" }]} />
+          <Input label="Organization" value={organization} onChange={setOrganization} />
+          <Input label="Email" value={email} onChange={setEmail} />
           <div>
             <label className="text-xs text-white/60 block mb-1">Notes</label>
             <textarea
