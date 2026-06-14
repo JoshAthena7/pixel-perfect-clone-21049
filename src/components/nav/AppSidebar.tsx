@@ -133,9 +133,7 @@ export function AppSidebar({
         )}
 
         <div className="flex-1 overflow-y-auto py-2">
-          {inAdmin ? (
-            <Section label="ADMIN" items={ADMIN_AREA_ITEMS} missionId={undefined} pathname={pathname} collapsed={collapsed} />
-          ) : !inMission ? (
+          {!inAdmin && !inMission ? (
             <Section label="MISSION" items={MISSION_ITEMS} missionId={missionId} pathname={pathname} collapsed={collapsed} disabled={true} />
           ) : null}
         </div>
