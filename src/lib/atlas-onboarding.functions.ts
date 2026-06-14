@@ -95,8 +95,7 @@ Propose 15-30 authoritative source documents for Atlas's Program Intelligence la
           messages: [
             { role: "system", content: DISCOVERY_SYSTEM },
             { role: "user", content: userPrompt },
-          ],
-          response_format: { type: "json_object" },
+          ]
         }),
       });
       if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);

@@ -29,8 +29,7 @@ Rules:
       messages: [
         { role: "system", content: system },
         { role: "user", content: text.slice(0, 40_000) },
-      ],
-      response_format: { type: "json_object" },
+      ]
     }),
   });
   if (!res.ok) throw new Error(`AI gateway ${res.status}: ${(await res.text()).slice(0, 200)}`);

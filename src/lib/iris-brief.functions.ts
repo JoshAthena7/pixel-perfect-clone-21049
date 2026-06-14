@@ -348,8 +348,7 @@ ${(researchNodes?.data ?? []).map((n) => `- ${n.label}${n.description ? `: ${n.d
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
-        response_format: { type: "json_object" },
+        model: "gpt-4o-mini"
         max_tokens: 2000,
         messages: [
           { role: "system", content: system },
@@ -546,8 +545,7 @@ ${expertsList.length === 0 ? "(none)" : expertsList.map((e) => `- ${e.name}${e.r
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
-        response_format: { type: "json_object" },
+        model: "gpt-4o-mini"
         max_tokens: 2200,
         messages: [
           { role: "system", content: system },

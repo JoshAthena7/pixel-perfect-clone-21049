@@ -10,8 +10,7 @@ async function callIris(apiKey: string, system: string, user: string): Promise<J
       method: "POST",
       headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey, Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
-        response_format: { type: "json_object" },
+        model: "gpt-4o-mini"
         messages: [
           { role: "system", content: system },
           { role: "user", content: user },

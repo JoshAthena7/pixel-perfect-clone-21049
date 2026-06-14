@@ -75,8 +75,7 @@ export const parseResumeWithIris = createServerFn({ method: "POST" })
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
-          response_format: { type: "json_object" },
+          model: "gpt-4o-mini"
           messages: [
             { role: "system", content: SYSTEM },
             { role: "user", content: data.resume_text },

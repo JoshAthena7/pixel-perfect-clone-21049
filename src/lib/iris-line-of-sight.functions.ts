@@ -37,8 +37,7 @@ async function callAI(system: string, user: string): Promise<string> {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
-      response_format: { type: "json_object" },
+      model: "gpt-4o-mini"
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },

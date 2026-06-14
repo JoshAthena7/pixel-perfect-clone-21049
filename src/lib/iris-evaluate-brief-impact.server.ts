@@ -62,8 +62,7 @@ export function triggerBriefImpactEvaluation(args: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
-          response_format: { type: "json_object" },
+          model: "gpt-4o-mini"
           max_tokens: 400,
           messages: [
             { role: "system", content: system },

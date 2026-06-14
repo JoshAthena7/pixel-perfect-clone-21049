@@ -30,7 +30,7 @@ async function callAI(system: string, user: string, jsonMode = true): Promise<an
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: MODEL,
-      ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
+      ...(jsonMode ? {} : {}),
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },

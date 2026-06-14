@@ -208,8 +208,7 @@ export const submitMissionSignal = createServerFn({ method: "POST" })
                 role: "user",
                 content: `Mission: ${missionName}. Signal type: ${data.signalType}. Signal body: ${data.body}. Sender: ${senderName}. Return JSON: { "priority": "high|medium|low", "notify_roles": ["admin"|"engagement_lead"|"pm"|"all"], "should_respond_publicly": boolean, "public_response": "max 200 chars if should_respond_publicly", "internal_note": "for logging" }`,
               },
-            ],
-            response_format: { type: "json_object" },
+            ]
           }),
         });
         if (aiRes.ok) {

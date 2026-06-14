@@ -348,8 +348,7 @@ async function callGateway(apiKey: string, prompt: string, maxTokens: number): P
       messages: [
         { role: "system", content: "You return strict JSON only. No markdown, no commentary." },
         { role: "user", content: prompt },
-      ],
-      response_format: { type: "json_object" },
+      ]
     }),
   });
   if (!resp.ok) {
