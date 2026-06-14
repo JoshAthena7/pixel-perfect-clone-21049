@@ -135,9 +135,7 @@ export function Step8Review({
       const clientAgency = get("client_agency");
       const competitorsList = splitList(get("known_competitors"));
 
-      const updates: Parameters<ReturnType<typeof supabase.from<"missions">>["update"]>[0] = {
-        status: "active",
-      };
+      const updates: TablesUpdate<"missions"> = { status: "active" };
       if (dueIso && /^\d{4}-\d{2}-\d{2}/.test(dueIso)) {
         updates.submission_deadline = `${dueIso}T17:00:00Z`;
       }
