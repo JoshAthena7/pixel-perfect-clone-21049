@@ -11,6 +11,7 @@ import type { TablesUpdate } from "@/integrations/supabase/types";
 import { triggerLaunchBrief } from "@/lib/iris-launch-brief.functions";
 import { enrichMissionWithPerplexity } from "@/lib/iris/perplexity-enrich.functions";
 import { WIZARD_STEPS, WizardStepHeading, WizardFooter } from "./WizardShellV3";
+import { LaunchSequence } from "./LaunchSequence";
 
 const STEP_FIELD_GROUPS: Record<number, { title: string; keys: string[] }> = {
   2: {
