@@ -172,8 +172,7 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          response_format: { type: "json_object" },
+          model: "gpt-4o-mini",
           messages: [
             { role: "system", content: SYSTEM },
             { role: "user", content: data.primary_rfp_text },
