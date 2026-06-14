@@ -48,6 +48,7 @@ function BriefingPage() {
     <div style={{ background: PAGE_BG, color: "white", minHeight: "100vh" }}>
       <div className="mx-auto max-w-6xl px-4 sm:px-8 py-8 space-y-14">
         <Hero missionId={missionId} />
+        <LaunchBriefSection missionId={missionId} />
         <NorthStar missionId={missionId} />
         <WhyMatters missionId={missionId} />
         <HowWeWin missionId={missionId} />
