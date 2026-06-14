@@ -263,6 +263,39 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
       console.error("[score-me] history insert failed", e);
     }
 
+    // 5) Fire-and-forget: persist full session row for analytics
+    try {
+      const to100 = (n: unknown): number | null => {
+        const v = Number(n);
+        if (!Number.isFinite(v)) return null;
+        const scaled = v <= 10 ? Math.round(v * 10) : Math.round(v);
+        return Math.max(0, Math.min(100, scaled));
+      };
+      void supabase
+        .from("score_me_sessions")
+        .insert({
+          mission_id: data.missionId,
+          section_name: sectionName || null,
+          response_text: data.draftText,
+          overall_score: to100(result.overall_score),
+          message_discipline_score: to100(
+            (raw as any)?.message_discipline_score ?? (raw as any)?.message_discipline?.score,
+          ),
+          win_theme_alignment_score: to100(
+            (raw as any)?.win_theme_alignment_score ?? (raw as any)?.win_theme_alignment?.score,
+          ),
+          gaps: result.what_needs_work,
+          strengths: result.what_lands,
+          coaching_summary: result.iris_verdict,
+          scored_by: userId,
+        })
+        .then(({ error }: { error: unknown }) => {
+          if (error) console.error("[score-me] sessions insert failed", error);
+        });
+    } catch (e) {
+      console.error("[score-me] sessions insert threw", e);
+    }
+
     return { result, question: { number: questionNumber, title: questionTitle, section: sectionName } };
   });
 
