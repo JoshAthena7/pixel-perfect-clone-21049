@@ -1,5 +1,6 @@
 import { Link, useParams, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -9,9 +10,21 @@ import { MissionEditPanel } from "@/components/missions/MissionEditPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { tabLabel, isValidTab } from "@/components/mission-command/MissionTabs";
 import { cn } from "@/lib/utils";
+import { getWriterMissionLanding } from "@/lib/writer-missions.functions";
 import atlasWordmark from "@/assets/atlas-wordmark.png.asset.json";
 
 type Crumb = { label: string; to?: string; params?: Record<string, string>; pill?: boolean };
+
+function AtlasLogo() {
+  return (
+    <img
+      src={atlasWordmark.url}
+      alt="ATLAS"
+      draggable={false}
+      style={{ height: 18, width: "auto", objectFit: "contain" }}
+    />
+  );
+}
 
 function useMissionId(): string | undefined {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -61,10 +74,10 @@ function useCrumbs(missionName?: string | null): Crumb[] {
   return [];
 }
 
-export function GlobalCommandBar({ email, isAdmin: _isAdmin = false }: { email?: string | null; isAdmin?: boolean }) {
-  void _isAdmin;
+export function GlobalCommandBar({ email, isAdmin = false }: { email?: string | null; isAdmin?: boolean }) {
   const missionId = useMissionId();
   const [editOpen, setEditOpen] = useState(false);
+  const getLanding = useServerFn(getWriterMissionLanding);
 
   const { data: missionName } = useQuery({
     queryKey: ["topbar-mission-name", missionId],
@@ -75,6 +88,13 @@ export function GlobalCommandBar({ email, isAdmin: _isAdmin = false }: { email?:
   });
 
   const crumbs = useCrumbs(missionName);
+  const { data: writerLanding } = useQuery({
+    queryKey: ["writer-mission-landing"],
+    enabled: !isAdmin,
+    staleTime: 60_000,
+    queryFn: () => getLanding(),
+  });
+  const logoMissionId = !isAdmin ? writerLanding?.missions[0]?.id : undefined;
 
   return (
     <div
@@ -86,18 +106,24 @@ export function GlobalCommandBar({ email, isAdmin: _isAdmin = false }: { email?:
       )}
       <div className="mx-auto max-w-7xl h-full flex items-center gap-3 min-w-0">
         {/* LEFT — Wordmark + primary nav */}
-        <Link
-          to="/olympus/missions"
-          className="shrink-0 inline-flex items-center select-none"
-          aria-label="ATLAS"
-        >
-          <img
-            src={atlasWordmark.url}
-            alt="ATLAS"
-            draggable={false}
-            style={{ height: 18, width: "auto", objectFit: "contain" }}
-          />
-        </Link>
+        {logoMissionId ? (
+          <Link
+            to="/missions/$missionId/briefing"
+            params={{ missionId: logoMissionId }}
+            className="shrink-0 inline-flex items-center select-none"
+            aria-label="ATLAS"
+          >
+            <AtlasLogo />
+          </Link>
+        ) : (
+          <Link
+            to={isAdmin ? "/olympus/missions" : "/missions"}
+            className="shrink-0 inline-flex items-center select-none"
+            aria-label="ATLAS"
+          >
+            <AtlasLogo />
+          </Link>
+        )}
         <span className="hidden sm:inline-block h-5 w-px shrink-0" style={{ background: "rgba(255,255,255,0.08)" }} />
 
 
