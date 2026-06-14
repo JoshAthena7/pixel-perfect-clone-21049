@@ -89,6 +89,11 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
         .select("writing_signals")
         .eq("id", data.missionId)
         .maybeSingle(),
+      supabase
+        .from("mission_win_themes")
+        .select("title, why_it_matters, what_theyre_buying, proof_points")
+        .eq("mission_id", data.missionId)
+        .eq("status", "active"),
     ]);
 
     const win = (winRes as any)?.data ?? {};
