@@ -146,8 +146,9 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
   );
 }
 
-// Person is stored as a row in intel_people. The person's display name is
-// the linked entity's name in intel_entities. We create both in one shot.
+// Canonical write goes to intel_people via upsertIntelPerson (single source
+// of truth). Name + organization live directly on the row so Olympus / Oracle
+// / Intelligence → People all read from the same place.
 function AddPersonDialog({
   missionId,
   onClose,
@@ -157,11 +158,14 @@ function AddPersonDialog({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const upsert = useServerFn(upsertIntelPerson);
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
+  const [organization, setOrganization] = useState("");
+  const [email, setEmail] = useState("");
   const [roleType, setRoleType] = useState("stakeholder");
-  const [influence, setInfluence] = useState("medium");
-  const [stance, setStance] = useState("unknown");
+  const [influence, setInfluence] = useState<"high" | "medium" | "low">("medium");
+  const [stance, setStance] = useState<"ally" | "neutral" | "unknown" | "hostile">("unknown");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -169,22 +173,19 @@ function AddPersonDialog({
     if (!name.trim()) return;
     setSaving(true);
     try {
-      const { data: ent, error: e1 } = await (supabase as any)
-        .from("intel_entities")
-        .insert({ entity_type: "person", name: name.trim(), mission_ids: [missionId] })
-        .select()
-        .single();
-      if (e1) throw e1;
-      const { error: e2 } = await (supabase as any).from("intel_people").insert({
-        entity_id: ent.id,
-        mission_id: missionId,
-        role_type: roleType,
-        influence_level: influence,
-        relationship_stance: stance,
-        title: title || null,
-        notes: notes || null,
+      await upsert({
+        data: {
+          mission_id: missionId,
+          name: name.trim(),
+          role_type: roleType as any,
+          title: title.trim() || null,
+          organization: organization.trim() || null,
+          email: email.trim() || null,
+          influence_level: influence,
+          relationship_stance: stance,
+          notes: notes.trim() || null,
+        },
       });
-      if (e2) throw e2;
       onSaved();
     } catch (err) {
       console.error("[AddPerson] failed", err);
