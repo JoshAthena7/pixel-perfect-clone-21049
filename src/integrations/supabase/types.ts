@@ -1555,6 +1555,51 @@ export type Database = {
         }
         Relationships: []
       }
+      brief_update_signals: {
+        Row: {
+          affected_sections: string[]
+          created_at: string
+          dismissed: boolean
+          id: string
+          intel_event_id: string | null
+          mission_id: string | null
+          reason: string | null
+        }
+        Insert: {
+          affected_sections?: string[]
+          created_at?: string
+          dismissed?: boolean
+          id?: string
+          intel_event_id?: string | null
+          mission_id?: string | null
+          reason?: string | null
+        }
+        Update: {
+          affected_sections?: string[]
+          created_at?: string
+          dismissed?: boolean
+          id?: string
+          intel_event_id?: string | null
+          mission_id?: string | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brief_update_signals_intel_event_id_fkey"
+            columns: ["intel_event_id"]
+            isOneToOne: false
+            referencedRelation: "intel_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brief_update_signals_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       briefing_acknowledgments: {
         Row: {
           acknowledged_at: string
@@ -3591,6 +3636,7 @@ export type Database = {
           generated_by: string | null
           id: string
           mission_id: string
+          significance: string | null
           source_entity_id: string | null
           source_type: string | null
           tags: string[]
@@ -3605,6 +3651,7 @@ export type Database = {
           generated_by?: string | null
           id?: string
           mission_id: string
+          significance?: string | null
           source_entity_id?: string | null
           source_type?: string | null
           tags?: string[]
@@ -3619,6 +3666,7 @@ export type Database = {
           generated_by?: string | null
           id?: string
           mission_id?: string
+          significance?: string | null
           source_entity_id?: string | null
           source_type?: string | null
           tags?: string[]
