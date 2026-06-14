@@ -58,6 +58,7 @@ import { Route as ApiPublicHooksMonitorCustomFeedsRouteImport } from './routes/a
 import { Route as ApiPublicHooksMonitorCmsFeedsRouteImport } from './routes/api/public/hooks/monitor-cms-feeds'
 import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
 import { Route as ApiPublicHooksIrisDailyMonitorRouteImport } from './routes/api/public/hooks/iris-daily-monitor'
+import { Route as ApiPublicHooksIrisAcademicSweepRouteImport } from './routes/api/public/hooks/iris-academic-sweep'
 import { Route as ApiPublicHooksGenerateDailyBriefsRouteImport } from './routes/api/public/hooks/generate-daily-briefs'
 import { Route as AuthenticatedOlympusWizardNewRouteImport } from './routes/_authenticated/olympus.wizard.new'
 import { Route as AuthenticatedOlympusWizardMissionIdRouteImport } from './routes/_authenticated/olympus.wizard.$missionId'
@@ -349,6 +350,12 @@ const ApiPublicHooksIrisDailyMonitorRoute =
     path: '/api/public/hooks/iris-daily-monitor',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksIrisAcademicSweepRoute =
+  ApiPublicHooksIrisAcademicSweepRouteImport.update({
+    id: '/api/public/hooks/iris-academic-sweep',
+    path: '/api/public/hooks/iris-academic-sweep',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksGenerateDailyBriefsRoute =
   ApiPublicHooksGenerateDailyBriefsRouteImport.update({
     id: '/api/public/hooks/generate-daily-briefs',
@@ -530,6 +537,7 @@ export interface FileRoutesByFullPath {
   '/olympus/wizard/$missionId': typeof AuthenticatedOlympusWizardMissionIdRoute
   '/olympus/wizard/new': typeof AuthenticatedOlympusWizardNewRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
+  '/api/public/hooks/iris-academic-sweep': typeof ApiPublicHooksIrisAcademicSweepRoute
   '/api/public/hooks/iris-daily-monitor': typeof ApiPublicHooksIrisDailyMonitorRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
@@ -599,6 +607,7 @@ export interface FileRoutesByTo {
   '/olympus/wizard/$missionId': typeof AuthenticatedOlympusWizardMissionIdRoute
   '/olympus/wizard/new': typeof AuthenticatedOlympusWizardNewRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
+  '/api/public/hooks/iris-academic-sweep': typeof ApiPublicHooksIrisAcademicSweepRoute
   '/api/public/hooks/iris-daily-monitor': typeof ApiPublicHooksIrisDailyMonitorRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
@@ -672,6 +681,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/wizard/$missionId': typeof AuthenticatedOlympusWizardMissionIdRoute
   '/_authenticated/olympus/wizard/new': typeof AuthenticatedOlympusWizardNewRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
+  '/api/public/hooks/iris-academic-sweep': typeof ApiPublicHooksIrisAcademicSweepRoute
   '/api/public/hooks/iris-daily-monitor': typeof ApiPublicHooksIrisDailyMonitorRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
@@ -745,6 +755,7 @@ export interface FileRouteTypes {
     | '/olympus/wizard/$missionId'
     | '/olympus/wizard/new'
     | '/api/public/hooks/generate-daily-briefs'
+    | '/api/public/hooks/iris-academic-sweep'
     | '/api/public/hooks/iris-daily-monitor'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/monitor-cms-feeds'
@@ -814,6 +825,7 @@ export interface FileRouteTypes {
     | '/olympus/wizard/$missionId'
     | '/olympus/wizard/new'
     | '/api/public/hooks/generate-daily-briefs'
+    | '/api/public/hooks/iris-academic-sweep'
     | '/api/public/hooks/iris-daily-monitor'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/monitor-cms-feeds'
@@ -886,6 +898,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/wizard/$missionId'
     | '/_authenticated/olympus/wizard/new'
     | '/api/public/hooks/generate-daily-briefs'
+    | '/api/public/hooks/iris-academic-sweep'
     | '/api/public/hooks/iris-daily-monitor'
     | '/api/public/hooks/iris-monitor'
     | '/api/public/hooks/monitor-cms-feeds'
@@ -916,6 +929,7 @@ export interface RootRouteChildren {
   ApiChatIrisRoute: typeof ApiChatIrisRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksGenerateDailyBriefsRoute: typeof ApiPublicHooksGenerateDailyBriefsRoute
+  ApiPublicHooksIrisAcademicSweepRoute: typeof ApiPublicHooksIrisAcademicSweepRoute
   ApiPublicHooksIrisDailyMonitorRoute: typeof ApiPublicHooksIrisDailyMonitorRoute
   ApiPublicHooksIrisMonitorRoute: typeof ApiPublicHooksIrisMonitorRoute
   ApiPublicHooksMonitorCmsFeedsRoute: typeof ApiPublicHooksMonitorCmsFeedsRoute
@@ -1275,6 +1289,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksIrisDailyMonitorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/iris-academic-sweep': {
+      id: '/api/public/hooks/iris-academic-sweep'
+      path: '/api/public/hooks/iris-academic-sweep'
+      fullPath: '/api/public/hooks/iris-academic-sweep'
+      preLoaderRoute: typeof ApiPublicHooksIrisAcademicSweepRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/generate-daily-briefs': {
       id: '/api/public/hooks/generate-daily-briefs'
       path: '/api/public/hooks/generate-daily-briefs'
@@ -1596,6 +1617,7 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksGenerateDailyBriefsRoute:
     ApiPublicHooksGenerateDailyBriefsRoute,
+  ApiPublicHooksIrisAcademicSweepRoute: ApiPublicHooksIrisAcademicSweepRoute,
   ApiPublicHooksIrisDailyMonitorRoute: ApiPublicHooksIrisDailyMonitorRoute,
   ApiPublicHooksIrisMonitorRoute: ApiPublicHooksIrisMonitorRoute,
   ApiPublicHooksMonitorCmsFeedsRoute: ApiPublicHooksMonitorCmsFeedsRoute,
