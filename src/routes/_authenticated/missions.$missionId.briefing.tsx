@@ -710,7 +710,7 @@ function TimelineViz({ milestones }: { milestones: any[] }) {
 
         {milestones.map((m) => {
           const left = pos(new Date(m.milestone_date).getTime());
-          const c = statusColor(m.status);
+          const c = statusColor(m.status ?? "");
           return (
             <div
               key={m.id}
