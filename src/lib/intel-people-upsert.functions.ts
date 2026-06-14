@@ -94,5 +94,5 @@ export const upsertIntelPerson = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
-    return { id: (row as { id: string }).id, created: true };
+    return { id: (row as unknown as { id: string }).id, created: true };
   });
