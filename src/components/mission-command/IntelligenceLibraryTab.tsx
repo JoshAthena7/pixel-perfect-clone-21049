@@ -335,6 +335,11 @@ function AddContentModal({
       if (error) throw error;
       try { await summarize({ data: { document_id: row.id } }); } catch {}
       try {
+        void parseDocumentToIntel({
+          data: { mission_id: missionId, document_id: row.id },
+        }).catch((e) => console.error("[vault] parseDocumentToIntel failed", e));
+      } catch (e) { console.error("[vault] parseDocumentToIntel threw", e); }
+      try {
         const sugg = await suggestTags({ data: { mission_id: missionId, document_id: row.id } });
         setSelectedTags(sugg.section_ids);
       } catch {}
