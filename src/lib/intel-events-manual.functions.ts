@@ -9,6 +9,7 @@ const Input = z.object({
   source_type: z.enum(["atrium", "manual", "document", "thread", "external"]),
   event_type: z.string().min(1).max(80).default("manual"),
   confidence: z.enum(["high", "medium", "low"]).optional().nullable(),
+  significance: z.enum(["high", "medium", "low"]).optional().nullable(),
 });
 
 export const addManualIntelEvent = createServerFn({ method: "POST" })
@@ -24,11 +25,30 @@ export const addManualIntelEvent = createServerFn({ method: "POST" })
         title: data.title,
         content: data.content,
         confidence: data.confidence ?? null,
+        significance: data.significance ?? null,
         generated_by: "human",
         source_type: data.source_type,
       } as any)
       .select("id")
       .single();
     if (error) throw new Error(error.message);
+
+    // Fire-and-forget Mission Brief impact evaluation for high-significance.
+    if (data.significance === "high" && row?.id) {
+      try {
+        const { triggerBriefImpactEvaluation } = await import(
+          "@/lib/iris-evaluate-brief-impact.server"
+        );
+        triggerBriefImpactEvaluation({
+          missionId: data.mission_id,
+          intelEventId: row.id,
+          title: data.title,
+          content: data.content,
+        });
+      } catch (e) {
+        console.error("[intel-events-manual] brief-impact dispatch failed", e);
+      }
+    }
+
     return { id: row.id };
   });

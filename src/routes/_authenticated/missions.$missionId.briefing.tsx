@@ -15,6 +15,7 @@ import {
   X,
   ArrowRight,
 } from "lucide-react";
+import { BriefSectionDot } from "@/components/briefing-room/BriefSectionDot";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/briefing")({
   component: BriefingPage,
@@ -194,7 +195,7 @@ function NorthStar({ missionId }: { missionId: string }) {
 
   return (
     <section className="text-center py-8">
-      <div style={sectionLabel}>North Star</div>
+      <div style={sectionLabel}>North Star<BriefSectionDot missionId={missionId} section="north_star" /></div>
       {data?.content ? (
         <>
           <p
@@ -282,7 +283,7 @@ function HowWeWin({ missionId }: { missionId: string }) {
   return (
     <section>
       <div style={sectionLabel} className="mb-4">
-        How We Win
+        How We Win<BriefSectionDot missionId={missionId} section="win_themes" />
       </div>
       {themes.length === 0 ? (
         <div
@@ -441,7 +442,7 @@ function FlightRisks({ missionId }: { missionId: string }) {
   return (
     <section>
       <div style={sectionLabel} className="mb-4">
-        Flight Risks
+        Flight Risks<BriefSectionDot missionId={missionId} section="flight_risks" />
       </div>
       <div className="flex flex-wrap gap-3">
         {top.map((r: any) => (

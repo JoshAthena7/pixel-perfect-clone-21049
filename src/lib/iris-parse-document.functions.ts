@@ -121,6 +121,7 @@ export const parseDocumentToIntel = createServerFn({ method: "POST" })
         title: string;
         content: string;
         confidence: "high";
+        significance: "high";
         generated_by: "iris";
         tags: string[];
       }> = [];
@@ -134,6 +135,7 @@ export const parseDocumentToIntel = createServerFn({ method: "POST" })
           title: t.slice(0, 280),
           content: c.slice(0, 4000),
           confidence: "high",
+          significance: "high",
           generated_by: "iris",
           tags: ["rfp_parse", tag, `doc_${data.document_id.slice(0, 8)}`],
         });
