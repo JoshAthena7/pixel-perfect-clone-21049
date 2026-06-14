@@ -99,7 +99,7 @@ Return as a JSON array. No preamble. No explanation. Only the array.`;
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
+          model: "google/gemini-2.5-flash",
           messages: [
             { role: "system", content: SYSTEM },
             { role: "user", content: "Generate the JSON array now." },
@@ -204,7 +204,7 @@ Return ONLY a JSON array. No preamble.`;
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "gpt-4o-mini",
+            model: "google/gemini-2.5-flash",
             messages: [
               { role: "system", content: CASCADE_SYSTEM },
               { role: "user", content: "Generate the JSON array now." },
