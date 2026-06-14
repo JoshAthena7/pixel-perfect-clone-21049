@@ -19,7 +19,46 @@ import { PhoneAFriendDialog } from "./PhoneAFriendDialog";
 import { ScoreMeDialog } from "./ScoreMeDialog";
 import { SOSDialog } from "./SOSDialog";
 import { MissionPulsePanel } from "./MissionPulsePanel";
+import { MissionCloseDebriefDialog } from "./MissionCloseDebriefDialog";
 import { irisScoreGapAnalysis } from "@/lib/iris-score-gap-analysis.functions";
+
+const CLOSED_STATUSES = new Set(["closed", "won", "lost", "win", "loss", "no_award", "cancelled"]);
+
+function useMissionCloseDebriefTrigger(missionId: string) {
+  const [open, setOpen] = useState(false);
+  const { data } = useQuery({
+    queryKey: ["mission-close-debrief-status", missionId],
+    queryFn: async () => {
+      const [{ data: m }, { data: ms }] = await Promise.all([
+        supabase
+          .from("missions")
+          .select("status, debrief_completed")
+          .eq("id", missionId)
+          .maybeSingle(),
+        supabase
+          .from("mission_milestones")
+          .select("id")
+          .eq("mission_id", missionId)
+          .eq("milestone_type", "award")
+          .eq("status", "complete")
+          .limit(1),
+      ]);
+      const statusClosed = m?.status ? CLOSED_STATUSES.has(String(m.status).toLowerCase()) : false;
+      const awardComplete = (ms?.length ?? 0) > 0;
+      return {
+        debriefCompleted: !!m?.debrief_completed,
+        shouldShow: !m?.debrief_completed && (statusClosed || awardComplete),
+      };
+    },
+    staleTime: 30_000,
+  });
+
+  useEffect(() => {
+    if (data?.shouldShow) setOpen(true);
+  }, [data?.shouldShow]);
+
+  return { open, setOpen };
+}
 
 const GOLD = "#d4a843";
 const RED = "#e05252";
