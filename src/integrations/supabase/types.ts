@@ -3714,7 +3714,9 @@ export type Database = {
           influence_level: string | null
           known_priorities: string[] | null
           mission_id: string
+          name: string | null
           notes: string | null
+          organization: string | null
           organization_entity_id: string | null
           phone: string | null
           relationship_stance: string | null
@@ -3729,7 +3731,9 @@ export type Database = {
           influence_level?: string | null
           known_priorities?: string[] | null
           mission_id: string
+          name?: string | null
           notes?: string | null
+          organization?: string | null
           organization_entity_id?: string | null
           phone?: string | null
           relationship_stance?: string | null
@@ -3744,7 +3748,9 @@ export type Database = {
           influence_level?: string | null
           known_priorities?: string[] | null
           mission_id?: string
+          name?: string | null
           notes?: string | null
+          organization?: string | null
           organization_entity_id?: string | null
           phone?: string | null
           relationship_stance?: string | null
