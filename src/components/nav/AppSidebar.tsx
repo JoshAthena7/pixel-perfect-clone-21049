@@ -36,19 +36,8 @@ const MISSION_ITEMS: NavItem[] = [
   { to: "/missions/$missionId/insights", label: "Insights", Icon: Lightbulb, needsMission: true },
 ];
 
-const ADMIN_ITEMS: NavItem[] = [];
-
-
-
-
-const ADMIN_AREA_ITEMS: NavItem[] = [
-  { to: "/admin", label: "Missions", Icon: Flag },
-  { to: "/admin/team", label: "Staff", Icon: Users },
-  { to: "/admin/messaging", label: "Messaging", Icon: Megaphone },
-  { to: "/admin/activity", label: "Activity", Icon: ActivityIcon },
-  { to: "/admin/insights", label: "Insights", Icon: BarChart3, disabled: true, badge: "V2" },
-  { to: "/admin/settings", label: "Settings", Icon: Settings },
-];
+// Admin nav lives entirely in the top tab bar at /admin (Missions | Staff | Messaging | IRIS Control).
+// The sidebar intentionally renders no admin items to keep one and only one admin surface.
 
 export function AppSidebar({
   userName,
