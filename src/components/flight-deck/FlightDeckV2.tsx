@@ -252,8 +252,8 @@ function WorkQueue({ missionId }: { missionId: string }) {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.rpc("current_atlas_member_id");
-      setMemberId((data as string) ?? null);
+      const id = await fetchMyAtlasMemberId();
+      setMemberId(id);
     })();
   }, []);
 
