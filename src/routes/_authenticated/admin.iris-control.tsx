@@ -1,10 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { refreshIrisAllForMission } from "@/lib/iris-refresh-all-for-mission.functions";
-import { RefreshCw, Loader2, CheckCircle2, XCircle, Zap } from "lucide-react";
+import { getIrisPipelineStatus, getIrisWiringSnapshot } from "@/lib/iris-health.functions";
+import {
+  RefreshCw,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Zap,
+  Activity,
+  AlertTriangle,
+  AlertCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
@@ -30,6 +40,237 @@ const TASK_LABELS: Record<string, string> = {
   firecrawl_intel_rescan: "Firecrawl · intel sources rescan",
   cache_clear: "Cache · clear briefs + reset circuit",
 };
+
+function fmtAgo(iso: string | null | undefined) {
+  if (!iso) return "never";
+  const ms = Date.now() - new Date(iso).getTime();
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+function Stat({
+  label,
+  value,
+  hint,
+  tone = "default",
+}: {
+  label: string;
+  value: number | string;
+  hint?: string;
+  tone?: "default" | "good" | "warn" | "bad";
+}) {
+  const toneCls =
+    tone === "good"
+      ? "text-emerald-400"
+      : tone === "warn"
+      ? "text-amber-400"
+      : tone === "bad"
+      ? "text-red-400"
+      : "text-white";
+  return (
+    <div className="rounded-lg border border-white/10 bg-black/30 px-3 py-2.5">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className={`text-xl font-semibold ${toneCls}`}>{value}</div>
+      {hint && <div className="text-[10px] text-muted-foreground mt-0.5">{hint}</div>}
+    </div>
+  );
+}
+
+function HealthDashboard() {
+  const fetchStatus = useServerFn(getIrisPipelineStatus);
+  const fetchWiring = useServerFn(getIrisWiringSnapshot);
+
+  const status = useQuery({
+    queryKey: ["iris-control-pipeline-status"],
+    queryFn: () => fetchStatus(),
+    refetchInterval: 30_000,
+  });
+
+  const wiring = useQuery({
+    queryKey: ["iris-control-wiring"],
+    queryFn: () => fetchWiring(),
+    refetchInterval: 30_000,
+  });
+
+  const w = wiring.data?.counts;
+  const jobs = status.data?.jobs ?? [];
+
+  const pipelineTone = (s?: string) => {
+    const x = (s ?? "").toLowerCase();
+    if (x === "succeeded") return "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";
+    if (x === "failed") return "text-red-400 border-red-500/30 bg-red-500/10";
+    if (x === "running" || x === "starting") return "text-blue-400 border-blue-500/30 bg-blue-500/10";
+    return "text-muted-foreground border-white/10 bg-white/5";
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold flex items-center gap-2">
+          <Activity className="h-4 w-4 text-amber-400" /> IRIS Health · live dashboard
+        </h2>
+        <div className="text-[11px] text-muted-foreground">
+          {wiring.isFetching || status.isFetching ? "refreshing…" : `updated ${fmtAgo(wiring.data?.generatedAt)}`}
+          {" · auto every 30s · "}
+          <Link to="/admin/iris-health" className="underline">full health view →</Link>
+        </div>
+      </div>
+
+      {/* Wiring counts */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <Stat
+          label="Intel events (24h)"
+          value={w?.intelEvents24h ?? "—"}
+          tone={w && w.intelEvents24h === 0 ? "warn" : "good"}
+          hint="Atlas / Intelligence tab"
+        />
+        <Stat
+          label="Feed items (24h)"
+          value={w?.feedItems24h ?? "—"}
+          hint={`${w?.feedItemsHighRelevance24h ?? 0} ≥60 relevance`}
+          tone={w && w.feedItems24h === 0 ? "warn" : "good"}
+        />
+        <Stat
+          label="Active feed configs"
+          value={w?.activeFeedConfigs ?? "—"}
+          tone={w && w.activeFeedConfigs === 0 ? "bad" : "good"}
+        />
+        <Stat
+          label="IRIS extractions (24h)"
+          value={w?.irisExtractions24h ?? "—"}
+        />
+        <Stat
+          label="Launch briefs"
+          value={w ? `${w.missionsWithLaunchBriefs}/${w.missionsTotal}` : "—"}
+          hint="missions covered"
+        />
+        <Stat label="Brief cache rows" value={w?.briefCacheRows ?? "—"} />
+        <Stat
+          label="Open health flags"
+          value={w?.openHealthFlags ?? "—"}
+          hint={`${w?.highSeverityFlags ?? 0} high/critical`}
+          tone={w && w.highSeverityFlags > 0 ? "bad" : w && w.openHealthFlags > 0 ? "warn" : "good"}
+        />
+        <Stat
+          label="Hook failures (24h)"
+          value={w?.hookFailures24h ?? "—"}
+          hint={`${w?.hookFailuresUnacked ?? 0} unacked`}
+          tone={w && w.hookFailures24h > 0 ? "bad" : "good"}
+        />
+      </div>
+
+      {/* Pipelines */}
+      <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+        <div className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          Cron pipelines ({jobs.length})
+        </div>
+        {status.isLoading ? (
+          <div className="text-xs text-muted-foreground py-2">Loading pipeline status…</div>
+        ) : status.error ? (
+          <div className="text-xs text-red-400 py-2">
+            {(status.error as Error).message ?? "Failed to load pipeline status"}
+          </div>
+        ) : jobs.length === 0 ? (
+          <div className="text-xs text-muted-foreground py-2">No pipelines registered.</div>
+        ) : (
+          <ul className="divide-y divide-white/5">
+            {jobs.map((j: any) => {
+              const last = j.runs?.[0];
+              return (
+                <li key={j.jobid} className="flex items-center gap-3 py-2 text-xs">
+                  <span
+                    className={`inline-block rounded border px-1.5 py-0.5 text-[10px] font-medium ${pipelineTone(last?.status)}`}
+                  >
+                    {last?.status ?? "—"}
+                  </span>
+                  <span className="font-mono text-white/90 flex-1 truncate">{j.jobname}</span>
+                  <span className="text-muted-foreground hidden md:inline">{j.schedule}</span>
+                  <span className="text-muted-foreground">
+                    {j.active ? "active" : "paused"} · last {fmtAgo(last?.start_time)}
+                  </span>
+                  {!j.hookPath && (
+                    <span className="text-[10px] text-amber-400" title="No public hook mapped">
+                      no hook
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {/* Two-column: failures + open flags */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+          <div className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+            <AlertTriangle className="h-3.5 w-3.5 text-red-400" /> Recent hook failures
+          </div>
+          {(wiring.data?.recentHookFailures.length ?? 0) === 0 ? (
+            <div className="text-xs text-muted-foreground py-1.5">No failures recorded. ✓</div>
+          ) : (
+            <ul className="space-y-1.5">
+              {wiring.data!.recentHookFailures.map((f) => (
+                <li key={f.id} className="text-xs border-l-2 border-red-500/40 pl-2">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="font-mono text-white/90 truncate">{f.hook_name ?? "?"}</span>
+                    <span className="text-[10px] text-muted-foreground shrink-0">
+                      {f.status_code ?? "—"} · {fmtAgo(f.created_at)}
+                      {f.acknowledged_at ? " · ack" : ""}
+                    </span>
+                  </div>
+                  {f.error_message && (
+                    <div className="text-[11px] text-red-300/90 truncate">{f.error_message}</div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+          <div className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+            <AlertCircle className="h-3.5 w-3.5 text-amber-400" /> Open IRIS health flags
+          </div>
+          {(wiring.data?.openFlags.length ?? 0) === 0 ? (
+            <div className="text-xs text-muted-foreground py-1.5">No open flags. ✓</div>
+          ) : (
+            <ul className="space-y-1.5">
+              {wiring.data!.openFlags.map((f) => {
+                const sev = (f.severity ?? "").toLowerCase();
+                const sevTone =
+                  sev === "critical" || sev === "high"
+                    ? "text-red-400 border-red-500/40 bg-red-500/10"
+                    : sev === "medium"
+                    ? "text-amber-400 border-amber-500/40 bg-amber-500/10"
+                    : "text-muted-foreground border-white/10 bg-white/5";
+                return (
+                  <li key={f.id} className="text-xs">
+                    <div className="flex items-baseline gap-2">
+                      <span className={`inline-block rounded border px-1.5 py-0.5 text-[10px] ${sevTone}`}>
+                        {f.severity ?? "?"}
+                      </span>
+                      <span className="text-white/90 truncate flex-1">{f.title ?? f.trigger_code ?? "(untitled)"}</span>
+                      <span className="text-[10px] text-muted-foreground shrink-0">{fmtAgo(f.raised_at)}</span>
+                    </div>
+                    {f.detail && (
+                      <div className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{f.detail}</div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function IrisControlPage() {
   const [missionId, setMissionId] = useState<string>("");
@@ -70,7 +311,7 @@ function IrisControlPage() {
   const results = (mutation.data?.results ?? []) as TaskResult[];
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8 space-y-6">
+    <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
       <div className="flex items-start gap-3">
         <div className="rounded-lg bg-amber-500/10 p-2.5">
           <Zap className="h-6 w-6 text-amber-400" />
@@ -78,11 +319,14 @@ function IrisControlPage() {
         <div className="flex-1">
           <h1 className="text-2xl font-semibold">IRIS Control</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Single button to fan out every IRIS enrichment pipeline — Perplexity,
-            Gemini briefs, Firecrawl rescan, and cache reset — against one mission.
-            Tasks run in parallel; failures in one pipeline never abort the others.
+            Real-time health of every IRIS pipeline plus a single-button fan-out
+            (Perplexity, Gemini briefs, Firecrawl, cache reset) against one mission.
           </p>
         </div>
+      </div>
+
+      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
+        <HealthDashboard />
       </div>
 
       <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-4">
