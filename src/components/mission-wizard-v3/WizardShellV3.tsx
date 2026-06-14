@@ -24,12 +24,14 @@ export function WizardShellV3({
   step,
   visitedSteps,
   onJump,
+  isLive = false,
   children,
 }: {
   missionId: string;
   step: number;
   visitedSteps: number[];
   onJump: (s: number) => void;
+  isLive?: boolean;
   children: React.ReactNode;
 }) {
   const navigate = useNavigate();
@@ -51,6 +53,17 @@ export function WizardShellV3({
             <div className="h-full transition-all duration-300" style={{ width: `${pct}%`, background: "#C49A2B" }} />
           </div>
         </div>
+        {isLive && (
+          <Link
+            to="/missions/$missionId/briefing"
+            params={{ missionId }}
+            className="text-[13px] shrink-0 px-3 py-1.5 rounded-md transition-colors"
+            style={{ color: "#C49A2B", border: "1px solid rgba(196,154,43,0.4)" }}
+            title="Return to the live mission brief"
+          >
+            ← View Live Mission
+          </Link>
+        )}
         <button
           onClick={() => navigate({ to: "/olympus/missions" })}
           className="text-[13px] text-white/55 hover:text-white shrink-0"
