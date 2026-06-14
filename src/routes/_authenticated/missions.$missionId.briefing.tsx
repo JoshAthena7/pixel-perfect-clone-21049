@@ -681,7 +681,7 @@ function LensItem({ icon: Icon, color, label }: { icon: any; color: string; labe
 }
 
 /* ───────────────── 5a. Watch Items ───────────────── */
-function WatchItemsCard({ missionId }: { missionId: string }) {
+function WatchItemsCard({ missionId, mission }: { missionId: string; mission?: any }) {
   const { data: items = [] } = useQuery({
     queryKey: ["briefing-watch-items", missionId],
     queryFn: async () => {
@@ -697,12 +697,24 @@ function WatchItemsCard({ missionId }: { missionId: string }) {
   });
 
   if (items.length === 0) {
+    const fallback = (mission?.watch_items ?? "").trim();
     return (
       <section style={glass}>
         <div className="flex items-center gap-2 mb-4" style={cardLabel}>
           <AlertTriangle size={14} /> Watch Items
         </div>
-        <EmptyState>No active watch items.</EmptyState>
+        {fallback ? (
+          <ul className="space-y-3">
+            {fallback.split(/\n+/).map((line: string, i: number) => line.trim() && (
+              <li key={i} className="flex items-start gap-3">
+                <span className="shrink-0 mt-1.5" style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b" }} />
+                <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.9)", lineHeight: 1.5 }}>{line.trim()}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState>No active watch items.</EmptyState>
+        )}
       </section>
     );
   }
