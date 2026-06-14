@@ -29,6 +29,7 @@ const JOB_HOOK_PATHS: Record<string, string> = {
   "iris-monitor-research-feeds": "/api/public/hooks/monitor-research-feeds",
   "iris-monitor-cms-feeds": "/api/public/hooks/monitor-cms-feeds",
   "iris-monitor-custom-feeds": "/api/public/hooks/monitor-custom-feeds",
+  "iris-academic-sweep-weekly": "/api/public/hooks/iris-academic-sweep",
 };
 
 async function assertAdmin(supabase: any, userId: string) {
