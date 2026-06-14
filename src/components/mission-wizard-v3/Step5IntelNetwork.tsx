@@ -4,7 +4,7 @@
  * associations, etc. Fires inserts into intel_sources and kicks off an
  * IRIS initial scan. All work is fire-and-forget — never blocks the UI.
  */
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
