@@ -483,18 +483,59 @@ async function runMonitor(request: Request): Promise<Response> {
         const meta = perItemMeta[i] ?? {};
         const sigUrl = meta.link ?? fetchUrl;
 
+        // Perplexity cross-reference: enrich high-relevance signals with expert
+        // commentary + broader context (citations) before they hit intel_events.
+        let enrichedRecommendation = sig.iris_recommendation ?? null;
+        let enrichmentCitations: string[] = [];
+        if (typeof sig.relevance_score === "number" && sig.relevance_score >= 75) {
+          try {
+            const enrichment = await askPerplexity(
+              `${sig.title} — Medicaid managed care implications 2025`,
+              {
+                model: "sonar-pro",
+                recencyFilter: "week",
+                system:
+                  "You are IRIS adding expert context to a freshly detected Medicaid signal. In 3-5 sentences, explain implications for managed care plans and states. Cite inline. No preamble.",
+              },
+            );
+            if (enrichment?.content) {
+              enrichedRecommendation = [
+                sig.iris_recommendation ?? "",
+                "",
+                "IRIS cross-reference:",
+                enrichment.content,
+              ]
+                .filter(Boolean)
+                .join("\n")
+                .trim();
+              enrichmentCitations = (enrichment.citations ?? []).filter(
+                (u): u is string => typeof u === "string" && u.startsWith("http"),
+              );
+            }
+          } catch (e) {
+            console.log("[iris-daily-monitor] perplexity enrichment failed", e);
+          }
+        }
+
+        const contentBody = enrichmentCitations.length > 0
+          ? `${String(sig.summary ?? "")}\n\nLive sources (Perplexity):\n${enrichmentCitations
+              .slice(0, 6)
+              .map((u, idx) => `[${idx + 1}] ${u}`)
+              .join("\n")}`
+          : String(sig.summary ?? "");
+
         const { error: evErr } = await supabaseAdmin.from("intel_events").insert({
           mission_id: null,
           event_type: "signal",
           title: String(sig.title ?? "Signal").slice(0, 240),
-          content: String(sig.summary ?? ""),
+          content: contentBody,
           source_type: "web_monitor",
           source_id: s.id,
           source_url: sigUrl,
           source_title: meta.title ?? sig.title ?? null,
           source_published_at: meta.pubDate ?? new Date().toISOString(),
           extracted_summary: sig.summary ?? null,
-          iris_recommendation: sig.iris_recommendation ?? null,
+          iris_recommendation: enrichedRecommendation,
           output_type: sig.output_type ?? "signal",
           signal_category: sig.signal_category ?? s.signal_category,
           state: sig.state ?? null,
