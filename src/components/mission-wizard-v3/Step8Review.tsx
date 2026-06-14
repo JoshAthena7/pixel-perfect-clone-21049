@@ -179,9 +179,9 @@ export function Step8Review({
         console.error("[perplexity-enrich] trigger error", e);
       }
       qc.invalidateQueries({ queryKey: ["mission-meta", missionId] });
-      navigate({ to: "/missions/$missionId/briefing", params: { missionId } });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
+      throw e;
     } finally {
       setLaunching(false);
     }
