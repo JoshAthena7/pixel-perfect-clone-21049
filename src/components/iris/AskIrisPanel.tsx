@@ -554,6 +554,15 @@ export function AskIrisPanel() {
               }}
             />
             <button
+              onClick={() => runAskWithSources(input)}
+              disabled={streaming || !input.trim()}
+              className="h-8 w-8 inline-flex items-center justify-center rounded-full disabled:opacity-50"
+              style={{ background: "rgba(255,255,255,0.08)", border: "0.5px solid rgba(127,119,221,0.4)", color: "white" }}
+              title="Ask with live sources (Perplexity)"
+            >
+              <Globe className="h-4 w-4" />
+            </button>
+            <button
               onClick={() => send(input)}
               disabled={streaming || !input.trim()}
               className="h-8 w-8 inline-flex items-center justify-center rounded-full disabled:opacity-50"
@@ -563,7 +572,7 @@ export function AskIrisPanel() {
               <Send className="h-4 w-4" />
             </button>
           </div>
-          <div className="text-[10px] text-white/35 mt-1.5">Shift+Enter for new line · Press ` to toggle</div>
+          <div className="text-[10px] text-white/35 mt-1.5">Shift+Enter for newline · ` to toggle · Globe or /sources for cited answers</div>
         </div>
       </div>
 
