@@ -57,7 +57,7 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
     }
 
     // 2) Parallel context fetch
-    const [winRes, complianceRes, insightsRes, evalRes] = await Promise.all([
+    const [winRes, complianceRes, insightsRes, evalRes, missionRes] = await Promise.all([
       supabase
         .from("mission_win_strategy")
         .select("north_star_message, central_claim, win_themes, things_to_avoid, discriminators")
@@ -84,12 +84,28 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
         .select("inferred_fears, inferred_defensibility_needs, one_sentence_bottom_line")
         .eq("mission_id", data.missionId)
         .maybeSingle(),
+      supabase
+        .from("missions")
+        .select("writing_signals")
+        .eq("id", data.missionId)
+        .maybeSingle(),
     ]);
 
     const win = (winRes as any)?.data ?? {};
     const complianceRows = ((complianceRes as any)?.data ?? []) as any[];
     const insights = ((insightsRes as any)?.data ?? []) as any[];
     const evalPic = (evalRes as any)?.data ?? {};
+    const writingSignals = ((missionRes as any)?.data?.writing_signals ?? null) as
+      | { care_about?: unknown; avoid?: unknown; repeat_often?: unknown }
+      | null;
+    const wsArr = (v: unknown): string[] =>
+      Array.isArray(v) ? v.map((x) => (typeof x === "string" ? x : x?.text ?? "")).filter(Boolean) : [];
+    const wsCare = wsArr(writingSignals?.care_about);
+    const wsAvoid = wsArr(writingSignals?.avoid);
+    const wsRepeat = wsArr(writingSignals?.repeat_often);
+    if ((missionRes as any)?.error) {
+      console.error("[score-me] writing_signals fetch failed", (missionRes as any).error);
+    }
 
     const winThemes = Array.isArray(win.win_themes)
       ? win.win_themes
@@ -140,6 +156,16 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
       `How evaluators think — fears: ${fears.join("; ") || "(none)"}`,
       `How evaluators think — defensibility needs: ${defensibility.join("; ") || "(none)"}`,
       `Evaluator bottom line: ${evalPic.one_sentence_bottom_line || "(none)"}`,
+      ...(wsCare.length || wsAvoid.length || wsRepeat.length
+        ? [
+            "",
+            "Additionally evaluate whether this response follows the mission's Message Discipline:",
+            `- Evaluators care about: ${wsCare.length ? wsCare.join("; ") : "(none)"}`,
+            `- Avoid: ${wsAvoid.length ? wsAvoid.join("; ") : "(none)"}`,
+            `- Repeat often: ${wsRepeat.length ? wsRepeat.join("; ") : "(none)"}`,
+            "Score alignment with Message Discipline as a separate dimension in your feedback.",
+          ]
+        : []),
       "",
       `Draft to coach:\n${data.draftText}`,
       "",
