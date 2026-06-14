@@ -9,7 +9,7 @@ import { AskIrisPanel } from "@/components/iris/AskIrisPanel";
 import { IrisExplainThisPage } from "@/components/iris/IrisExplainThisPage";
 import { GlobalCommandBar } from "@/components/nav/GlobalCommandBar";
 import { AppSidebar } from "@/components/nav/AppSidebar";
-import { IconRail } from "@/components/nav/IconRail";
+
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getMyHome } from "@/lib/v2-home.functions";
