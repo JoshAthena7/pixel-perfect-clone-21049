@@ -870,25 +870,28 @@ function DailyPulse({ missionId }: { missionId: string }) {
       const weekStart = new Date();
       weekStart.setDate(weekStart.getDate() - 7);
 
-      const { data: asgs } = await supabase
-        .from("mission_assignments")
-        .select("question_id")
-        .eq("mission_id", missionId)
-        .eq("assigned_writer_id", (await supabase.rpc("current_atlas_member_id")).data ?? "");
-      const qids = (asgs ?? []).map((a: any) => a.question_id).filter(Boolean);
-
+      const memberId = await fetchMyAtlasMemberId();
       let completed = 0;
       let inFlight = 0;
-      if (qids.length > 0) {
-        const { data: qs } = await supabase
-          .from("mission_questions")
-          .select("status, updated_at")
-          .in("id", qids);
-        for (const q of (qs ?? []) as any[]) {
-          if (q.status === "complete") {
-            if (q.updated_at && new Date(q.updated_at).getTime() >= weekStart.getTime()) completed++;
-          } else if (q.status === "in_progress") {
-            inFlight++;
+      if (memberId) {
+        const { data: asgs } = await supabase
+          .from("mission_assignments")
+          .select("question_id")
+          .eq("mission_id", missionId)
+          .eq("assigned_writer_id", memberId);
+        const qids = (asgs ?? []).map((a: any) => a.question_id).filter(Boolean);
+
+        if (qids.length > 0) {
+          const { data: qs } = await supabase
+            .from("mission_questions")
+            .select("status, updated_at")
+            .in("id", qids);
+          for (const q of (qs ?? []) as any[]) {
+            if (q.status === "complete") {
+              if (q.updated_at && new Date(q.updated_at).getTime() >= weekStart.getTime()) completed++;
+            } else if (q.status === "in_progress") {
+              inFlight++;
+            }
           }
         }
       }
