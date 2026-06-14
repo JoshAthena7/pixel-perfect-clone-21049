@@ -15,6 +15,17 @@ import atlasWordmark from "@/assets/atlas-wordmark.png.asset.json";
 
 type Crumb = { label: string; to?: string; params?: Record<string, string>; pill?: boolean };
 
+function AtlasLogo() {
+  return (
+    <img
+      src={atlasWordmark.url}
+      alt="ATLAS"
+      draggable={false}
+      style={{ height: 18, width: "auto", objectFit: "contain" }}
+    />
+  );
+}
+
 function useMissionId(): string | undefined {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const params = useParams({ strict: false }) as { missionId?: string };
