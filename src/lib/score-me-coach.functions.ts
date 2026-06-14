@@ -156,6 +156,16 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
       `How evaluators think — fears: ${fears.join("; ") || "(none)"}`,
       `How evaluators think — defensibility needs: ${defensibility.join("; ") || "(none)"}`,
       `Evaluator bottom line: ${evalPic.one_sentence_bottom_line || "(none)"}`,
+      ...(wsCare.length || wsAvoid.length || wsRepeat.length
+        ? [
+            "",
+            "Additionally evaluate whether this response follows the mission's Message Discipline:",
+            `- Evaluators care about: ${wsCare.length ? wsCare.join("; ") : "(none)"}`,
+            `- Avoid: ${wsAvoid.length ? wsAvoid.join("; ") : "(none)"}`,
+            `- Repeat often: ${wsRepeat.length ? wsRepeat.join("; ") : "(none)"}`,
+            "Score alignment with Message Discipline as a separate dimension in your feedback.",
+          ]
+        : []),
       "",
       `Draft to coach:\n${data.draftText}`,
       "",
