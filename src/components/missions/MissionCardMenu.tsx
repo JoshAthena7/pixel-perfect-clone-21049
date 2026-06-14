@@ -81,10 +81,10 @@ export function MissionCardMenu({
             </DropdownMenuItem>
             <DropdownMenuItem
               onSelect={() =>
-                navigate({ to: "/olympus/missions/$missionId/wizard", params: { missionId } })
+                navigate({ to: "/olympus/wizard/$missionId", params: { missionId } })
               }
             >
-              <Wand2 className="h-4 w-4 mr-2" /> View Setup Wizard
+              <Wand2 className="h-4 w-4 mr-2" /> Edit Setup
             </DropdownMenuItem>
             {(canArchive || canDelete) && <DropdownMenuSeparator />}
             {canArchive && (

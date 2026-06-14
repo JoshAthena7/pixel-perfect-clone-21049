@@ -10,12 +10,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ClipboardList, Eye, Rocket, Settings, Check, Wand2 } from "lucide-react";
+import { ChevronDown, ClipboardList, Eye, Rocket, Settings, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { UserMenu } from "@/components/nav/UserMenu";
 import { useMissionMeta } from "@/hooks/useMissionMeta";
-import { useIsAdmin } from "@/hooks/useAccess";
 
 const GOLD = "#d4a843";
 const MUTED = "#666680";
@@ -98,7 +97,6 @@ export function MissionSidebar({ missionId, email }: { missionId: string; email?
   const seg = pathname.split("/")[3] ?? "";
   const items = buildItems(missionId);
   const intel = useIntelSummary(missionId);
-  const { isAdmin } = useIsAdmin();
 
   return (
     <aside
@@ -143,24 +141,8 @@ export function MissionSidebar({ missionId, email }: { missionId: string; email?
         })}
       </nav>
 
-      {isAdmin && (
-        <div className="px-3 pb-2">
-          <Link
-            to="/olympus/wizard/$missionId"
-            params={{ missionId }}
-            className="flex items-center gap-2 rounded-md px-2.5 py-2 transition-colors hover:bg-white/[0.04]"
-            style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}
-            title="Open the setup wizard to edit mission details (admin only)"
-          >
-            <Wand2 className="h-[14px] w-[14px] shrink-0" style={{ color: GOLD }} />
-            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", color: "rgba(255,255,255,0.78)" }}>
-              EDIT SETUP
-            </span>
-          </Link>
-        </div>
-      )}
-
       <div className="mx-3 my-3" style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
+
 
       <div className="px-4 pb-3">
         <div
