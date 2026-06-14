@@ -111,10 +111,54 @@ export function Step8Review({
     try {
       // Pull confirmed deadline if present
       const dueIso = byKey.get("proposal_due_date")?.value ?? null;
-      const updates: { status: string; submission_deadline?: string } = { status: "active" };
+
+      // Cascade wizard extractions → missions columns so the Mission Brief,
+      // Perplexity enrichment, and downstream IRIS reads have real data to
+      // work with. Without this the missions row stays empty and every
+      // generated brief comes back with "—" placeholders.
+      const get = (k: string) => {
+        const v = byKey.get(k)?.value;
+        return v && v.trim().length > 0 ? v.trim() : null;
+      };
+      const splitList = (v: string | null) =>
+        v
+          ? v
+              .split(/[,\n;|]+/)
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : [];
+
+      const stateVal = get("state_location");
+      const stateCodeMatch = stateVal?.match(/\b([A-Z]{2})\b/);
+      const opportunityTitle = get("opportunity_title");
+      const clientAgency = get("client_agency");
+      const competitorsList = splitList(get("known_competitors"));
+
+      const updates: Record<string, unknown> = { status: "active" };
       if (dueIso && /^\d{4}-\d{2}-\d{2}/.test(dueIso)) {
         updates.submission_deadline = `${dueIso}T17:00:00Z`;
       }
+      if (opportunityTitle) updates.name = opportunityTitle;
+      if (clientAgency) {
+        updates.client_name = clientAgency;
+        updates.agency_name = clientAgency;
+      }
+      if (stateVal) updates.state = stateVal;
+      if (stateCodeMatch) updates.state_code = stateCodeMatch[1];
+      if (get("program_type")) updates.program_type = get("program_type");
+      if (get("north_star")) updates.north_star = get("north_star");
+      if (get("why_we_win")) updates.why_win = get("why_we_win");
+      if (get("why_we_could_lose")) updates.why_lose = get("why_we_could_lose");
+      if (get("biggest_concerns")) updates.biggest_concerns = get("biggest_concerns");
+      if (get("state_priorities")) updates.state_priorities = get("state_priorities");
+      if (get("win_themes")) updates.win_themes_text = get("win_themes");
+      if (get("things_to_reinforce")) updates.reinforce = get("things_to_reinforce");
+      if (get("things_to_avoid")) updates.avoid = get("things_to_avoid");
+      if (competitorsList.length) updates.known_competitors = competitorsList;
+      if (get("prime_or_sub")?.toLowerCase().includes("prime")) {
+        // Leave prime_contractor for user; just mark we're prime in known_competitors metadata path
+      }
+
       const { error: upErr } = await supabase.from("missions").update(updates).eq("id", missionId);
       if (upErr) throw upErr;
       // Fire-and-forget IRIS historical launch brief generation.
