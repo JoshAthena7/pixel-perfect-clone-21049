@@ -33,6 +33,7 @@ import {
   generateDocumentSummary, suggestSectionTags, analyzeAmendment,
   type AmendmentImpactT,
 } from "@/lib/iris-intel-tabs.functions";
+import { parseDocumentToIntel } from "@/lib/iris-parse-document.functions";
 import { DOC_TYPES, DOC_TYPE_LABEL, DOC_TYPE_GROUP_ORDER, formatDate, isValidUrl } from "./intel-shared";
 
 type Doc = {
