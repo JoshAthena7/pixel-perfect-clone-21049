@@ -191,6 +191,15 @@ async function triggerThreadExtraction(args: { missionId: string; questionId: st
   });
 }
 
+async function triggerKnowledgeExtraction(args: { missionId: string; questionId: string }) {
+  const { extractThreadKnowledge } = await import(
+    "@/lib/iris-extract-thread-knowledge.functions"
+  );
+  await extractThreadKnowledge({
+    data: { mission_id: args.missionId, question_id: args.questionId },
+  });
+}
+
 /** Called when the panel opens. Posts an IRIS check-in if the thread has been
  * inactive for 24+ hours and the question is flagged at-risk. */
 export const maybePostInactivityCheckIn = createServerFn({ method: "POST" })
