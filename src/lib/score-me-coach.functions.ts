@@ -57,7 +57,7 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
     }
 
     // 2) Parallel context fetch
-    const [winRes, complianceRes, insightsRes, evalRes, missionRes] = await Promise.all([
+    const [winRes, complianceRes, insightsRes, evalRes, missionRes, winThemesActiveRes] = await Promise.all([
       supabase
         .from("mission_win_strategy")
         .select("north_star_message, central_claim, win_themes, things_to_avoid, discriminators")
@@ -89,6 +89,11 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
         .select("writing_signals")
         .eq("id", data.missionId)
         .maybeSingle(),
+      supabase
+        .from("mission_win_themes")
+        .select("title, why_it_matters, what_theyre_buying, proof_points")
+        .eq("mission_id", data.missionId)
+        .eq("status", "active"),
     ]);
 
     const win = (winRes as any)?.data ?? {};
@@ -106,6 +111,17 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
     if ((missionRes as any)?.error) {
       console.error("[score-me] writing_signals fetch failed", (missionRes as any).error);
     }
+    const activeWinThemes = (((winThemesActiveRes as any)?.data ?? []) as any[])
+      .map((t) => ({
+        title: String(t?.title ?? "").trim(),
+        what_theyre_buying: String(t?.what_theyre_buying ?? "").trim(),
+      }))
+      .filter((t) => t.title);
+    if ((winThemesActiveRes as any)?.error) {
+      console.error("[score-me] active win_themes fetch failed", (winThemesActiveRes as any).error);
+    }
+
+
 
     const winThemes = Array.isArray(win.win_themes)
       ? win.win_themes
@@ -164,6 +180,16 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
             `- Avoid: ${wsAvoid.length ? wsAvoid.join("; ") : "(none)"}`,
             `- Repeat often: ${wsRepeat.length ? wsRepeat.join("; ") : "(none)"}`,
             "Score alignment with Message Discipline as a separate dimension in your feedback.",
+          ]
+        : []),
+      ...(activeWinThemes.length
+        ? [
+            "",
+            "Also evaluate whether this response demonstrates the mission's active win themes:",
+            ...activeWinThemes.map(
+              (t) => `- ${t.title}${t.what_theyre_buying ? ` — ${t.what_theyre_buying}` : ""}`,
+            ),
+            "For each win theme, assess: Does this response reinforce it, contradict it, or miss it entirely? Include a Win Theme Alignment section in your feedback.",
           ]
         : []),
       "",
