@@ -7986,6 +7986,99 @@ export type Database = {
         }
         Relationships: []
       }
+      oracle_sme_profiles: {
+        Row: {
+          created_at: string | null
+          domain_tags: string[] | null
+          id: string
+          last_active_at: string | null
+          mission_types_supported: string[] | null
+          name: string
+          organization: string | null
+          title: string | null
+          total_questions_answered: number | null
+          total_sessions: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          domain_tags?: string[] | null
+          id?: string
+          last_active_at?: string | null
+          mission_types_supported?: string[] | null
+          name: string
+          organization?: string | null
+          title?: string | null
+          total_questions_answered?: number | null
+          total_sessions?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          domain_tags?: string[] | null
+          id?: string
+          last_active_at?: string | null
+          mission_types_supported?: string[] | null
+          name?: string
+          organization?: string | null
+          title?: string | null
+          total_questions_answered?: number | null
+          total_sessions?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      oracle_sme_sessions: {
+        Row: {
+          answer_summary: string | null
+          created_at: string | null
+          domain_tags: string[] | null
+          id: string
+          mission_id: string | null
+          question_summary: string | null
+          requesting_user_id: string | null
+          sme_id: string | null
+          topic: string | null
+        }
+        Insert: {
+          answer_summary?: string | null
+          created_at?: string | null
+          domain_tags?: string[] | null
+          id?: string
+          mission_id?: string | null
+          question_summary?: string | null
+          requesting_user_id?: string | null
+          sme_id?: string | null
+          topic?: string | null
+        }
+        Update: {
+          answer_summary?: string | null
+          created_at?: string | null
+          domain_tags?: string[] | null
+          id?: string
+          mission_id?: string | null
+          question_summary?: string | null
+          requesting_user_id?: string | null
+          sme_id?: string | null
+          topic?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_sme_sessions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_sme_sessions_sme_id_fkey"
+            columns: ["sme_id"]
+            isOneToOne: false
+            referencedRelation: "oracle_sme_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oracle_thread_queries: {
         Row: {
           created_at: string
