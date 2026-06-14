@@ -182,6 +182,16 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
             "Score alignment with Message Discipline as a separate dimension in your feedback.",
           ]
         : []),
+      ...(activeWinThemes.length
+        ? [
+            "",
+            "Also evaluate whether this response demonstrates the mission's active win themes:",
+            ...activeWinThemes.map(
+              (t) => `- ${t.title}${t.what_theyre_buying ? ` — ${t.what_theyre_buying}` : ""}`,
+            ),
+            "For each win theme, assess: Does this response reinforce it, contradict it, or miss it entirely? Include a Win Theme Alignment section in your feedback.",
+          ]
+        : []),
       "",
       `Draft to coach:\n${data.draftText}`,
       "",
