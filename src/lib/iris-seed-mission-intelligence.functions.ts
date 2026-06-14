@@ -140,7 +140,7 @@ Return as a JSON array. No preamble. No explanation. Only the array.`;
           if (!ALLOWED_OUTPUT.has(output_type)) return null;
           return {
             mission_id: missionId,
-            event_type: "iris_seed",
+            event_type: "signal",
             output_type,
             signal_category: ALLOWED_CATEGORIES.has(signal_category) ? signal_category : null,
             title,
