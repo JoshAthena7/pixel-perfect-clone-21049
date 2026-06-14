@@ -442,7 +442,7 @@ function FlightRisks({ missionId }: { missionId: string }) {
   return (
     <section>
       <div style={sectionLabel} className="mb-4">
-        Flight Risks
+        Flight Risks<BriefSectionDot missionId={missionId} section="flight_risks" />
       </div>
       <div className="flex flex-wrap gap-3">
         {top.map((r: any) => (
