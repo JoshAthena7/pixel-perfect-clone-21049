@@ -172,7 +172,7 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
+          model: "google/gemini-3-flash-preview",
           messages: [
             { role: "system", content: SYSTEM },
             { role: "user", content: data.primary_rfp_text },
@@ -185,7 +185,11 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
 
     if (res.status === 402) throw new Error("Workspace is out of AI credits.");
     if (res.status === 429) throw new Error("IRIS is rate limited. Try again shortly.");
-    if (!res.ok) throw new Error(`IRIS gateway returned ${res.status}.`);
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => "");
+      console.error("IRIS gateway error", res.status, errBody);
+      throw new Error(`IRIS gateway returned ${res.status}.`);
+    }
 
     let parsed: Extracted | null = null;
     try {
