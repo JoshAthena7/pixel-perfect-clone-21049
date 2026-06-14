@@ -139,6 +139,37 @@ export const submitMissionSignal = createServerFn({ method: "POST" })
       .single();
     if (error) throw error;
 
+    // Fire-and-forget pulse log (one row per user per day, last write wins).
+    void (async () => {
+      try {
+        const sentiment: "red" | "yellow" | "green" =
+          data.signalType === "risk_alert" || data.signalType === "blocker"
+            ? "red"
+            : data.signalType === "resource_concern" ||
+                data.signalType === "decision_needed" ||
+                data.signalType === "client_signal"
+              ? "yellow"
+              : "green";
+        const blockers = data.signalType === "blocker" ? data.body : null;
+        const { error: logErr } = await supabaseAdmin
+          .from("mission_pulse_log" as any)
+          .upsert(
+            {
+              mission_id: data.missionId,
+              submitted_by: userId,
+              pulse_date: new Date().toISOString().slice(0, 10),
+              sentiment,
+              update_text: data.body,
+              blockers,
+            },
+            { onConflict: "mission_id,submitted_by,pulse_date" },
+          );
+        if (logErr) console.error("[mission-pulse-log] upsert failed", logErr);
+      } catch (e) {
+        console.error("[mission-pulse-log] unexpected failure", e);
+      }
+    })();
+
     // Log to signal_patterns
     const topic = extractTopic(data.body);
     await supabaseAdmin.from("signal_patterns" as any).insert({
