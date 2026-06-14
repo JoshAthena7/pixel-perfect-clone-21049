@@ -10,7 +10,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const InputSchema = z.object({ missionId: z.string().uuid() });
+const InputSchema = z.object({
+  missionId: z.string().uuid(),
+  force: z.boolean().optional().default(false),
+});
 
 const ALLOWED_OUTPUT = new Set([
   "signal",
