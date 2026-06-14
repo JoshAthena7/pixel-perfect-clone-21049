@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { UserMenu } from "@/components/nav/UserMenu";
 import { useMissionMeta } from "@/hooks/useMissionMeta";
+import { useIsAdmin } from "@/hooks/useAccess";
 
 const GOLD = "#d4a843";
 const MUTED = "#666680";
