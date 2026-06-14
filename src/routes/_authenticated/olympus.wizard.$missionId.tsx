@@ -71,7 +71,7 @@ function WizardPage() {
   }, [step]);
 
   async function saveProgress(s: number) {
-    const safeStep = Math.min(8, Math.max(1, s));
+    const safeStep = Math.min(TOTAL, Math.max(1, s));
     const { data: existing } = await supabase
       .from("mission_iris_extractions")
       .select("id")
