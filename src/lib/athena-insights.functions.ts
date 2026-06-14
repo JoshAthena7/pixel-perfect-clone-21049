@@ -36,7 +36,7 @@ async function callGateway(system: string, user: string): Promise<string> {
     method: "POST",
     headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey, Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
-      model: "gpt-4o-mini"
+      model: "gpt-4o-mini",
       messages: [{ role: "system", content: system }, { role: "user", content: user }],
     }),
   });
