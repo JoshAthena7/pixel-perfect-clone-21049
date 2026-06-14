@@ -5,9 +5,10 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { Check, Edit2, Loader2, Rocket, AlertCircle } from "lucide-react";
+import { Check, Edit2, Loader2, Rocket, AlertCircle, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { triggerLaunchBrief } from "@/lib/iris-launch-brief.functions";
+import { enrichMissionWithPerplexity } from "@/lib/iris/perplexity-enrich.functions";
 import { WIZARD_STEPS, WizardStepHeading, WizardFooter } from "./WizardShellV3";
 
 const STEP_FIELD_GROUPS: Record<number, { title: string; keys: string[] }> = {
