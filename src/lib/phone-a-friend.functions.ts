@@ -3,6 +3,7 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { recordSmeSession } from "./oracle-sme-session.server";
 import { z } from "zod";
 
 const SearchInput = z.object({
@@ -191,8 +192,10 @@ const AddInput = z.object({
   missionId: z.string().uuid(),
   questionId: z.string().uuid(),
   questionNumber: z.string().nullable().optional(),
+  questionText: z.string().nullable().optional(),
   expertUserId: z.string().uuid(),
   expertName: z.string().min(1),
+  expertTitle: z.string().nullable().optional(),
   whyIrisRecommends: z.string().min(1),
 });
 
@@ -246,5 +249,58 @@ export const addExpertToThread = createServerFn({ method: "POST" })
       console.error("[phone-a-friend] notification failed", e);
     }
 
+    // Fire-and-forget: record the SME session for Oracle profiles
+    try {
+      const sessionContent = [
+        data.questionNumber ? `Q${data.questionNumber}` : null,
+        data.questionText ?? null,
+        `Why IRIS recommends ${data.expertName}: ${data.whyIrisRecommends}`,
+      ]
+        .filter(Boolean)
+        .join(" — ");
+      recordSmeSession({
+        missionId: data.missionId,
+        requestingUserId: userId,
+        smeUserId: data.expertUserId,
+        smeName: data.expertName,
+        smeTitle: data.expertTitle ?? null,
+        sessionContent,
+      });
+    } catch (e) {
+      console.error("[phone-a-friend] sme session trigger failed", e);
+    }
+
     return { ok: true, thread_message_id: (inserted as any)?.id ?? null };
+  });
+
+const ProfilesInput = z.object({ userIds: z.array(z.string().uuid()).max(50) });
+
+export type SmeProfileSummary = {
+  user_id: string;
+  total_sessions: number;
+  domain_tags: string[];
+};
+
+export const getSmeProfilesByUserIds = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => ProfilesInput.parse(d))
+  .handler(async ({ data }) => {
+    if (data.userIds.length === 0) return { profiles: [] as SmeProfileSummary[] };
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("oracle_sme_profiles")
+      .select("user_id, total_sessions, domain_tags")
+      .in("user_id", data.userIds);
+    if (error) {
+      console.error("[phone-a-friend] sme profile fetch failed", error.message);
+      return { profiles: [] as SmeProfileSummary[] };
+    }
+    const profiles: SmeProfileSummary[] = (rows ?? [])
+      .filter((r) => r.user_id)
+      .map((r) => ({
+        user_id: r.user_id as string,
+        total_sessions: (r.total_sessions as number | null) ?? 0,
+        domain_tags: ((r.domain_tags as string[] | null) ?? []).filter(Boolean),
+      }));
+    return { profiles };
   });

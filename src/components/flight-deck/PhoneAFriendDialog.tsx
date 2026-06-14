@@ -2,7 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useServerFn } from "@tanstack/react-start";
-import { findExperts, addExpertToThread, type ExpertMatch } from "@/lib/phone-a-friend.functions";
+import {
+  findExperts,
+  addExpertToThread,
+  getSmeProfilesByUserIds,
+  type ExpertMatch,
+  type SmeProfileSummary,
+} from "@/lib/phone-a-friend.functions";
 import { Eye, MessageCircle, Plus, Search, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -33,6 +39,7 @@ export function PhoneAFriendDialog({
 }: Props) {
   const find = useServerFn(findExperts);
   const addToThread = useServerFn(addExpertToThread);
+  const fetchSmeProfiles = useServerFn(getSmeProfilesByUserIds);
 
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,6 +47,7 @@ export function PhoneAFriendDialog({
   const [irisMessage, setIrisMessage] = useState("");
   const [sectionName, setSectionName] = useState("");
   const [addingId, setAddingId] = useState<string | null>(null);
+  const [smeProfiles, setSmeProfiles] = useState<Record<string, SmeProfileSummary>>({});
   const ranAutoSearch = useRef<string | null>(null);
 
   const headerContext = useMemo(() => {
@@ -87,6 +95,27 @@ export function PhoneAFriendDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, missionId, questionId]);
 
+  // Load Oracle SME profiles for current matches
+  useEffect(() => {
+    if (matches.length === 0) return;
+    const userIds = matches.map((m) => m.user_id);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetchSmeProfiles({ data: { userIds } });
+        if (cancelled) return;
+        const map: Record<string, SmeProfileSummary> = {};
+        for (const p of res.profiles) map[p.user_id] = p;
+        setSmeProfiles(map);
+      } catch (e) {
+        console.error("[phone-a-friend] sme profile load failed", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [matches, fetchSmeProfiles]);
+
   const handleAdd = async (m: ExpertMatch) => {
     if (!missionId || !questionId) {
       toast.error("Open this from a question to add to its Thread.");
@@ -99,8 +128,10 @@ export function PhoneAFriendDialog({
           missionId,
           questionId,
           questionNumber: questionNumber ?? undefined,
+          questionText: questionText ?? undefined,
           expertUserId: m.user_id,
           expertName: m.name,
+          expertTitle: m.top_expertise_match ?? undefined,
           whyIrisRecommends: m.why_iris_recommends || "recommended by IRIS",
         },
       });
@@ -278,6 +309,23 @@ export function PhoneAFriendDialog({
                       <div className="text-white" style={{ fontSize: 13, fontWeight: 500 }}>
                         {m.name}
                       </div>
+                      {(() => {
+                        const p = smeProfiles[m.user_id];
+                        if (!p || p.total_sessions <= 0) return null;
+                        const tags = p.domain_tags.slice(0, 2).join(", ");
+                        return (
+                          <div
+                            style={{
+                              fontSize: 10,
+                              color: "rgba(255,255,255,0.45)",
+                              marginTop: 2,
+                            }}
+                          >
+                            {p.total_sessions} session{p.total_sessions === 1 ? "" : "s"}
+                            {tags ? ` · ${tags}` : ""}
+                          </div>
+                        );
+                      })()}
                       <div
                         className="mt-1 italic"
                         style={{ fontSize: 11, color: "rgba(200,193,255,0.85)", lineHeight: 1.5 }}
