@@ -33,6 +33,7 @@ import {
   generateDocumentSummary, suggestSectionTags, analyzeAmendment,
   type AmendmentImpactT,
 } from "@/lib/iris-intel-tabs.functions";
+import { parseDocumentToIntel } from "@/lib/iris-parse-document.functions";
 import { DOC_TYPES, DOC_TYPE_LABEL, DOC_TYPE_GROUP_ORDER, formatDate, isValidUrl } from "./intel-shared";
 
 type Doc = {
@@ -474,6 +475,13 @@ function UploadModal({
       setExtractedText(text);
 
       try { await summarize({ data: { document_id: row.id, extra_text: text } }); } catch {}
+
+      // Fire-and-forget IRIS RFP parse → intel_events
+      try {
+        void parseDocumentToIntel({
+          data: { mission_id: missionId, document_id: row.id, extra_text: text || undefined },
+        }).catch((e) => console.error("[vault] parseDocumentToIntel failed", e));
+      } catch (e) { console.error("[vault] parseDocumentToIntel threw", e); }
 
       if (docType === "amendment") {
         onAmendmentReady(row.id, text);
