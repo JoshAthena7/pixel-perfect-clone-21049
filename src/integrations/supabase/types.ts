@@ -6209,6 +6209,47 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_pulse_log: {
+        Row: {
+          blockers: string | null
+          created_at: string
+          id: string
+          mission_id: string | null
+          pulse_date: string | null
+          sentiment: string | null
+          submitted_by: string | null
+          update_text: string | null
+        }
+        Insert: {
+          blockers?: string | null
+          created_at?: string
+          id?: string
+          mission_id?: string | null
+          pulse_date?: string | null
+          sentiment?: string | null
+          submitted_by?: string | null
+          update_text?: string | null
+        }
+        Update: {
+          blockers?: string | null
+          created_at?: string
+          id?: string
+          mission_id?: string | null
+          pulse_date?: string | null
+          sentiment?: string | null
+          submitted_by?: string | null
+          update_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_pulse_log_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_qa_log: {
         Row: {
           answer: string | null
