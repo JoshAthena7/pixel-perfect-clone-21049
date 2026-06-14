@@ -63,8 +63,12 @@ export function IntelPeople({ missionId }: { missionId: string }) {
         <EmptyState missionId={missionId} onAdd={() => setShowAdd(true)} onSeeded={() => qc.invalidateQueries({ queryKey: ["intel-people", missionId] })} />
       ) : (
         <div className="space-y-6">
-          {ROLE_GROUPS.map((g) => {
-            const items = people.filter((p) => p.role_type === g.id);
+          {[...ROLE_GROUPS, FALLBACK_GROUP].map((g) => {
+            const knownIds = new Set(ROLE_GROUPS.map((r) => r.id));
+            const items =
+              g.id === "_other"
+                ? people.filter((p) => !knownIds.has(p.role_type))
+                : people.filter((p) => p.role_type === g.id);
             if (!items.length) return null;
             return (
               <section key={g.id}>
