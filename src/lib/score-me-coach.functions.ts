@@ -111,7 +111,16 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
     if ((missionRes as any)?.error) {
       console.error("[score-me] writing_signals fetch failed", (missionRes as any).error);
     }
-    const winThemesRes = arguments as any; // placeholder removed below
+    const activeWinThemes = (((winThemesActiveRes as any)?.data ?? []) as any[])
+      .map((t) => ({
+        title: String(t?.title ?? "").trim(),
+        what_theyre_buying: String(t?.what_theyre_buying ?? "").trim(),
+      }))
+      .filter((t) => t.title);
+    if ((winThemesActiveRes as any)?.error) {
+      console.error("[score-me] active win_themes fetch failed", (winThemesActiveRes as any).error);
+    }
+
 
 
     const winThemes = Array.isArray(win.win_themes)
