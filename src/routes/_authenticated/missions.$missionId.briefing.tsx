@@ -283,7 +283,7 @@ function HowWeWin({ missionId }: { missionId: string }) {
   return (
     <section>
       <div style={sectionLabel} className="mb-4">
-        How We Win
+        How We Win<BriefSectionDot missionId={missionId} section="win_themes" />
       </div>
       {themes.length === 0 ? (
         <div
