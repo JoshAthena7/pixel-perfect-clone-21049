@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { logEscalationAndCheckPattern } from "./oracle-escalation-log.server";
 import { z } from "zod";
 
 const SEVERITIES = ["watch", "at_risk", "blocked"] as const;
@@ -61,6 +62,19 @@ export const raiseSOS = createServerFn({ method: "POST" })
       .single();
     if (insErr) throw insErr;
     const sosId = (inserted as unknown as { id: string }).id;
+
+    // Fire-and-forget: oracle escalation log + IRIS pattern check
+    try {
+      logEscalationAndCheckPattern({
+        missionId: data.missionId,
+        submittedBy: userId,
+        escalationType: data.severity,
+        contextSummary: data.body,
+        sosUpdateId: sosId,
+      });
+    } catch (e) {
+      console.error("[sos] escalation log trigger failed", e);
+    }
 
     // Step 2 — escalate question health
     if (data.questionId && (data.severity === "at_risk" || data.severity === "blocked")) {

@@ -7809,6 +7809,59 @@ export type Database = {
         }
         Relationships: []
       }
+      oracle_escalation_log: {
+        Row: {
+          context_summary: string | null
+          created_at: string | null
+          escalation_type: string | null
+          id: string
+          mission_id: string | null
+          mission_phase: string | null
+          pattern_note: string | null
+          resolution: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          sos_update_id: string | null
+          submitted_by: string | null
+        }
+        Insert: {
+          context_summary?: string | null
+          created_at?: string | null
+          escalation_type?: string | null
+          id?: string
+          mission_id?: string | null
+          mission_phase?: string | null
+          pattern_note?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          sos_update_id?: string | null
+          submitted_by?: string | null
+        }
+        Update: {
+          context_summary?: string | null
+          created_at?: string | null
+          escalation_type?: string | null
+          id?: string
+          mission_id?: string | null
+          mission_phase?: string | null
+          pattern_note?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          sos_update_id?: string | null
+          submitted_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_escalation_log_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oracle_knowledge_base: {
         Row: {
           applicable_mission_types: string[] | null
