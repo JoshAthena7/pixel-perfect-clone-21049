@@ -337,10 +337,10 @@ function MissionContextBlock({
         className="px-3 py-3"
         style={{ borderBottom: "0.5px solid rgba(255,255,255,0.06)" }}
       >
-        <div className="flex items-center gap-2">
+        <Link to="/admin" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <img src={atlasWordmark.url} alt="ATLAS" draggable={false} style={{ height: 14, width: "auto", objectFit: "contain" }} />
           <span style={{ color: "#c9a84c", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em" }}>· ADMIN</span>
-        </div>
+        </Link>
         <div className="mt-0.5" style={{ color: "rgba(255,255,255,0.35)", fontSize: 9 }}>
           Platform administration
         </div>
@@ -354,7 +354,9 @@ function MissionContextBlock({
         className="px-3 py-3 text-center"
         style={{ borderBottom: "0.5px solid rgba(255,255,255,0.06)" }}
       >
-        <img src={atlasWordmark.url} alt="ATLAS" draggable={false} className="mx-auto" style={{ height: 16, width: "auto", objectFit: "contain" }} />
+        <Link to="/admin" className="inline-block hover:opacity-80 transition-opacity">
+          <img src={atlasWordmark.url} alt="ATLAS" draggable={false} className="mx-auto" style={{ height: 16, width: "auto", objectFit: "contain" }} />
+        </Link>
         <div className="mt-1" style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>
           Select a mission
         </div>
