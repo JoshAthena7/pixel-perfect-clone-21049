@@ -444,7 +444,7 @@ function FlightRisks({ missionId }: { missionId: string }) {
         Flight Risks
       </div>
       <div className="flex flex-wrap gap-3">
-        {top.map((r) => (
+        {top.map((r: any) => (
           <div
             key={r.id}
             className="rounded-lg p-3 flex items-start gap-2 transition-all duration-150"
@@ -454,12 +454,12 @@ function FlightRisks({ missionId }: { missionId: string }) {
             style={{
               background: CARD,
               border: `1px solid ${BORDER}`,
-              borderLeft: `3px solid ${sevColor(r.severity)}`,
+              borderLeft: `3px solid ${sevColor(r.severity ?? "")}`,
               minWidth: 200,
               maxWidth: 280,
             }}
           >
-            <AlertTriangle size={14} style={{ color: sevColor(r.severity), marginTop: 2 }} />
+            <AlertTriangle size={14} style={{ color: sevColor(r.severity ?? ""), marginTop: 2 }} />
             <div className="font-bold" style={{ fontSize: 13 }}>
               {r.title}
             </div>
