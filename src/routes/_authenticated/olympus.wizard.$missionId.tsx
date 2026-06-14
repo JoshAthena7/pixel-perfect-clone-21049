@@ -8,6 +8,7 @@ import { Step1Fuel } from "@/components/mission-wizard-v3/Step1Fuel";
 import { Step2Basics } from "@/components/mission-wizard-v3/Step2Basics";
 import { Step3Strategy } from "@/components/mission-wizard-v3/Step3Strategy";
 import { Step4Competitive } from "@/components/mission-wizard-v3/Step4Competitive";
+import { Step5IntelNetwork } from "@/components/mission-wizard-v3/Step5IntelNetwork";
 import { Step5Stakeholder } from "@/components/mission-wizard-v3/Step5Stakeholder";
 import { Step6Executive } from "@/components/mission-wizard-v3/Step6Executive";
 import { Step7Team } from "@/components/mission-wizard-v3/Step7Team";
@@ -16,8 +17,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 type WizardMission = { id: string; name: string; status: string | null; lastStep: number };
 
+const TOTAL = 9;
 const searchSchema = z.object({
-  step: z.coerce.number().int().min(1).max(8).optional(),
+  step: z.coerce.number().int().min(1).max(TOTAL).optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/olympus/wizard/$missionId")({
