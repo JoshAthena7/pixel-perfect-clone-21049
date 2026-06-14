@@ -535,7 +535,11 @@ export const getActivitySynthesis = createServerFn({ method: "POST" })
     return { synthesis, facts };
   });
 
-const ResolveInput = z.object({ updateId: z.string().uuid(), missionId: z.string().uuid() });
+const ResolveInput = z.object({
+  updateId: z.string().uuid(),
+  missionId: z.string().uuid(),
+  resolution: z.string().trim().max(4000).optional(),
+});
 
 export const resolveSos = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -547,12 +551,31 @@ export const resolveSos = createServerFn({ method: "POST" })
     });
     if (!isAdmin) throw new Error("Forbidden");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const nowIso = new Date().toISOString();
     const { error } = await supabaseAdmin
       .from("team_updates")
-      .update({ resolved: true, resolved_at: new Date().toISOString() } as never)
+      .update({ resolved: true, resolved_at: nowIso } as never)
       .eq("id", data.updateId)
       .eq("mission_id", data.missionId);
     if (error) throw error;
+
+    // Fire-and-forget: mirror resolution to oracle_escalation_log
+    void (async () => {
+      try {
+        const { error: upErr } = await supabaseAdmin
+          .from("oracle_escalation_log")
+          .update({
+            resolved_at: nowIso,
+            resolved_by: context.userId,
+            resolution: data.resolution ?? null,
+          })
+          .eq("sos_update_id", data.updateId);
+        if (upErr) console.error("[escalation-log] resolve update failed", upErr.message);
+      } catch (e) {
+        console.error("[escalation-log] resolve unexpected failure", e);
+      }
+    })();
+
     return { ok: true };
   });
 
