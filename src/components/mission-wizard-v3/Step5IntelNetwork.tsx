@@ -195,14 +195,6 @@ export function Step5IntelNetwork({
     onAdvance();
   }
 
-    // Fire-and-forget IRIS scan
-    triggerScan({ data: { missionId, urls: list.map((c) => c.url) } }).catch((e) =>
-      console.log("IRIS seed scan trigger failed:", e),
-    );
-
-    onAdvance();
-  }
-
   return (
     <div>
       <WizardStepHeading
