@@ -4,7 +4,7 @@
  * associations, etc. Fires inserts into intel_sources and kicks off an
  * IRIS initial scan. All work is fire-and-forget — never blocks the UI.
  */
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
@@ -60,6 +60,34 @@ export function Step5IntelNetwork({
   const [busy, setBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const triggerScan = useServerFn(scanSeededIntelSources);
+
+  // Hydrate chips from any URLs already saved for this mission so they don't
+  // appear to "disappear" when the user revisits this step.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("intel_sources")
+        .select("url, source_category")
+        .eq("mission_id", missionId)
+        .not("url", "is", null);
+      if (cancelled || error || !data) return;
+      const loaded: Chip[] = [];
+      const seen = new Set<string>();
+      for (const r of data) {
+        const url = (r.url ?? "").trim();
+        if (!url || seen.has(url)) continue;
+        seen.add(url);
+        const cat = (CATEGORIES.find((c) => c.value === r.source_category)?.value ??
+          inferCategory(url)) as Category;
+        loaded.push({ url, category: cat });
+      }
+      if (loaded.length) setChips(loaded);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [missionId]);
 
   const merge = useMemo(
     () => (urls: string[]) => {
@@ -122,7 +150,7 @@ export function Step5IntelNetwork({
     setChips((cur) => cur.map((c) => (c.url === url ? { ...c, category } : c)));
   }
 
-  function addToMission() {
+  async function addToMission() {
     flushText();
     const list = chips.length
       ? chips
@@ -133,8 +161,16 @@ export function Step5IntelNetwork({
     }
     setBusy(true);
 
+    // Skip URLs already saved for this mission to avoid duplicates.
+    const { data: existing } = await supabase
+      .from("intel_sources")
+      .select("url")
+      .eq("mission_id", missionId);
+    const existingUrls = new Set((existing ?? []).map((r) => r.url));
+    const toInsert = list.filter((c) => !existingUrls.has(c.url));
+
     // Fire-and-forget inserts — never block
-    for (const c of list) {
+    for (const c of toInsert) {
       supabase
         .from("intel_sources")
         .insert({
