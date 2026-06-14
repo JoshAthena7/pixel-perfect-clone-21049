@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Plus, Users as UsersIcon } from "lucide-react";
+import { ChevronRight, Plus, Users as UsersIcon, ClipboardList, Rocket, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
