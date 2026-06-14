@@ -240,6 +240,12 @@ export function FlightDeckLayout({
         prevQ={prevQ}
         nextQ={nextQ}
         onSelect={setSelectedId}
+        assignedWriterName={
+          activeAsg?.assigned_writer_id
+            ? (writerMap?.get(activeAsg.assigned_writer_id) ?? null)
+            : null
+        }
+        isAdminView={isAdmin && !!activeMissionId}
       />
 
       {!activeQ ? (
