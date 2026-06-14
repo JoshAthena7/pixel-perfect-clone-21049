@@ -215,18 +215,6 @@ function AdminMissionDetail() {
         {tab === "overview" && (
           <OverviewTab form={form} update={update} />
         )}
-        {tab === "wizard" && (
-          <div className="flex flex-col gap-8">
-            <TeamTab missionId={missionId} />
-            <JourneyTab
-              missionId={missionId}
-              setDirty={setDirty}
-              registerSaver={(fn) => {
-                journeySaverRef.current = fn;
-              }}
-            />
-          </div>
-        )}
       </div>
     </div>
   );
