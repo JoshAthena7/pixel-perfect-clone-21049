@@ -12,6 +12,12 @@ import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import { triggerLaunchBrief } from "@/lib/iris-launch-brief.functions";
 import { enrichMissionWithPerplexity } from "@/lib/iris/perplexity-enrich.functions";
+import { runIrisRfpExtraction } from "@/lib/run-iris-rfp.browser";
+import {
+  extractRequirementNodesFromRFP,
+  seedTerritoryIntelligence,
+} from "@/lib/iris-territory.functions";
+import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
 import { loadStaged, clearStaged } from "@/lib/oracle/wizard-stage";
 import { WizardStepHeading } from "./WizardShellV3";
 import { LaunchSequence } from "./LaunchSequence";
