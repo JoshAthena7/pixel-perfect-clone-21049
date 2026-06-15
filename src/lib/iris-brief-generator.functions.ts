@@ -145,11 +145,11 @@ CRITICAL RULES:
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
+          "Lovable-API-Key": apiKey,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
-          max_tokens: 2000,
+          model: "google/gemini-2.5-flash",
           messages: [
             { role: "system", content: system },
             { role: "user", content: userMsg },
@@ -159,7 +159,11 @@ CRITICAL RULES:
 
       if (res.status === 429) throw new Error("IRIS is rate limited. Try again in a moment.");
       if (res.status === 402) throw new Error("AI credits exhausted.");
-      if (!res.ok) throw new Error(`IRIS brief generator failed (${res.status}).`);
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        console.error("[iris-brief] gateway error", res.status, body);
+        throw new Error(`IRIS brief generator failed (${res.status}): ${body.slice(0, 200)}`);
+      }
 
       const j = (await res.json()) as {
         choices?: Array<{ message?: { content?: string } }>;
