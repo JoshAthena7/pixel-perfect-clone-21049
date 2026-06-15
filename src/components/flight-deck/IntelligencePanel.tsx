@@ -103,6 +103,35 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
   return (
     <div className="p-3 space-y-3">
       <Section
+        id="ecosystem"
+        open={open.ecosystem}
+        onToggle={() => toggle("ecosystem")}
+        header={
+          <>
+            <Network className="h-3.5 w-3.5" style={{ color: IRIS_PURPLE }} />
+            <span className="text-xs font-medium text-foreground">Mission Ecosystem</span>
+            <span
+              className="ml-auto text-[10px] uppercase tracking-wider font-semibold"
+              style={{ color: IRIS_PURPLE }}
+            >
+              IRIS Graph
+            </span>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <HealthStrip missionId={props.missionId} />
+          <div className="rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <EcosystemGraph
+              missionId={props.missionId}
+              onNodeClick={(node) => setSelectedNode(node)}
+            />
+          </div>
+          <SignalFeed missionId={props.missionId} />
+        </div>
+      </Section>
+
+      <Section
         id="athena"
         open={open.athena}
         onToggle={() => toggle("athena")}
