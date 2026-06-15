@@ -18,11 +18,19 @@ import { getMyHome } from "@/lib/v2-home.functions";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async ({ location }) => {
+    // Session lookup reads localStorage — should be instant. If it times out
+    // we treat it as a transient glitch and do NOT redirect (otherwise the
+    // user gets sporadically kicked back to /login mid-flow).
+    const TIMEOUT = Symbol("timeout");
     const sessionResult = await withTimeout(
       supabase.auth.getSession(),
       2500,
-      { data: { session: null }, error: null },
+      TIMEOUT as never,
     );
+    if (sessionResult === (TIMEOUT as never)) {
+      // Transient — let the page render; AuthSync will catch real sign-outs.
+      return { user: null as never, isAdmin: false };
+    }
     const user = sessionResult.data.session?.user ?? null;
     if (sessionResult.error || !user) {
       throw redirect({ to: "/login" });
@@ -30,7 +38,7 @@ export const Route = createFileRoute("/_authenticated")({
     // Three-state gate: anyone not ACTIVE (onboarded) and not a platform admin
     // is sent to /welcome to finish onboarding. Platform admins bypass so they
     // can never lock themselves out of Olympus.
-    const [{ data: prof }, { data: roleRow }] = await Promise.all([
+    const [profRes, roleRes] = await Promise.all([
       withTimeout(
         supabase
           .from("profiles")
@@ -38,7 +46,7 @@ export const Route = createFileRoute("/_authenticated")({
           .eq("id", user.id)
           .maybeSingle(),
         4000,
-        { data: null, error: null, count: null, status: 200, statusText: "OK", success: true },
+        TIMEOUT as never,
       ),
       withTimeout(
         supabase
@@ -48,23 +56,23 @@ export const Route = createFileRoute("/_authenticated")({
           .eq("role", "admin")
           .maybeSingle(),
         4000,
-        { data: null, error: null, count: null, status: 200, statusText: "OK", success: true },
+        TIMEOUT as never,
       ),
     ]);
+    // On timeout for either profile/role lookup, fail OPEN: don't redirect to
+    // /welcome based on missing data. The next navigation will re-check.
+    const profTimedOut = profRes === (TIMEOUT as never);
+    const roleTimedOut = roleRes === (TIMEOUT as never);
+    const prof = profTimedOut ? null : (profRes as { data: { has_onboarded?: boolean; is_platform_admin?: boolean } | null }).data;
+    const roleRow = roleTimedOut ? null : (roleRes as { data: { role: string } | null }).data;
     const isAdmin = prof?.is_platform_admin === true || !!roleRow;
     const onboarded = prof?.has_onboarded === true;
     const path = location.pathname;
     const onWelcome = path === "/welcome" || path.startsWith("/welcome/");
-    if (!onboarded && !isAdmin && !onWelcome) {
+    if (!profTimedOut && !onboarded && !isAdmin && !onWelcome) {
       throw redirect({ to: "/welcome" });
     }
-
-
-
     return { user, isAdmin };
-
-
-
   },
   component: AuthenticatedLayout,
 });
