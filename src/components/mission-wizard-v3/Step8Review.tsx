@@ -88,6 +88,106 @@ export function Step8Review({
     },
   });
 
+  type CheckResult = { ok: boolean; pass: string; fail: string; step: number; error?: boolean };
+  const { data: checklist, isLoading: checklistLoading } = useQuery({
+    queryKey: ["wizard-prelaunch-checklist", missionId],
+    queryFn: async (): Promise<CheckResult[]> => {
+      const safe = async (fn: () => Promise<CheckResult>, step: number, label: string): Promise<CheckResult> => {
+        try { return await fn(); }
+        catch (e) {
+          console.error(`[prelaunch-check] ${label} failed`, e);
+          return { ok: false, pass: label, fail: "Unable to verify — check manually", step, error: true };
+        }
+      };
+
+      const [
+        mission,
+        rfpDocs,
+        questions,
+        oracleCfg,
+        milestones,
+        teamLeads,
+        progress,
+      ] = await Promise.all([
+        supabase.from("missions").select("name,submission_deadline,procurement_type").eq("id", missionId).maybeSingle(),
+        supabase.from("mission_documents").select("id").eq("mission_id", missionId).eq("document_type", "primary_rfp").limit(1),
+        supabase.from("mission_questions").select("id,is_withdrawn").eq("mission_id", missionId),
+        supabase.from("oracle_engagement_config").select("win_themes").eq("mission_id", missionId).maybeSingle(),
+        supabase.from("mission_milestones").select("id,is_pens_down").eq("mission_id", missionId),
+        supabase
+          .from("mission_team_members")
+          .select("member_id, atlas_team_members(first_name,last_name)")
+          .eq("mission_id", missionId)
+          .eq("mission_role", "engagement_lead"),
+        supabase.from("question_progress").select("question_id").eq("mission_id", missionId).eq("role", "lead_writer"),
+      ]);
+
+      const m = mission.data;
+      const activeQs = (questions.data ?? []).filter((q) => !q.is_withdrawn);
+      const assignedQIds = new Set((progress.data ?? []).map((p) => p.question_id));
+      const assignedCount = activeQs.filter((q) => assignedQIds.has(q.id)).length;
+      const wt = oracleCfg.data?.win_themes;
+      const hasWinThemes = Array.isArray(wt) ? wt.length > 0 : !!wt;
+      const pensDown = (milestones.data ?? []).some((mm) => mm.is_pens_down);
+      const lead = teamLeads.data?.[0];
+      const leadName = lead?.atlas_team_members
+        ? `${(lead.atlas_team_members as { first_name?: string; last_name?: string }).first_name ?? ""} ${(lead.atlas_team_members as { first_name?: string; last_name?: string }).last_name ?? ""}`.trim() || "Engagement Lead"
+        : null;
+      const deadline = m?.submission_deadline ? new Date(m.submission_deadline) : null;
+      const now = new Date();
+      const daysAway = deadline ? Math.ceil((deadline.getTime() - now.getTime()) / 86400000) : 0;
+
+      return [
+        await safe(async () => ({
+          ok: !!(m?.name && m?.submission_deadline && m?.procurement_type),
+          pass: "Mission name, deadline, and type confirmed",
+          fail: "Missing required mission fields",
+          step: 2,
+        }), 2, "Mission Basics"),
+        await safe(async () => ({
+          ok: (rfpDocs.data?.length ?? 0) > 0 && activeQs.length > 0,
+          pass: `RFP uploaded · ${activeQs.length} question${activeQs.length === 1 ? "" : "s"} extracted`,
+          fail: "No RFP uploaded or no questions extracted",
+          step: 1,
+        }), 1, "RFP Processed"),
+        await safe(async () => ({
+          ok: hasWinThemes,
+          pass: "Win themes set",
+          fail: "Win strategy not configured",
+          step: 3,
+        }), 3, "Win Strategy"),
+        await safe(async () => ({
+          ok: (milestones.data?.length ?? 0) >= 2 && pensDown,
+          pass: `${milestones.data?.length ?? 0} milestones · Pens Down gate confirmed`,
+          fail: "Journey not configured or missing Pens Down gate",
+          step: 5,
+        }), 5, "Journey"),
+        await safe(async () => ({
+          ok: !!lead,
+          pass: lead ? `${leadName} assigned as Engagement Lead` : "Engagement Lead assigned",
+          fail: "No Engagement Lead assigned",
+          step: 6,
+        }), 6, "Engagement Lead"),
+        await safe(async () => ({
+          ok: activeQs.length > 0 && assignedCount === activeQs.length,
+          pass: `All ${activeQs.length} questions have an assigned writer`,
+          fail: `${activeQs.length - assignedCount} of ${activeQs.length} questions still unassigned`,
+          step: 6,
+        }), 6, "Questions Assigned"),
+        await safe(async () => ({
+          ok: !!deadline && deadline.getTime() > now.getTime(),
+          pass: deadline ? `Submission deadline: ${deadline.toLocaleDateString()} · ${daysAway} day${daysAway === 1 ? "" : "s"} away` : "Submission deadline confirmed",
+          fail: "Deadline not set or is in the past",
+          step: 2,
+        }), 2, "Submission Deadline"),
+      ];
+    },
+  });
+
+  const allChecksPass = !!checklist && checklist.every((c) => c.ok);
+  const failedCount = checklist?.filter((c) => !c.ok).length ?? 0;
+
+
   const byKey = new Map<string, { value: string | null; confirmed: boolean }>();
   (extractions ?? []).forEach((e) => {
     const nextValue = e.user_override_value ?? e.extracted_value;
