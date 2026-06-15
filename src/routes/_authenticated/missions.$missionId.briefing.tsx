@@ -175,19 +175,35 @@ function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
               {mission?.client_name ?? "—"}
             </div>
 
-            <div
-              className="inline-flex items-center gap-2 mt-4 px-3 py-1.5 rounded-full"
-              style={{
-                background: `${healthColor}22`,
-                border: `1px solid ${healthColor}55`,
-                color: healthColor,
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: "0.1em",
-              }}
-            >
-              {onTrack ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
-              {healthLabel}
+            <div className="inline-flex items-center gap-2 mt-4">
+              <div
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
+                style={{
+                  background: `${healthColor}22`,
+                  border: `1px solid ${healthColor}55`,
+                  color: healthColor,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.1em",
+                }}
+              >
+                {onTrack ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
+                {healthLabel}
+              </div>
+              <Link
+                to="/missions/$missionId/health"
+                params={{ missionId }}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full"
+                style={{
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  color: "rgba(255,255,255,0.85)",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                }}
+              >
+                QUESTION HEALTH <ArrowRight size={12} />
+              </Link>
             </div>
 
             <p className="mt-5 italic" style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 }}>
