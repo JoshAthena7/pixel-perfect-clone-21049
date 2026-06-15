@@ -9617,6 +9617,72 @@ export type Database = {
           },
         ]
       }
+      question_feedback: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          feedback_text: string
+          id: string
+          mission_id: string
+          priority: string
+          question_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          review_cycle: string
+          reviewer_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          feedback_text: string
+          id?: string
+          mission_id: string
+          priority?: string
+          question_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          review_cycle: string
+          reviewer_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          feedback_text?: string
+          id?: string
+          mission_id?: string
+          priority?: string
+          question_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          review_cycle?: string
+          reviewer_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_feedback_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_feedback_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       question_gate_status: {
         Row: {
           completed_at: string | null
@@ -9651,6 +9717,70 @@ export type Database = {
             columns: ["gate_id"]
             isOneToOne: false
             referencedRelation: "mission_review_gates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      question_intel_links: {
+        Row: {
+          added_by: string
+          confirmed: boolean
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          id: string
+          mission_id: string
+          question_id: string
+          relevance_explanation: string | null
+          relevance_score: number | null
+          signal_id: string | null
+        }
+        Insert: {
+          added_by?: string
+          confirmed?: boolean
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          mission_id: string
+          question_id: string
+          relevance_explanation?: string | null
+          relevance_score?: number | null
+          signal_id?: string | null
+        }
+        Update: {
+          added_by?: string
+          confirmed?: boolean
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          mission_id?: string
+          question_id?: string
+          relevance_explanation?: string | null
+          relevance_score?: number | null
+          signal_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qil_signal_fk"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "oracle_signals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_intel_links_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_intel_links_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
             referencedColumns: ["id"]
           },
         ]
@@ -9773,6 +9903,81 @@ export type Database = {
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "research_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      question_progress: {
+        Row: {
+          assignee_id: string
+          brief_export_count: number
+          brief_exported_at: string | null
+          created_at: string
+          id: string
+          internal_due_date: string | null
+          max_score: number | null
+          mission_id: string
+          mock_score: number | null
+          question_id: string
+          reviewed_at: string | null
+          reviewer_id: string | null
+          role: string
+          status: string
+          status_changed_at: string
+          status_changed_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          assignee_id: string
+          brief_export_count?: number
+          brief_exported_at?: string | null
+          created_at?: string
+          id?: string
+          internal_due_date?: string | null
+          max_score?: number | null
+          mission_id: string
+          mock_score?: number | null
+          question_id: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          role?: string
+          status?: string
+          status_changed_at?: string
+          status_changed_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string
+          brief_export_count?: number
+          brief_exported_at?: string | null
+          created_at?: string
+          id?: string
+          internal_due_date?: string | null
+          max_score?: number | null
+          mission_id?: string
+          mock_score?: number | null
+          question_id?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          role?: string
+          status?: string
+          status_changed_at?: string
+          status_changed_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_progress_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_progress_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
             referencedColumns: ["id"]
           },
         ]
