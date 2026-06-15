@@ -198,6 +198,7 @@ export function Step1Fuel({
         .upload(path, file, { upsert: false });
       if (upErr) throw upErr;
       const { data: userData } = await supabase.auth.getUser();
+      const guessedPurpose = guessPurpose(file.name);
       const { data: doc, error: insErr } = await supabase
         .from("mission_documents")
         .insert({
@@ -206,6 +207,7 @@ export function Step1Fuel({
             rows.length === 0 && file.name.toLowerCase().match(/rfp|sow|solicit/)
               ? "primary_rfp"
               : "other",
+          document_purpose: guessedPurpose,
           title: file.name.replace(/\.[^.]+$/, "").slice(0, 200),
           file_url: path,
           uploaded_by: userData.user?.id ?? null,
@@ -215,7 +217,7 @@ export function Step1Fuel({
       if (insErr) throw insErr;
       setRows((cur) =>
         cur.map((r) =>
-          r.uid === initial.uid ? { ...r, status: "done", progress: 100, documentId: doc.id } : r,
+          r.uid === initial.uid ? { ...r, status: "done", progress: 100, documentId: doc.id, purpose: guessedPurpose } : r,
         ),
       );
     } catch (e) {
