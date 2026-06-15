@@ -12,6 +12,12 @@ import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import { triggerLaunchBrief } from "@/lib/iris-launch-brief.functions";
 import { enrichMissionWithPerplexity } from "@/lib/iris/perplexity-enrich.functions";
+import { runIrisRfpExtraction } from "@/lib/run-iris-rfp.browser";
+import {
+  extractRequirementNodesFromRFP,
+  seedTerritoryIntelligence,
+} from "@/lib/iris-territory.functions";
+import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
 import { loadStaged, clearStaged } from "@/lib/oracle/wizard-stage";
 import { WizardStepHeading } from "./WizardShellV3";
 import { LaunchSequence } from "./LaunchSequence";
@@ -71,6 +77,9 @@ export function Step8Review({
   const qc = useQueryClient();
   const triggerLaunchBriefFn = useServerFn(triggerLaunchBrief);
   const enrichMissionWithPerplexityFn = useServerFn(enrichMissionWithPerplexity);
+  const extractRequirementNodesFn = useServerFn(extractRequirementNodesFromRFP);
+  const seedTerritoryFn = useServerFn(seedTerritoryIntelligence);
+  const generateIrisBriefFn = useServerFn(generateIrisBrief);
   const [launching, setLaunching] = useState(false);
   const [enriching, setEnriching] = useState(false);
   const [enrichMsg, setEnrichMsg] = useState<string | null>(null);
@@ -321,6 +330,67 @@ export function Step8Review({
 
       const { error: upErr } = await supabase.from("missions").update(updates).eq("id", missionId);
       if (upErr) throw upErr;
+
+      // BLAST OFF — IRIS pipeline. Fire-and-forget so the animation never blocks.
+      // Step 1 (processRFPDocuments via runIrisRfpExtraction) MUST complete
+      // before steps 2-4. Everything runs in a background IIFE so the user is
+      // navigated to the briefing room immediately while IRIS warms up.
+      void (async () => {
+        console.log("BLAST OFF: firing IRIS pipeline for mission", missionId);
+        try {
+          await runIrisRfpExtraction(missionId);
+          console.log("BLAST OFF: RFP processing complete");
+        } catch (err) {
+          console.error("BLAST OFF: runIrisRfpExtraction failed", err);
+          return; // Without questions, the rest of the pipeline can't run.
+        }
+
+        // Step 2: graph + territory in parallel — fire-and-forget
+        void Promise.allSettled([
+          extractRequirementNodesFn({ data: { missionId } }).catch((err) =>
+            console.error("BLAST OFF: extractRequirementNodesFromRFP failed", err),
+          ),
+          seedTerritoryFn({ data: { missionId } }).catch((err) =>
+            console.error("BLAST OFF: seedTerritoryIntelligence failed", err),
+          ),
+        ]).then(() => console.log("BLAST OFF: graph + territory settled"));
+
+        // Step 3+4: queue + generate briefs with concurrency = 3
+        try {
+          const { data: questions } = await supabase
+            .from("mission_questions")
+            .select("id")
+            .eq("mission_id", missionId)
+            .eq("is_withdrawn", false);
+          if (!questions || questions.length === 0) {
+            console.warn("BLAST OFF: no questions found to queue");
+            return;
+          }
+          await supabase
+            .from("mission_questions")
+            .update({ iris_brief_status: "queued" })
+            .eq("mission_id", missionId)
+            .in("iris_brief_status", ["pending", "error"]);
+
+          for (let i = 0; i < questions.length; i += 3) {
+            const batch = questions.slice(i, i + 3);
+            await Promise.allSettled(
+              batch.map((q) =>
+                generateIrisBriefFn({ data: { missionId, questionId: q.id } }).catch(
+                  (err) => console.error("BLAST OFF: brief failed for", q.id, err),
+                ),
+              ),
+            );
+          }
+          console.log(
+            `BLAST OFF: IRIS pipeline complete — ${questions.length} briefs processed`,
+          );
+        } catch (err) {
+          console.error("BLAST OFF: brief queue failed", err);
+        }
+      })();
+
+
 
       // ORACLE V1 — fire-and-forget config + belief seeding. Never blocks launch.
       try {
