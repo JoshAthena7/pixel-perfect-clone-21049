@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -11,7 +12,11 @@ import {
   FileText,
   X,
   ClipboardList,
+  Sparkles,
+  Eye,
 } from "lucide-react";
+import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
+
 
 const GOLD = "#d4a843";
 const RED = "#e05252";
@@ -57,6 +62,10 @@ const statusMeta: Record<string, { label: string; color: string }> = {
 export function QuestionCommand({ missionId }: { missionId: string }) {
   const [tab, setTab] = useState<"all" | "add">("all");
   const [assignTarget, setAssignTarget] = useState<QuestionRow | null>(null);
+  const [generatingId, setGeneratingId] = useState<string | null>(null);
+  const [briefTarget, setBriefTarget] = useState<QuestionRow | null>(null);
+  const generateBrief = useServerFn(generateIrisBrief);
+
 
   const { data: questions = [], refetch: refetchQ } = useQuery({
     queryKey: ["qc-questions", missionId],
@@ -97,6 +106,22 @@ export function QuestionCommand({ missionId }: { missionId: string }) {
     ).length;
     return { total, assigned, awaiting };
   }, [questions]);
+
+  const handleGenerateBrief = async (q: QuestionRow) => {
+    setGeneratingId(q.id);
+    try {
+      await generateBrief({ data: { missionId, questionId: q.id } });
+      toast.success("IRIS brief ready.");
+      refetchQ();
+    } catch (e: any) {
+      toast.error("Brief generation failed.", { description: e?.message });
+      refetchQ();
+    } finally {
+      setGeneratingId(null);
+    }
+  };
+
+
 
   return (
     <section>
@@ -151,10 +176,14 @@ export function QuestionCommand({ missionId }: { missionId: string }) {
         <AllQuestionsList
           questions={questions}
           onAssign={(q) => setAssignTarget(q)}
+          onGenerate={handleGenerateBrief}
+          onView={(q) => setBriefTarget(q)}
+          generatingId={generatingId}
         />
       ) : (
         <AddQuestionsPanel missionId={missionId} onAdded={() => refetchQ()} />
       )}
+
 
       {assignTarget && (
         <AssignDialog
@@ -165,6 +194,16 @@ export function QuestionCommand({ missionId }: { missionId: string }) {
             setAssignTarget(null);
             refetchQ();
           }}
+        />
+      )}
+
+      {briefTarget && (
+        <BriefViewerDialog
+          missionId={missionId}
+          questionId={briefTarget.id}
+          questionNumber={briefTarget.question_number}
+          questionText={briefTarget.question_text}
+          onClose={() => setBriefTarget(null)}
         />
       )}
     </section>
@@ -194,9 +233,15 @@ function Stat({ label, value, color }: { label: string; value: number; color: st
 function AllQuestionsList({
   questions,
   onAssign,
+  onGenerate,
+  onView,
+  generatingId,
 }: {
   questions: QuestionRow[];
   onAssign: (q: QuestionRow) => void;
+  onGenerate: (q: QuestionRow) => void;
+  onView: (q: QuestionRow) => void;
+  generatingId: string | null;
 }) {
   if (questions.length === 0) {
     return (
@@ -216,9 +261,17 @@ function AllQuestionsList({
   return (
     <div className="space-y-2">
       {questions.map((q) => (
-        <QuestionRowItem key={q.id} q={q} onAssign={() => onAssign(q)} />
+        <QuestionRowItem
+          key={q.id}
+          q={q}
+          onAssign={() => onAssign(q)}
+          onGenerate={() => onGenerate(q)}
+          onView={() => onView(q)}
+          isGenerating={generatingId === q.id}
+        />
       ))}
     </div>
+
   );
 }
 
@@ -274,7 +327,19 @@ function BriefIndicator({ status }: { status: string | null }) {
   }
 }
 
-function QuestionRowItem({ q, onAssign }: { q: QuestionRow; onAssign: () => void }) {
+function QuestionRowItem({
+  q,
+  onAssign,
+  onGenerate,
+  onView,
+  isGenerating,
+}: {
+  q: QuestionRow;
+  onAssign: () => void;
+  onGenerate: () => void;
+  onView: () => void;
+  isGenerating: boolean;
+}) {
   const text = q.question_text ?? "";
   const truncated = text.length > 80 ? text.slice(0, 80) + "…" : text;
   const sm = statusMeta[q.status ?? "not_started"] ?? statusMeta.not_started;
@@ -365,6 +430,7 @@ function QuestionRowItem({ q, onAssign }: { q: QuestionRow; onAssign: () => void
         {q.iris_brief_status === "ready" ? (
           <button
             type="button"
+            onClick={onView}
             style={{
               padding: "6px 12px",
               fontSize: 11,
@@ -374,9 +440,53 @@ function QuestionRowItem({ q, onAssign }: { q: QuestionRow; onAssign: () => void
               background: "transparent",
               color: "rgba(255,255,255,0.85)",
               cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
             }}
           >
-            View Brief
+            <Eye size={12} /> View Brief
+          </button>
+        ) : q.iris_brief_status === "generating" || isGenerating ? (
+          <button
+            type="button"
+            disabled
+            style={{
+              padding: "6px 12px",
+              fontSize: 11,
+              fontWeight: 600,
+              borderRadius: 6,
+              border: `1px solid ${BORDER}`,
+              background: "transparent",
+              color: "rgba(255,255,255,0.6)",
+              cursor: "wait",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              opacity: 0.7,
+            }}
+          >
+            <Loader2 size={12} className="animate-spin" /> Generating…
+          </button>
+        ) : q.iris_brief_status === "queued" ? (
+          <button
+            type="button"
+            onClick={onGenerate}
+            style={{
+              padding: "6px 12px",
+              fontSize: 11,
+              fontWeight: 600,
+              borderRadius: 6,
+              border: `1px solid ${PURPLE}55`,
+              background: `${PURPLE}1a`,
+              color: "rgba(220,215,255,0.95)",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <Sparkles size={12} /> Generate Brief
           </button>
         ) : null}
       </div>
@@ -854,6 +964,244 @@ function RfpDocumentsList({ missionId }: { missionId: string }) {
           </button>
         </div>
       ))}
+    </div>
+  );
+}
+
+/* ─────────── Brief Viewer Dialog ─────────── */
+function BriefViewerDialog({
+  missionId,
+  questionId,
+  questionNumber,
+  questionText,
+  onClose,
+}: {
+  missionId: string;
+  questionId: string;
+  questionNumber: string | null;
+  questionText: string;
+  onClose: () => void;
+}) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["qc-brief", missionId, questionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_questions")
+        .select("iris_brief, iris_brief_generated_at")
+        .eq("id", questionId)
+        .maybeSingle();
+      return data as { iris_brief: any; iris_brief_generated_at: string | null } | null;
+    },
+  });
+
+  const brief = (data?.iris_brief ?? {}) as any;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.7)" }}
+      onClick={onClose}
+    >
+      <div
+        className="rounded-xl max-w-3xl w-full max-h-[85vh] overflow-y-auto"
+        style={{ background: CARD, border: `1px solid ${BORDER}` }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="flex items-start justify-between p-5"
+          style={{ borderBottom: `1px solid ${BORDER}` }}
+        >
+          <div className="min-w-0">
+            <div style={sectionLabel}>IRIS Brief</div>
+            <div className="mt-1 font-bold" style={{ fontSize: 16, color: "white" }}>
+              {questionNumber ? `${questionNumber} · ` : ""}
+              {questionText.length > 90 ? questionText.slice(0, 90) + "…" : questionText}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "rgba(255,255,255,0.6)",
+              cursor: "pointer",
+            }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {isLoading ? (
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>Loading…</div>
+          ) : !brief || Object.keys(brief).length === 0 ? (
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>
+              No brief content available.
+            </div>
+          ) : (
+            <>
+              <BriefBlock title="Decoded Intent" body={brief.decoded_intent} />
+              <BriefBlock title="Evaluation Focus" body={brief.evaluation_focus} />
+              <BriefBlock title="Recommended Approach" body={brief.recommended_approach} />
+
+              {Array.isArray(brief.win_theme_connections) &&
+                brief.win_theme_connections.length > 0 && (
+                  <BriefSection title="Win Theme Connections">
+                    <ul className="space-y-1" style={{ paddingLeft: 16 }}>
+                      {brief.win_theme_connections.map((w: any, i: number) => (
+                        <li key={i} style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}>
+                          {w.theme_text}
+                          {w.relevance_score != null ? (
+                            <span style={{ color: GOLD, marginLeft: 6 }}>
+                              · {w.relevance_score}
+                            </span>
+                          ) : null}
+                          {w.signal_authority ? (
+                            <span style={{ color: "rgba(255,255,255,0.5)", marginLeft: 6 }}>
+                              · {w.signal_authority}
+                            </span>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </BriefSection>
+                )}
+
+              {Array.isArray(brief.iris_evidence) && brief.iris_evidence.length > 0 && (
+                <BriefSection title="IRIS Evidence">
+                  <ul className="space-y-2" style={{ paddingLeft: 16 }}>
+                    {brief.iris_evidence.map((e: any, i: number) => (
+                      <li key={i} style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}>
+                        <strong style={{ color: "white" }}>{e.source}</strong>
+                        {e.citation ? (
+                          <span style={{ color: "rgba(255,255,255,0.5)" }}> · {e.citation}</span>
+                        ) : null}
+                        <div style={{ marginTop: 2 }}>{e.finding}</div>
+                        {e.relevance ? (
+                          <div
+                            style={{
+                              marginTop: 2,
+                              color: "rgba(255,255,255,0.6)",
+                              fontStyle: "italic",
+                            }}
+                          >
+                            {e.relevance}
+                          </div>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                </BriefSection>
+              )}
+
+              {brief.client_proof_points_prompt && (
+                <div
+                  className="rounded-lg p-3"
+                  style={{
+                    background: `${GOLD}10`,
+                    border: `1px solid ${GOLD}44`,
+                  }}
+                >
+                  <div style={{ ...sectionLabel, color: GOLD }}>Client Proof Points</div>
+                  <div
+                    className="mt-1"
+                    style={{ fontSize: 12.5, color: "rgba(255,255,255,0.9)" }}
+                  >
+                    {brief.client_proof_points_prompt}
+                  </div>
+                </div>
+              )}
+
+              {brief.language_guidance && (
+                <BriefSection title="Language Guidance">
+                  {Array.isArray(brief.language_guidance.use) &&
+                    brief.language_guidance.use.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: 11, color: GREEN, fontWeight: 600 }}>Use</div>
+                        <ul style={{ paddingLeft: 16 }}>
+                          {brief.language_guidance.use.map((u: string, i: number) => (
+                            <li
+                              key={i}
+                              style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}
+                            >
+                              {u}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  {Array.isArray(brief.language_guidance.avoid) &&
+                    brief.language_guidance.avoid.length > 0 && (
+                      <div className="mt-2">
+                        <div style={{ fontSize: 11, color: RED, fontWeight: 600 }}>Avoid</div>
+                        <ul style={{ paddingLeft: 16 }}>
+                          {brief.language_guidance.avoid.map((u: string, i: number) => (
+                            <li
+                              key={i}
+                              style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}
+                            >
+                              {u}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                </BriefSection>
+              )}
+
+              {Array.isArray(brief.compliance_checklist) &&
+                brief.compliance_checklist.length > 0 && (
+                  <BriefSection title="Compliance Checklist">
+                    <ul className="space-y-1" style={{ paddingLeft: 16 }}>
+                      {brief.compliance_checklist.map((c: any, i: number) => (
+                        <li key={i} style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}>
+                          {c.required ? (
+                            <span style={{ color: RED, marginRight: 4 }}>●</span>
+                          ) : (
+                            <span style={{ color: "rgba(255,255,255,0.4)", marginRight: 4 }}>
+                              ○
+                            </span>
+                          )}
+                          {c.item}
+                          {c.detail ? (
+                            <span style={{ color: "rgba(255,255,255,0.55)" }}> — {c.detail}</span>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </BriefSection>
+                )}
+
+              <BriefBlock title="Competitive Intel" body={brief.competitive_intel} />
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BriefBlock({ title, body }: { title: string; body: string | null | undefined }) {
+  if (!body) return null;
+  return (
+    <div>
+      <div style={sectionLabel}>{title}</div>
+      <div
+        className="mt-1"
+        style={{ fontSize: 13, color: "rgba(255,255,255,0.9)", lineHeight: 1.55 }}
+      >
+        {body}
+      </div>
+    </div>
+  );
+}
+
+function BriefSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div style={sectionLabel}>{title}</div>
+      <div className="mt-1">{children}</div>
     </div>
   );
 }
