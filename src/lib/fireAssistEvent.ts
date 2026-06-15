@@ -39,7 +39,7 @@ export async function fireAssistEvent(
     question_id: questionId,
     user_id: userId,
     event_type: eventType,
-    metadata,
+    metadata: metadata as any,
   });
   if (error) {
     // Don't throw — assist events are observability, not blocking UX.
