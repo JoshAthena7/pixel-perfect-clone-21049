@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import * as d3 from "d3";
+import { toast } from "sonner";
+import { RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { refreshMissionGraph } from "@/lib/intelligence-graph.functions";
 
 /**
  * Mission Intelligence Graph (Layer 3).
@@ -310,26 +314,54 @@ export function EcosystemGraph({
     };
   }, [data, missionId]);
 
+  const qc = useQueryClient();
+  const refresh = useServerFn(refreshMissionGraph);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    toast.message("IRIS is extending the graph from recent intelligence...");
+    try {
+      const res = await refresh({ data: { missionId } });
+      toast.success(res.message);
+      qc.invalidateQueries({ queryKey: ["mission-graph", missionId] });
+    } catch (e: any) {
+      toast.error("Refresh failed", { description: e?.message ?? String(e) });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   if (isLoading) {
-    return (
-      <div style={emptyShell}>IRIS is mapping the mission intelligence graph...</div>
-    );
+    return <div style={emptyShell}>IRIS is mapping the mission intelligence graph...</div>;
   }
 
-  if (nodes.length <= 1) {
-    return (
-      <div style={emptyShell}>
-        No intelligence in the graph yet. As entities, people, organizations and
-        signals are added to this mission, they will appear here as connected nodes.
-      </div>
-    );
-  }
+  const empty = nodes.length <= 1;
 
   return (
     <div style={{ position: "relative" }}>
-      <ForceGraph nodes={nodes} edges={edges} onNodeClick={onNodeClick} />
-      <Legend />
-      {counts && (
+      {empty ? (
+        <div style={emptyShell}>
+          No intelligence in the graph yet. Click "Refresh graph" to have IRIS
+          extract entities and relationships from recent intel.
+        </div>
+      ) : (
+        <>
+          <ForceGraph nodes={nodes} edges={edges} onNodeClick={onNodeClick} />
+          <Legend />
+        </>
+      )}
+      <button
+        onClick={handleRefresh}
+        disabled={refreshing}
+        style={refreshBtn}
+        title="Have IRIS extract new nodes and connections from recent intelligence"
+      >
+        <RefreshCw size={11} className={refreshing ? "animate-spin" : ""} />
+        {refreshing ? "Refreshing..." : "Refresh graph"}
+      </button>
+      {counts && !empty && (
         <div style={statsBadge}>
           {nodes.length} nodes · {edges.length} connections
           {counts.layer3 === 0 ? " · Layer 3 pending" : " · Layer 3 active"}
@@ -338,6 +370,24 @@ export function EcosystemGraph({
     </div>
   );
 }
+
+const refreshBtn: React.CSSProperties = {
+  position: "absolute",
+  top: 8,
+  right: 8,
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 5,
+  fontSize: 10,
+  fontWeight: 500,
+  letterSpacing: "0.04em",
+  background: "rgba(196,154,43,0.15)",
+  border: "1px solid rgba(196,154,43,0.4)",
+  color: "#E5C56B",
+  padding: "5px 10px",
+  borderRadius: 4,
+  cursor: "pointer",
+};
 
 const emptyShell: React.CSSProperties = {
   height: 480,
