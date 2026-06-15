@@ -12,7 +12,7 @@ import { AlertTriangle, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TeamAssignmentsTab } from "@/components/mission-command/TeamAssignmentsTab";
 import { useMissionMeta } from "@/hooks/useMissionMeta";
-import { runIrisRfpExtraction } from "@/lib/run-iris-rfp.client";
+import { runIrisRfpExtraction } from "@/lib/run-iris-rfp.browser";
 import { WizardStepHeading, WizardFooter } from "./WizardShellV3";
 
 export function Step7Team({

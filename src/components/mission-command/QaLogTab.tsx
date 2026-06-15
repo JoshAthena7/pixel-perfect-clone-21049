@@ -21,7 +21,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-// extract-rfp-text.client is loaded dynamically inside the handler to keep it out of the server bundle
+// extract-rfp-text.browser is loaded dynamically inside the handler to keep it out of the server bundle
 import {
   generateQaInterpretation, parseBulkQaDocument,
 } from "@/lib/iris-intel-tabs.functions";
@@ -408,7 +408,8 @@ function BulkImportModal({
 
   async function handleFile(file: File | null) {
     if (!file) return;
-    const { extractRFPText, detectRFPKind } = await import("@/lib/extract-rfp-text.client");
+    const { loadRFPExtractor } = await import("@/lib/extract-rfp-text-loader");
+    const { extractRFPText, detectRFPKind } = await loadRFPExtractor();
     if (!detectRFPKind(file)) { toast.error("Upload a PDF or Word document."); return; }
     setBusy(true);
     try {

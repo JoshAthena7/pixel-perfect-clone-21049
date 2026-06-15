@@ -28,7 +28,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { extractRFPText, detectRFPKind } from "@/lib/extract-rfp-text.client";
+import { extractRFPText, detectRFPKind } from "@/lib/extract-rfp-text.browser";
 import {
   generateDocumentSummary, suggestSectionTags, analyzeAmendment,
   type AmendmentImpactT,
