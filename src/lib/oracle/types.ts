@@ -364,3 +364,41 @@ export type MissionDocumentPurpose = {
   document_purpose: DocumentPurpose;
   is_style_guide: boolean;
 };
+
+// ============================================================
+// Athena Intelligence Map — Phase 2 (platform-level curated sources)
+// ============================================================
+export type AthenaIntelligenceMapRow = {
+  id: string;
+  source_name: string;
+  source_url: string;
+  source_type:
+    | 'agency'
+    | 'academic'
+    | 'advocacy'
+    | 'regulatory'
+    | 'legislative'
+    | 'media'
+    | 'research';
+  oracle_category:
+    | 'agency_watch'
+    | 'procurement_watch'
+    | 'policy_watch'
+    | 'competitor_watch'
+    | 'stakeholder_watch'
+    | 'market_watch';
+  applicable_states: string[];
+  applicable_programs: string[];
+  applicable_waivers: string[];
+  applicable_populations: string[];
+  priority: 'low' | 'medium' | 'high';
+  refresh_cadence: 'hourly' | 'daily' | 'weekly' | 'manual';
+  is_federal: boolean;
+  is_verified: boolean;
+  notes: string | null;
+  verified_at: string | null;
+  added_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+

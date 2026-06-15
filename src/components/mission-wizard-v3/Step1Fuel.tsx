@@ -45,6 +45,25 @@ const BASICS_FIELDS = [
   { key: "submission_method", label: "Submission Method" },
 ];
 
+import type { DocumentPurpose } from "@/lib/oracle/types";
+
+const PURPOSE_OPTIONS: { value: DocumentPurpose; label: string; desc: string }[] = [
+  { value: "procurement", label: "Procurement", desc: "IRIS extracts requirements, evaluation criteria, and compliance obligations." },
+  { value: "competitive_intel", label: "Comp Intel", desc: "IRIS maps incumbent advantages and prior win patterns." },
+  { value: "writing_standards", label: "Writing Guide", desc: "IRIS conditions all content generation on this voice and tone." },
+  { value: "client_strategy", label: "Client Strategy", desc: "IRIS extracts client-stated priorities as high-authority inputs." },
+  { value: "reference", label: "Reference", desc: "IRIS uses for background context only." },
+];
+
+function guessPurpose(name: string): DocumentPurpose {
+  const n = name.toLowerCase();
+  if (/rfp|rfq|solicitation|amendment|sow|contract/.test(n)) return "procurement";
+  if (/style|guide|voice|tone|brand|writing/.test(n)) return "writing_standards";
+  if (/strategy|overview|deck|brief|positioning/.test(n)) return "client_strategy";
+  if (/incumbent|prior|former|response|competitor/.test(n)) return "competitive_intel";
+  return "reference";
+}
+
 type Row = {
   uid: string;
   name: string;
@@ -53,6 +72,8 @@ type Row = {
   status: "queued" | "uploading" | "done" | "error";
   documentId?: string;
   error?: string;
+  purpose?: DocumentPurpose;
+  isStyleGuide?: boolean;
 };
 
 async function extractTextFromBlob(blob: Blob, fileName: string): Promise<string> {
@@ -97,7 +118,7 @@ export function Step1Fuel({
     (async () => {
       const { data } = await supabase
         .from("mission_documents")
-        .select("id, title, file_url")
+        .select("id, title, file_url, document_purpose, is_style_guide")
         .eq("mission_id", missionId)
         .order("created_at", { ascending: true });
       if (!data) return;
@@ -111,6 +132,8 @@ export function Step1Fuel({
               progress: 100,
               status: "done" as const,
               documentId: d.id,
+              purpose: (d.document_purpose as DocumentPurpose | null) ?? guessPurpose(d.title ?? ""),
+              isStyleGuide: !!d.is_style_guide,
             })),
       );
     })();
@@ -128,6 +151,42 @@ export function Step1Fuel({
       .eq("id", missionId);
   };
 
+  // Fire-and-forget purpose update. Style guide is single-select per mission.
+  function setRowPurpose(uid: string, purpose: DocumentPurpose) {
+    setRows((cur) => cur.map((r) => (r.uid === uid ? { ...r, purpose } : r)));
+    const r = rows.find((x) => x.uid === uid);
+    if (r?.documentId) {
+      void supabase
+        .from("mission_documents")
+        .update({ document_purpose: purpose })
+        .eq("id", r.documentId);
+    }
+  }
+  function setRowStyleGuide(uid: string, isStyleGuide: boolean) {
+    setRows((cur) =>
+      cur.map((r) => {
+        if (r.uid === uid) return { ...r, isStyleGuide };
+        if (isStyleGuide && r.isStyleGuide) return { ...r, isStyleGuide: false };
+        return r;
+      }),
+    );
+    const target = rows.find((x) => x.uid === uid);
+    if (isStyleGuide) {
+      // Unset all others first
+      const others = rows.filter((x) => x.isStyleGuide && x.uid !== uid && x.documentId);
+      others.forEach((o) => {
+        void supabase.from("mission_documents").update({ is_style_guide: false }).eq("id", o.documentId!);
+      });
+    }
+    if (target?.documentId) {
+      void supabase
+        .from("mission_documents")
+        .update({ is_style_guide: isStyleGuide })
+        .eq("id", target.documentId);
+    }
+  }
+
+
   async function uploadRow(initial: Row, file: File) {
     setRows((cur) =>
       cur.map((r) => (r.uid === initial.uid ? { ...r, status: "uploading", progress: 10 } : r)),
@@ -139,6 +198,7 @@ export function Step1Fuel({
         .upload(path, file, { upsert: false });
       if (upErr) throw upErr;
       const { data: userData } = await supabase.auth.getUser();
+      const guessedPurpose = guessPurpose(file.name);
       const { data: doc, error: insErr } = await supabase
         .from("mission_documents")
         .insert({
@@ -147,6 +207,7 @@ export function Step1Fuel({
             rows.length === 0 && file.name.toLowerCase().match(/rfp|sow|solicit/)
               ? "primary_rfp"
               : "other",
+          document_purpose: guessedPurpose,
           title: file.name.replace(/\.[^.]+$/, "").slice(0, 200),
           file_url: path,
           uploaded_by: userData.user?.id ?? null,
@@ -156,7 +217,7 @@ export function Step1Fuel({
       if (insErr) throw insErr;
       setRows((cur) =>
         cur.map((r) =>
-          r.uid === initial.uid ? { ...r, status: "done", progress: 100, documentId: doc.id } : r,
+          r.uid === initial.uid ? { ...r, status: "done", progress: 100, documentId: doc.id, purpose: guessedPurpose } : r,
         ),
       );
     } catch (e) {
@@ -327,22 +388,65 @@ export function Step1Fuel({
 
         {rows.length > 0 && (
           <div className="space-y-2">
-            {rows.map((r) => (
-              <div
-                key={r.uid}
-                className="rounded-lg flex items-center gap-3 px-3 py-2.5 border border-white/10 bg-white/[0.03]"
-              >
-                <FileText className="h-4 w-4 text-white/45 shrink-0" />
-                <span className="text-[13.5px] text-white truncate flex-1">{r.name}</span>
-                {r.status === "uploading" && (
-                  <span className="text-[11px] text-white/45">Uploading {r.progress}%</span>
-                )}
-                {r.status === "done" && <span className="text-[11px] text-emerald-400">Ready</span>}
-                {r.status === "error" && (
-                  <span className="text-[11px] text-red-400">{r.error}</span>
-                )}
-              </div>
-            ))}
+            {rows.map((r) => {
+              const purpose = r.purpose ?? guessPurpose(r.name);
+              const purposeDesc = PURPOSE_OPTIONS.find((p) => p.value === purpose)?.desc;
+              return (
+                <div
+                  key={r.uid}
+                  className="rounded-lg px-3 py-2.5 border border-white/10 bg-white/[0.03]"
+                >
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-4 w-4 text-white/45 shrink-0" />
+                    <span className="text-[13.5px] text-white truncate flex-1">{r.name}</span>
+                    {r.status === "uploading" && (
+                      <span className="text-[11px] text-white/45">Uploading {r.progress}%</span>
+                    )}
+                    {r.status === "done" && <span className="text-[11px] text-emerald-400">Ready</span>}
+                    {r.status === "error" && (
+                      <span className="text-[11px] text-red-400">{r.error}</span>
+                    )}
+                  </div>
+                  {r.status === "done" && (
+                    <div className="mt-2.5 pl-7">
+                      <div className="flex flex-wrap gap-1.5">
+                        {PURPOSE_OPTIONS.map((opt) => {
+                          const selected = purpose === opt.value;
+                          return (
+                            <button
+                              key={opt.value}
+                              onClick={() => setRowPurpose(r.uid, opt.value)}
+                              className="px-2 py-0.5 rounded-full text-[11px] transition-colors"
+                              style={{
+                                border: selected ? "1px solid #C49A2B" : "1px solid rgba(255,255,255,0.08)",
+                                color: selected ? "#fff" : "rgba(255,255,255,0.45)",
+                                background: selected ? "rgba(196,154,43,0.08)" : "transparent",
+                              }}
+                            >
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {purposeDesc && (
+                        <p className="mt-1.5 text-[11px] text-white/45">{purposeDesc}</p>
+                      )}
+                      {purpose === "writing_standards" && (
+                        <label className="mt-1.5 flex items-center gap-1.5 text-[11px] text-white/65 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!r.isStyleGuide}
+                            onChange={(e) => setRowStyleGuide(r.uid, e.target.checked)}
+                            className="h-3 w-3 accent-amber-500"
+                          />
+                          <span>★ Mark as primary style guide</span>
+                        </label>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             <button
               onClick={() => inputRef.current?.click()}
               className="inline-flex items-center gap-1.5 text-[12px] text-white/55 hover:text-white px-3 py-1.5 rounded-md border border-white/10"
