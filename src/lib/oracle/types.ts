@@ -402,3 +402,81 @@ export type AthenaIntelligenceMapRow = {
   updated_at: string;
 };
 
+// ============================================================
+// Phase 3a-1 — mission_questions IRIS brief extensions
+// ============================================================
+export type IrisBriefStatus =
+  | 'pending' | 'queued' | 'generating'
+  | 'ready' | 'stale' | 'error';
+
+export interface IrisBrief {
+  decoded_intent: string;
+  evaluation_focus: string;
+  win_theme_connections: Array<{
+    theme_id: string;
+    theme_text: string;
+    relevance_score: number;
+    signal_authority: 'client_stated' | 'team_validated' | 'iris_suggested';
+  }>;
+  oracle_signals: Array<{
+    signal_id: string;
+    title: string;
+    why_it_matters: string;
+    relevance_score: number;
+  }>;
+  iris_evidence: Array<{
+    source: string;
+    finding: string;
+    citation: string;
+    relevance: string;
+  }>;
+  client_proof_points_prompt: string;
+  language_guidance: { use: string[]; avoid: string[] };
+  compliance_checklist: Array<{
+    item: string;
+    required: boolean;
+    detail: string | null;
+  }>;
+  recommended_approach: string;
+  competitive_intel: string | null;
+}
+
+// ============================================================
+// Phase 3a-2 — question coordination
+// ============================================================
+export type QuestionProgressStatus =
+  | 'not_started' | 'briefed' | 'in_progress'
+  | 'internal_review' | 'red_team' | 'gold_team'
+  | 'mock_scored' | 'revising' | 'finalized';
+
+export type QuestionProgressRole =
+  | 'lead_writer' | 'contributing_sme' | 'editor'
+  | 'graphics' | 'copy_editor' | 'reviewer';
+
+export type ReviewCycle =
+  | 'internal' | 'red_team' | 'gold_team'
+  | 'mock_score' | 'final' | 'other';
+
+export type FeedbackPriority = 'critical' | 'high' | 'normal' | 'minor';
+export type FeedbackStatus = 'open' | 'acknowledged' | 'resolved';
+
+// ============================================================
+// Phase 3a-3 — timeline + milestone change tracking
+// ============================================================
+export type MilestoneType =
+  | 'rfp_release' | 'qa_submission_deadline' | 'qa_response_release'
+  | 'proposal_due' | 'oral_presentation' | 'best_and_final_offer'
+  | 'award_announcement' | 'contract_start' | 'amendment'
+  | 'kickoff' | 'first_draft_due' | 'internal_review'
+  | 'red_team' | 'gold_team' | 'mock_score' | 'pens_down'
+  | 'final_assembly' | 'submission_window' | 'custom';
+
+export type MilestoneChangeSource =
+  | 'state_amendment' | 'client_directive'
+  | 'leader_decision' | 'system_cascade';
+
+export type QuestionDeadlineType =
+  | 'first_draft' | 'sme_input_due' | 'graphics_due'
+  | 'internal_review' | 'pens_down' | 'final';
+
+

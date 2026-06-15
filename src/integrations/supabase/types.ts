@@ -5172,6 +5172,63 @@ export type Database = {
           },
         ]
       }
+      milestone_changes: {
+        Row: {
+          change_reason: string | null
+          change_source: string
+          changed_at: string
+          changed_by: string | null
+          days_delta: number | null
+          id: string
+          milestone_id: string
+          mission_id: string
+          new_date: string
+          previous_date: string
+          source_document_id: string | null
+        }
+        Insert: {
+          change_reason?: string | null
+          change_source: string
+          changed_at?: string
+          changed_by?: string | null
+          days_delta?: number | null
+          id?: string
+          milestone_id: string
+          mission_id: string
+          new_date: string
+          previous_date: string
+          source_document_id?: string | null
+        }
+        Update: {
+          change_reason?: string | null
+          change_source?: string
+          changed_at?: string
+          changed_by?: string | null
+          days_delta?: number | null
+          id?: string
+          milestone_id?: string
+          mission_id?: string
+          new_date?: string
+          previous_date?: string
+          source_document_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestone_changes_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "mission_milestones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "milestone_changes_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_assignment_smes: {
         Row: {
           added_at: string
@@ -6271,36 +6328,66 @@ export type Database = {
       mission_milestones: {
         Row: {
           created_at: string | null
+          created_by: string | null
           id: string
+          is_active: boolean
+          is_external: boolean
+          is_hard_deadline: boolean
+          is_pens_down: boolean
           milestone_date: string
+          milestone_time: string | null
           milestone_type: string
           mission_id: string
           notes: string | null
           owner_id: string | null
+          source: string | null
+          source_document_id: string | null
           status: string | null
+          timezone: string
           title: string | null
+          updated_at: string
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
+          is_active?: boolean
+          is_external?: boolean
+          is_hard_deadline?: boolean
+          is_pens_down?: boolean
           milestone_date: string
+          milestone_time?: string | null
           milestone_type: string
           mission_id: string
           notes?: string | null
           owner_id?: string | null
+          source?: string | null
+          source_document_id?: string | null
           status?: string | null
+          timezone?: string
           title?: string | null
+          updated_at?: string
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
+          is_active?: boolean
+          is_external?: boolean
+          is_hard_deadline?: boolean
+          is_pens_down?: boolean
           milestone_date?: string
+          milestone_time?: string | null
           milestone_type?: string
           mission_id?: string
           notes?: string | null
           owner_id?: string | null
+          source?: string | null
+          source_document_id?: string | null
           status?: string | null
+          timezone?: string
           title?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -6308,6 +6395,13 @@ export type Database = {
             columns: ["mission_id"]
             isOneToOne: false
             referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mm_source_doc_fk"
+            columns: ["source_document_id"]
+            isOneToOne: false
+            referencedRelation: "mission_documents"
             referencedColumns: ["id"]
           },
         ]
@@ -6596,22 +6690,32 @@ export type Database = {
       }
       mission_questions: {
         Row: {
+          brief_notes: string | null
           created_at: string
           due_date: string | null
           evaluation_criteria: string | null
+          evaluation_weight: number | null
+          exhibit_description: string | null
           health_calculated_at: string | null
           health_status: string
           id: string
+          iris_brief: Json | null
+          iris_brief_generated_at: string | null
+          iris_brief_status: string
           iris_confidence: string | null
+          iris_decoded_intent: string | null
+          iris_evidence: Json | null
           iris_extracted: boolean | null
           iris_extracted_at: string | null
           iris_intel_note: string | null
           is_withdrawn: boolean
           mission_id: string
           page_limit: number | null
+          point_value: number | null
           question_number: string | null
           question_text: string | null
           relevant_feed_item_ids: Json
+          requires_exhibit: boolean
           reviewed_by_admin: boolean
           section_id: string | null
           status: string
@@ -6619,22 +6723,32 @@ export type Database = {
           word_limit: number | null
         }
         Insert: {
+          brief_notes?: string | null
           created_at?: string
           due_date?: string | null
           evaluation_criteria?: string | null
+          evaluation_weight?: number | null
+          exhibit_description?: string | null
           health_calculated_at?: string | null
           health_status?: string
           id?: string
+          iris_brief?: Json | null
+          iris_brief_generated_at?: string | null
+          iris_brief_status?: string
           iris_confidence?: string | null
+          iris_decoded_intent?: string | null
+          iris_evidence?: Json | null
           iris_extracted?: boolean | null
           iris_extracted_at?: string | null
           iris_intel_note?: string | null
           is_withdrawn?: boolean
           mission_id: string
           page_limit?: number | null
+          point_value?: number | null
           question_number?: string | null
           question_text?: string | null
           relevant_feed_item_ids?: Json
+          requires_exhibit?: boolean
           reviewed_by_admin?: boolean
           section_id?: string | null
           status?: string
@@ -6642,22 +6756,32 @@ export type Database = {
           word_limit?: number | null
         }
         Update: {
+          brief_notes?: string | null
           created_at?: string
           due_date?: string | null
           evaluation_criteria?: string | null
+          evaluation_weight?: number | null
+          exhibit_description?: string | null
           health_calculated_at?: string | null
           health_status?: string
           id?: string
+          iris_brief?: Json | null
+          iris_brief_generated_at?: string | null
+          iris_brief_status?: string
           iris_confidence?: string | null
+          iris_decoded_intent?: string | null
+          iris_evidence?: Json | null
           iris_extracted?: boolean | null
           iris_extracted_at?: string | null
           iris_intel_note?: string | null
           is_withdrawn?: boolean
           mission_id?: string
           page_limit?: number | null
+          point_value?: number | null
           question_number?: string | null
           question_text?: string | null
           relevant_feed_item_ids?: Json
+          requires_exhibit?: boolean
           reviewed_by_admin?: boolean
           section_id?: string | null
           status?: string
@@ -8150,6 +8274,7 @@ export type Database = {
           created_at: string
           id: string
           mission_id: string
+          mission_profile: Json | null
           monitoring_mode: string
           north_star: string | null
           signal_threshold: number
@@ -8163,6 +8288,7 @@ export type Database = {
           created_at?: string
           id?: string
           mission_id: string
+          mission_profile?: Json | null
           monitoring_mode?: string
           north_star?: string | null
           signal_threshold?: number
@@ -8176,6 +8302,7 @@ export type Database = {
           created_at?: string
           id?: string
           mission_id?: string
+          mission_profile?: Json | null
           monitoring_mode?: string
           north_star?: string | null
           signal_threshold?: number
@@ -9587,6 +9714,126 @@ export type Database = {
           },
         ]
       }
+      question_deadlines: {
+        Row: {
+          created_at: string
+          deadline_type: string
+          due_date: string
+          id: string
+          is_at_risk: boolean
+          is_missed: boolean
+          mission_id: string
+          question_id: string
+          set_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deadline_type: string
+          due_date: string
+          id?: string
+          is_at_risk?: boolean
+          is_missed?: boolean
+          mission_id: string
+          question_id: string
+          set_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deadline_type?: string
+          due_date?: string
+          id?: string
+          is_at_risk?: boolean
+          is_missed?: boolean
+          mission_id?: string
+          question_id?: string
+          set_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_deadlines_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_deadlines_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      question_feedback: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          feedback_text: string
+          id: string
+          mission_id: string
+          priority: string
+          question_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          review_cycle: string
+          reviewer_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          feedback_text: string
+          id?: string
+          mission_id: string
+          priority?: string
+          question_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          review_cycle: string
+          reviewer_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          feedback_text?: string
+          id?: string
+          mission_id?: string
+          priority?: string
+          question_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          review_cycle?: string
+          reviewer_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_feedback_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_feedback_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       question_gate_status: {
         Row: {
           completed_at: string | null
@@ -9621,6 +9868,70 @@ export type Database = {
             columns: ["gate_id"]
             isOneToOne: false
             referencedRelation: "mission_review_gates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      question_intel_links: {
+        Row: {
+          added_by: string
+          confirmed: boolean
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          id: string
+          mission_id: string
+          question_id: string
+          relevance_explanation: string | null
+          relevance_score: number | null
+          signal_id: string | null
+        }
+        Insert: {
+          added_by?: string
+          confirmed?: boolean
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          mission_id: string
+          question_id: string
+          relevance_explanation?: string | null
+          relevance_score?: number | null
+          signal_id?: string | null
+        }
+        Update: {
+          added_by?: string
+          confirmed?: boolean
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          mission_id?: string
+          question_id?: string
+          relevance_explanation?: string | null
+          relevance_score?: number | null
+          signal_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qil_signal_fk"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "oracle_signals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_intel_links_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_intel_links_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
             referencedColumns: ["id"]
           },
         ]
@@ -9743,6 +10054,81 @@ export type Database = {
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "research_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      question_progress: {
+        Row: {
+          assignee_id: string
+          brief_export_count: number
+          brief_exported_at: string | null
+          created_at: string
+          id: string
+          internal_due_date: string | null
+          max_score: number | null
+          mission_id: string
+          mock_score: number | null
+          question_id: string
+          reviewed_at: string | null
+          reviewer_id: string | null
+          role: string
+          status: string
+          status_changed_at: string
+          status_changed_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          assignee_id: string
+          brief_export_count?: number
+          brief_exported_at?: string | null
+          created_at?: string
+          id?: string
+          internal_due_date?: string | null
+          max_score?: number | null
+          mission_id: string
+          mock_score?: number | null
+          question_id: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          role?: string
+          status?: string
+          status_changed_at?: string
+          status_changed_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string
+          brief_export_count?: number
+          brief_exported_at?: string | null
+          created_at?: string
+          id?: string
+          internal_due_date?: string | null
+          max_score?: number | null
+          mission_id?: string
+          mock_score?: number | null
+          question_id?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          role?: string
+          status?: string
+          status_changed_at?: string
+          status_changed_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_progress_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_progress_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
             referencedColumns: ["id"]
           },
         ]
