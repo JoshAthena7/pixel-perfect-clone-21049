@@ -171,7 +171,42 @@ export function Step8Review({
       }
       if (stateVal) updates.state = stateVal;
       if (stateCodeMatch) updates.state_code = stateCodeMatch[1];
-      if (get("program_type")) updates.program_type = get("program_type");
+      const rawProgramType = get("program_type");
+      if (rawProgramType) {
+        const norm = rawProgramType.toLowerCase().replace(/[^a-z]+/g, "_");
+        const ALLOWED = new Set([
+          "managed_care",
+          "ltss",
+          "idd",
+          "childrens_behavioral_health",
+          "adult_behavioral_health",
+          "child_welfare",
+          "dual_eligible",
+          "other",
+        ]);
+        const ALIASES: Record<string, string> = {
+          medicaid_managed_care: "managed_care",
+          mco: "managed_care",
+          long_term_services_and_supports: "ltss",
+          long_term_care: "ltss",
+          ltc: "ltss",
+          intellectual_and_developmental_disabilities: "idd",
+          i_dd: "idd",
+          children_s_behavioral_health: "childrens_behavioral_health",
+          childrens_bh: "childrens_behavioral_health",
+          children_behavioral_health: "childrens_behavioral_health",
+          behavioral_health: "adult_behavioral_health",
+          adult_bh: "adult_behavioral_health",
+          mental_health: "adult_behavioral_health",
+          child_welfare_foster_care: "child_welfare",
+          foster_care: "child_welfare",
+          dsnp: "dual_eligible",
+          duals: "dual_eligible",
+          dual_eligibles: "dual_eligible",
+        };
+        const mapped = ALIASES[norm] ?? (ALLOWED.has(norm) ? norm : "other");
+        updates.program_type = mapped;
+      }
       if (get("north_star")) updates.north_star = get("north_star");
       if (get("why_we_win")) updates.why_win = get("why_we_win");
       if (get("why_we_could_lose")) updates.why_lose = get("why_we_could_lose");
