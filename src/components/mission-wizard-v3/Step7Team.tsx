@@ -891,6 +891,6 @@ function RowLoading() {
   );
 }
 
-function naturalCompare(a: string, b: string): string extends never ? never : number {
-  return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }) as never;
+function naturalCompare(a: string, b: string): number {
+  return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
 }
