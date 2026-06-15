@@ -7,7 +7,10 @@ export type AssistEventType =
   | "assist_ignored"
   | "feedback_submitted"
   | "sos_raised"
-  | "status_updated";
+  | "status_updated"
+  | "check_in"
+  | "mock_scored"
+  | "pulse_posted";
 
 /**
  * Logs a writer/leader behavior event to mission_assist_events.
