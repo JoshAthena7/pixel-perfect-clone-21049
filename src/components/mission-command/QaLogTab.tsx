@@ -408,7 +408,8 @@ function BulkImportModal({
 
   async function handleFile(file: File | null) {
     if (!file) return;
-    const { extractRFPText, detectRFPKind } = await import("@/lib/extract-rfp-text.client");
+    const { loadRFPExtractor } = await import("@/lib/extract-rfp-text-loader");
+    const { extractRFPText, detectRFPKind } = await loadRFPExtractor();
     if (!detectRFPKind(file)) { toast.error("Upload a PDF or Word document."); return; }
     setBusy(true);
     try {
