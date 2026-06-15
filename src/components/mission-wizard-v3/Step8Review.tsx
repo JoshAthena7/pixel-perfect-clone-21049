@@ -248,13 +248,13 @@ export function Step8Review({
 
       // Fire-and-forget IRIS historical launch brief generation.
       try {
-        void triggerLaunchBrief({ data: { missionId } });
+        void triggerLaunchBriefFn({ data: { missionId } });
       } catch (e) {
         console.error("[launch-brief] trigger error", e);
       }
       // Fire-and-forget IRIS Perplexity enrichment (state landscape, incumbent, population research).
       try {
-        void enrichMissionWithPerplexity({ data: { missionId } });
+        void enrichMissionWithPerplexityFn({ data: { missionId } });
       } catch (e) {
         console.error("[perplexity-enrich] trigger error", e);
       }
@@ -271,7 +271,7 @@ export function Step8Review({
     setEnriching(true);
     setEnrichMsg(null);
     try {
-      const res = await enrichMissionWithPerplexity({ data: { missionId } });
+      const res = await enrichMissionWithPerplexityFn({ data: { missionId } });
       if (res?.ok) {
         setEnrichMsg(
           "IRIS is enriching the brief in the background — state landscape, incumbent intel, and population research will appear in a moment.",
