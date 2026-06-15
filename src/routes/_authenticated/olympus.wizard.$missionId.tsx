@@ -9,15 +9,12 @@ import { Step2Basics } from "@/components/mission-wizard-v3/Step2Basics";
 import { Step3Strategy } from "@/components/mission-wizard-v3/Step3Strategy";
 import { Step4Competitive } from "@/components/mission-wizard-v3/Step4Competitive";
 import { Step5IntelNetwork } from "@/components/mission-wizard-v3/Step5IntelNetwork";
-import { Step5Stakeholder } from "@/components/mission-wizard-v3/Step5Stakeholder";
-import { Step6Executive } from "@/components/mission-wizard-v3/Step6Executive";
-import { Step7Team } from "@/components/mission-wizard-v3/Step7Team";
 import { Step8Review } from "@/components/mission-wizard-v3/Step8Review";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type WizardMission = { id: string; name: string; status: string | null; lastStep: number };
 
-const TOTAL = 9;
+const TOTAL = 6;
 const searchSchema = z.object({
   step: z.coerce.number().int().min(1).max(TOTAL).optional(),
 });
