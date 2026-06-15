@@ -9,12 +9,13 @@ import { Step2Basics } from "@/components/mission-wizard-v3/Step2Basics";
 import { Step3Strategy } from "@/components/mission-wizard-v3/Step3Strategy";
 import { Step4Competitive } from "@/components/mission-wizard-v3/Step4Competitive";
 import { Step5IntelNetwork } from "@/components/mission-wizard-v3/Step5IntelNetwork";
+import { Step7Team } from "@/components/mission-wizard-v3/Step7Team";
 import { Step8Review } from "@/components/mission-wizard-v3/Step8Review";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type WizardMission = { id: string; name: string; status: string | null; lastStep: number };
 
-const TOTAL = 6;
+const TOTAL = 7;
 const searchSchema = z.object({
   step: z.coerce.number().int().min(1).max(TOTAL).optional(),
 });
@@ -131,7 +132,8 @@ function WizardPage() {
       {step === 3 && <Step3Strategy missionId={missionId} onBack={back} onAdvance={() => go(4)} />}
       {step === 4 && <Step4Competitive missionId={missionId} onBack={back} onAdvance={() => go(5)} />}
       {step === 5 && <Step5IntelNetwork missionId={missionId} onBack={back} onAdvance={() => go(6)} />}
-      {step === 6 && <Step8Review missionId={missionId} onBack={back} onJump={go} />}
+      {step === 6 && <Step7Team missionId={missionId} onBack={back} onAdvance={() => go(7)} />}
+      {step === 7 && <Step8Review missionId={missionId} onBack={back} onJump={go} />}
     </WizardShellV3>
   );
 }
