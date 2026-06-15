@@ -87,7 +87,9 @@ export function Step4Competitive({
         fields: STEP4_FIELDS.map((f) => ({ key: f.key, label: f.label, hint: f.hint })),
       },
     })
-      .then(() => !cancelled && qc.invalidateQueries({ queryKey }))
+      .then(() => {
+        if (!cancelled) qc.invalidateQueries({ queryKey });
+      })
       .catch(() => {})
       .finally(() => {
         if (!cancelled) {
