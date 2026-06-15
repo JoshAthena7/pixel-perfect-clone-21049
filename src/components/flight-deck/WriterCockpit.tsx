@@ -622,6 +622,10 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
               {!q.brief_exported_at && q.iris_brief && <button onClick={() => handleExportBrief(q)} style={btn("#6b7280")}><Download size={12}/> Export Brief</button>}
               {q.iris_brief_status === "stale" && <span style={{ fontSize: 11, color: AMBER }}>⚠ Brief is stale — admin must regenerate</span>}
 
+              <button onClick={() => setCheckInFor(q)} style={btn("#3b82f6")}><Activity size={12}/> Check-In</button>
+              <button onClick={() => setScoreMeFor(q)} style={btn("#a78bfa")}><Gauge size={12}/> Score Me</button>
+              <button onClick={() => setPulseOpen(true)} style={btn("#0ea5e9")}><Radio size={12}/> Pulse</button>
+
               {q.acceptance_status === "pending" && (
                 <>
                   <button onClick={() => handleAcceptAssignment(q)} style={btn(GREEN)}>Accept Assignment</button>
