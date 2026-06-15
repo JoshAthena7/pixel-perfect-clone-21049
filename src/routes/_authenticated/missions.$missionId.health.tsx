@@ -22,7 +22,7 @@ function HealthRoute() {
             settings: "settings",
           };
           const path = map[t] ?? "briefing";
-          void navigate({ to: `/missions/$missionId/${path}` as any, params: { missionId } });
+          void navigate({ to: `/missions/${missionId}/${path}` as any });
         }}
       />
     </div>
