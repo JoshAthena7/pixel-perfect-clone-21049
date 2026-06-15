@@ -20,6 +20,7 @@ import { ScoreMeDialog } from "./ScoreMeDialog";
 import { SOSDialog } from "./SOSDialog";
 import { MissionPulsePanel } from "./MissionPulsePanel";
 import { MissionCloseDebriefDialog } from "./MissionCloseDebriefDialog";
+import { QuestionCommand } from "./QuestionCommand";
 import { irisScoreGapAnalysis } from "@/lib/iris-score-gap-analysis.functions";
 
 const CLOSED_STATUSES = new Set(["closed", "won", "lost", "win", "loss", "no_award", "cancelled"]);
@@ -104,9 +105,40 @@ async function fetchMyAtlasMemberId(): Promise<string | null> {
 
 export function FlightDeckV2({ missionId }: Props) {
   const { open, setOpen } = useMissionCloseDebriefTrigger(missionId);
+
+  const { data: myRole } = useQuery({
+    queryKey: ["fd-my-role", missionId],
+    queryFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return { role: null as string | null, isAdmin: false };
+      const memberId = await fetchMyAtlasMemberId();
+      const { data: mtm } = memberId
+        ? await supabase
+            .from("mission_team_members")
+            .select("mission_role")
+            .eq("mission_id", missionId)
+            .eq("member_id", memberId)
+            .maybeSingle()
+        : { data: null as any };
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("is_platform_admin")
+        .eq("id", u.user.id)
+        .maybeSingle();
+      return {
+        role: ((mtm as any)?.mission_role ?? null) as string | null,
+        isAdmin: !!(prof as any)?.is_platform_admin,
+      };
+    },
+    staleTime: 60_000,
+  });
+  const role = (myRole?.role ?? "").toLowerCase();
+  const isLeader = !!myRole?.isAdmin || role === "founder" || role === "pm";
+
   return (
     <div className="space-y-12">
       <ContextStrip missionId={missionId} />
+      {isLeader && <QuestionCommand missionId={missionId} />}
       <WorkQueue missionId={missionId} />
       <ToolDock missionId={missionId} />
       <DailyPulse missionId={missionId} />
