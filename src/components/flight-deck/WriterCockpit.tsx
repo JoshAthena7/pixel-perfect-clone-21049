@@ -5,12 +5,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   AlertTriangle, ChevronDown, ChevronRight, FileText, Flag,
-  MessageSquare, Sparkles, Lock, Download, LifeBuoy,
+  MessageSquare, Sparkles, Lock, Download, LifeBuoy, Activity, Radio, Gauge,
 } from "lucide-react";
 import { fireAssistEvent } from "@/lib/fireAssistEvent";
 import {
   updateProgressStatus, nextStatuses, type ProgressStatus,
 } from "@/lib/writer-cockpit.functions";
+import { ScoreMeDialog } from "@/components/flight-deck/ScoreMeDialog";
+import { MissionPulsePanel } from "@/components/flight-deck/MissionPulsePanel";
+import { CheckInDialog } from "@/components/flight-deck/CheckInDialog";
 
 const BG = "#060f1a";
 const CARD = "#0a1828";
