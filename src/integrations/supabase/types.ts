@@ -6733,6 +6733,56 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_proof_points: {
+        Row: {
+          created_at: string
+          graph_node_id: string | null
+          id: string
+          iris_confidence: number | null
+          iris_sources: Json | null
+          is_manually_added: boolean
+          mission_id: string
+          signal_authority: string | null
+          source: string | null
+          text: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          graph_node_id?: string | null
+          id?: string
+          iris_confidence?: number | null
+          iris_sources?: Json | null
+          is_manually_added?: boolean
+          mission_id: string
+          signal_authority?: string | null
+          source?: string | null
+          text: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          graph_node_id?: string | null
+          id?: string
+          iris_confidence?: number | null
+          iris_sources?: Json | null
+          is_manually_added?: boolean
+          mission_id?: string
+          signal_authority?: string | null
+          source?: string | null
+          text?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_proof_points_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_pulse_log: {
         Row: {
           blockers: string | null
