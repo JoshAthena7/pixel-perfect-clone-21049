@@ -5172,6 +5172,63 @@ export type Database = {
           },
         ]
       }
+      milestone_changes: {
+        Row: {
+          change_reason: string | null
+          change_source: string
+          changed_at: string
+          changed_by: string | null
+          days_delta: number | null
+          id: string
+          milestone_id: string
+          mission_id: string
+          new_date: string
+          previous_date: string
+          source_document_id: string | null
+        }
+        Insert: {
+          change_reason?: string | null
+          change_source: string
+          changed_at?: string
+          changed_by?: string | null
+          days_delta?: number | null
+          id?: string
+          milestone_id: string
+          mission_id: string
+          new_date: string
+          previous_date: string
+          source_document_id?: string | null
+        }
+        Update: {
+          change_reason?: string | null
+          change_source?: string
+          changed_at?: string
+          changed_by?: string | null
+          days_delta?: number | null
+          id?: string
+          milestone_id?: string
+          mission_id?: string
+          new_date?: string
+          previous_date?: string
+          source_document_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestone_changes_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "mission_milestones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "milestone_changes_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_assignment_smes: {
         Row: {
           added_at: string
@@ -6271,36 +6328,66 @@ export type Database = {
       mission_milestones: {
         Row: {
           created_at: string | null
+          created_by: string | null
           id: string
+          is_active: boolean
+          is_external: boolean
+          is_hard_deadline: boolean
+          is_pens_down: boolean
           milestone_date: string
+          milestone_time: string | null
           milestone_type: string
           mission_id: string
           notes: string | null
           owner_id: string | null
+          source: string | null
+          source_document_id: string | null
           status: string | null
+          timezone: string
           title: string | null
+          updated_at: string
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
+          is_active?: boolean
+          is_external?: boolean
+          is_hard_deadline?: boolean
+          is_pens_down?: boolean
           milestone_date: string
+          milestone_time?: string | null
           milestone_type: string
           mission_id: string
           notes?: string | null
           owner_id?: string | null
+          source?: string | null
+          source_document_id?: string | null
           status?: string | null
+          timezone?: string
           title?: string | null
+          updated_at?: string
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
+          is_active?: boolean
+          is_external?: boolean
+          is_hard_deadline?: boolean
+          is_pens_down?: boolean
           milestone_date?: string
+          milestone_time?: string | null
           milestone_type?: string
           mission_id?: string
           notes?: string | null
           owner_id?: string | null
+          source?: string | null
+          source_document_id?: string | null
           status?: string | null
+          timezone?: string
           title?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -6308,6 +6395,13 @@ export type Database = {
             columns: ["mission_id"]
             isOneToOne: false
             referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mm_source_doc_fk"
+            columns: ["source_document_id"]
+            isOneToOne: false
+            referencedRelation: "mission_documents"
             referencedColumns: ["id"]
           },
         ]
@@ -8180,6 +8274,7 @@ export type Database = {
           created_at: string
           id: string
           mission_id: string
+          mission_profile: Json | null
           monitoring_mode: string
           north_star: string | null
           signal_threshold: number
@@ -8193,6 +8288,7 @@ export type Database = {
           created_at?: string
           id?: string
           mission_id: string
+          mission_profile?: Json | null
           monitoring_mode?: string
           north_star?: string | null
           signal_threshold?: number
@@ -8206,6 +8302,7 @@ export type Database = {
           created_at?: string
           id?: string
           mission_id?: string
+          mission_profile?: Json | null
           monitoring_mode?: string
           north_star?: string | null
           signal_threshold?: number
@@ -9611,6 +9708,60 @@ export type Database = {
           {
             foreignKeyName: "question_connections_question_id_b_fkey"
             columns: ["question_id_b"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      question_deadlines: {
+        Row: {
+          created_at: string
+          deadline_type: string
+          due_date: string
+          id: string
+          is_at_risk: boolean
+          is_missed: boolean
+          mission_id: string
+          question_id: string
+          set_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deadline_type: string
+          due_date: string
+          id?: string
+          is_at_risk?: boolean
+          is_missed?: boolean
+          mission_id: string
+          question_id: string
+          set_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deadline_type?: string
+          due_date?: string
+          id?: string
+          is_at_risk?: boolean
+          is_missed?: boolean
+          mission_id?: string
+          question_id?: string
+          set_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_deadlines_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_deadlines_question_id_fkey"
+            columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "mission_questions"
             referencedColumns: ["id"]
