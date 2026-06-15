@@ -20,6 +20,7 @@ import { ScoreMeDialog } from "./ScoreMeDialog";
 import { SOSDialog } from "./SOSDialog";
 import { MissionPulsePanel } from "./MissionPulsePanel";
 import { MissionCloseDebriefDialog } from "./MissionCloseDebriefDialog";
+import { QuestionCommand } from "./QuestionCommand";
 import { irisScoreGapAnalysis } from "@/lib/iris-score-gap-analysis.functions";
 
 const CLOSED_STATUSES = new Set(["closed", "won", "lost", "win", "loss", "no_award", "cancelled"]);
