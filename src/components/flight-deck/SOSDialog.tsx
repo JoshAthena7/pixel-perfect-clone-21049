@@ -4,6 +4,7 @@ import { AlertTriangle, CheckCircle2, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { raiseSOS, type SosSeverity } from "@/lib/sos.functions";
 import { toast } from "sonner";
+import { fireAssistEvent } from "@/lib/fireAssistEvent";
 
 type Props = {
   open: boolean;
