@@ -24,6 +24,8 @@ import {
   Zap,
   AlertCircle,
 } from "lucide-react";
+import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
+import { useMissionAccess } from "@/hooks/useAccess";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/briefing")({
   component: BriefingPage,
