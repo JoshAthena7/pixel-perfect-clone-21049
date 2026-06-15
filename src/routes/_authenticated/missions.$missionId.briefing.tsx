@@ -89,6 +89,8 @@ function BriefingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-8 py-8" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <HeroCard missionId={missionId} mission={mission} />
 
+          <OracleCanvasSlot missionId={missionId} />
+
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             <div className="lg:col-span-3"><TodaysFocusCard missionId={missionId} mission={mission} /></div>
             <div className="lg:col-span-2"><HowWeWinCard missionId={missionId} mission={mission} /></div>
