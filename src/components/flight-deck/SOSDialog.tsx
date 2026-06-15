@@ -75,6 +75,13 @@ export function SOSDialog({ open, onOpenChange, missionId, questionId, questionN
         },
       });
       setDone({ ack: res.irisAcknowledgment });
+      void fireAssistEvent(
+        missionId,
+        attachToQuestion && questionId ? questionId : null,
+        null,
+        "sos_raised",
+        { severity },
+      );
       if (severity === "at_risk" || severity === "blocked") {
         onSubmitted?.();
       }
