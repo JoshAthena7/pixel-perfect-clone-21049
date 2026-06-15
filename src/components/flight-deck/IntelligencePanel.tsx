@@ -120,14 +120,14 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
         }
       >
         <div className="space-y-3">
-          <HealthStrip missionId={props.missionId} />
+          <HealthStrip missionId={props.missionId ?? ""} />
           <div className="rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
             <EcosystemGraph
-              missionId={props.missionId}
+              missionId={props.missionId ?? ""}
               onNodeClick={(node) => setSelectedNode(node)}
             />
           </div>
-          <SignalFeed missionId={props.missionId} />
+          <SignalFeed missionId={props.missionId ?? ""} />
         </div>
       </Section>
 
