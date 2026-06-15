@@ -1,0 +1,1 @@
+CREATE POLICY "collective_select_authenticated_active" ON public.collective_members FOR SELECT TO authenticated USING (is_active = true);
