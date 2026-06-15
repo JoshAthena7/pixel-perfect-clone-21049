@@ -13,9 +13,10 @@
  */
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, Loader2, Users, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Sparkles, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { runIrisRfpExtraction } from "@/lib/run-iris-rfp.browser";
 import { WizardStepHeading } from "./WizardShellV3";
 
 const MISSION_ROLE_OPTIONS: { value: string; label: string }[] = [
