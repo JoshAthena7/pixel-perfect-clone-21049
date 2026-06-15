@@ -260,8 +260,9 @@ export function Step8Review({
       }
       qc.invalidateQueries({ queryKey: ["mission-meta", missionId] });
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      throw e;
+      const msg = errorMessage(e);
+      setError(msg);
+      throw e instanceof Error ? e : new Error(msg);
     } finally {
       setLaunching(false);
     }
