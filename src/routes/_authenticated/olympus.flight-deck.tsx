@@ -841,6 +841,9 @@ function AcceptanceCard({
       .from("mission_assignments")
       .update({ acceptance_status: "capacity_concern", acceptance_responded_at: new Date().toISOString() })
       .eq("id", assignment.id);
+    void fireAssistEvent(assignment.mission_id, question.id, null, "status_updated", {
+      acceptance_status: "capacity_concern",
+    });
     await notifyLead(
       "capacity_concern",
       `${writerName || "A writer"} has flagged a capacity concern on ${question.question_number} for ${missionName}: ${concern.trim()}. Please review.`,
