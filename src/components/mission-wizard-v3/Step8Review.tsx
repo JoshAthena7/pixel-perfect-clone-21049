@@ -16,6 +16,21 @@ import { loadStaged, clearStaged } from "@/lib/oracle/wizard-stage";
 import { WizardStepHeading } from "./WizardShellV3";
 import { LaunchSequence } from "./LaunchSequence";
 
+/** Coerce any thrown value (Error, Supabase PostgrestError, plain object) into a readable string. */
+function errorMessage(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  if (typeof e === "string") return e;
+  if (e && typeof e === "object") {
+    const o = e as { message?: unknown; error?: unknown; details?: unknown; hint?: unknown };
+    if (typeof o.message === "string" && o.message) return o.message;
+    if (typeof o.error === "string" && o.error) return o.error;
+    if (typeof o.details === "string" && o.details) return o.details;
+    if (typeof o.hint === "string" && o.hint) return o.hint;
+    try { return JSON.stringify(e); } catch { /* ignore */ }
+  }
+  return String(e);
+}
+
 const STEP_FIELD_GROUPS: Record<number, { title: string; keys: string[] }> = {
   2: {
     title: "Mission Basics",
@@ -260,8 +275,9 @@ export function Step8Review({
       }
       qc.invalidateQueries({ queryKey: ["mission-meta", missionId] });
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      throw e;
+      const msg = errorMessage(e);
+      setError(msg);
+      throw e instanceof Error ? e : new Error(msg);
     } finally {
       setLaunching(false);
     }
@@ -280,7 +296,7 @@ export function Step8Review({
         setEnrichMsg("IRIS couldn't reach the source network. The brief will launch without enrichment.");
       }
     } catch (e) {
-      setEnrichMsg(e instanceof Error ? e.message : String(e));
+      setEnrichMsg(errorMessage(e));
     } finally {
       setEnriching(false);
     }
