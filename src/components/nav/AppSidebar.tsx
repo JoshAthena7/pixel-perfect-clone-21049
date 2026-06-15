@@ -5,7 +5,7 @@ import {
   FileText, Brain, Lightbulb, Target,
   Users, Route as RouteIcon, ListChecks, BarChart3, Settings,
   LogOut, Menu, X, Activity as ActivityIcon, Icon as LucideIcon,
-  Flag, Megaphone,
+  Flag, Megaphone, ClipboardList, Eye, Rocket,
 } from "lucide-react";
 
 import { owl } from "@lucide/lab";
