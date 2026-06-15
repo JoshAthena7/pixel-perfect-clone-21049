@@ -411,22 +411,7 @@ function QuestionRowItem({
         </div>
       </div>
       <div className="flex gap-2 shrink-0">
-        <button
-          type="button"
-          onClick={onAssign}
-          style={{
-            padding: "6px 12px",
-            fontSize: 11,
-            fontWeight: 600,
-            borderRadius: 6,
-            border: `1px solid ${GOLD}55`,
-            background: `${GOLD}14`,
-            color: GOLD,
-            cursor: "pointer",
-          }}
-        >
-          Assign
-        </button>
+        {/* Assignments are managed in admin setup — no Assign action in Flight Deck. */}
         {q.iris_brief_status === "ready" ? (
           <button
             type="button"
