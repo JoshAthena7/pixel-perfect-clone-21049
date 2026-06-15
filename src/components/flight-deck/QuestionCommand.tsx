@@ -967,3 +967,241 @@ function RfpDocumentsList({ missionId }: { missionId: string }) {
     </div>
   );
 }
+
+/* ─────────── Brief Viewer Dialog ─────────── */
+function BriefViewerDialog({
+  missionId,
+  questionId,
+  questionNumber,
+  questionText,
+  onClose,
+}: {
+  missionId: string;
+  questionId: string;
+  questionNumber: string | null;
+  questionText: string;
+  onClose: () => void;
+}) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["qc-brief", missionId, questionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_questions")
+        .select("iris_brief, iris_brief_generated_at")
+        .eq("id", questionId)
+        .maybeSingle();
+      return data as { iris_brief: any; iris_brief_generated_at: string | null } | null;
+    },
+  });
+
+  const brief = (data?.iris_brief ?? {}) as any;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.7)" }}
+      onClick={onClose}
+    >
+      <div
+        className="rounded-xl max-w-3xl w-full max-h-[85vh] overflow-y-auto"
+        style={{ background: CARD, border: `1px solid ${BORDER}` }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="flex items-start justify-between p-5"
+          style={{ borderBottom: `1px solid ${BORDER}` }}
+        >
+          <div className="min-w-0">
+            <div style={sectionLabel}>IRIS Brief</div>
+            <div className="mt-1 font-bold" style={{ fontSize: 16, color: "white" }}>
+              {questionNumber ? `${questionNumber} · ` : ""}
+              {questionText.length > 90 ? questionText.slice(0, 90) + "…" : questionText}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "rgba(255,255,255,0.6)",
+              cursor: "pointer",
+            }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {isLoading ? (
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>Loading…</div>
+          ) : !brief || Object.keys(brief).length === 0 ? (
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>
+              No brief content available.
+            </div>
+          ) : (
+            <>
+              <BriefBlock title="Decoded Intent" body={brief.decoded_intent} />
+              <BriefBlock title="Evaluation Focus" body={brief.evaluation_focus} />
+              <BriefBlock title="Recommended Approach" body={brief.recommended_approach} />
+
+              {Array.isArray(brief.win_theme_connections) &&
+                brief.win_theme_connections.length > 0 && (
+                  <BriefSection title="Win Theme Connections">
+                    <ul className="space-y-1" style={{ paddingLeft: 16 }}>
+                      {brief.win_theme_connections.map((w: any, i: number) => (
+                        <li key={i} style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}>
+                          {w.theme_text}
+                          {w.relevance_score != null ? (
+                            <span style={{ color: GOLD, marginLeft: 6 }}>
+                              · {w.relevance_score}
+                            </span>
+                          ) : null}
+                          {w.signal_authority ? (
+                            <span style={{ color: "rgba(255,255,255,0.5)", marginLeft: 6 }}>
+                              · {w.signal_authority}
+                            </span>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </BriefSection>
+                )}
+
+              {Array.isArray(brief.iris_evidence) && brief.iris_evidence.length > 0 && (
+                <BriefSection title="IRIS Evidence">
+                  <ul className="space-y-2" style={{ paddingLeft: 16 }}>
+                    {brief.iris_evidence.map((e: any, i: number) => (
+                      <li key={i} style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}>
+                        <strong style={{ color: "white" }}>{e.source}</strong>
+                        {e.citation ? (
+                          <span style={{ color: "rgba(255,255,255,0.5)" }}> · {e.citation}</span>
+                        ) : null}
+                        <div style={{ marginTop: 2 }}>{e.finding}</div>
+                        {e.relevance ? (
+                          <div
+                            style={{
+                              marginTop: 2,
+                              color: "rgba(255,255,255,0.6)",
+                              fontStyle: "italic",
+                            }}
+                          >
+                            {e.relevance}
+                          </div>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                </BriefSection>
+              )}
+
+              {brief.client_proof_points_prompt && (
+                <div
+                  className="rounded-lg p-3"
+                  style={{
+                    background: `${GOLD}10`,
+                    border: `1px solid ${GOLD}44`,
+                  }}
+                >
+                  <div style={{ ...sectionLabel, color: GOLD }}>Client Proof Points</div>
+                  <div
+                    className="mt-1"
+                    style={{ fontSize: 12.5, color: "rgba(255,255,255,0.9)" }}
+                  >
+                    {brief.client_proof_points_prompt}
+                  </div>
+                </div>
+              )}
+
+              {brief.language_guidance && (
+                <BriefSection title="Language Guidance">
+                  {Array.isArray(brief.language_guidance.use) &&
+                    brief.language_guidance.use.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: 11, color: GREEN, fontWeight: 600 }}>Use</div>
+                        <ul style={{ paddingLeft: 16 }}>
+                          {brief.language_guidance.use.map((u: string, i: number) => (
+                            <li
+                              key={i}
+                              style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}
+                            >
+                              {u}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  {Array.isArray(brief.language_guidance.avoid) &&
+                    brief.language_guidance.avoid.length > 0 && (
+                      <div className="mt-2">
+                        <div style={{ fontSize: 11, color: RED, fontWeight: 600 }}>Avoid</div>
+                        <ul style={{ paddingLeft: 16 }}>
+                          {brief.language_guidance.avoid.map((u: string, i: number) => (
+                            <li
+                              key={i}
+                              style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}
+                            >
+                              {u}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                </BriefSection>
+              )}
+
+              {Array.isArray(brief.compliance_checklist) &&
+                brief.compliance_checklist.length > 0 && (
+                  <BriefSection title="Compliance Checklist">
+                    <ul className="space-y-1" style={{ paddingLeft: 16 }}>
+                      {brief.compliance_checklist.map((c: any, i: number) => (
+                        <li key={i} style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}>
+                          {c.required ? (
+                            <span style={{ color: RED, marginRight: 4 }}>●</span>
+                          ) : (
+                            <span style={{ color: "rgba(255,255,255,0.4)", marginRight: 4 }}>
+                              ○
+                            </span>
+                          )}
+                          {c.item}
+                          {c.detail ? (
+                            <span style={{ color: "rgba(255,255,255,0.55)" }}> — {c.detail}</span>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </BriefSection>
+                )}
+
+              <BriefBlock title="Competitive Intel" body={brief.competitive_intel} />
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BriefBlock({ title, body }: { title: string; body: string | null | undefined }) {
+  if (!body) return null;
+  return (
+    <div>
+      <div style={sectionLabel}>{title}</div>
+      <div
+        className="mt-1"
+        style={{ fontSize: 13, color: "rgba(255,255,255,0.9)", lineHeight: 1.55 }}
+      >
+        {body}
+      </div>
+    </div>
+  );
+}
+
+function BriefSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div style={sectionLabel}>{title}</div>
+      <div className="mt-1">{children}</div>
+    </div>
+  );
+}
