@@ -66,7 +66,7 @@ export function CheckInDialog({ open, onOpenChange, missionId, questionId, quest
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 border-0 bg-transparent shadow-none" hideClose>
+      <DialogContent className="max-w-md p-0 border-0 bg-transparent shadow-none">
         <div style={{ background: "#0a1828", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", color: "white", overflow: "hidden" }}>
           <div style={{ padding: "14px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div>
