@@ -16,7 +16,32 @@ const SOURCE_GROUPS = [
   { id: "press_release", label: "Press Releases", color: "#f97316" },
   { id: "website", label: "Websites", color: "#64748b" },
   { id: "upload", label: "Uploads", color: "#a3e635" },
+  { id: "other", label: "Other Sources", color: "#94a3b8" },
 ];
+
+// Map raw source_type values from intel_sources onto the visible groups above.
+// Anything unmapped falls into the "other" bucket so rows are never invisible.
+const SOURCE_TYPE_ALIASES: Record<string, string> = {
+  webpage: "website",
+  web_monitor: "website",
+  rss: "news",
+  press: "press_release",
+  meeting_agenda: "meeting_notes",
+  internal_debrief: "interview",
+  procurement_portal: "procurement_record",
+  legislative: "report",
+  budget: "report",
+  conference: "report",
+  job_posting: "other",
+  provider_association: "other",
+  advocacy: "other",
+};
+const groupIdFor = (raw: string | null | undefined): string => {
+  const t = (raw ?? "").toLowerCase();
+  if (!t) return "other";
+  if (SOURCE_GROUPS.some((g) => g.id === t)) return t;
+  return SOURCE_TYPE_ALIASES[t] ?? "other";
+};
 
 export function IntelSources({ missionId }: { missionId: string }) {
   const [showAdd, setShowAdd] = useState(false);
