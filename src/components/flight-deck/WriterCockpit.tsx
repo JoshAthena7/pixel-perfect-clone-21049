@@ -5,12 +5,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   AlertTriangle, ChevronDown, ChevronRight, FileText, Flag,
-  MessageSquare, Sparkles, Lock, Download, LifeBuoy,
+  MessageSquare, Sparkles, Lock, Download, LifeBuoy, Activity, Radio, Gauge,
 } from "lucide-react";
 import { fireAssistEvent } from "@/lib/fireAssistEvent";
 import {
   updateProgressStatus, nextStatuses, type ProgressStatus,
 } from "@/lib/writer-cockpit.functions";
+import { ScoreMeDialog } from "@/components/flight-deck/ScoreMeDialog";
+import { MissionPulsePanel } from "@/components/flight-deck/MissionPulsePanel";
+import { CheckInDialog } from "@/components/flight-deck/CheckInDialog";
 
 const BG = "#060f1a";
 const CARD = "#0a1828";
@@ -91,6 +94,9 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   const [firstName, setFirstName] = useState<string>("");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [briefOpenFor, setBriefOpenFor] = useState<Q | null>(null);
+  const [scoreMeFor, setScoreMeFor] = useState<Q | null>(null);
+  const [pulseOpen, setPulseOpen] = useState(false);
+  const [checkInFor, setCheckInFor] = useState<Q | null>(null);
   const updateStatus = useServerFn(updateProgressStatus);
 
   useEffect(() => {
@@ -488,6 +494,31 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
           onExport={() => handleExportBrief(briefOpenFor)}
         />
       )}
+
+      <ScoreMeDialog
+        open={!!scoreMeFor}
+        onOpenChange={(v) => { if (!v) setScoreMeFor(null); }}
+        missionId={missionId}
+        questionId={scoreMeFor?.id ?? null}
+        questionNumber={scoreMeFor?.question_number ?? null}
+        questionText={scoreMeFor?.question_text ?? null}
+      />
+
+      <MissionPulsePanel
+        open={pulseOpen}
+        onOpenChange={setPulseOpen}
+        missionId={missionId}
+      />
+
+      <CheckInDialog
+        open={!!checkInFor}
+        onOpenChange={(v) => { if (!v) setCheckInFor(null); }}
+        missionId={missionId}
+        questionId={checkInFor?.id ?? null}
+        questionNumber={checkInFor?.question_number ?? null}
+        progressId={checkInFor?.progress_id ?? null}
+        onSubmitted={() => qc.invalidateQueries({ queryKey: refreshKey })}
+      />
     </div>
   );
 
@@ -590,6 +621,10 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
               {q.brief_exported_at && <button onClick={() => handleExportBrief(q)} style={btn("#6b7280")}><Download size={12}/> Re-export</button>}
               {!q.brief_exported_at && q.iris_brief && <button onClick={() => handleExportBrief(q)} style={btn("#6b7280")}><Download size={12}/> Export Brief</button>}
               {q.iris_brief_status === "stale" && <span style={{ fontSize: 11, color: AMBER }}>⚠ Brief is stale — admin must regenerate</span>}
+
+              <button onClick={() => setCheckInFor(q)} style={btn("#3b82f6")}><Activity size={12}/> Check-In</button>
+              <button onClick={() => setScoreMeFor(q)} style={btn("#a78bfa")}><Gauge size={12}/> Score Me</button>
+              <button onClick={() => setPulseOpen(true)} style={btn("#0ea5e9")}><Radio size={12}/> Pulse</button>
 
               {q.acceptance_status === "pending" && (
                 <>
