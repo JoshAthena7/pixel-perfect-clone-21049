@@ -68,20 +68,37 @@ function useIntelSummary(missionId: string) {
     enabled: !!missionId,
     staleTime: 30_000,
     queryFn: async () => {
-      const [events, people, orgs] = await Promise.all([
+      const [events, people, orgs, sources, rels] = await Promise.all([
         supabase.from("intel_events").select("id", { head: true, count: "exact" }).eq("mission_id", missionId),
         supabase.from("intel_people").select("id", { head: true, count: "exact" }).eq("mission_id", missionId),
         supabase.from("intel_organizations").select("id", { head: true, count: "exact" }).eq("mission_id", missionId),
+        (supabase as any).from("intel_sources").select("id", { head: true, count: "exact" }).eq("mission_id", missionId),
+        (supabase as any).from("intel_relationships").select("id", { head: true, count: "exact" }).eq("mission_id", missionId),
       ]);
       return {
         events: events.count ?? 0,
         people: people.count ?? 0,
         orgs: orgs.count ?? 0,
+        sources: sources.count ?? 0,
+        rels: rels.count ?? 0,
       };
     },
   });
+  // Live-derived completeness (5 dimensions × 20%) mirrors the IRIS tab header.
+  // Falls back to the persisted column only while counts are still loading.
+  let derived = 0;
+  if (counts) {
+    if (counts.events > 0) derived += 20;
+    if (counts.people > 0) derived += 20;
+    if (counts.orgs > 0) derived += 20;
+    if (counts.sources > 0) derived += 20;
+    if (counts.rels > 0) derived += 20;
+  }
+  const completeness = counts
+    ? derived
+    : Math.round(meta?.intelligence_graph_completeness ?? 0);
   return {
-    completeness: Math.round(meta?.intelligence_graph_completeness ?? 0),
+    completeness,
     events: counts?.events ?? 0,
     people: counts?.people ?? 0,
     orgs: counts?.orgs ?? 0,
