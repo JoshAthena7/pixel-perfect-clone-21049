@@ -107,6 +107,22 @@ export function QuestionCommand({ missionId }: { missionId: string }) {
     return { total, assigned, awaiting };
   }, [questions]);
 
+  const handleGenerateBrief = async (q: QuestionRow) => {
+    setGeneratingId(q.id);
+    try {
+      await generateBrief({ data: { missionId, questionId: q.id } });
+      toast.success("IRIS brief ready.");
+      refetchQ();
+    } catch (e: any) {
+      toast.error("Brief generation failed.", { description: e?.message });
+      refetchQ();
+    } finally {
+      setGeneratingId(null);
+    }
+  };
+
+
+
   return (
     <section>
       <div className="flex items-baseline justify-between mb-4">
