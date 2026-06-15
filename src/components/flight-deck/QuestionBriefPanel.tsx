@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ChevronDown, ChevronRight, Sparkles, RefreshCw, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { generateQuestionBrief, type QuestionBriefBody } from "@/lib/iris-brief.functions";
+import { fireAssistEvent } from "@/lib/fireAssistEvent";
 
 type Props = {
   missionId: string;
