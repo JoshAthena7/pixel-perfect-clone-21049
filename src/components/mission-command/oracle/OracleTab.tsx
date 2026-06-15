@@ -10,6 +10,10 @@ import { IntelPeople } from "./IntelPeople";
 import { IntelOrganizations } from "./IntelOrganizations";
 import { IntelSources } from "./IntelSources";
 import { OracleGraph } from "./OracleGraph";
+import { HealthStrip } from "@/components/intelligence/HealthStrip";
+import { EcosystemGraph } from "@/components/intelligence/EcosystemGraph";
+import { SignalFeed } from "@/components/intelligence/SignalFeed";
+import { NodeDetailDrawer } from "@/components/intelligence/NodeDetailDrawer";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 
 const GOLD = "#C49A2B";
