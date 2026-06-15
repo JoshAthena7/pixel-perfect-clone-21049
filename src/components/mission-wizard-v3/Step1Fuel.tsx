@@ -388,22 +388,65 @@ export function Step1Fuel({
 
         {rows.length > 0 && (
           <div className="space-y-2">
-            {rows.map((r) => (
-              <div
-                key={r.uid}
-                className="rounded-lg flex items-center gap-3 px-3 py-2.5 border border-white/10 bg-white/[0.03]"
-              >
-                <FileText className="h-4 w-4 text-white/45 shrink-0" />
-                <span className="text-[13.5px] text-white truncate flex-1">{r.name}</span>
-                {r.status === "uploading" && (
-                  <span className="text-[11px] text-white/45">Uploading {r.progress}%</span>
-                )}
-                {r.status === "done" && <span className="text-[11px] text-emerald-400">Ready</span>}
-                {r.status === "error" && (
-                  <span className="text-[11px] text-red-400">{r.error}</span>
-                )}
-              </div>
-            ))}
+            {rows.map((r) => {
+              const purpose = r.purpose ?? guessPurpose(r.name);
+              const purposeDesc = PURPOSE_OPTIONS.find((p) => p.value === purpose)?.desc;
+              return (
+                <div
+                  key={r.uid}
+                  className="rounded-lg px-3 py-2.5 border border-white/10 bg-white/[0.03]"
+                >
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-4 w-4 text-white/45 shrink-0" />
+                    <span className="text-[13.5px] text-white truncate flex-1">{r.name}</span>
+                    {r.status === "uploading" && (
+                      <span className="text-[11px] text-white/45">Uploading {r.progress}%</span>
+                    )}
+                    {r.status === "done" && <span className="text-[11px] text-emerald-400">Ready</span>}
+                    {r.status === "error" && (
+                      <span className="text-[11px] text-red-400">{r.error}</span>
+                    )}
+                  </div>
+                  {r.status === "done" && (
+                    <div className="mt-2.5 pl-7">
+                      <div className="flex flex-wrap gap-1.5">
+                        {PURPOSE_OPTIONS.map((opt) => {
+                          const selected = purpose === opt.value;
+                          return (
+                            <button
+                              key={opt.value}
+                              onClick={() => setRowPurpose(r.uid, opt.value)}
+                              className="px-2 py-0.5 rounded-full text-[11px] transition-colors"
+                              style={{
+                                border: selected ? "1px solid #C49A2B" : "1px solid rgba(255,255,255,0.08)",
+                                color: selected ? "#fff" : "rgba(255,255,255,0.45)",
+                                background: selected ? "rgba(196,154,43,0.08)" : "transparent",
+                              }}
+                            >
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {purposeDesc && (
+                        <p className="mt-1.5 text-[11px] text-white/45">{purposeDesc}</p>
+                      )}
+                      {purpose === "writing_standards" && (
+                        <label className="mt-1.5 flex items-center gap-1.5 text-[11px] text-white/65 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!r.isStyleGuide}
+                            onChange={(e) => setRowStyleGuide(r.uid, e.target.checked)}
+                            className="h-3 w-3 accent-amber-500"
+                          />
+                          <span>★ Mark as primary style guide</span>
+                        </label>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             <button
               onClick={() => inputRef.current?.click()}
               className="inline-flex items-center gap-1.5 text-[12px] text-white/55 hover:text-white px-3 py-1.5 rounded-md border border-white/10"
