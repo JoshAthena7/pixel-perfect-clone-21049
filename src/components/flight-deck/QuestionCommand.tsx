@@ -430,6 +430,7 @@ function QuestionRowItem({
         {q.iris_brief_status === "ready" ? (
           <button
             type="button"
+            onClick={onView}
             style={{
               padding: "6px 12px",
               fontSize: 11,
@@ -439,9 +440,53 @@ function QuestionRowItem({
               background: "transparent",
               color: "rgba(255,255,255,0.85)",
               cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
             }}
           >
-            View Brief
+            <Eye size={12} /> View Brief
+          </button>
+        ) : q.iris_brief_status === "generating" || isGenerating ? (
+          <button
+            type="button"
+            disabled
+            style={{
+              padding: "6px 12px",
+              fontSize: 11,
+              fontWeight: 600,
+              borderRadius: 6,
+              border: `1px solid ${BORDER}`,
+              background: "transparent",
+              color: "rgba(255,255,255,0.6)",
+              cursor: "wait",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              opacity: 0.7,
+            }}
+          >
+            <Loader2 size={12} className="animate-spin" /> Generating…
+          </button>
+        ) : q.iris_brief_status === "queued" ? (
+          <button
+            type="button"
+            onClick={onGenerate}
+            style={{
+              padding: "6px 12px",
+              fontSize: 11,
+              fontWeight: 600,
+              borderRadius: 6,
+              border: `1px solid ${PURPLE}55`,
+              background: `${PURPLE}1a`,
+              color: "rgba(220,215,255,0.95)",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <Sparkles size={12} /> Generate Brief
           </button>
         ) : null}
       </div>
