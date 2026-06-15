@@ -5,7 +5,7 @@ import {
   FileText, Brain, Lightbulb, Target,
   Users, Route as RouteIcon, ListChecks, BarChart3, Settings,
   LogOut, Menu, X, Activity as ActivityIcon, Icon as LucideIcon,
-  Flag, Megaphone,
+  Flag, Megaphone, ClipboardList, Eye, Rocket,
 } from "lucide-react";
 
 import { owl } from "@lucide/lab";
@@ -31,9 +31,9 @@ type NavItem = {
 };
 
 const MISSION_ITEMS: NavItem[] = [
-  { to: "/missions/$missionId/briefing", label: "Briefing", Icon: FileText, needsMission: true },
-  { to: "/missions/$missionId/oracle", label: "IRIS", Icon: Owl as unknown as IconType, needsMission: true },
-  { to: "/missions/$missionId/insights", label: "Insights", Icon: Lightbulb, needsMission: true },
+  { to: "/missions/$missionId/briefing", label: "BRIEF", Icon: ClipboardList, needsMission: true },
+  { to: "/missions/$missionId/oracle", label: "INTELLIGENCE", Icon: Eye, needsMission: true },
+  { to: "/missions/$missionId/flight-deck", label: "FLIGHT DECK", Icon: Rocket, needsMission: true },
 ];
 
 // Admin nav lives entirely in the top tab bar at /admin (Missions | Staff | Messaging | IRIS Control).
