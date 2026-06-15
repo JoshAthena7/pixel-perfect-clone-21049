@@ -373,6 +373,84 @@ export type Database = {
           },
         ]
       }
+      athena_intelligence_map: {
+        Row: {
+          added_by: string | null
+          applicable_populations: string[]
+          applicable_programs: string[]
+          applicable_states: string[]
+          applicable_waivers: string[]
+          created_at: string
+          id: string
+          is_federal: boolean
+          is_verified: boolean
+          notes: string | null
+          oracle_category: string
+          priority: string
+          refresh_cadence: string
+          source_name: string
+          source_type: string
+          source_url: string
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          added_by?: string | null
+          applicable_populations?: string[]
+          applicable_programs?: string[]
+          applicable_states?: string[]
+          applicable_waivers?: string[]
+          created_at?: string
+          id?: string
+          is_federal?: boolean
+          is_verified?: boolean
+          notes?: string | null
+          oracle_category: string
+          priority?: string
+          refresh_cadence?: string
+          source_name: string
+          source_type: string
+          source_url: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          added_by?: string | null
+          applicable_populations?: string[]
+          applicable_programs?: string[]
+          applicable_states?: string[]
+          applicable_waivers?: string[]
+          created_at?: string
+          id?: string
+          is_federal?: boolean
+          is_verified?: boolean
+          notes?: string | null
+          oracle_category?: string
+          priority?: string
+          refresh_cadence?: string
+          source_name?: string
+          source_type?: string
+          source_url?: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athena_intelligence_map_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "athena_intelligence_map_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       athena_smes: {
         Row: {
           availability: string | null
