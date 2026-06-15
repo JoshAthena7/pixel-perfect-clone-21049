@@ -796,6 +796,9 @@ function AcceptanceCard({
       .from("mission_assignments")
       .update({ acceptance_status: "accepted", acceptance_responded_at: new Date().toISOString() })
       .eq("id", assignment.id);
+    void fireAssistEvent(assignment.mission_id, question.id, null, "status_updated", {
+      acceptance_status: "accepted",
+    });
     setPhase("confidence");
     setSubmitting(false);
   };
