@@ -77,6 +77,9 @@ export function Step8Review({
   const qc = useQueryClient();
   const triggerLaunchBriefFn = useServerFn(triggerLaunchBrief);
   const enrichMissionWithPerplexityFn = useServerFn(enrichMissionWithPerplexity);
+  const extractRequirementNodesFn = useServerFn(extractRequirementNodesFromRFP);
+  const seedTerritoryFn = useServerFn(seedTerritoryIntelligence);
+  const generateIrisBriefFn = useServerFn(generateIrisBrief);
   const [launching, setLaunching] = useState(false);
   const [enriching, setEnriching] = useState(false);
   const [enrichMsg, setEnrichMsg] = useState<string | null>(null);
