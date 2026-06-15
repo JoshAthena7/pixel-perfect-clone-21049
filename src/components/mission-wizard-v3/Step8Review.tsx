@@ -281,7 +281,7 @@ export function Step8Review({
         setEnrichMsg("IRIS couldn't reach the source network. The brief will launch without enrichment.");
       }
     } catch (e) {
-      setEnrichMsg(e instanceof Error ? e.message : String(e));
+      setEnrichMsg(errorMessage(e));
     } finally {
       setEnriching(false);
     }
