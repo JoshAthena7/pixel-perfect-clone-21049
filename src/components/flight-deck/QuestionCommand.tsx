@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -11,7 +12,11 @@ import {
   FileText,
   X,
   ClipboardList,
+  Sparkles,
+  Eye,
 } from "lucide-react";
+import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
+
 
 const GOLD = "#d4a843";
 const RED = "#e05252";
