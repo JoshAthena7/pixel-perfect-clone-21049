@@ -494,6 +494,31 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
           onExport={() => handleExportBrief(briefOpenFor)}
         />
       )}
+
+      <ScoreMeDialog
+        open={!!scoreMeFor}
+        onOpenChange={(v) => { if (!v) setScoreMeFor(null); }}
+        missionId={missionId}
+        questionId={scoreMeFor?.id ?? null}
+        questionNumber={scoreMeFor?.question_number ?? null}
+        questionText={scoreMeFor?.question_text ?? null}
+      />
+
+      <MissionPulsePanel
+        open={pulseOpen}
+        onOpenChange={setPulseOpen}
+        missionId={missionId}
+      />
+
+      <CheckInDialog
+        open={!!checkInFor}
+        onOpenChange={(v) => { if (!v) setCheckInFor(null); }}
+        missionId={missionId}
+        questionId={checkInFor?.id ?? null}
+        questionNumber={checkInFor?.question_number ?? null}
+        progressId={checkInFor?.progress_id ?? null}
+        onSubmitted={() => qc.invalidateQueries({ queryKey: refreshKey })}
+      />
     </div>
   );
 
