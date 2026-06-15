@@ -327,7 +327,19 @@ function BriefIndicator({ status }: { status: string | null }) {
   }
 }
 
-function QuestionRowItem({ q, onAssign }: { q: QuestionRow; onAssign: () => void }) {
+function QuestionRowItem({
+  q,
+  onAssign,
+  onGenerate,
+  onView,
+  isGenerating,
+}: {
+  q: QuestionRow;
+  onAssign: () => void;
+  onGenerate: () => void;
+  onView: () => void;
+  isGenerating: boolean;
+}) {
   const text = q.question_text ?? "";
   const truncated = text.length > 80 ? text.slice(0, 80) + "…" : text;
   const sm = statusMeta[q.status ?? "not_started"] ?? statusMeta.not_started;
