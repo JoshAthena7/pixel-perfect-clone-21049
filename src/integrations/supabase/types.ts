@@ -7927,6 +7927,47 @@ export type Database = {
         }
         Relationships: []
       }
+      oracle_beliefs: {
+        Row: {
+          belief_text: string
+          belief_type: string
+          confidence: number
+          created_at: string
+          id: string
+          mission_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          belief_text: string
+          belief_type: string
+          confidence?: number
+          created_at?: string
+          id?: string
+          mission_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          belief_text?: string
+          belief_type?: string
+          confidence?: number
+          created_at?: string
+          id?: string
+          mission_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_beliefs_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oracle_decision_intelligence: {
         Row: {
           client_name: string | null
@@ -8019,6 +8060,53 @@ export type Database = {
           },
         ]
       }
+      oracle_engagement_config: {
+        Row: {
+          created_at: string
+          id: string
+          mission_id: string
+          monitoring_mode: string
+          north_star: string | null
+          signal_threshold: number
+          status: string
+          top_risks: Json
+          updated_at: string
+          win_themes: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mission_id: string
+          monitoring_mode?: string
+          north_star?: string | null
+          signal_threshold?: number
+          status?: string
+          top_risks?: Json
+          updated_at?: string
+          win_themes?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mission_id?: string
+          monitoring_mode?: string
+          north_star?: string | null
+          signal_threshold?: number
+          status?: string
+          top_risks?: Json
+          updated_at?: string
+          win_themes?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_engagement_config_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oracle_escalation_log: {
         Row: {
           context_summary: string | null
@@ -8065,6 +8153,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "oracle_escalation_log_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oracle_health: {
+        Row: {
+          active_sources: number
+          coverage_gaps: Json
+          created_at: string
+          health_status: string
+          id: string
+          mission_id: string
+          noise_ratio: number | null
+          raw_items_ingested: number
+          signals_approved: number
+          signals_archived: number
+          signals_created: number
+          total_sources: number
+        }
+        Insert: {
+          active_sources?: number
+          coverage_gaps?: Json
+          created_at?: string
+          health_status?: string
+          id?: string
+          mission_id: string
+          noise_ratio?: number | null
+          raw_items_ingested?: number
+          signals_approved?: number
+          signals_archived?: number
+          signals_created?: number
+          total_sources?: number
+        }
+        Update: {
+          active_sources?: number
+          coverage_gaps?: Json
+          created_at?: string
+          health_status?: string
+          id?: string
+          mission_id?: string
+          noise_ratio?: number | null
+          raw_items_ingested?: number
+          signals_approved?: number
+          signals_archived?: number
+          signals_created?: number
+          total_sources?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_health_mission_id_fkey"
             columns: ["mission_id"]
             isOneToOne: false
             referencedRelation: "missions"
@@ -8163,6 +8304,133 @@ export type Database = {
           },
         ]
       }
+      oracle_outputs: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          mission_id: string
+          output_type: string
+          signal_id: string | null
+          status: string
+          target_question_id: string | null
+          target_section_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          mission_id: string
+          output_type: string
+          signal_id?: string | null
+          status?: string
+          target_question_id?: string | null
+          target_section_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          mission_id?: string
+          output_type?: string
+          signal_id?: string | null
+          status?: string
+          target_question_id?: string | null
+          target_section_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_outputs_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_outputs_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "oracle_signals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oracle_raw_items: {
+        Row: {
+          content_hash: string | null
+          created_at: string
+          duplicate_of: string | null
+          id: string
+          ingested_at: string
+          mission_id: string
+          published_at: string | null
+          raw_text: string | null
+          source_id: string | null
+          status: string
+          summary: string | null
+          title: string
+          url: string | null
+        }
+        Insert: {
+          content_hash?: string | null
+          created_at?: string
+          duplicate_of?: string | null
+          id?: string
+          ingested_at?: string
+          mission_id: string
+          published_at?: string | null
+          raw_text?: string | null
+          source_id?: string | null
+          status?: string
+          summary?: string | null
+          title: string
+          url?: string | null
+        }
+        Update: {
+          content_hash?: string | null
+          created_at?: string
+          duplicate_of?: string | null
+          id?: string
+          ingested_at?: string
+          mission_id?: string
+          published_at?: string | null
+          raw_text?: string | null
+          source_id?: string | null
+          status?: string
+          summary?: string | null
+          title?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_raw_items_duplicate_of_fkey"
+            columns: ["duplicate_of"]
+            isOneToOne: false
+            referencedRelation: "oracle_raw_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_raw_items_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_raw_items_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "oracle_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oracle_risk_patterns: {
         Row: {
           created_at: string
@@ -8195,6 +8463,155 @@ export type Database = {
           times_seen?: number
         }
         Relationships: []
+      }
+      oracle_signal_belief_links: {
+        Row: {
+          belief_id: string
+          created_at: string
+          explanation: string | null
+          id: string
+          relationship: string
+          signal_id: string
+        }
+        Insert: {
+          belief_id: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          relationship: string
+          signal_id: string
+        }
+        Update: {
+          belief_id?: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          relationship?: string
+          signal_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_signal_belief_links_belief_id_fkey"
+            columns: ["belief_id"]
+            isOneToOne: false
+            referencedRelation: "oracle_beliefs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_signal_belief_links_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "oracle_signals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oracle_signal_tags: {
+        Row: {
+          created_at: string
+          id: string
+          signal_id: string
+          tag_type: string
+          tag_value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          signal_id: string
+          tag_type: string
+          tag_value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          signal_id?: string
+          tag_type?: string
+          tag_value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_signal_tags_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "oracle_signals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oracle_signals: {
+        Row: {
+          confidence_score: number
+          created_at: string
+          id: string
+          impact_score: number
+          mission_id: string
+          oracle_score: number | null
+          raw_item_id: string | null
+          recommended_action: string | null
+          relevance_score: number
+          signal_type: string
+          status: string
+          title: string
+          updated_at: string
+          urgency_score: number
+          visibility: string
+          what_happened: string | null
+          why_it_matters: string | null
+        }
+        Insert: {
+          confidence_score?: number
+          created_at?: string
+          id?: string
+          impact_score?: number
+          mission_id: string
+          oracle_score?: number | null
+          raw_item_id?: string | null
+          recommended_action?: string | null
+          relevance_score?: number
+          signal_type: string
+          status?: string
+          title: string
+          updated_at?: string
+          urgency_score?: number
+          visibility?: string
+          what_happened?: string | null
+          why_it_matters?: string | null
+        }
+        Update: {
+          confidence_score?: number
+          created_at?: string
+          id?: string
+          impact_score?: number
+          mission_id?: string
+          oracle_score?: number | null
+          raw_item_id?: string | null
+          recommended_action?: string | null
+          relevance_score?: number
+          signal_type?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          urgency_score?: number
+          visibility?: string
+          what_happened?: string | null
+          why_it_matters?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_signals_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_signals_raw_item_id_fkey"
+            columns: ["raw_item_id"]
+            isOneToOne: false
+            referencedRelation: "oracle_raw_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       oracle_sme_profiles: {
         Row: {
@@ -8285,6 +8702,62 @@ export type Database = {
             columns: ["sme_id"]
             isOneToOne: false
             referencedRelation: "oracle_sme_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oracle_sources: {
+        Row: {
+          added_by: string
+          category: string
+          created_at: string
+          id: string
+          last_checked_at: string | null
+          mission_id: string
+          priority: string
+          refresh_cadence: string
+          source_name: string
+          source_type: string
+          source_url: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          added_by?: string
+          category: string
+          created_at?: string
+          id?: string
+          last_checked_at?: string | null
+          mission_id: string
+          priority?: string
+          refresh_cadence?: string
+          source_name: string
+          source_type: string
+          source_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          added_by?: string
+          category?: string
+          created_at?: string
+          id?: string
+          last_checked_at?: string | null
+          mission_id?: string
+          priority?: string
+          refresh_cadence?: string
+          source_name?: string
+          source_type?: string
+          source_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_sources_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
             referencedColumns: ["id"]
           },
         ]
