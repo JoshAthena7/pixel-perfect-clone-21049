@@ -135,18 +135,30 @@ export function OracleGraph({
       const nodeIds = new Set<string>();
       const addNode = (n: Node) => { if (!nodeIds.has(n.id)) { nodes.push(n); nodeIds.add(n.id); } };
 
+      // Track org id by normalized name so we can stitch people → org edges
+      // even when intel_relationships is empty (the common seed state).
+      const normalize = (s: string) =>
+        s.toLowerCase().replace(/\(.*?\)/g, "").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+      const orgIdByName = new Map<string, string>();
+      const peopleByOrgName: Array<{ personNodeId: string; orgName: string }> = [];
+
       (peopleRes.data ?? []).forEach((row: unknown) => {
         const r = row as { id: string; entity_id: string | null; name: string | null; role_type: string; title: string | null; organization: string | null; notes: string | null };
         const meta = r.entity_id ? entityNames.get(r.entity_id) : undefined;
         const id = r.entity_id ?? r.id;
         const label = meta?.name ?? r.name ?? r.title ?? "Person";
         addNode({ id, node_type: "person", label, description: r.notes ?? meta?.description ?? r.organization ?? null });
+        if (r.organization) peopleByOrgName.push({ personNodeId: id, orgName: normalize(r.organization) });
       });
       (orgsRes.data ?? []).forEach((row: unknown) => {
         const r = row as { id: string; entity_id: string | null; org_type: string; notes: string | null };
         const meta = r.entity_id ? entityNames.get(r.entity_id) : undefined;
         const id = r.entity_id ?? r.id;
         addNode({ id, node_type: r.org_type === "competitor" ? "competitor" : "organization", label: meta?.name ?? "Organization", description: r.notes ?? meta?.description ?? null });
+        if (meta?.name) {
+          const key = normalize(meta.name);
+          if (!orgIdByName.has(key)) orgIdByName.set(key, id);
+        }
       });
       (sourcesRes.data ?? []).forEach((row: unknown) => {
         const r = row as { id: string; entity_id: string | null; source_type: string; summary: string | null; url: string | null };
@@ -159,6 +171,28 @@ export function OracleGraph({
         const r = row as { id: string; from_entity_id: string; to_entity_id: string; confidence: string | null };
         return { id: r.id, source_node_id: r.from_entity_id, target_node_id: r.to_entity_id, is_confirmed: r.confidence !== "low" };
       }).filter((e) => nodeIds.has(e.source_node_id) && nodeIds.has(e.target_node_id));
+
+      // Synthesize person → organization edges from the person's free-text
+      // `organization` field, fuzzy-matched against known org names. This is
+      // what makes the graph actually look like a graph before anyone hand-
+      // curates intel_relationships.
+      const orgKeys = Array.from(orgIdByName.keys());
+      peopleByOrgName.forEach(({ personNodeId, orgName }, idx) => {
+        let orgId = orgIdByName.get(orgName);
+        if (!orgId) {
+          // substring match either direction
+          const hit = orgKeys.find((k) => k.includes(orgName) || orgName.includes(k));
+          if (hit) orgId = orgIdByName.get(hit);
+        }
+        if (orgId && orgId !== personNodeId && nodeIds.has(orgId)) {
+          edges.push({
+            id: `syn-person-org-${idx}`,
+            source_node_id: personNodeId,
+            target_node_id: orgId,
+            is_confirmed: true,
+          });
+        }
+      });
 
       // Fallback: if no entity-first graph yet, fall back to legacy nodes/edges so existing missions are not blank.
       if (nodes.length === 0) {
