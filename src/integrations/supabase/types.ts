@@ -6596,22 +6596,32 @@ export type Database = {
       }
       mission_questions: {
         Row: {
+          brief_notes: string | null
           created_at: string
           due_date: string | null
           evaluation_criteria: string | null
+          evaluation_weight: number | null
+          exhibit_description: string | null
           health_calculated_at: string | null
           health_status: string
           id: string
+          iris_brief: Json | null
+          iris_brief_generated_at: string | null
+          iris_brief_status: string
           iris_confidence: string | null
+          iris_decoded_intent: string | null
+          iris_evidence: Json | null
           iris_extracted: boolean | null
           iris_extracted_at: string | null
           iris_intel_note: string | null
           is_withdrawn: boolean
           mission_id: string
           page_limit: number | null
+          point_value: number | null
           question_number: string | null
           question_text: string | null
           relevant_feed_item_ids: Json
+          requires_exhibit: boolean
           reviewed_by_admin: boolean
           section_id: string | null
           status: string
@@ -6619,22 +6629,32 @@ export type Database = {
           word_limit: number | null
         }
         Insert: {
+          brief_notes?: string | null
           created_at?: string
           due_date?: string | null
           evaluation_criteria?: string | null
+          evaluation_weight?: number | null
+          exhibit_description?: string | null
           health_calculated_at?: string | null
           health_status?: string
           id?: string
+          iris_brief?: Json | null
+          iris_brief_generated_at?: string | null
+          iris_brief_status?: string
           iris_confidence?: string | null
+          iris_decoded_intent?: string | null
+          iris_evidence?: Json | null
           iris_extracted?: boolean | null
           iris_extracted_at?: string | null
           iris_intel_note?: string | null
           is_withdrawn?: boolean
           mission_id: string
           page_limit?: number | null
+          point_value?: number | null
           question_number?: string | null
           question_text?: string | null
           relevant_feed_item_ids?: Json
+          requires_exhibit?: boolean
           reviewed_by_admin?: boolean
           section_id?: string | null
           status?: string
@@ -6642,22 +6662,32 @@ export type Database = {
           word_limit?: number | null
         }
         Update: {
+          brief_notes?: string | null
           created_at?: string
           due_date?: string | null
           evaluation_criteria?: string | null
+          evaluation_weight?: number | null
+          exhibit_description?: string | null
           health_calculated_at?: string | null
           health_status?: string
           id?: string
+          iris_brief?: Json | null
+          iris_brief_generated_at?: string | null
+          iris_brief_status?: string
           iris_confidence?: string | null
+          iris_decoded_intent?: string | null
+          iris_evidence?: Json | null
           iris_extracted?: boolean | null
           iris_extracted_at?: string | null
           iris_intel_note?: string | null
           is_withdrawn?: boolean
           mission_id?: string
           page_limit?: number | null
+          point_value?: number | null
           question_number?: string | null
           question_text?: string | null
           relevant_feed_item_ids?: Json
+          requires_exhibit?: boolean
           reviewed_by_admin?: boolean
           section_id?: string | null
           status?: string
