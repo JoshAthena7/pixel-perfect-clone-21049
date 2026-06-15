@@ -176,10 +176,14 @@ export function QuestionCommand({ missionId }: { missionId: string }) {
         <AllQuestionsList
           questions={questions}
           onAssign={(q) => setAssignTarget(q)}
+          onGenerate={handleGenerateBrief}
+          onView={(q) => setBriefTarget(q)}
+          generatingId={generatingId}
         />
       ) : (
         <AddQuestionsPanel missionId={missionId} onAdded={() => refetchQ()} />
       )}
+
 
       {assignTarget && (
         <AssignDialog
