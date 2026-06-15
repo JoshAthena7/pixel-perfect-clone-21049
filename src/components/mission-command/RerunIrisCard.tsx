@@ -38,7 +38,7 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
     queryFn: async () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) return { show: false };
-      const [{ data: roles }, { data: mission }, { count }] = await Promise.all([
+      const [{ data: roles }, { data: mission }, { count: nodeCount }, { count: qCount }] = await Promise.all([
         supabase
           .from("user_roles")
           .select("role")
@@ -49,11 +49,15 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
           .from("intelligence_graph_nodes")
           .select("id", { count: "exact", head: true })
           .eq("mission_id", missionId),
+        supabase
+          .from("mission_questions")
+          .select("id", { count: "exact", head: true })
+          .eq("mission_id", missionId),
       ]);
       const isAdmin = (roles?.length ?? 0) > 0;
       const isActive = mission?.status === "active";
-      const noNodes = (count ?? 0) === 0;
-      return { show: isAdmin && isActive && noNodes };
+      const needsRun = (nodeCount ?? 0) === 0 || (qCount ?? 0) === 0;
+      return { show: isAdmin && isActive && needsRun };
     },
   });
 
