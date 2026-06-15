@@ -26,6 +26,7 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { QaLogTab } from "@/components/mission-command/QaLogTab";
+import { fireAssistEvent } from "@/lib/fireAssistEvent";
 
 
 export const Route = createFileRoute("/_authenticated/olympus/flight-deck")({
