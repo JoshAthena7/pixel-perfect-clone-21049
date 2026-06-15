@@ -81,7 +81,7 @@ export function IntelSources({ missionId }: { missionId: string }) {
       ) : (
         <div className="space-y-6">
           {SOURCE_GROUPS.map((g) => {
-            const items = sources.filter((s) => s.source_type === g.id);
+            const items = sources.filter((s) => groupIdFor(s.source_type) === g.id);
             if (!items.length) return null;
             return (
               <section key={g.id}>
