@@ -437,6 +437,7 @@ export function Step8Review({
         (assigns ?? []).forEach((a) => counts.set(a.assignee_id, (counts.get(a.assignee_id) ?? 0) + 1));
         const notifs = Array.from(counts.entries()).map(([recipient_id, n]) => ({
           recipient_id,
+          recipient_role: "writer",
           type: "assignment",
           message: `You have been assigned ${n} question${n === 1 ? "" : "s"} on ${missionName}. Open your Flight Deck to review your assignments.`,
           metadata: { mission_id: missionId, question_count: n },
