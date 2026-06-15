@@ -116,6 +116,13 @@ function BriefingPage() {
   );
 }
 
+function OracleCanvasSlot({ missionId }: { missionId: string }) {
+  const { data: access } = useMissionAccess(missionId);
+  const role = access?.role ?? null;
+  const canEdit = !!(access?.isAdmin || role === "founder" || role === "pm");
+  return <OracleCanvas missionId={missionId} canEdit={canEdit} />;
+}
+
 /* ───────────────── 1. Hero ───────────────── */
 function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
   const navigate = useNavigate();
