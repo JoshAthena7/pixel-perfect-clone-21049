@@ -288,6 +288,8 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
       >
         <LiveIntelBlock missionId={props.missionId} />
       </Section>
+
+      <NodeDetailDrawer node={selectedNode} onClose={() => setSelectedNode(null)} />
     </div>
   );
 }
