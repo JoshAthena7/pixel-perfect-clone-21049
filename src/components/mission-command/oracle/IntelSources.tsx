@@ -112,15 +112,32 @@ export function IntelSources({ missionId }: { missionId: string }) {
   );
 }
 
+function deriveTitle(source: any): string {
+  if (source.name) return source.name;
+  if (source.notes) return String(source.notes).slice(0, 80);
+  if (source.url) {
+    try {
+      const u = new URL(source.url);
+      const path = u.pathname.replace(/\/$/, "");
+      return path ? `${u.hostname}${path}` : u.hostname;
+    } catch {
+      return source.url;
+    }
+  }
+  if (source.file_path) return String(source.file_path).split("/").pop() || "Untitled";
+  return "Untitled";
+}
+
 function SourceCard({ source, accent }: { source: any; accent: string }) {
+  const title = deriveTitle(source);
   return (
     <div className="rounded-lg p-3" style={{ background: "rgba(5,13,24,0.5)", border: `1px solid ${accent}33`, borderLeftWidth: 3 }}>
       <div className="flex justify-between items-start gap-3">
         <div className="min-w-0 flex-1">
           <div className="text-sm text-white font-medium flex items-center gap-2">
-            {source.name || "Untitled"}
+            <span className="truncate">{title}</span>
             {source.url && (
-              <a href={source.url} target="_blank" rel="noreferrer" className="text-white/40 hover:text-white/70">
+              <a href={source.url} target="_blank" rel="noreferrer" className="text-white/40 hover:text-white/70 shrink-0">
                 <ExternalLink className="h-3 w-3" />
               </a>
             )}
