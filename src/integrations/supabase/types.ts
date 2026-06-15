@@ -5842,6 +5842,62 @@ export type Database = {
           },
         ]
       }
+      mission_ecosystem_nodes: {
+        Row: {
+          confidence: number
+          coverage_pct: number
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          last_activity_at: string | null
+          mission_id: string
+          node_type: string
+          signal_count: number
+          status: string
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          confidence?: number
+          coverage_pct?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          last_activity_at?: string | null
+          mission_id: string
+          node_type: string
+          signal_count?: number
+          status?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          confidence?: number
+          coverage_pct?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          last_activity_at?: string | null
+          mission_id?: string
+          node_type?: string
+          signal_count?: number
+          status?: string
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_ecosystem_nodes_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_evaluation_criteria: {
         Row: {
           category: string
@@ -6047,6 +6103,59 @@ export type Database = {
           mission_id?: string
         }
         Relationships: []
+      }
+      mission_intelligence_health: {
+        Row: {
+          competitive_visibility_pct: number
+          created_at: string
+          id: string
+          iris_status: string
+          last_scan_at: string | null
+          last_signal_at: string | null
+          mission_id: string
+          overall_confidence: number
+          policy_visibility_pct: number
+          source_coverage_pct: number
+          stakeholder_visibility_pct: number
+          updated_at: string
+        }
+        Insert: {
+          competitive_visibility_pct?: number
+          created_at?: string
+          id?: string
+          iris_status?: string
+          last_scan_at?: string | null
+          last_signal_at?: string | null
+          mission_id: string
+          overall_confidence?: number
+          policy_visibility_pct?: number
+          source_coverage_pct?: number
+          stakeholder_visibility_pct?: number
+          updated_at?: string
+        }
+        Update: {
+          competitive_visibility_pct?: number
+          created_at?: string
+          id?: string
+          iris_status?: string
+          last_scan_at?: string | null
+          last_signal_at?: string | null
+          mission_id?: string
+          overall_confidence?: number
+          policy_visibility_pct?: number
+          source_coverage_pct?: number
+          stakeholder_visibility_pct?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_intelligence_health_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mission_intelligence_scores: {
         Row: {
