@@ -582,6 +582,71 @@ export function Step8Review({
         </div>
       )}
 
+      {/* IRIS Pre-Launch Checklist */}
+      <div className="mt-8">
+        <div className="mb-3">
+          <h3 className="text-[12px] uppercase tracking-[0.14em] text-white/60 font-semibold">IRIS Pre-Launch Checklist</h3>
+          <p className="text-[12px] text-white/45 mt-0.5">Every item must be green before BLAST OFF.</p>
+        </div>
+
+        {checklistLoading || !checklist ? (
+          <div className="space-y-2">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <div key={i} className="h-12 rounded-md bg-white/[0.03] border border-white/5 animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <>
+            <div
+              className={`mb-3 rounded-lg p-3 border ${
+                allChecksPass
+                  ? "border-amber-300/50 bg-emerald-400/[0.06]"
+                  : "border-amber-400/30 bg-amber-400/[0.05]"
+              }`}
+              style={allChecksPass ? { boxShadow: "0 0 0 1px rgba(196,154,43,0.25)" } : undefined}
+            >
+              {allChecksPass ? (
+                <p className="text-[13px] text-emerald-200 font-medium">
+                  ✅ Mission is ready for BLAST OFF. All systems go.
+                </p>
+              ) : (
+                <p className="text-[13px] text-amber-100">
+                  ⚠ {failedCount} item{failedCount === 1 ? "" : "s"} need attention before BLAST OFF.
+                </p>
+              )}
+            </div>
+
+            <ul className="space-y-1.5">
+              {checklist.map((c, i) => (
+                <li
+                  key={i}
+                  className="flex items-start gap-3 rounded-md border border-white/[0.06] bg-white/[0.02] px-3 py-2.5"
+                >
+                  {c.ok ? (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-[13px] ${c.ok ? "text-white" : "text-white/85"}`}>
+                      {c.ok ? c.pass : c.fail}
+                    </p>
+                  </div>
+                  {!c.ok && (
+                    <button
+                      onClick={() => onJump(c.step)}
+                      className="text-[12px] text-amber-200 hover:text-white font-medium shrink-0"
+                    >
+                      Fix →
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+
       {error && <div className="mt-4 text-[13px] text-red-400">{error}</div>}
 
       <div className="mt-8 pt-6 flex items-center justify-between" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
@@ -593,12 +658,18 @@ export function Step8Review({
             setError(null);
             setShowLaunch(true);
           }}
-          disabled={launching || showLaunch}
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-md text-[14px] font-medium disabled:opacity-50"
-          style={{ background: "#C49A2B", color: "#0D1B3E" }}
+          disabled={launching || showLaunch || !allChecksPass}
+          title={!allChecksPass ? "Fix the items above to enable BLAST OFF" : undefined}
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-md text-[14px] font-medium disabled:cursor-not-allowed"
+          style={{
+            background: "#C49A2B",
+            color: "#0D1B3E",
+            opacity: !allChecksPass ? 0.4 : launching || showLaunch ? 0.5 : 1,
+            boxShadow: allChecksPass && !launching && !showLaunch ? "0 0 24px rgba(196,154,43,0.45)" : undefined,
+          }}
         >
           <Rocket className="h-4 w-4" />
-          Launch Mission
+          {allChecksPass ? "BLAST OFF 🚀" : "Complete checklist to launch"}
         </button>
       </div>
 
