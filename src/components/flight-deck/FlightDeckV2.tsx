@@ -130,10 +130,11 @@ export function FlightDeckV2({ missionId }: Props) {
         isAdmin: !!(prof as any)?.is_platform_admin,
       };
     },
-    staleTime: 60_000,
+    staleTime: 0,
   });
   const role = (myRole?.role ?? "").toLowerCase();
   const isLeader = !!myRole?.isAdmin || role === "founder" || role === "pm";
+  console.log("isLeader", isLeader, myRole);
 
   return (
     <div className="space-y-12">
