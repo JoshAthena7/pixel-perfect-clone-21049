@@ -131,12 +131,19 @@ function SourceCard({ source, accent }: { source: any; accent: string }) {
             {source.published_at && <span>{source.published_at}</span>}
           </div>
         </div>
-        {source.credibility_score && (
-          <div style={{ fontSize: 10, color: GOLD }}>
-            {"★".repeat(source.credibility_score)}
-            <span style={{ color: "rgba(255,255,255,0.2)" }}>{"★".repeat(5 - source.credibility_score)}</span>
-          </div>
-        )}
+        {source.credibility_score != null && (() => {
+          // credibility_score is stored on a 0–100 scale. Convert to a 0–5 star
+          // count and clamp — otherwise String.repeat throws RangeError on
+          // values outside [0, ∞), which crashes the whole route.
+          const raw = Number(source.credibility_score);
+          const stars = Math.max(0, Math.min(5, Math.round((raw > 5 ? raw / 20 : raw))));
+          return (
+            <div style={{ fontSize: 10, color: GOLD }}>
+              {"★".repeat(stars)}
+              <span style={{ color: "rgba(255,255,255,0.2)" }}>{"★".repeat(5 - stars)}</span>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
