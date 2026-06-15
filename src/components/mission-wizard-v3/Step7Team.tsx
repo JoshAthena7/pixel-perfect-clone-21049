@@ -410,6 +410,7 @@ function AssignmentsSubStep({
   const [bulkWriter, setBulkWriter] = useState<string>("");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [confirmClear, setConfirmClear] = useState(false);
+  const [extracting, setExtracting] = useState(false);
 
   const questionsKey = ["wizard-assign-questions", missionId] as const;
   const sectionsKey = ["wizard-assign-sections", missionId] as const;
