@@ -6,11 +6,13 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Check, Edit2, Loader2, Rocket, AlertCircle, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import { triggerLaunchBrief } from "@/lib/iris-launch-brief.functions";
 import { enrichMissionWithPerplexity } from "@/lib/iris/perplexity-enrich.functions";
-import { WIZARD_STEPS, WizardStepHeading, WizardFooter } from "./WizardShellV3";
+import { loadStaged, clearStaged } from "@/lib/oracle/wizard-stage";
+import { WizardStepHeading } from "./WizardShellV3";
 import { LaunchSequence } from "./LaunchSequence";
 
 const STEP_FIELD_GROUPS: Record<number, { title: string; keys: string[] }> = {
