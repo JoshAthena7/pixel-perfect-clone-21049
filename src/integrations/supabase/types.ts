@@ -5647,10 +5647,12 @@ export type Database = {
           amendment_processed_at: string | null
           content_summary: string | null
           created_at: string
+          document_purpose: string
           document_type: string
           file_url: string | null
           id: string
           is_amendment: boolean
+          is_style_guide: boolean
           metadata: Json
           mission_id: string
           section_tags: string[]
@@ -5663,10 +5665,12 @@ export type Database = {
           amendment_processed_at?: string | null
           content_summary?: string | null
           created_at?: string
+          document_purpose?: string
           document_type: string
           file_url?: string | null
           id?: string
           is_amendment?: boolean
+          is_style_guide?: boolean
           metadata?: Json
           mission_id: string
           section_tags?: string[]
@@ -5679,10 +5683,12 @@ export type Database = {
           amendment_processed_at?: string | null
           content_summary?: string | null
           created_at?: string
+          document_purpose?: string
           document_type?: string
           file_url?: string | null
           id?: string
           is_amendment?: boolean
+          is_style_guide?: boolean
           metadata?: Json
           mission_id?: string
           section_tags?: string[]

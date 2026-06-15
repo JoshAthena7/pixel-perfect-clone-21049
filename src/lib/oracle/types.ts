@@ -350,3 +350,17 @@ export interface OracleWizardStaged {
   signal_threshold?: number;
   monitoring_mode?: OracleMonitoringMode;
 }
+
+// Document purpose taxonomy — added Phase 1b
+export type DocumentPurpose =
+  | 'procurement'
+  | 'competitive_intel'
+  | 'writing_standards'
+  | 'client_strategy'
+  | 'reference';
+
+// Extended mission document type reflecting Phase 1b columns
+export type MissionDocumentPurpose = {
+  document_purpose: DocumentPurpose;
+  is_style_guide: boolean;
+};
