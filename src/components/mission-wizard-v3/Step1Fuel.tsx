@@ -45,6 +45,25 @@ const BASICS_FIELDS = [
   { key: "submission_method", label: "Submission Method" },
 ];
 
+import type { DocumentPurpose } from "@/lib/oracle/types";
+
+const PURPOSE_OPTIONS: { value: DocumentPurpose; label: string; desc: string }[] = [
+  { value: "procurement", label: "Procurement", desc: "IRIS extracts requirements, evaluation criteria, and compliance obligations." },
+  { value: "competitive_intel", label: "Comp Intel", desc: "IRIS maps incumbent advantages and prior win patterns." },
+  { value: "writing_standards", label: "Writing Guide", desc: "IRIS conditions all content generation on this voice and tone." },
+  { value: "client_strategy", label: "Client Strategy", desc: "IRIS extracts client-stated priorities as high-authority inputs." },
+  { value: "reference", label: "Reference", desc: "IRIS uses for background context only." },
+];
+
+function guessPurpose(name: string): DocumentPurpose {
+  const n = name.toLowerCase();
+  if (/rfp|rfq|solicitation|amendment|sow|contract/.test(n)) return "procurement";
+  if (/style|guide|voice|tone|brand|writing/.test(n)) return "writing_standards";
+  if (/strategy|overview|deck|brief|positioning/.test(n)) return "client_strategy";
+  if (/incumbent|prior|former|response|competitor/.test(n)) return "competitive_intel";
+  return "reference";
+}
+
 type Row = {
   uid: string;
   name: string;
@@ -53,6 +72,8 @@ type Row = {
   status: "queued" | "uploading" | "done" | "error";
   documentId?: string;
   error?: string;
+  purpose?: DocumentPurpose;
+  isStyleGuide?: boolean;
 };
 
 async function extractTextFromBlob(blob: Blob, fileName: string): Promise<string> {
