@@ -408,6 +408,47 @@ export function Step8Review({
       } catch (e) {
         console.error("[perplexity-enrich] trigger error", e);
       }
+
+      // Seed question health to 'healthy' — health engine recomputes on first Flight Deck load.
+      try {
+        await supabase
+          .from("mission_questions")
+          .update({ health_status: "healthy", health_calculated_at: new Date().toISOString() })
+          .eq("mission_id", missionId);
+      } catch (e) {
+        console.error("[health-seed] failed — non-blocking:", e);
+      }
+
+      // Notify each assigned writer (grouped) about their assignments.
+      try {
+        const { data: assigns } = await supabase
+          .from("question_progress")
+          .select("assignee_id")
+          .eq("mission_id", missionId)
+          .eq("role", "lead_writer")
+          .eq("acceptance_status", "pending");
+        const { data: missionRow } = await supabase
+          .from("missions")
+          .select("name")
+          .eq("id", missionId)
+          .maybeSingle();
+        const missionName = missionRow?.name ?? "your mission";
+        const counts = new Map<string, number>();
+        (assigns ?? []).forEach((a) => counts.set(a.assignee_id, (counts.get(a.assignee_id) ?? 0) + 1));
+        const notifs = Array.from(counts.entries()).map(([recipient_id, n]) => ({
+          recipient_id,
+          type: "assignment",
+          message: `You have been assigned ${n} question${n === 1 ? "" : "s"} on ${missionName}. Open your Flight Deck to review your assignments.`,
+          metadata: { mission_id: missionId, question_count: n },
+        }));
+        if (notifs.length) {
+          const { error: notifErr } = await supabase.from("atlas_notifications").insert(notifs);
+          if (notifErr) console.error("[notify-writers] insert failed — non-blocking:", notifErr.message);
+        }
+      } catch (e) {
+        console.error("[notify-writers] failed — non-blocking:", e);
+      }
+
       qc.invalidateQueries({ queryKey: ["mission-meta", missionId] });
     } catch (e) {
       const msg = errorMessage(e);
