@@ -8062,6 +8062,7 @@ export type Database = {
       }
       oracle_engagement_config: {
         Row: {
+          competitors: Json
           created_at: string
           id: string
           mission_id: string
@@ -8074,6 +8075,7 @@ export type Database = {
           win_themes: Json
         }
         Insert: {
+          competitors?: Json
           created_at?: string
           id?: string
           mission_id: string
@@ -8086,6 +8088,7 @@ export type Database = {
           win_themes?: Json
         }
         Update: {
+          competitors?: Json
           created_at?: string
           id?: string
           mission_id?: string

@@ -1,0 +1,1 @@
+ALTER TABLE public.oracle_engagement_config ADD COLUMN IF NOT EXISTS competitors jsonb NOT NULL DEFAULT '[]'::jsonb;
