@@ -38,7 +38,7 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
     queryFn: async () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) return { show: false };
-      const [{ data: roles }, { data: mission }, { count }] = await Promise.all([
+      const [{ data: roles }, { data: mission }, { count: nodeCount }, { count: qCount }] = await Promise.all([
         supabase
           .from("user_roles")
           .select("role")
@@ -49,11 +49,15 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
           .from("intelligence_graph_nodes")
           .select("id", { count: "exact", head: true })
           .eq("mission_id", missionId),
+        supabase
+          .from("mission_questions")
+          .select("id", { count: "exact", head: true })
+          .eq("mission_id", missionId),
       ]);
       const isAdmin = (roles?.length ?? 0) > 0;
       const isActive = mission?.status === "active";
-      const noNodes = (count ?? 0) === 0;
-      return { show: isAdmin && isActive && noNodes };
+      const needsRun = (nodeCount ?? 0) === 0 || (qCount ?? 0) === 0;
+      return { show: isAdmin && isActive && needsRun };
     },
   });
 
@@ -196,10 +200,11 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
         <div className="flex items-start gap-3">
           <Sparkles className="h-5 w-5 mt-0.5 shrink-0" />
           <div>
-            <p className="text-[14px] font-semibold">IRIS hasn't processed this mission yet</p>
+            <p className="text-[14px] font-semibold">IRIS hasn't fully processed this mission yet</p>
             <p className="text-[12.5px] opacity-80 mt-0.5">
-              No intelligence nodes detected. Run IRIS now to extract questions, build the
-              Mission Intelligence Graph, and generate question briefs.
+              Questions and/or intelligence nodes are missing. Run IRIS now to extract
+              questions from your RFP, build the Mission Intelligence Graph, and generate
+              question briefs.
             </p>
           </div>
         </div>
