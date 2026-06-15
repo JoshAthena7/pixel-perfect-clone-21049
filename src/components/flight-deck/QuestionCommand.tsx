@@ -233,9 +233,15 @@ function Stat({ label, value, color }: { label: string; value: number; color: st
 function AllQuestionsList({
   questions,
   onAssign,
+  onGenerate,
+  onView,
+  generatingId,
 }: {
   questions: QuestionRow[];
   onAssign: (q: QuestionRow) => void;
+  onGenerate: (q: QuestionRow) => void;
+  onView: (q: QuestionRow) => void;
+  generatingId: string | null;
 }) {
   if (questions.length === 0) {
     return (
@@ -255,9 +261,17 @@ function AllQuestionsList({
   return (
     <div className="space-y-2">
       {questions.map((q) => (
-        <QuestionRowItem key={q.id} q={q} onAssign={() => onAssign(q)} />
+        <QuestionRowItem
+          key={q.id}
+          q={q}
+          onAssign={() => onAssign(q)}
+          onGenerate={() => onGenerate(q)}
+          onView={() => onView(q)}
+          isGenerating={generatingId === q.id}
+        />
       ))}
     </div>
+
   );
 }
 
