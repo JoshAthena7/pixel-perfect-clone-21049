@@ -821,6 +821,9 @@ function AcceptanceCard({
       .from("mission_assignments")
       .update({ acceptance_status: "need_help", acceptance_responded_at: new Date().toISOString() })
       .eq("id", assignment.id);
+    void fireAssistEvent(assignment.mission_id, question.id, null, "status_updated", {
+      acceptance_status: "need_help",
+    });
     await notifyLead(
       "sme_needed",
       `${writerName || "A writer"} needs SME support on ${question.question_number} for ${missionName}. Please assign a supporting SME.`,
