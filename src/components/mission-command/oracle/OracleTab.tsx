@@ -32,6 +32,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
   const { isAdmin } = useIsAdmin();
   const [active, setActive] = useState<TabId>("feed");
   const [visited, setVisited] = useState<Set<TabId>>(new Set(["feed"]));
+  const [selectedEcosystemNode, setSelectedEcosystemNode] = useState<any | null>(null);
 
   useEffect(() => {
     const apply = () => {
