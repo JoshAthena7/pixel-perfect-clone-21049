@@ -992,23 +992,34 @@ function DailyPulse({ missionId }: { missionId: string }) {
     { key: "blocked", emoji: "🚩", label: "Blocked", color: RED },
   ];
 
-  const toScore = (a: PulseAnswer | null) =>
-    a === "confident" ? 80 : a === "uncertain" ? 50 : a === "blocked" ? 10 : 50;
+  // progress is constrained to 1-4, confidence to 1-5 in the DB.
+  const toProgress = (a: PulseAnswer | null) =>
+    a === "confident" ? 4 : a === "uncertain" ? 3 : a === "blocked" ? 1 : 2;
+  const toConfidence = (a: PulseAnswer | null) =>
+    a === "confident" ? 5 : a === "uncertain" ? 3 : a === "blocked" ? 1 : 3;
+  const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
   const submit = async () => {
     if (!userId || !answers.work || !answers.mission || !answers.team) return;
     setSubmitting(true);
     try {
-      const overall = Math.round(
-        (toScore(answers.work) + toScore(answers.mission) + toScore(answers.team)) / 3,
+      const progress = clamp(
+        Math.round((toProgress(answers.work) + toProgress(answers.mission) + toProgress(answers.team)) / 3),
+        1,
+        4,
+      );
+      const confidence = clamp(
+        Math.round((toConfidence(answers.work) + toConfidence(answers.mission) + toConfidence(answers.team)) / 3),
+        1,
+        5,
       );
       const blocked = answers.work === "blocked" || answers.mission === "blocked" || answers.team === "blocked";
       const { error } = await supabase.from("question_pulses").insert({
         mission_id: missionId,
         question_id: null,
         writer_auth_user_id: userId,
-        progress: overall,
-        confidence: overall,
+        progress,
+        confidence,
         blocked,
         hedging_score: 0,
         submitted_at: new Date().toISOString(),
