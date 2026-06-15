@@ -62,6 +62,10 @@ const statusMeta: Record<string, { label: string; color: string }> = {
 export function QuestionCommand({ missionId }: { missionId: string }) {
   const [tab, setTab] = useState<"all" | "add">("all");
   const [assignTarget, setAssignTarget] = useState<QuestionRow | null>(null);
+  const [generatingId, setGeneratingId] = useState<string | null>(null);
+  const [briefTarget, setBriefTarget] = useState<QuestionRow | null>(null);
+  const generateBrief = useServerFn(generateIrisBrief);
+
 
   const { data: questions = [], refetch: refetchQ } = useQuery({
     queryKey: ["qc-questions", missionId],
