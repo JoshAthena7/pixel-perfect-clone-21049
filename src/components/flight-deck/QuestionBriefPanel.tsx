@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ChevronDown, ChevronRight, Sparkles, RefreshCw, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { generateQuestionBrief, type QuestionBriefBody } from "@/lib/iris-brief.functions";
+import { fireAssistEvent } from "@/lib/fireAssistEvent";
 
 type Props = {
   missionId: string;
@@ -39,6 +40,16 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
       return (data as unknown as BriefRow) ?? null;
     },
   });
+
+  // Fire brief_opened once per mount when a brief exists and the panel is open.
+  const firedRef = useRef(false);
+  useEffect(() => {
+    if (!open || !data?.id || firedRef.current) return;
+    firedRef.current = true;
+    void fireAssistEvent(missionId, questionId, null, "brief_opened", {
+      brief_id: data.id,
+    });
+  }, [open, data?.id, missionId, questionId]);
 
   const genMutation = useMutation({
     mutationFn: async () => {

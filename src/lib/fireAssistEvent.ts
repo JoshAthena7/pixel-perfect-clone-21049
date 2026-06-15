@@ -30,14 +30,23 @@ export type AssistEventType =
 export async function fireAssistEvent(
   missionId: string,
   questionId: string | null,
-  userId: string,
+  userId: string | null,
   eventType: AssistEventType,
   metadata: Record<string, unknown> = {},
 ): Promise<void> {
+  let uid = userId;
+  if (!uid) {
+    const { data } = await supabase.auth.getUser();
+    uid = data.user?.id ?? null;
+  }
+  if (!uid) {
+    console.warn("[fireAssistEvent] skipped — no user", eventType);
+    return;
+  }
   const { error } = await supabase.from("mission_assist_events").insert({
     mission_id: missionId,
     question_id: questionId,
-    user_id: userId,
+    user_id: uid,
     event_type: eventType,
     metadata: metadata as any,
   });

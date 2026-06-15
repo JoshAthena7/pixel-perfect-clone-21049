@@ -4,6 +4,7 @@ import { AlertTriangle, CheckCircle2, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { raiseSOS, type SosSeverity } from "@/lib/sos.functions";
 import { toast } from "sonner";
+import { fireAssistEvent } from "@/lib/fireAssistEvent";
 
 type Props = {
   open: boolean;
@@ -74,6 +75,13 @@ export function SOSDialog({ open, onOpenChange, missionId, questionId, questionN
         },
       });
       setDone({ ack: res.irisAcknowledgment });
+      void fireAssistEvent(
+        missionId,
+        attachToQuestion && questionId ? questionId : null,
+        null,
+        "sos_raised",
+        { severity },
+      );
       if (severity === "at_risk" || severity === "blocked") {
         onSubmitted?.();
       }

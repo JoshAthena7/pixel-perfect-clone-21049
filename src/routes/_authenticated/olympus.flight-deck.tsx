@@ -26,6 +26,7 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { QaLogTab } from "@/components/mission-command/QaLogTab";
+import { fireAssistEvent } from "@/lib/fireAssistEvent";
 
 
 export const Route = createFileRoute("/_authenticated/olympus/flight-deck")({
@@ -795,6 +796,9 @@ function AcceptanceCard({
       .from("mission_assignments")
       .update({ acceptance_status: "accepted", acceptance_responded_at: new Date().toISOString() })
       .eq("id", assignment.id);
+    void fireAssistEvent(assignment.mission_id, question.id, null, "status_updated", {
+      acceptance_status: "accepted",
+    });
     setPhase("confidence");
     setSubmitting(false);
   };
@@ -817,6 +821,9 @@ function AcceptanceCard({
       .from("mission_assignments")
       .update({ acceptance_status: "need_help", acceptance_responded_at: new Date().toISOString() })
       .eq("id", assignment.id);
+    void fireAssistEvent(assignment.mission_id, question.id, null, "status_updated", {
+      acceptance_status: "need_help",
+    });
     await notifyLead(
       "sme_needed",
       `${writerName || "A writer"} needs SME support on ${question.question_number} for ${missionName}. Please assign a supporting SME.`,
@@ -834,6 +841,9 @@ function AcceptanceCard({
       .from("mission_assignments")
       .update({ acceptance_status: "capacity_concern", acceptance_responded_at: new Date().toISOString() })
       .eq("id", assignment.id);
+    void fireAssistEvent(assignment.mission_id, question.id, null, "status_updated", {
+      acceptance_status: "capacity_concern",
+    });
     await notifyLead(
       "capacity_concern",
       `${writerName || "A writer"} has flagged a capacity concern on ${question.question_number} for ${missionName}: ${concern.trim()}. Please review.`,
