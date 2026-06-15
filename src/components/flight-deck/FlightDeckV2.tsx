@@ -108,33 +108,48 @@ export function FlightDeckV2({ missionId }: Props) {
 
   const { data: myRole } = useQuery({
     queryKey: ["fd-my-role", missionId],
+    staleTime: 0,
     queryFn: async () => {
       const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return { role: null as string | null, isAdmin: false };
+      if (!u.user) return { isAdmin: false, role: null as string | null };
+
       const memberId = await fetchMyAtlasMemberId();
-      const { data: mtm } = memberId
-        ? await supabase
-            .from("mission_team_members")
-            .select("mission_role")
-            .eq("mission_id", missionId)
-            .eq("member_id", memberId)
-            .maybeSingle()
-        : { data: null as any };
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("is_platform_admin")
-        .eq("id", u.user.id)
-        .maybeSingle();
-      return {
-        role: ((mtm as any)?.mission_role ?? null) as string | null,
-        isAdmin: !!(prof as any)?.is_platform_admin,
-      };
+      const [{ data: prof }, { data: roleRow }, { data: mtm }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("is_platform_admin")
+          .eq("id", u.user.id)
+          .maybeSingle(),
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", u.user.id)
+          .eq("role", "admin")
+          .maybeSingle(),
+        memberId
+          ? supabase
+              .from("mission_team_members")
+              .select("mission_role")
+              .eq("mission_id", missionId)
+              .eq("member_id", memberId)
+              .maybeSingle()
+          : Promise.resolve({ data: null as any }),
+      ]);
+
+      const isAdmin =
+        (prof as any)?.is_platform_admin === true || !!(roleRow as any)?.role;
+      const role = ((mtm as any)?.mission_role ?? null) as string | null;
+      return { isAdmin, role };
     },
-    staleTime: 0,
   });
   const role = (myRole?.role ?? "").toLowerCase();
-  const isLeader = !!myRole?.isAdmin || role === "founder" || role === "pm";
+  const isLeader =
+    myRole?.isAdmin === true ||
+    role === "founder" ||
+    role === "pm" ||
+    role === "engagement_lead";
   console.log("isLeader", isLeader, myRole);
+
 
   return (
     <div className="space-y-12">
