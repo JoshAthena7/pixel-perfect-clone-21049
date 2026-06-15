@@ -94,6 +94,9 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   const [firstName, setFirstName] = useState<string>("");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [briefOpenFor, setBriefOpenFor] = useState<Q | null>(null);
+  const [scoreMeFor, setScoreMeFor] = useState<Q | null>(null);
+  const [pulseOpen, setPulseOpen] = useState(false);
+  const [checkInFor, setCheckInFor] = useState<Q | null>(null);
   const updateStatus = useServerFn(updateProgressStatus);
 
   useEffect(() => {
