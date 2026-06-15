@@ -100,23 +100,6 @@ function isAllowedForNonAdmin(path: string): boolean {
 
 function AuthenticatedLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-
-  // Mission setup wizard is a full-page experience — no nav chrome.
-  const isWizard =
-    path === "/olympus/missions/new" ||
-    /^\/olympus\/missions\/[^/]+\/wizard$/.test(path) ||
-    /^\/olympus\/wizard\/[^/]+$/.test(path);
-  // Hide nav chrome (sidebar + global bar) for onboarding/welcome surfaces.
-  const isChromeless =
-    isWizard ||
-    path === "/welcome" ||
-    path === "/onboarding" ||
-    path.startsWith("/welcome/") ||
-    path.startsWith("/onboarding/");
-  if (isChromeless) {
-    return <Outlet />;
-  }
-
   const { isAdmin } = Route.useRouteContext();
   const navigate = useNavigate();
 
@@ -153,6 +136,23 @@ function AuthenticatedLayout() {
       navigate({ to: "/portfolio", replace: true });
     }
   }, [homeInfo, path, navigate, isAdmin]);
+
+  // Mission setup wizard is a full-page experience — no nav chrome.
+  const isWizard =
+    path === "/olympus/missions/new" ||
+    /^\/olympus\/missions\/[^/]+\/wizard$/.test(path) ||
+    /^\/olympus\/wizard\/[^/]+$/.test(path);
+  // Hide nav chrome (sidebar + global bar) for onboarding/welcome surfaces.
+  const isChromeless =
+    isWizard ||
+    path === "/welcome" ||
+    path === "/onboarding" ||
+    path.startsWith("/welcome/") ||
+    path.startsWith("/onboarding/");
+  if (isChromeless) {
+    return <Outlet />;
+  }
+
 
   const shell = <AuthedShell email={email} isAdmin={isAdmin} />;
 
