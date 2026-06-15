@@ -143,8 +143,12 @@ export function FlightDeckV2({ missionId }: Props) {
     },
   });
   const role = (myRole?.role ?? "").toLowerCase();
-  const isLeader = true; // TEMP: remove before production
-  console.log("isLeader", isLeader, myRole);
+  const isLeader =
+    myRole?.isAdmin === true ||
+    role === "founder" ||
+    role === "pm" ||
+    role === "engagement_lead";
+
 
 
 
