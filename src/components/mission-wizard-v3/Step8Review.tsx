@@ -168,6 +168,81 @@ export function Step8Review({
 
       const { error: upErr } = await supabase.from("missions").update(updates).eq("id", missionId);
       if (upErr) throw upErr;
+
+      // ORACLE V1 — fire-and-forget config + belief seeding. Never blocks launch.
+      try {
+        const staged = loadStaged(missionId);
+        const winThemes = staged.win_themes ?? [];
+        const topRisks = staged.top_risks ?? [];
+        const competitorList = staged.competitors ?? [];
+        const monitoringMode = staged.monitoring_mode ?? "balanced";
+        const signalThreshold = staged.signal_threshold ?? 40;
+        const ns = staged.north_star ?? null;
+
+        const { error: configError } = await supabase.from("oracle_engagement_config").insert({
+          mission_id: missionId,
+          north_star: ns,
+          win_themes: winThemes as never,
+          top_risks: topRisks as never,
+          competitors: competitorList as never,
+          signal_threshold: signalThreshold,
+          monitoring_mode: monitoringMode,
+          status: "active",
+        });
+
+        if (configError) {
+          console.error("ORACLE config creation failed — non-blocking:", configError.message);
+        } else {
+          const beliefInserts = [
+            ...winThemes
+              .filter((t) => t.status === "confirmed")
+              .map((t) => ({
+                mission_id: missionId,
+                belief_text: t.text,
+                belief_type: "win_theme" as const,
+                confidence: t.confidence,
+                status: "active" as const,
+              })),
+            ...topRisks
+              .filter((r) => r.status === "confirmed")
+              .map((r) => ({
+                mission_id: missionId,
+                belief_text: r.text,
+                belief_type: "risk" as const,
+                confidence: r.confidence,
+                status: "active" as const,
+              })),
+            ...(ns
+              ? [
+                  {
+                    mission_id: missionId,
+                    belief_text: ns,
+                    belief_type: "assumption" as const,
+                    confidence: 100,
+                    status: "active" as const,
+                  },
+                ]
+              : []),
+          ];
+          if (beliefInserts.length) {
+            const { error: beliefError } = await supabase.from("oracle_beliefs").insert(beliefInserts);
+            if (beliefError) {
+              console.error("ORACLE belief seeding failed — non-blocking:", beliefError.message);
+            }
+          }
+          const parts = [
+            `${competitorList.length} competitor${competitorList.length === 1 ? "" : "s"}`,
+            `${winThemes.length} win theme${winThemes.length === 1 ? "" : "s"}`,
+          ];
+          if (ns) parts.push("1 North Star");
+          toast.success(`ORACLE is active. Monitoring 6 categories across ${parts.join(", ")}.`);
+          clearStaged(missionId);
+        }
+        // TODO: ORACLE V2 — wire sos_alerts writer signals into oracle signal review queue
+      } catch (oracleErr) {
+        console.error("ORACLE seeding threw — non-blocking:", oracleErr);
+      }
+
       // Fire-and-forget IRIS historical launch brief generation.
       try {
         void triggerLaunchBrief({ data: { missionId } });
