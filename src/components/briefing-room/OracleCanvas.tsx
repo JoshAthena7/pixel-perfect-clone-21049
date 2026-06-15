@@ -1,0 +1,585 @@
+// ORACLE Canvas — persistent living strategy surface.
+// Sources from oracle_engagement_config.
+// Leaders (founder/pm) can read and write.
+// Writers and viewers see read-only content only.
+// No edit controls rendered for non-editors — not greyed out, absent entirely.
+//
+// TODO: ORACLE V2 — wire approved oracle_signals into this canvas
+// so high-confidence signals can be promoted to win themes or risks
+// by leadership without leaving the Briefing Room.
+
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
+import { toast } from "sonner";
+import {
+  Star,
+  Diamond,
+  Sparkles,
+  Pencil,
+  X,
+  Plus,
+  ShieldAlert,
+  Eye,
+  Activity,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+const GOLD = "#C49A2B";
+const MUTED = "rgba(255,255,255,0.55)";
+const CARD_BG = "rgba(255,255,255,0.04)";
+const CARD_BORDER = "rgba(255,255,255,0.08)";
+
+type SignalAuthority = "client_stated" | "team_validated" | "iris_suggested";
+
+interface TaggedItem {
+  id: string;
+  text: string;
+  signal_authority: SignalAuthority;
+  rfp_reference: string | null;
+  confidence: number;
+  status: string;
+}
+
+interface OracleConfig {
+  north_star: string | null;
+  win_themes: TaggedItem[] | null;
+  top_risks: TaggedItem[] | null;
+  competitors: string[] | null;
+  monitoring_mode: "conservative" | "balanced" | "aggressive" | null;
+  signal_threshold: number | null;
+  status: "draft" | "active" | "paused" | "archived" | null;
+}
+
+function AuthorityIcon({ authority }: { authority: SignalAuthority }) {
+  if (authority === "client_stated") return <Star size={12} fill={GOLD} color={GOLD} />;
+  if (authority === "team_validated") return <Diamond size={12} color={GOLD} />;
+  return <Sparkles size={12} color={MUTED} />;
+}
+
+function Section({
+  title,
+  icon,
+  children,
+}: {
+  title: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="rounded-xl p-4"
+      style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}
+    >
+      <div
+        className="flex items-center gap-2 mb-3"
+        style={{
+          color: GOLD,
+          fontSize: 10,
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          fontWeight: 600,
+        }}
+      >
+        {icon}
+        {title}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+export function OracleCanvas({
+  missionId,
+  canEdit,
+}: {
+  missionId: string;
+  canEdit: boolean;
+}) {
+  const { data: oracleConfig, refetch } = useQuery({
+    queryKey: ["oracle-canvas", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("oracle_engagement_config")
+        .select(
+          "north_star, win_themes, top_risks, competitors, monitoring_mode, signal_threshold, status",
+        )
+        .eq("mission_id", missionId)
+        .maybeSingle();
+      return (data as unknown as OracleConfig) ?? null;
+    },
+    staleTime: 30_000,
+  });
+
+  if (!oracleConfig) {
+    if (!canEdit) return null;
+    return (
+      <div
+        className="rounded-xl p-4 flex items-center justify-between"
+        style={{
+          background: "rgba(196,154,43,0.05)",
+          border: `1px solid rgba(196,154,43,0.35)`,
+        }}
+      >
+        <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 12 }}>
+          ORACLE is not configured for this mission. Activate intelligence
+          monitoring in the Setup Wizard.
+        </div>
+        <Link
+          to="/olympus/missions/$missionId/wizard"
+          params={{ missionId }}
+          style={{ color: GOLD, fontSize: 11, fontWeight: 600 }}
+        >
+          Configure →
+        </Link>
+      </div>
+    );
+  }
+
+  const winThemes: TaggedItem[] = Array.isArray(oracleConfig.win_themes)
+    ? (oracleConfig.win_themes as TaggedItem[])
+    : [];
+  const topRisks: TaggedItem[] = Array.isArray(oracleConfig.top_risks)
+    ? (oracleConfig.top_risks as TaggedItem[])
+    : [];
+  const competitors: string[] = Array.isArray(oracleConfig.competitors)
+    ? (oracleConfig.competitors as string[])
+    : [];
+
+  async function save(patch: Partial<OracleConfig>) {
+    const { error } = await supabase
+      .from("oracle_engagement_config")
+      .update(patch as never)
+      .eq("mission_id", missionId);
+    if (error) {
+      toast.error("Save failed");
+      return false;
+    }
+    toast.success("Saved");
+    refetch();
+    return true;
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* North Star */}
+      {oracleConfig.north_star ? (
+        <Section title="North Star">
+          <div
+            style={{
+              color: GOLD,
+              fontStyle: "italic",
+              fontSize: 14,
+              lineHeight: 1.6,
+              fontWeight: 500,
+            }}
+          >
+            “{oracleConfig.north_star}”
+          </div>
+        </Section>
+      ) : canEdit ? (
+        <Section title="North Star">
+          <NorthStarEditor onSave={(v) => save({ north_star: v })} />
+        </Section>
+      ) : null}
+
+      {/* Win Themes */}
+      <Section title="How We Win" icon={<Star size={11} />}>
+        <ThemeList
+          items={winThemes}
+          canEdit={canEdit}
+          emptyEdit="No win themes configured. Add your first win theme."
+          emptyRead="Win themes will appear here once configured."
+          addLabel="Add win theme"
+          onChange={(next) => save({ win_themes: next as never })}
+        />
+      </Section>
+
+      {/* Strategic Risks */}
+      <Section title="Strategic Risks" icon={<ShieldAlert size={11} />}>
+        <ThemeList
+          items={topRisks}
+          canEdit={canEdit}
+          emptyEdit="No strategic risks tracked. Add your first risk."
+          emptyRead="Strategic risks will appear here once configured."
+          addLabel="Add risk"
+          onChange={(next) => save({ top_risks: next as never })}
+        />
+      </Section>
+
+      {/* Competitors */}
+      {(competitors.length > 0 || canEdit) && (
+        <Section title="Monitored Competitors" icon={<Eye size={11} />}>
+          <CompetitorChips
+            items={competitors}
+            canEdit={canEdit}
+            onChange={(next) => save({ competitors: next as never })}
+          />
+        </Section>
+      )}
+
+      {/* Status badge */}
+      <div className="flex justify-end">
+        <span
+          className="inline-flex items-center gap-2 rounded-full"
+          style={{
+            fontSize: 10,
+            padding: "4px 10px",
+            background: "rgba(255,255,255,0.04)",
+            border: `0.5px solid ${CARD_BORDER}`,
+            color: MUTED,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+          }}
+        >
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: 999,
+              background: oracleConfig.status === "active" ? "#4ade80" : "#888",
+            }}
+          />
+          <Activity size={10} />
+          ORACLE · {capitalize(oracleConfig.monitoring_mode ?? "balanced")}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/* ─────────── North Star editor (empty state) ─────────── */
+function NorthStarEditor({ onSave }: { onSave: (v: string) => Promise<boolean> }) {
+  const [val, setVal] = useState("");
+  const [saving, setSaving] = useState(false);
+  return (
+    <div className="flex gap-2">
+      <input
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        placeholder="Set your North Star…"
+        className="flex-1 rounded px-2 py-1"
+        style={{
+          background: "rgba(0,0,0,0.3)",
+          border: `1px solid ${CARD_BORDER}`,
+          color: "white",
+          fontSize: 12,
+        }}
+      />
+      <button
+        disabled={!val.trim() || saving}
+        onClick={async () => {
+          setSaving(true);
+          const ok = await onSave(val.trim());
+          setSaving(false);
+          if (ok) setVal("");
+        }}
+        style={{
+          color: GOLD,
+          fontSize: 11,
+          fontWeight: 600,
+          padding: "0 10px",
+        }}
+      >
+        Save
+      </button>
+    </div>
+  );
+}
+
+/* ─────────── Theme/Risk list ─────────── */
+function ThemeList({
+  items,
+  canEdit,
+  emptyEdit,
+  emptyRead,
+  addLabel,
+  onChange,
+}: {
+  items: TaggedItem[];
+  canEdit: boolean;
+  emptyEdit: string;
+  emptyRead: string;
+  addLabel: string;
+  onChange: (next: TaggedItem[]) => Promise<boolean>;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  async function removeItem(id: string) {
+    await onChange(items.filter((i) => i.id !== id));
+  }
+  async function addItem(item: TaggedItem) {
+    const ok = await onChange([...items, item]);
+    if (ok) setAdding(false);
+  }
+  async function updateItem(item: TaggedItem) {
+    const ok = await onChange(items.map((i) => (i.id === item.id ? item : i)));
+    if (ok) setEditingId(null);
+  }
+
+  if (items.length === 0 && !adding) {
+    return (
+      <div className="space-y-2">
+        <div style={{ color: MUTED, fontSize: 11, fontStyle: "italic" }}>
+          {canEdit ? emptyEdit : emptyRead}
+        </div>
+        {canEdit && (
+          <button
+            onClick={() => setAdding(true)}
+            className="inline-flex items-center gap-1"
+            style={{ color: GOLD, fontSize: 11, fontWeight: 600 }}
+          >
+            <Plus size={12} /> {addLabel}
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {items.map((it) =>
+        editingId === it.id ? (
+          <ItemForm
+            key={it.id}
+            initial={it}
+            onCancel={() => setEditingId(null)}
+            onSave={updateItem}
+          />
+        ) : (
+          <div
+            key={it.id}
+            className="flex items-start gap-2 rounded-lg p-2"
+            style={{ background: "rgba(255,255,255,0.02)" }}
+          >
+            <div className="mt-1 shrink-0">
+              <AuthorityIcon authority={it.signal_authority} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div style={{ color: "white", fontSize: 12, lineHeight: 1.5 }}>
+                {it.text}
+              </div>
+              {it.rfp_reference && (
+                <div style={{ color: MUTED, fontSize: 10, marginTop: 2 }}>
+                  {it.rfp_reference}
+                </div>
+              )}
+            </div>
+            {canEdit && (
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  onClick={() => setEditingId(it.id)}
+                  style={{ color: MUTED }}
+                  aria-label="Edit"
+                >
+                  <Pencil size={12} />
+                </button>
+                <button
+                  onClick={() => removeItem(it.id)}
+                  style={{ color: MUTED }}
+                  aria-label="Remove"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+          </div>
+        ),
+      )}
+      {adding && (
+        <ItemForm onCancel={() => setAdding(false)} onSave={addItem} />
+      )}
+      {canEdit && !adding && (
+        <button
+          onClick={() => setAdding(true)}
+          className="inline-flex items-center gap-1"
+          style={{ color: GOLD, fontSize: 11, fontWeight: 600 }}
+        >
+          <Plus size={12} /> {addLabel}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ItemForm({
+  initial,
+  onSave,
+  onCancel,
+}: {
+  initial?: TaggedItem;
+  onSave: (item: TaggedItem) => Promise<void> | void;
+  onCancel: () => void;
+}) {
+  const [text, setText] = useState(initial?.text ?? "");
+  const [authority, setAuthority] = useState<SignalAuthority>(
+    initial?.signal_authority ?? "team_validated",
+  );
+  const [rfp, setRfp] = useState(initial?.rfp_reference ?? "");
+  const [saving, setSaving] = useState(false);
+
+  const AUTHS: { value: SignalAuthority; label: string }[] = [
+    { value: "client_stated", label: "Client-Stated" },
+    { value: "team_validated", label: "Team-Validated" },
+    { value: "iris_suggested", label: "IRIS-Suggested" },
+  ];
+
+  return (
+    <div
+      className="rounded-lg p-3 space-y-2"
+      style={{ background: "rgba(0,0,0,0.25)", border: `1px solid ${CARD_BORDER}` }}
+    >
+      <input
+        autoFocus
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Theme or risk text…"
+        className="w-full rounded px-2 py-1"
+        style={{
+          background: "rgba(0,0,0,0.3)",
+          border: `1px solid ${CARD_BORDER}`,
+          color: "white",
+          fontSize: 12,
+        }}
+      />
+      <div className="flex gap-1">
+        {AUTHS.map((a) => (
+          <button
+            key={a.value}
+            onClick={() => setAuthority(a.value)}
+            style={{
+              fontSize: 10,
+              padding: "3px 8px",
+              borderRadius: 4,
+              border: `1px solid ${authority === a.value ? GOLD : CARD_BORDER}`,
+              color: authority === a.value ? GOLD : MUTED,
+              background: authority === a.value ? "rgba(196,154,43,0.08)" : "transparent",
+            }}
+          >
+            {a.label}
+          </button>
+        ))}
+      </div>
+      <input
+        value={rfp}
+        onChange={(e) => setRfp(e.target.value)}
+        placeholder="RFP reference (optional)"
+        className="w-full rounded px-2 py-1"
+        style={{
+          background: "rgba(0,0,0,0.3)",
+          border: `1px solid ${CARD_BORDER}`,
+          color: "white",
+          fontSize: 11,
+        }}
+      />
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={onCancel}
+          style={{ color: MUTED, fontSize: 11 }}
+        >
+          Cancel
+        </button>
+        <button
+          disabled={!text.trim() || saving}
+          onClick={async () => {
+            setSaving(true);
+            await onSave({
+              id: initial?.id ?? crypto.randomUUID(),
+              text: text.trim(),
+              signal_authority: authority,
+              rfp_reference: rfp.trim() || null,
+              confidence: initial?.confidence ?? 0.8,
+              status: "confirmed",
+            });
+            setSaving(false);
+          }}
+          style={{ color: GOLD, fontSize: 11, fontWeight: 600 }}
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────── Competitor chips ─────────── */
+function CompetitorChips({
+  items,
+  canEdit,
+  onChange,
+}: {
+  items: string[];
+  canEdit: boolean;
+  onChange: (next: string[]) => Promise<boolean>;
+}) {
+  const [val, setVal] = useState("");
+
+  if (items.length === 0 && !canEdit) return null;
+
+  return (
+    <div>
+      {items.length === 0 ? (
+        <div style={{ color: MUTED, fontSize: 11, fontStyle: "italic", marginBottom: 8 }}>
+          No competitors tracked yet. Add competitors to activate monitoring.
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2 mb-2">
+          {items.map((c) => (
+            <span
+              key={c}
+              className="inline-flex items-center gap-1 rounded-full"
+              style={{
+                fontSize: 11,
+                padding: "3px 10px",
+                background: "rgba(196,154,43,0.08)",
+                border: "0.5px solid rgba(196,154,43,0.25)",
+                color: GOLD,
+              }}
+            >
+              {c}
+              {canEdit && (
+                <button
+                  onClick={() => onChange(items.filter((x) => x !== c))}
+                  aria-label={`Remove ${c}`}
+                  style={{ color: MUTED }}
+                >
+                  <X size={11} />
+                </button>
+              )}
+            </span>
+          ))}
+        </div>
+      )}
+      {canEdit && (
+        <input
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onKeyDown={async (e) => {
+            if (e.key === "Enter" && val.trim()) {
+              const name = val.trim();
+              if (!items.includes(name)) {
+                const ok = await onChange([...items, name]);
+                if (ok) setVal("");
+              } else {
+                setVal("");
+              }
+            }
+          }}
+          placeholder="Add competitor and press Enter"
+          className="w-full rounded px-2 py-1"
+          style={{
+            background: "rgba(0,0,0,0.3)",
+            border: `1px solid ${CARD_BORDER}`,
+            color: "white",
+            fontSize: 11,
+          }}
+        />
+      )}
+    </div>
+  );
+}
