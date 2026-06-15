@@ -20,7 +20,10 @@ import { WizardStepHeading } from "./WizardShellV3";
 
 const MISSION_ROLE_OPTIONS: { value: string; label: string }[] = [
   { value: "engagement_lead", label: "Engagement Lead" },
+  { value: "project_manager", label: "Project Manager" },
   { value: "writer", label: "Writer" },
+  { value: "lead_graphics", label: "Lead Graphics" },
+  { value: "graphics", label: "Graphics" },
   { value: "sme", label: "SME" },
   { value: "reviewer", label: "Reviewer" },
 ];
