@@ -8480,42 +8480,54 @@ export type Database = {
       }
       oracle_engagement_config: {
         Row: {
+          central_claim: string | null
           competitors: Json
           created_at: string
+          discriminators: Json
           id: string
           mission_id: string
           mission_profile: Json | null
           monitoring_mode: string
           north_star: string | null
+          proof_points: Json
           signal_threshold: number
+          stakeholders: Json
           status: string
           top_risks: Json
           updated_at: string
           win_themes: Json
         }
         Insert: {
+          central_claim?: string | null
           competitors?: Json
           created_at?: string
+          discriminators?: Json
           id?: string
           mission_id: string
           mission_profile?: Json | null
           monitoring_mode?: string
           north_star?: string | null
+          proof_points?: Json
           signal_threshold?: number
+          stakeholders?: Json
           status?: string
           top_risks?: Json
           updated_at?: string
           win_themes?: Json
         }
         Update: {
+          central_claim?: string | null
           competitors?: Json
           created_at?: string
+          discriminators?: Json
           id?: string
           mission_id?: string
           mission_profile?: Json | null
           monitoring_mode?: string
           north_star?: string | null
+          proof_points?: Json
           signal_threshold?: number
+          stakeholders?: Json
           status?: string
           top_risks?: Json
           updated_at?: string
