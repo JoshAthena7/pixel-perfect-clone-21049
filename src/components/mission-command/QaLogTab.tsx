@@ -21,7 +21,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-// extract-rfp-text.client is loaded dynamically inside the handler to keep it out of the server bundle
+// extract-rfp-text.browser is loaded dynamically inside the handler to keep it out of the server bundle
 import {
   generateQaInterpretation, parseBulkQaDocument,
 } from "@/lib/iris-intel-tabs.functions";

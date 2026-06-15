@@ -8,7 +8,7 @@ import { AlertCircle, FileText, Loader2, Plus, Sparkles, UploadCloud, X } from "
 import { supabase } from "@/integrations/supabase/client";
 import { analyzeMissionStep } from "@/lib/iris-mission-analysis.functions";
 import { processRFPDocuments } from "@/lib/iris-process-rfp.functions";
-import { extractRFPText } from "@/lib/extract-rfp-text.client";
+import { extractRFPText } from "@/lib/extract-rfp-text.browser";
 import { Input } from "@/components/ui/input";
 import { WizardStepHeading, WizardFooter } from "./WizardShellV3";
 import { cn } from "@/lib/utils";

@@ -4,7 +4,7 @@
  * (Team & Assignments — "Re-run IRIS" button).
  */
 import { supabase } from "@/integrations/supabase/client";
-import { extractRFPText } from "@/lib/extract-rfp-text.client";
+import { extractRFPText } from "@/lib/extract-rfp-text.browser";
 import { processRFPDocuments } from "@/lib/iris-process-rfp.functions";
 
 const BUCKET = "atlas-rfp-documents";

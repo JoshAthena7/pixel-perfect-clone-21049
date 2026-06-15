@@ -3,7 +3,7 @@
 // but routing through createIsomorphicFn lets the import-protection plugin
 // see that the `.client` module is gated and not statically reachable from server code.
 import { createIsomorphicFn } from "@tanstack/react-start";
-import type { RFPFileKind } from "@/lib/extract-rfp-text.client";
+import type { RFPFileKind } from "@/lib/extract-rfp-text.browser";
 
 type ExtractMod = {
   extractRFPText: (file: File) => Promise<string>;
@@ -12,7 +12,7 @@ type ExtractMod = {
 
 export const loadRFPExtractor = createIsomorphicFn()
   .client(async (): Promise<ExtractMod> => {
-    const mod = await import("@/lib/extract-rfp-text.client");
+    const mod = await import("@/lib/extract-rfp-text.browser");
     return { extractRFPText: mod.extractRFPText, detectRFPKind: mod.detectRFPKind };
   })
   .server((): Promise<ExtractMod> => {
