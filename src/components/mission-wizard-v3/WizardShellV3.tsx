@@ -9,13 +9,10 @@ import { cn } from "@/lib/utils";
 export const WIZARD_STEPS = [
   { n: 1, label: "Fuel IRIS" },
   { n: 2, label: "Mission Basics" },
-  { n: 3, label: "Strategic Foundations" },
-  { n: 4, label: "Competitive & Win" },
-  { n: 5, label: "Intel Network Seed" },
-  { n: 6, label: "Stakeholders" },
-  { n: 7, label: "Executive Intel" },
-  { n: 8, label: "Team & Assignments" },
-  { n: 9, label: "Review & Launch" },
+  { n: 3, label: "Strategy" },
+  { n: 4, label: "Competitive" },
+  { n: 5, label: "Intel Seeds" },
+  { n: 6, label: "Review & Launch" },
 ] as const;
 
 export const TOTAL_STEPS = WIZARD_STEPS.length;

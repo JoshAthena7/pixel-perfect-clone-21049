@@ -1,3 +1,4 @@
+/** @deprecated Retired from wizard in Phase 2. File kept for history; not imported anywhere. */
 /**
  * Step 7 — Team & Question Assignments. Olympus is the single source of truth
  * for question assignments (lead writer + SMEs). Delegates to the existing

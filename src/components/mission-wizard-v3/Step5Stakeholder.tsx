@@ -1,3 +1,4 @@
+/** @deprecated Retired from wizard in Phase 2. File kept for history; not imported anywhere. */
 import { WizardStepHeading, WizardFooter } from "./WizardShellV3";
 import { StepFieldList } from "./StepFieldList";
 

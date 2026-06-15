@@ -329,3 +329,24 @@ export type OracleHealthInsert = {
   created_at?: string;
 };
 export type OracleHealthUpdate = Partial<OracleHealthInsert>;
+
+/* ---------- Wizard staging types ---------- */
+export type OracleSignalAuthority = "client_stated" | "team_validated" | "iris_suggested";
+
+export interface OracleTaggedItem {
+  id: string;
+  text: string;
+  signal_authority: OracleSignalAuthority;
+  rfp_reference: string | null;
+  confidence: number;
+  status: "confirmed";
+}
+
+export interface OracleWizardStaged {
+  north_star?: string | null;
+  win_themes?: OracleTaggedItem[];
+  top_risks?: OracleTaggedItem[];
+  competitors?: string[];
+  signal_threshold?: number;
+  monitoring_mode?: OracleMonitoringMode;
+}
