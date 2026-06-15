@@ -742,7 +742,7 @@ function HomeState(props: {
           <ActionCard icon={<Pencil className="h-3.5 w-3.5" />} label="Update Reality" sub="Use when mission strategy needs to change" onClick={props.onPostUpdate} />
           <ActionCard icon={<Users className="h-3.5 w-3.5" />} label="Find an SME" sub="Get expert help fast" onClick={props.onFindSme} />
           <ActionCard icon={<FileText className="h-3.5 w-3.5" />} label="Brief me" sub="Today's intel summary" onClick={props.onBriefMe} />
-          <ActionCard icon={<Edit3 className="h-3.5 w-3.5" />} label="Draft a response" sub="IRIS writes the first draft" onClick={props.onDraftForMe} />
+          
           <ActionCard icon={<HelpCircle className="h-3.5 w-3.5" />} label="I'm stuck" sub="Get unstuck fast" onClick={props.onGetHelp} />
           <ActionCard icon={<AlertTriangle className="h-3.5 w-3.5" />} label="SOS" sub="Critically blocked" onClick={props.onSos} danger />
         </div>
