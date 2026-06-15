@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { Check, Edit2, Loader2, Rocket, AlertCircle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +54,8 @@ export function Step8Review({
 }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const triggerLaunchBriefFn = useServerFn(triggerLaunchBrief);
+  const enrichMissionWithPerplexityFn = useServerFn(enrichMissionWithPerplexity);
   const [launching, setLaunching] = useState(false);
   const [enriching, setEnriching] = useState(false);
   const [enrichMsg, setEnrichMsg] = useState<string | null>(null);
@@ -245,13 +248,13 @@ export function Step8Review({
 
       // Fire-and-forget IRIS historical launch brief generation.
       try {
-        void triggerLaunchBrief({ data: { missionId } });
+        void triggerLaunchBriefFn({ data: { missionId } });
       } catch (e) {
         console.error("[launch-brief] trigger error", e);
       }
       // Fire-and-forget IRIS Perplexity enrichment (state landscape, incumbent, population research).
       try {
-        void enrichMissionWithPerplexity({ data: { missionId } });
+        void enrichMissionWithPerplexityFn({ data: { missionId } });
       } catch (e) {
         console.error("[perplexity-enrich] trigger error", e);
       }
@@ -268,7 +271,7 @@ export function Step8Review({
     setEnriching(true);
     setEnrichMsg(null);
     try {
-      const res = await enrichMissionWithPerplexity({ data: { missionId } });
+      const res = await enrichMissionWithPerplexityFn({ data: { missionId } });
       if (res?.ok) {
         setEnrichMsg(
           "IRIS is enriching the brief in the background — state landscape, incumbent intel, and population research will appear in a moment.",
