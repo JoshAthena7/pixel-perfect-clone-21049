@@ -13,9 +13,10 @@
  */
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, Loader2, Users, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Sparkles, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { runIrisRfpExtraction } from "@/lib/run-iris-rfp.browser";
 import { WizardStepHeading } from "./WizardShellV3";
 
 const MISSION_ROLE_OPTIONS: { value: string; label: string }[] = [
@@ -409,6 +410,7 @@ function AssignmentsSubStep({
   const [bulkWriter, setBulkWriter] = useState<string>("");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [confirmClear, setConfirmClear] = useState(false);
+  const [extracting, setExtracting] = useState(false);
 
   const questionsKey = ["wizard-assign-questions", missionId] as const;
   const sectionsKey = ["wizard-assign-sections", missionId] as const;
@@ -628,6 +630,52 @@ function AssignmentsSubStep({
         title="Step 4B — Assign Questions"
         subtitle="Assign every question to a lead writer. Every question must have an owner before BLAST OFF."
       />
+
+      {totalCount === 0 && (
+        <div
+          className="mb-5 rounded-lg p-4 flex items-center justify-between gap-4"
+          style={{ background: "#C9972B", color: "#0B4F8A" }}
+        >
+          <div className="flex items-start gap-3">
+            <Sparkles className="h-5 w-5 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-[14px] font-semibold">No questions extracted from your RFP yet</p>
+              <p className="text-[12.5px] opacity-80 mt-0.5">
+                IRIS hasn't read the uploaded documents for this mission. Run extraction now to
+                pull every numbered question out of the RFP so you can assign writers.
+              </p>
+            </div>
+          </div>
+          <button
+            disabled={extracting}
+            onClick={async () => {
+              setExtracting(true);
+              const t = toast.loading("IRIS is reading your RFP documents…");
+              try {
+                await runIrisRfpExtraction(missionId);
+                toast.success("Questions extracted.", { id: t });
+                await qc.invalidateQueries({ queryKey: questionsKey });
+                await qc.invalidateQueries({ queryKey: sectionsKey });
+              } catch (e) {
+                const msg = e instanceof Error ? e.message : String(e);
+                toast.error(`Extraction failed: ${msg}`, { id: t });
+              } finally {
+                setExtracting(false);
+              }
+            }}
+            className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-semibold border-2 disabled:opacity-60"
+            style={{ background: "#0B4F8A", color: "#C9972B", borderColor: "#0B4F8A" }}
+          >
+            {extracting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Extracting…
+              </>
+            ) : (
+              <>⚡ Extract Questions from RFP</>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Progress */}
       <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 mb-4">
