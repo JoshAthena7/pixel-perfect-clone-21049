@@ -99,11 +99,13 @@ function TeamSubStep({
   const { data: roster = [], isLoading: rosterLoading } = useQuery({
     queryKey: rosterKey,
     queryFn: async (): Promise<RosterMember[]> => {
+      // Master Athena roster — anyone not removed can be assigned to a mission,
+      // regardless of whether they've accepted their Atlas login invite yet.
       const { data, error } = await supabase
         .from("atlas_team_members")
         .select("id, first_name, last_name, job_title, skills")
-        .eq("atlas_invite_status", "active")
-        .eq("is_removed", false);
+        .eq("is_removed", false)
+        .order("first_name", { ascending: true });
       if (error) throw error;
       return (data ?? []) as RosterMember[];
     },
