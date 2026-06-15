@@ -10,6 +10,10 @@ import { IntelPeople } from "./IntelPeople";
 import { IntelOrganizations } from "./IntelOrganizations";
 import { IntelSources } from "./IntelSources";
 import { OracleGraph } from "./OracleGraph";
+import { HealthStrip } from "@/components/intelligence/HealthStrip";
+import { EcosystemGraph } from "@/components/intelligence/EcosystemGraph";
+import { SignalFeed } from "@/components/intelligence/SignalFeed";
+import { NodeDetailDrawer } from "@/components/intelligence/NodeDetailDrawer";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 
 const GOLD = "#C49A2B";
@@ -28,6 +32,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
   const { isAdmin } = useIsAdmin();
   const [active, setActive] = useState<TabId>("feed");
   const [visited, setVisited] = useState<Set<TabId>>(new Set(["feed"]));
+  const [selectedEcosystemNode, setSelectedEcosystemNode] = useState<any | null>(null);
 
   useEffect(() => {
     const apply = () => {
@@ -212,6 +217,28 @@ export function OracleTab({ missionId }: { missionId: string }) {
         {visited.has("graph") && (
           <div style={{ display: active === "graph" ? "block" : "none" }}>
             <OracleGraph missionId={missionId} isAdmin={isAdmin} completeness={completeness} />
+
+            <div style={{ height: 1, background: "rgba(255,255,255,0.1)", margin: "32px 0" }} />
+
+            <div style={{ marginBottom: 16 }}>
+              <h3 style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.12em", color: GOLD, fontWeight: 600 }}>
+                Mission Ecosystem Coverage
+              </h3>
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+              <HealthStrip missionId={missionId} />
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+              <EcosystemGraph missionId={missionId} onNodeClick={(node) => setSelectedEcosystemNode(node)} />
+            </div>
+
+            <div>
+              <SignalFeed missionId={missionId} />
+            </div>
+
+            <NodeDetailDrawer node={selectedEcosystemNode} onClose={() => setSelectedEcosystemNode(null)} />
           </div>
         )}
       </div>
