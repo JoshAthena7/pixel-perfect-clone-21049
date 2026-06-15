@@ -24,6 +24,8 @@ import {
   Zap,
   AlertCircle,
 } from "lucide-react";
+import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
+import { useMissionAccess } from "@/hooks/useAccess";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/briefing")({
   component: BriefingPage,
@@ -87,6 +89,8 @@ function BriefingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-8 py-8" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <HeroCard missionId={missionId} mission={mission} />
 
+          <OracleCanvasSlot missionId={missionId} />
+
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             <div className="lg:col-span-3"><TodaysFocusCard missionId={missionId} mission={mission} /></div>
             <div className="lg:col-span-2"><HowWeWinCard missionId={missionId} mission={mission} /></div>
@@ -110,6 +114,13 @@ function BriefingPage() {
       </div>
     </>
   );
+}
+
+function OracleCanvasSlot({ missionId }: { missionId: string }) {
+  const { data: access } = useMissionAccess(missionId);
+  const role = access?.role ?? null;
+  const canEdit = !!(access?.isAdmin || role === "founder" || role === "pm");
+  return <OracleCanvas missionId={missionId} canEdit={canEdit} />;
 }
 
 /* ───────────────── 1. Hero ───────────────── */
