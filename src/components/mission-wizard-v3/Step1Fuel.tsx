@@ -118,7 +118,7 @@ export function Step1Fuel({
     (async () => {
       const { data } = await supabase
         .from("mission_documents")
-        .select("id, title, file_url")
+        .select("id, title, file_url, document_purpose, is_style_guide")
         .eq("mission_id", missionId)
         .order("created_at", { ascending: true });
       if (!data) return;
@@ -132,6 +132,8 @@ export function Step1Fuel({
               progress: 100,
               status: "done" as const,
               documentId: d.id,
+              purpose: (d.document_purpose as DocumentPurpose | null) ?? guessPurpose(d.title ?? ""),
+              isStyleGuide: !!d.is_style_guide,
             })),
       );
     })();
@@ -148,6 +150,42 @@ export function Step1Fuel({
       .update({ name: v.trim() || "Untitled Mission" })
       .eq("id", missionId);
   };
+
+  // Fire-and-forget purpose update. Style guide is single-select per mission.
+  function setRowPurpose(uid: string, purpose: DocumentPurpose) {
+    setRows((cur) => cur.map((r) => (r.uid === uid ? { ...r, purpose } : r)));
+    const r = rows.find((x) => x.uid === uid);
+    if (r?.documentId) {
+      void supabase
+        .from("mission_documents")
+        .update({ document_purpose: purpose })
+        .eq("id", r.documentId);
+    }
+  }
+  function setRowStyleGuide(uid: string, isStyleGuide: boolean) {
+    setRows((cur) =>
+      cur.map((r) => {
+        if (r.uid === uid) return { ...r, isStyleGuide };
+        if (isStyleGuide && r.isStyleGuide) return { ...r, isStyleGuide: false };
+        return r;
+      }),
+    );
+    const target = rows.find((x) => x.uid === uid);
+    if (isStyleGuide) {
+      // Unset all others first
+      const others = rows.filter((x) => x.isStyleGuide && x.uid !== uid && x.documentId);
+      others.forEach((o) => {
+        void supabase.from("mission_documents").update({ is_style_guide: false }).eq("id", o.documentId!);
+      });
+    }
+    if (target?.documentId) {
+      void supabase
+        .from("mission_documents")
+        .update({ is_style_guide: isStyleGuide })
+        .eq("id", target.documentId);
+    }
+  }
+
 
   async function uploadRow(initial: Row, file: File) {
     setRows((cur) =>
