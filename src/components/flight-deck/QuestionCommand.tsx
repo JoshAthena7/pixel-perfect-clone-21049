@@ -196,6 +196,16 @@ export function QuestionCommand({ missionId }: { missionId: string }) {
           }}
         />
       )}
+
+      {briefTarget && (
+        <BriefViewerDialog
+          missionId={missionId}
+          questionId={briefTarget.id}
+          questionNumber={briefTarget.question_number}
+          questionText={briefTarget.question_text}
+          onClose={() => setBriefTarget(null)}
+        />
+      )}
     </section>
   );
 }
