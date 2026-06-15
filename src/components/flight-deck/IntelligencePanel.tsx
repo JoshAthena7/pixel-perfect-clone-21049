@@ -15,12 +15,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import {
   ChevronDown, Eye, CheckSquare, Star, Activity, Compass,
-  ArrowLeft, Sparkles, ExternalLink, X as XIcon, Search, GitBranch,
+  ArrowLeft, Sparkles, ExternalLink, X as XIcon, Search, GitBranch, Network,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { IrisIntelligenceBrief } from "@/components/iris/IrisIntelligenceBrief";
 import { EvaluatorPicturePanel } from "@/components/flight-deck/EvaluatorPicturePanel";
 import { LineOfSightBlock } from "@/components/flight-deck/LineOfSightBlock";
+import { HealthStrip } from "@/components/intelligence/HealthStrip";
+import { EcosystemGraph } from "@/components/intelligence/EcosystemGraph";
+import { NodeDetailDrawer } from "@/components/intelligence/NodeDetailDrawer";
+import { SignalFeed } from "@/components/intelligence/SignalFeed";
 import { cn } from "@/lib/utils";
 
 const GOLD = "#C9A55C";
@@ -86,8 +90,9 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
       const raw = typeof window !== "undefined" ? localStorage.getItem(storageKey) : null;
       if (raw) return JSON.parse(raw);
     } catch {}
-    return { athena: true, iris: true, lineofsight: true, evaluator: true, reqs: true, themes: true, live: true };
+    return { ecosystem: true, athena: true, iris: true, lineofsight: true, evaluator: true, reqs: true, themes: true, live: true };
   });
+  const [selectedNode, setSelectedNode] = useState<any | null>(null);
 
   useEffect(() => {
     try { localStorage.setItem(storageKey, JSON.stringify(open)); } catch {}
@@ -97,6 +102,35 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
 
   return (
     <div className="p-3 space-y-3">
+      <Section
+        id="ecosystem"
+        open={open.ecosystem}
+        onToggle={() => toggle("ecosystem")}
+        header={
+          <>
+            <Network className="h-3.5 w-3.5" style={{ color: IRIS_PURPLE }} />
+            <span className="text-xs font-medium text-foreground">Mission Ecosystem</span>
+            <span
+              className="ml-auto text-[10px] uppercase tracking-wider font-semibold"
+              style={{ color: IRIS_PURPLE }}
+            >
+              IRIS Graph
+            </span>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <HealthStrip missionId={props.missionId ?? ""} />
+          <div className="rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <EcosystemGraph
+              missionId={props.missionId ?? ""}
+              onNodeClick={(node) => setSelectedNode(node)}
+            />
+          </div>
+          <SignalFeed missionId={props.missionId ?? ""} />
+        </div>
+      </Section>
+
       <Section
         id="athena"
         open={open.athena}
@@ -254,6 +288,8 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
       >
         <LiveIntelBlock missionId={props.missionId} />
       </Section>
+
+      <NodeDetailDrawer node={selectedNode} onClose={() => setSelectedNode(null)} />
     </div>
   );
 }
