@@ -261,6 +261,11 @@
   }
   @keyframes live-dot { from { opacity: 1; } to { opacity: 0.3; } }
 
+  @keyframes iris-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
   /* EFFECT 3: Stagger fade-in for feed items */
   @keyframes feed-rise {
     from { opacity: 0; transform: translateY(12px); }
