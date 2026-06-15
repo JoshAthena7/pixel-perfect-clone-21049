@@ -41,6 +41,16 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
     },
   });
 
+  // Fire brief_opened once per mount when a brief exists and the panel is open.
+  const firedRef = useRef(false);
+  useEffect(() => {
+    if (!open || !data?.id || firedRef.current) return;
+    firedRef.current = true;
+    void fireAssistEvent(missionId, questionId, null, "brief_opened", {
+      brief_id: data.id,
+    });
+  }, [open, data?.id, missionId, questionId]);
+
   const genMutation = useMutation({
     mutationFn: async () => {
       // If a brief already exists, delete prior rows for this question (regenerate = overwrite).
