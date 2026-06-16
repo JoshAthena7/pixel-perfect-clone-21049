@@ -69,7 +69,7 @@ async function callGemini(system: string, user: string, jsonMode = true): Promis
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "google/gemini-2.5-flash",
         ...(jsonMode ? {} : {}),
         messages: [
           { role: "system", content: system },

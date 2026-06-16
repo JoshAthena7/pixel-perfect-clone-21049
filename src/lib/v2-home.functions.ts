@@ -514,7 +514,7 @@ Recent intelligence: ${intelRows.map((i) => `${i.headline} — ${i.iris_assessme
       method: "POST",
       headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: "You are IRIS, briefing an executive. Be terse, specific, attention-flagging only." },
           { role: "user", content: prompt },
