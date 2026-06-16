@@ -111,7 +111,7 @@ function BriefingPage() {
           <MissionJourneyCard missionId={missionId} mission={mission} />
 
           <div className="grid grid-cols-1">
-            <EvaluatorLensCard mission={mission} />
+            <EvaluatorLensCard missionId={missionId} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
