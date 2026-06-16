@@ -113,7 +113,7 @@ function BriefingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <WatchItemsCard missionId={missionId} mission={mission} />
             <WhatChangedCard missionId={missionId} />
-            <LeadershipBroadcastCard />
+            <LeadershipBroadcastCard missionId={missionId} mission={mission} canEdit={canEditBroadcast} />
           </div>
 
           <MissionLeadersCard missionId={missionId} />
