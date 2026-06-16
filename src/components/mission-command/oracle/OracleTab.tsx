@@ -34,6 +34,33 @@ export function OracleTab({ missionId }: { missionId: string }) {
   const [active, setActive] = useState<TabId>("feed");
   const [visited, setVisited] = useState<Set<TabId>>(new Set(["feed"]));
   const [selectedEcosystemNode, setSelectedEcosystemNode] = useState<any | null>(null);
+  const [previewWriter, setPreviewWriter] = useState(false);
+
+  // Non-admins: only ever see the curated writer surface.
+  // Admins previewing: also see the writer surface (with a toggle to flip back).
+  if (!isAdmin || previewWriter) {
+    return (
+      <div className="space-y-4">
+        {isAdmin && previewWriter && (
+          <div
+            className="flex items-center justify-between rounded-md px-3 py-2"
+            style={{ background: "rgba(196,154,43,0.08)", border: "0.5px solid rgba(196,154,43,0.3)" }}
+          >
+            <span style={{ fontSize: 11, color: GOLD }}>👁 Previewing Writer View — this is what writers see.</span>
+            <button
+              type="button"
+              onClick={() => setPreviewWriter(false)}
+              style={{ fontSize: 11, color: GOLD }}
+              className="hover:underline"
+            >
+              Exit preview
+            </button>
+          </div>
+        )}
+        <WriterIntelView missionId={missionId} />
+      </div>
+    );
+  }
 
   useEffect(() => {
     const apply = () => {
