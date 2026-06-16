@@ -1342,10 +1342,10 @@ function MissionLeadersCard({ missionId }: { missionId: string }) {
   }
   for (const r of LEADER_ROLES) {
     const row = teamRows.find((t) => t.mission_role === r.role);
-    const fallbackWriterId = r.role === "lead_writer" ? assignmentLeadIds[0] : undefined;
-    const member = row ? atlasById.get(row.member_id) : fallbackWriterId ? atlasById.get(fallbackWriterId) : undefined;
+    const member = row ? atlasById.get(row.member_id) : undefined;
     if (member) leaders.push({ role: r.label, member });
   }
+
 
   return (
     <section style={glass}>
