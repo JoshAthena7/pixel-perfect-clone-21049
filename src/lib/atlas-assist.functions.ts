@@ -81,15 +81,15 @@ export const runAssistTool = createServerFn({ method: "POST" })
     const m: any = mRes.data ?? {};
     const o: any = oRes.data ?? {};
     const competitorNames = (compRes.data ?? []).map((c: any) => c.organization_name).filter(Boolean);
-    const oecCompetitors = flatten(o?.competitors);
-    const weight = (q as any).evaluation_weight ?? "—";
+    const oecCompetitors = flatten(o.competitors);
+    const weight = q.evaluation_weight ?? "—";
 
-    const base = `Mission: ${(m as any).name ?? "—"} (${(m as any).state ?? "—"}, ${(m as any).program_type ?? "—"})
-Question ${(q as any).question_number ?? "?"} (weight: ${weight}): ${(q as any).question_text ?? ""}
-IRIS decoded intent: ${(q as any).iris_decoded_intent ?? "(none)"}
-Win themes: ${flatten(o?.win_themes) || "(none)"}
-Central claim: ${(o as any).central_claim ?? "(none)"}
-Discriminators: ${flatten(o?.discriminators) || "(none)"}`;
+    const base = `Mission: ${m.name ?? "—"} (${m.state ?? "—"}, ${m.program_type ?? "—"})
+Question ${q.question_number ?? "?"} (weight: ${weight}): ${q.question_text ?? ""}
+IRIS decoded intent: ${q.iris_decoded_intent ?? "(none)"}
+Win themes: ${flatten(o.win_themes) || "(none)"}
+Central claim: ${o.central_claim ?? "(none)"}
+Discriminators: ${flatten(o.discriminators) || "(none)"}`;
 
     let user = "";
     if (tool === "decode") {
@@ -103,13 +103,13 @@ Competitors: ${[oecCompetitors, competitorNames.join(", ")].filter(Boolean).join
 How should Athena specifically attack this question? What's the unique angle given who we are vs who else is bidding? Concrete strategic direction. Max 150 words.`;
     } else if (tool === "evidence") {
       user = `${base}
-Proof points: ${flatten(o?.proof_points) || "(none)"}
-North star: ${(o as any).north_star ?? "(none)"}
+Proof points: ${flatten(o.proof_points) || "(none)"}
+North star: ${o.north_star ?? "(none)"}
 
 What specific evidence, data, or proof points should this writer use? Name them concretely. Reference numbers or sources from mission context where possible. Max 150 words. Numbered list.`;
     } else {
       user = `${base}
-Mission risks: ${flatten(o?.top_risks) || "(none)"}
+Mission risks: ${flatten(o.top_risks) || "(none)"}
 
 What are the traps in this question? What do evaluators test for that most bidders get wrong? What language would score poorly? Direct and specific. Max 150 words.`;
     }
