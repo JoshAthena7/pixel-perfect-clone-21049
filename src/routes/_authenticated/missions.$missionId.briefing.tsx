@@ -501,12 +501,36 @@ function HowWeWinCard({ missionId, mission }: { missionId: string; mission?: any
 }
 
 /* ───────────────── 3. Mission Journey ───────────────── */
-function MissionJourneyCard({ missionId, mission }: { missionId: string; mission: any }) {
-  const stages = ["Kickoff", "Strategy", "Team", "Writing", "Pink Team", "Red Team", "Submission"];
-  const currentIndex = computeJourneyIndex(mission);
+const DEFAULT_STAGES = ["Kickoff", "Strategy", "Team", "Writing", "Pink Team", "Red Team", "Submission"];
 
+type PhaseRow = { name: string; status: "complete" | "active" | "upcoming"; start_date: string | null; end_date: string | null };
+
+function derivePhaseStatus(start: string | null, end: string | null): "complete" | "active" | "upcoming" | null {
+  const now = Date.now();
+  const s = start ? new Date(start).getTime() : null;
+  const e = end ? new Date(end).getTime() : null;
+  if (e !== null && e < now) return "complete";
+  if (s !== null && s <= now && (e === null || e >= now)) return "active";
+  if (s !== null && s > now) return "upcoming";
+  return null;
+}
+
+function MissionJourneyCard({ missionId, mission }: { missionId: string; mission: any }) {
   const subDate = mission?.submission_deadline ? new Date(mission.submission_deadline) : null;
   const subDays = subDate ? Math.max(0, Math.ceil((subDate.getTime() - Date.now()) / 86400000)) : null;
+
+  const { data: phaseRows = [] } = useQuery({
+    queryKey: ["briefing-journey-phases", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_journey_phases")
+        .select("name, kind, order_index, start_date, end_date")
+        .eq("mission_id", missionId)
+        .eq("kind", "phase")
+        .order("order_index", { ascending: true });
+      return data ?? [];
+    },
+  });
 
   const { data: milestones = [] } = useQuery({
     queryKey: ["briefing-journey-milestones", missionId],
@@ -519,6 +543,38 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
       return data ?? [];
     },
   });
+
+  // Build phases: prefer DB rows; fall back to hardcoded array.
+  const fallbackIdx = computeJourneyIndex(mission);
+  const phases: PhaseRow[] =
+    phaseRows.length > 0
+      ? phaseRows.map((r: any, i: number) => {
+          const derived = derivePhaseStatus(r.start_date ?? null, r.end_date ?? null);
+          // When dates aren't set, use the legacy mission-status-derived index.
+          const status: PhaseRow["status"] =
+            derived ?? (i < fallbackIdx ? "complete" : i === fallbackIdx ? "active" : "upcoming");
+          return {
+            name: r.name,
+            status,
+            start_date: r.start_date ?? null,
+            end_date: r.end_date ?? null,
+          };
+        })
+      : DEFAULT_STAGES.map((name, i) => ({
+          name,
+          status: (i < fallbackIdx ? "complete" : i === fallbackIdx ? "active" : "upcoming") as PhaseRow["status"],
+          start_date: null,
+          end_date: null,
+        }));
+
+  // Ensure exactly one "active" phase for the rail's progress bar.
+  let activeIndex = phases.findIndex((p) => p.status === "active");
+  if (activeIndex < 0) {
+    activeIndex = phases.findIndex((p) => p.status === "upcoming");
+    if (activeIndex < 0) activeIndex = phases.length - 1;
+  }
+  const stages = phases.map((p) => p.name);
+  const currentIndex = activeIndex;
 
   return (
     <section style={glass}>
@@ -547,11 +603,16 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
           }}
         />
         <div className="relative grid" style={{ gridTemplateColumns: `repeat(${stages.length}, 1fr)` }}>
-          {stages.map((stage, i) => {
-            const isComplete = i < currentIndex;
-            const isCurrent = i === currentIndex;
+          {phases.map((p, i) => {
+            const isComplete = p.status === "complete";
+            const isCurrent = p.status === "active";
+            const dateLabel = (() => {
+              const d = p.end_date ?? p.start_date;
+              if (!d) return isComplete ? "Complete" : isCurrent ? "Active" : "";
+              return new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+            })();
             return (
-              <div key={stage} className="flex flex-col items-center text-center">
+              <div key={`${p.name}-${i}`} className="flex flex-col items-center text-center">
                 <div className="relative" style={{ width: 40, height: 40 }}>
                   {isCurrent && (
                     <span
@@ -592,15 +653,16 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
                   className="mt-3 font-bold"
                   style={{ fontSize: 12, color: isCurrent || isComplete ? TEXT : META_SOFT }}
                 >
-                  {stage}
+                  {p.name}
                 </div>
                 <div style={{ fontSize: 10, color: META_SOFT, marginTop: 2, height: 14 }}>
-                  {isComplete ? "Complete" : isCurrent ? "Active" : ""}
+                  {dateLabel}
                 </div>
               </div>
             );
           })}
         </div>
+
       </div>
 
       {/* Metadata boxes */}
