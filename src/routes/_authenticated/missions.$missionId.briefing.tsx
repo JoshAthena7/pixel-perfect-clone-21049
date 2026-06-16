@@ -29,6 +29,8 @@ import {
 import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
 import { MissionHealthSummaryCard } from "@/components/mission-command/MissionHealthSummaryCard";
 import { useMissionAccess } from "@/hooks/useAccess";
+import { useServerFn } from "@tanstack/react-start";
+import { getEvaluatorPriorities, generateEvaluatorPriorities } from "@/lib/evaluator-priorities.functions";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/briefing")({
   component: BriefingPage,
@@ -109,7 +111,7 @@ function BriefingPage() {
           <MissionJourneyCard missionId={missionId} mission={mission} />
 
           <div className="grid grid-cols-1">
-            <EvaluatorLensCard mission={mission} />
+            <EvaluatorLensCard missionId={missionId} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -763,27 +765,49 @@ function IrisGuidanceCard({ mission }: { mission: any }) {
 }
 
 /* ───────────────── 4b. Evaluator Lens ───────────────── */
-function EvaluatorLensCard({ mission }: { mission: any }) {
-  const defaults = [
-    { icon: Heart, color: "#f472b6", label: "Continuity of services" },
-    { icon: ShieldCheck, color: "#5b9bd5", label: "Provider confidence" },
-    { icon: Users, color: "#a78bfa", label: "Family trust" },
-    { icon: Zap, color: "#f59e0b", label: "Crisis response readiness" },
-    { icon: AlertTriangle, color: "#ef4444", label: "Implementation risk" },
-  ];
+const LENS_PALETTE = [
+  { icon: Heart, color: "#f472b6" },
+  { icon: ShieldCheck, color: "#5b9bd5" },
+  { icon: Users, color: "#a78bfa" },
+  { icon: Zap, color: "#f59e0b" },
+  { icon: AlertTriangle, color: "#ef4444" },
+  { icon: Eye, color: "#2dd4aa" },
+];
 
-  // If state_priorities exists, parse short lines from it (kept simple)
-  const fromMission = (mission?.state_priorities ?? "")
-    .split(/\n+/)
-    .map((l: string) => l.trim())
-    .filter((l: string) => l && l.length < 60)
-    .slice(0, 5);
+function EvaluatorLensCard({ missionId }: { missionId: string }) {
+  const qc = useQueryClient();
+  const fetchPriorities = useServerFn(getEvaluatorPriorities);
+  const generate = useServerFn(generateEvaluatorPriorities);
 
-  const items =
-    fromMission.length > 0
-      ? fromMission.map((label: string, i: number) => ({ ...defaults[i % defaults.length], label }))
-      : defaults;
+  const { data: priorities, isLoading } = useQuery({
+    queryKey: ["briefing-evaluator-priorities", missionId],
+    queryFn: () => fetchPriorities({ data: { missionId } }),
+  });
 
+  const [generating, setGenerating] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const triggeredRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (isLoading) return;
+    if (triggeredRef.current) return;
+    if (priorities && priorities.length > 0) return;
+    triggeredRef.current = true;
+    setGenerating(true);
+    setError(null);
+    generate({ data: { missionId } })
+      .then((next) => {
+        qc.setQueryData(["briefing-evaluator-priorities", missionId], next);
+      })
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to generate."))
+      .finally(() => setGenerating(false));
+  }, [isLoading, priorities, generate, missionId, qc]);
+
+  const items = (priorities ?? []).map((p, i) => ({
+    ...LENS_PALETTE[i % LENS_PALETTE.length],
+    label: p.label,
+    detail: p.detail,
+  }));
   const left = items.slice(0, Math.ceil(items.length / 2));
   const right = items.slice(Math.ceil(items.length / 2));
 
@@ -795,32 +819,45 @@ function EvaluatorLensCard({ mission }: { mission: any }) {
       <div className="mb-5" style={{ fontSize: 12, color: META_SOFT }}>
         What evaluators care about most:
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
-        <ul className="space-y-3">
-          {left.map((it: typeof defaults[number], i: number) => (
-            <LensItem key={`l-${i}`} {...it} />
-          ))}
-        </ul>
-        <ul className="space-y-3">
-          {right.map((it: typeof defaults[number], i: number) => (
-            <LensItem key={`r-${i}`} {...it} />
-          ))}
-        </ul>
-      </div>
+      {isLoading || generating ? (
+        <div style={{ fontSize: 13, color: META }}>
+          {generating ? "IRIS is reading the RFP to identify scoring criteria…" : "Loading…"}
+        </div>
+      ) : error ? (
+        <div style={{ fontSize: 13, color: "#f87171" }}>{error}</div>
+      ) : items.length === 0 ? (
+        <EmptyState>No evaluator priorities yet.</EmptyState>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+          <ul className="space-y-3">
+            {left.map((it, i) => <LensItem key={`l-${i}`} {...it} />)}
+          </ul>
+          <ul className="space-y-3">
+            {right.map((it, i) => <LensItem key={`r-${i}`} {...it} />)}
+          </ul>
+        </div>
+      )}
     </section>
   );
 }
 
-function LensItem({ icon: Icon, color, label }: { icon: any; color: string; label: string }) {
+function LensItem({ icon: Icon, color, label, detail }: { icon: any; color: string; label: string; detail?: string }) {
   return (
-    <li className="flex items-center gap-3">
+    <li className="flex items-start gap-3" title={detail || undefined}>
       <span
-        className="grid place-items-center shrink-0"
+        className="grid place-items-center shrink-0 mt-0.5"
         style={{ width: 28, height: 28, borderRadius: 8, background: `${color}22`, color }}
       >
         <Icon size={14} />
       </span>
-      <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.9)" }}>{label}</span>
+      <div className="min-w-0">
+        <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.92)", fontWeight: 600, lineHeight: 1.3 }}>{label}</div>
+        {detail && (
+          <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.6)", lineHeight: 1.4, marginTop: 2 }}>
+            {detail}
+          </div>
+        )}
+      </div>
     </li>
   );
 }
