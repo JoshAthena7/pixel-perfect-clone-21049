@@ -7055,6 +7055,7 @@ export type Database = {
           iris_extracted: boolean | null
           iris_extracted_at: string | null
           iris_intel_note: string | null
+          is_inferred: boolean
           is_withdrawn: boolean
           mission_id: string
           page_limit: number | null
@@ -7088,6 +7089,7 @@ export type Database = {
           iris_extracted?: boolean | null
           iris_extracted_at?: string | null
           iris_intel_note?: string | null
+          is_inferred?: boolean
           is_withdrawn?: boolean
           mission_id: string
           page_limit?: number | null
@@ -7121,6 +7123,7 @@ export type Database = {
           iris_extracted?: boolean | null
           iris_extracted_at?: string | null
           iris_intel_note?: string | null
+          is_inferred?: boolean
           is_withdrawn?: boolean
           mission_id?: string
           page_limit?: number | null
@@ -8237,6 +8240,8 @@ export type Database = {
           intelligence_graph_completeness: number
           intelligence_loadout_step: number
           iris_disclaimer: string | null
+          iris_extraction_note: string | null
+          iris_extraction_status: string | null
           known_competitors: string[] | null
           mission_journey: string | null
           monitoring_schedule: string
@@ -8289,6 +8294,8 @@ export type Database = {
           intelligence_graph_completeness?: number
           intelligence_loadout_step?: number
           iris_disclaimer?: string | null
+          iris_extraction_note?: string | null
+          iris_extraction_status?: string | null
           known_competitors?: string[] | null
           mission_journey?: string | null
           monitoring_schedule?: string
@@ -8341,6 +8348,8 @@ export type Database = {
           intelligence_graph_completeness?: number
           intelligence_loadout_step?: number
           iris_disclaimer?: string | null
+          iris_extraction_note?: string | null
+          iris_extraction_status?: string | null
           known_competitors?: string[] | null
           mission_journey?: string | null
           monitoring_schedule?: string

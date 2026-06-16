@@ -5,18 +5,27 @@
  * concurrency. Each Pass 2 call is its own short server request so the
  * Worker never exceeds its per-request timeout and the wizard never
  * bounces on a long single-shot.
+ *
+ * After Pass 2 completes, queues and generates IRIS briefs for every
+ * pending question (concurrency 3, fire-and-forget). If Pass 2 produces
+ * zero questions across all fallback attempts, flips the mission's
+ * iris_extraction_status to 'needs_review' so the user is never left
+ * thinking IRIS silently succeeded.
  */
 import { supabase } from "@/integrations/supabase/client";
 import { extractRFPText } from "@/lib/extract-rfp-text.browser";
 import {
   processRFPDocuments,
   extractQuestionsForSection,
-  sliceSectionTextForClient,
+  sliceSectionTextWithFallbacks,
   type ProcessResult,
 } from "@/lib/iris-process-rfp.functions";
+import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
 
 const BUCKET = "atlas-rfp-documents";
 const PASS2_CONCURRENCY = 3;
+const BRIEF_CONCURRENCY = 3;
+const MIN_TEXT_CHARS = 50; // Was 200 — too aggressive for form-driven RFPs.
 
 async function extractTextFromBlob(blob: Blob, fileName: string): Promise<string> {
   const lower = fileName.toLowerCase();
@@ -113,25 +122,39 @@ export async function runIrisRfpExtraction(missionId: string): Promise<ProcessRe
   );
 
   let questionsInserted = 0;
+  let sectionsProcessed = 0;
   let sectionsFailed = 0;
-  let sectionsWithoutText = 0;
+  let sectionsSkipped = 0;
+  let sectionsInferred = 0;
 
-  await runWithConcurrency(targets, PASS2_CONCURRENCY, async (section) => {
-    const slice = sliceSectionTextForClient(primaryRfpText, section.section_number);
-    if (slice.length < 200) {
-      sectionsWithoutText++;
-      return;
-    }
+  await runWithConcurrency(targets, PASS2_CONCURRENCY, async (section, idx) => {
+    // Fallback chain: regex → inline → proportional. If all return <50 chars,
+    // fall through to inferred (attempt 4) which calls AI with section name only.
+    const { text: slice, attempt } = sliceSectionTextWithFallbacks(
+      primaryRfpText,
+      section.section_number,
+      idx,
+      targets.length,
+    );
+
+    const useInferred = slice.length < MIN_TEXT_CHARS;
     try {
       const res = await extractQuestionsForSection({
         data: {
           mission_id: missionId,
           section_id: section.id,
-          section_text: slice.slice(0, 20_000),
+          section_text: useInferred ? "" : slice.slice(0, 20_000),
+          is_inferred: useInferred,
         },
       });
       if (res.ok) {
+        sectionsProcessed++;
         questionsInserted += res.inserted;
+        if (res.inferred) sectionsInferred++;
+        if (res.inserted === 0) sectionsSkipped++;
+        console.log(
+          `[iris/browser] Pass 2 ✓ ${section.section_number} attempt=${useInferred ? 4 : attempt} inserted=${res.inserted}${res.inferred ? " (inferred)" : ""}`,
+        );
       } else {
         sectionsFailed++;
         console.warn(
@@ -148,8 +171,60 @@ export async function runIrisRfpExtraction(missionId: string): Promise<ProcessRe
   });
 
   console.log(
-    `[iris/browser] Pass 2 complete — ${questionsInserted} questions, ${sectionsFailed} failed, ${sectionsWithoutText} no-text`,
+    `[iris-pass2] Complete: ${questionsInserted} questions from ${sectionsProcessed} sections (${sectionsSkipped} skipped, ${sectionsInferred} inferred, ${sectionsFailed} failed)`,
   );
+
+  // If nothing landed, do NOT silently succeed — flag for manual review.
+  if (questionsInserted === 0) {
+    await supabase
+      .from("missions")
+      .update({
+        iris_extraction_status: "needs_review",
+        iris_extraction_note: `Pass 2 produced 0 questions across ${targets.length} sections — manual review required`,
+      } as never)
+      .eq("id", missionId);
+  } else {
+    await supabase
+      .from("missions")
+      .update({
+        iris_extraction_status: sectionsInferred > 0 ? "ready_with_inferred" : "ready",
+        iris_extraction_note: null,
+      } as never)
+      .eq("id", missionId);
+
+    // Auto-generate briefs for all extracted questions (fire-and-forget).
+    const { data: newQuestions } = await supabase
+      .from("mission_questions")
+      .select("id")
+      .eq("mission_id", missionId)
+      .eq("iris_brief_status", "pending")
+      .eq("is_withdrawn", false);
+
+    if (newQuestions && newQuestions.length > 0) {
+      console.log(`[iris-briefs] Queueing ${newQuestions.length} briefs`);
+      await supabase
+        .from("mission_questions")
+        .update({ iris_brief_status: "queued" })
+        .eq("mission_id", missionId)
+        .eq("iris_brief_status", "pending");
+
+      // Fire-and-forget — do not block return on full brief generation.
+      void (async () => {
+        const ids = newQuestions.map((q) => q.id);
+        for (let i = 0; i < ids.length; i += BRIEF_CONCURRENCY) {
+          const batch = ids.slice(i, i + BRIEF_CONCURRENCY);
+          await Promise.allSettled(
+            batch.map((qid) =>
+              generateIrisBrief({ data: { missionId, questionId: qid } }).catch((err) =>
+                console.error(`[iris-briefs] Failed for ${qid}:`, err),
+              ),
+            ),
+          );
+        }
+        console.log(`[iris-briefs] Complete for mission ${missionId}`);
+      })();
+    }
+  }
 
   return {
     ...pass1,
