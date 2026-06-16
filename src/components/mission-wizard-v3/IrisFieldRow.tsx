@@ -100,10 +100,33 @@ export function IrisFieldRow({
         });
       }
       lastSavedRef.current = value;
+      await propagateToMission(value);
       onChange?.();
     } finally {
       setSaving(false);
       if (closeEditor) setEditing(false);
+    }
+  }
+
+  // Mirror a small set of canonical fields onto the missions row so older
+  // code paths (pre-launch checklist, briefs) that read from missions.* see
+  // the same value the wizard saved into mission_iris_extractions.
+  async function propagateToMission(value: string) {
+    const map: Record<string, string> = {
+      mission_type: "procurement_type",
+      program_type: "program_type",
+      client_agency: "agency_name",
+      state_location: "state",
+    };
+    const col = map[fieldKey];
+    if (!col) return;
+    try {
+      await supabase
+        .from("missions")
+        .update({ [col]: value || null } as any)
+        .eq("id", missionId);
+    } catch {
+      /* non-fatal */
     }
   }
 
@@ -127,6 +150,8 @@ export function IrisFieldRow({
           confirmed_at: new Date().toISOString(),
         })
         .eq("id", extraction.id);
+      const v = (extraction.user_override_value ?? extraction.extracted_value ?? "") as string;
+      if (v) await propagateToMission(v);
       onChange?.();
     } finally {
       setSaving(false);

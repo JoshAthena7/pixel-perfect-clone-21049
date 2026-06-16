@@ -117,6 +117,7 @@ export function Step8Review({
         milestones,
         teamLeads,
         progress,
+        missionTypeExt,
       ] = await Promise.all([
         supabase.from("missions").select("name,submission_deadline,procurement_type").eq("id", missionId).maybeSingle(),
         supabase.from("mission_documents").select("id").eq("mission_id", missionId).eq("document_type", "primary_rfp").limit(1),
@@ -129,6 +130,12 @@ export function Step8Review({
           .eq("mission_id", missionId)
           .eq("mission_role", "engagement_lead"),
         supabase.from("question_progress").select("question_id").eq("mission_id", missionId).eq("role", "lead_writer"),
+        supabase
+          .from("mission_iris_extractions")
+          .select("extracted_value,user_override_value,confirmed_by_user")
+          .eq("mission_id", missionId)
+          .eq("extracted_field", "mission_type")
+          .limit(1),
       ]);
 
       const m = mission.data;
@@ -145,12 +152,17 @@ export function Step8Review({
       const deadline = m?.submission_deadline ? new Date(m.submission_deadline) : null;
       const now = new Date();
       const daysAway = deadline ? Math.ceil((deadline.getTime() - now.getTime()) / 86400000) : 0;
+      const mtExt = missionTypeExt.data?.[0];
+      const hasMissionType =
+        !!m?.procurement_type ||
+        (!!mtExt?.confirmed_by_user &&
+          !!(mtExt?.user_override_value ?? mtExt?.extracted_value));
 
       return [
         await safe(async () => ({
-          ok: !!(m?.name && m?.submission_deadline && m?.procurement_type),
+          ok: !!(m?.name && m?.submission_deadline && hasMissionType),
           pass: "Mission name, deadline, and type confirmed",
-          fail: "Missing required mission fields",
+          fail: "Missing required mission fields (name, deadline, or Mission Type in Step 2)",
           step: 2,
         }), 2, "Mission Basics"),
         await safe(async () => ({
