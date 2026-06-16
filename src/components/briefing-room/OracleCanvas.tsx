@@ -106,35 +106,31 @@ export function OracleCanvas({
         )
         .eq("mission_id", missionId)
         .maybeSingle();
-      return (data as unknown as OracleConfig) ?? null;
+
+      if (data) return data as unknown as OracleConfig;
+
+      // Bootstrap: no oracle config yet — hydrate from missions.known_competitors so
+      // the Monitored Competitors section still populates after Setup.
+      const { data: mission } = await supabase
+        .from("missions")
+        .select("known_competitors")
+        .eq("id", missionId)
+        .maybeSingle();
+      const known = (mission?.known_competitors ?? []) as string[];
+      return {
+        north_star: null,
+        win_themes: [],
+        top_risks: [],
+        competitors: known,
+        monitoring_mode: "balanced",
+        signal_threshold: 40,
+        status: "active",
+      } as unknown as OracleConfig;
     },
     staleTime: 30_000,
   });
 
-  if (!oracleConfig) {
-    if (!canEdit) return null;
-    return (
-      <div
-        className="rounded-xl p-4 flex items-center justify-between"
-        style={{
-          background: "rgba(196,154,43,0.05)",
-          border: `1px solid rgba(196,154,43,0.35)`,
-        }}
-      >
-        <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 12 }}>
-          ORACLE is not configured for this mission. Activate intelligence
-          monitoring in the Setup Wizard.
-        </div>
-        <Link
-          to="/olympus/missions/$missionId/wizard"
-          params={{ missionId }}
-          style={{ color: GOLD, fontSize: 11, fontWeight: 600 }}
-        >
-          Configure →
-        </Link>
-      </div>
-    );
-  }
+  if (!oracleConfig) return null;
 
   const winThemes: TaggedItem[] = Array.isArray(oracleConfig.win_themes)
     ? (oracleConfig.win_themes as TaggedItem[])
