@@ -309,12 +309,46 @@ function TodaysFocusCard({ missionId, mission }: { missionId: string; mission?: 
     },
   });
 
+  // Fallbacks when IRIS hasn't generated a daily brief yet:
+  // 1) manual today_focus on the mission, 2) top at-risk questions,
+  // 3) next upcoming milestones.
+  const { data: derived = [] } = useQuery({
+    queryKey: ["briefing-todays-focus-derived", missionId],
+    queryFn: async () => {
+      const lines: string[] = [];
+      const { data: atRisk } = await supabase
+        .from("mission_questions")
+        .select("question_number, question_text, health_status")
+        .eq("mission_id", missionId)
+        .in("health_status", ["at_risk", "watch"])
+        .order("question_number", { ascending: true })
+        .limit(3);
+      (atRisk ?? []).forEach((q: any) => {
+        const num = q.question_number ? `Q${q.question_number} — ` : "";
+        lines.push(`${num}${truncate(q.question_text ?? "", 140)}`);
+      });
+      const today = new Date().toISOString().slice(0, 10);
+      const { data: ms } = await supabase
+        .from("mission_milestones")
+        .select("title, milestone_date")
+        .eq("mission_id", missionId)
+        .gte("milestone_date", today)
+        .order("milestone_date", { ascending: true })
+        .limit(3 - lines.length);
+      (ms ?? []).forEach((m: any) => {
+        const dt = new Date(m.milestone_date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        lines.push(`${dt} — ${m.title}`);
+      });
+      return lines;
+    },
+  });
+
   const items = extractFocusItems(brief?.content, brief?.key_intelligence_summary);
   const fallback = (mission?.today_focus ?? "").trim();
   const fallbackItems = fallback
     ? fallback.split(/\n+/).map((s: string) => s.trim()).filter(Boolean)
     : [];
-  const finalItems = items.length > 0 ? items : fallbackItems;
+  const finalItems = items.length > 0 ? items : (fallbackItems.length > 0 ? fallbackItems : derived);
   const time = brief?.created_at
     ? new Date(brief.created_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
     : null;
@@ -332,7 +366,7 @@ function TodaysFocusCard({ missionId, mission }: { missionId: string; mission?: 
         )}
       </div>
       {finalItems.length === 0 ? (
-        <EmptyState>IRIS will generate today's focus items. Check back soon, or add a manual focus note in mission settings.</EmptyState>
+        <EmptyState>IRIS will generate today's focus items as the mission progresses.</EmptyState>
       ) : (
         <ol className="space-y-4">
           {finalItems.slice(0, 4).map((item: string, i: number) => (
