@@ -454,14 +454,13 @@ function AssignmentsSubStep({
 
   const { data: progress = [] } = useQuery({
     queryKey: progressKey,
-    queryFn: async (): Promise<ProgressRow[]> => {
+    queryFn: async (): Promise<AssignmentRow[]> => {
       const { data, error } = await supabase
-        .from("question_progress")
-        .select("id, question_id, assignee_id, internal_due_date")
-        .eq("mission_id", missionId)
-        .eq("role", "lead_writer");
+        .from("mission_assignments")
+        .select("id, question_id, assigned_writer_id, due_date, acceptance_status")
+        .eq("mission_id", missionId);
       if (error) throw error;
-      return (data ?? []) as ProgressRow[];
+      return (data ?? []) as AssignmentRow[];
     },
   });
 
@@ -474,7 +473,7 @@ function AssignmentsSubStep({
           "id, member_id, mission_role, member:atlas_team_members!mission_team_members_member_id_fkey(id, first_name, last_name, job_title, skills, email)",
         )
         .eq("mission_id", missionId)
-        .in("mission_role", ["writer", "engagement_lead"]);
+        .in("mission_role", ["writer", "lead_writer", "engagement_lead", "project_manager"]);
       if (error) throw error;
       return (data ?? []) as unknown as MissionTeamRow[];
     },
@@ -521,6 +520,12 @@ function AssignmentsSubStep({
     return m;
   }, [team, profilesByEmail]);
 
+  const memberIdByAuthId = useMemo(() => {
+    const m = new Map<string, string>();
+    authIdByMemberId.forEach((authId, memberId) => m.set(authId, memberId));
+    return m;
+  }, [authIdByMemberId]);
+
   const sectionById = useMemo(() => {
     const m = new Map<string, SectionLite>();
     sections.forEach((s) => m.set(s.id, s));
@@ -528,20 +533,10 @@ function AssignmentsSubStep({
   }, [sections]);
 
   const progressByQuestion = useMemo(() => {
-    const m = new Map<string, ProgressRow>();
+    const m = new Map<string, AssignmentRow>();
     progress.forEach((p) => m.set(p.question_id, p));
     return m;
   }, [progress]);
-
-  // Keyed by auth user id (= assignee_id stored in question_progress)
-  const memberName = useMemo(() => {
-    const m = new Map<string, string>();
-    team.forEach((t) => {
-      const authId = authIdByMemberId.get(t.member_id);
-      if (authId) m.set(authId, fullName(t.member));
-    });
-    return m;
-  }, [team, authIdByMemberId]);
 
   const sortedQuestions = useMemo(() => {
     return [...questions].sort((a, b) => {
@@ -557,7 +552,7 @@ function AssignmentsSubStep({
       const p = progressByQuestion.get(q.id);
       if (filterMode === "assigned" && !p) return false;
       if (filterMode === "unassigned" && p) return false;
-      if (filterWriter && p?.assignee_id !== filterWriter) return false;
+      if (filterWriter && p?.assigned_writer_id !== filterWriter) return false;
       return true;
     });
   }, [sortedQuestions, progressByQuestion, filterMode, filterWriter]);
