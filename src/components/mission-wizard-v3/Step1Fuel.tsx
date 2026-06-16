@@ -154,38 +154,72 @@ export function Step1Fuel({
       .eq("id", missionId);
   };
 
-  // Fire-and-forget purpose update. Style guide is single-select per mission.
+  // Fire-and-forget purpose update. Reads documentId from the updated row to
+  // avoid stale closure (rows from render may pre-date the upload completing).
   function setRowPurpose(uid: string, purpose: DocumentPurpose) {
-    setRows((cur) => cur.map((r) => (r.uid === uid ? { ...r, purpose } : r)));
-    const r = rows.find((x) => x.uid === uid);
-    if (r?.documentId) {
-      void supabase
-        .from("mission_documents")
-        .update({ document_purpose: purpose })
-        .eq("id", r.documentId);
+    let docId: string | undefined;
+    setRows((cur) =>
+      cur.map((r) => {
+        if (r.uid !== uid) return r;
+        docId = r.documentId;
+        return { ...r, purpose };
+      }),
+    );
+    if (docId) {
+      void supabase.from("mission_documents").update({ document_purpose: purpose }).eq("id", docId);
     }
   }
   function setRowStyleGuide(uid: string, isStyleGuide: boolean) {
+    const toClear: string[] = [];
+    let docId: string | undefined;
     setRows((cur) =>
       cur.map((r) => {
-        if (r.uid === uid) return { ...r, isStyleGuide };
-        if (isStyleGuide && r.isStyleGuide) return { ...r, isStyleGuide: false };
+        if (r.uid === uid) {
+          docId = r.documentId;
+          return { ...r, isStyleGuide };
+        }
+        if (isStyleGuide && r.isStyleGuide) {
+          if (r.documentId) toClear.push(r.documentId);
+          return { ...r, isStyleGuide: false };
+        }
         return r;
       }),
     );
-    const target = rows.find((x) => x.uid === uid);
-    if (isStyleGuide) {
-      // Unset all others first
-      const others = rows.filter((x) => x.isStyleGuide && x.uid !== uid && x.documentId);
-      others.forEach((o) => {
-        void supabase.from("mission_documents").update({ is_style_guide: false }).eq("id", o.documentId!);
-      });
+    toClear.forEach((id) => {
+      void supabase.from("mission_documents").update({ is_style_guide: false }).eq("id", id);
+    });
+    if (docId) {
+      void supabase.from("mission_documents").update({ is_style_guide: isStyleGuide }).eq("id", docId);
     }
-    if (target?.documentId) {
+  }
+  // Primary RFP is single-select per mission. Marking one clears the others.
+  function setRowPrimaryRfp(uid: string, isPrimary: boolean) {
+    const toClear: string[] = [];
+    let docId: string | undefined;
+    setRows((cur) =>
+      cur.map((r) => {
+        if (r.uid === uid) {
+          docId = r.documentId;
+          return { ...r, isPrimaryRfp: isPrimary, purpose: isPrimary ? "procurement" : r.purpose };
+        }
+        if (isPrimary && r.isPrimaryRfp) {
+          if (r.documentId) toClear.push(r.documentId);
+          return { ...r, isPrimaryRfp: false };
+        }
+        return r;
+      }),
+    );
+    toClear.forEach((id) => {
+      void supabase.from("mission_documents").update({ document_type: "other" }).eq("id", id);
+    });
+    if (docId) {
       void supabase
         .from("mission_documents")
-        .update({ is_style_guide: isStyleGuide })
-        .eq("id", target.documentId);
+        .update({
+          document_type: isPrimary ? "primary_rfp" : "other",
+          ...(isPrimary ? { document_purpose: "procurement" as DocumentPurpose } : {}),
+        })
+        .eq("id", docId);
     }
   }
 
