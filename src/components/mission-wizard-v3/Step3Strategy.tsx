@@ -1074,25 +1074,37 @@ export function Step3Strategy({
     qc.invalidateQueries({ queryKey: extractKey });
   }
 
-  const visible = (extractions ?? []).filter(
-    (e) => !e.confirmed_by_user && !e.overridden_by_user && e.extracted_value,
+  const usableExtractions = (extractions ?? []).filter(
+    (e) => !e.overridden_by_user && e.extracted_value,
   );
-  const winSuggestions = visible.filter((e) => e.extracted_field.startsWith("win_theme_"));
-  const riskSuggestions = visible.filter((e) => e.extracted_field.startsWith("top_risk_"));
-  const discriminatorSuggestions = visible.filter((e) => e.extracted_field.startsWith("discriminator_"));
-  const proofSuggestions = visible.filter((e) => e.extracted_field.startsWith("proof_point_"));
-  const stakeholderSuggestions = visible.filter((e) => e.extracted_field.startsWith("stakeholder_"));
-  const competitorSuggestions = visible.filter(
+  const hasTaggedText = (items: OracleTaggedItem[], text: string | null) =>
+    !!text && items.some((i) => i.text.trim().toLowerCase() === text.trim().toLowerCase());
+  const hasSimpleText = (items: ListItem[], text: string | null) =>
+    !!text && items.some((i) => i.text.trim().toLowerCase() === text.trim().toLowerCase());
+  const winSuggestions = usableExtractions.filter(
+    (e) => e.extracted_field.startsWith("win_theme_") && !hasTaggedText(winThemes, e.extracted_value),
+  );
+  const riskSuggestions = usableExtractions.filter(
+    (e) => e.extracted_field.startsWith("top_risk_") && !hasTaggedText(topRisks, e.extracted_value),
+  );
+  const discriminatorSuggestions = usableExtractions.filter(
+    (e) => e.extracted_field.startsWith("discriminator_") && !hasSimpleText(discriminators, e.extracted_value),
+  );
+  const proofSuggestions = usableExtractions.filter(
+    (e) => e.extracted_field.startsWith("proof_point_") && !hasSimpleText(proofPoints, e.extracted_value),
+  );
+  const stakeholderSuggestions = usableExtractions.filter((e) => e.extracted_field.startsWith("stakeholder_"));
+  const competitorSuggestions = usableExtractions.filter(
     (e) => e.extracted_field.startsWith("competitor_") &&
       !competitors.some((c) => c.toLowerCase() === e.extracted_value!.toLowerCase()),
   );
   const northStarSuggestion = useMemo(
-    () => (northStar ? null : visible.find((e) => e.extracted_field === "north_star")) ?? null,
-    [visible, northStar],
+    () => (northStar ? null : usableExtractions.find((e) => e.extracted_field === "north_star")) ?? null,
+    [usableExtractions, northStar],
   );
   const centralClaimSuggestion = useMemo(
-    () => (centralClaim ? null : visible.find((e) => e.extracted_field === "central_claim")) ?? null,
-    [visible, centralClaim],
+    () => (centralClaim ? null : usableExtractions.find((e) => e.extracted_field === "central_claim")) ?? null,
+    [usableExtractions, centralClaim],
   );
 
   // Accept helpers
