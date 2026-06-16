@@ -272,6 +272,8 @@ export function FlightDeckLayout({
             sectionName={sectionInfo?.name ?? null}
             assignmentId={activeAsg?.id ?? null}
             writerConfidence={activeAsg?.writer_confidence ?? null}
+            dueDate={activeAsg?.due_date ?? activeQ?.due_date ?? null}
+            status={activeQ.status ?? null}
             onChanged={() => qc.invalidateQueries({ queryKey: ["fd-assignments"] })}
           />
         </div>
