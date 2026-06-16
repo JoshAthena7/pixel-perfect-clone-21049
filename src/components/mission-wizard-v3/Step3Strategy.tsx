@@ -787,6 +787,82 @@ function CompetitorChips({
   );
 }
 
+// ─────────────────── Two-column wrappers ───────────────────
+
+function TwoColumn({ left, right }: { left: React.ReactNode; right: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+      <div
+        className="rounded-lg p-3.5"
+        style={{ background: "rgba(201,151,43,0.06)", border: "1px solid rgba(201,151,43,0.2)" }}
+      >
+        <div className="flex items-center gap-1.5 mb-2.5 flex-wrap">
+          <span className="text-[10px] font-semibold tracking-[0.08em] uppercase" style={{ color: "#C9972B" }}>
+            ⚡ IRIS Suggested
+          </span>
+          <span className="text-[9px] text-white/40 normal-case tracking-normal font-normal">— use as a guide only</span>
+        </div>
+        {left}
+      </div>
+      <div
+        className="rounded-lg p-3.5"
+        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
+      >
+        <div className="text-[10px] font-semibold tracking-[0.08em] uppercase text-white mb-2.5">✏ Your Input</div>
+        {right}
+      </div>
+    </div>
+  );
+}
+
+function IrisLeft({
+  rows,
+  onUse,
+  onDismiss,
+}: {
+  rows: ExtractionRow[];
+  onUse: (r: ExtractionRow) => void;
+  onDismiss: (r: ExtractionRow) => void;
+}) {
+  if (rows.length === 0) {
+    return <p className="text-[12px] italic text-white/35">No IRIS suggestions yet for this field.</p>;
+  }
+  return (
+    <div className="space-y-2.5">
+      {rows.map((r) => {
+        const c = r.confidence_score ?? 0;
+        const dot = c >= 0.8 ? "#86efac" : c >= 0.6 ? "#fbbf24" : "#f87171";
+        const label = c >= 0.8 ? "High" : c >= 0.6 ? "Med" : "Low";
+        return (
+          <div
+            key={r.id}
+            className="rounded p-2.5"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+          >
+            <p className="text-[13px] text-white/85 italic">{r.extracted_value}</p>
+            <div className="mt-2 flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1 text-[10px] text-white/55">
+                <span className="h-1.5 w-1.5 rounded-full" style={{ background: dot }} /> {label} {Math.round(c * 100)}%
+              </span>
+              {r.source_file_name && <span className="text-[10px] text-white/35 truncate">· {r.source_file_name}</span>}
+              <button
+                onClick={() => onUse(r)}
+                className="ml-auto text-[11px] px-2 py-0.5 rounded"
+                style={{ color: "#C9972B", border: "1px solid rgba(201,151,43,0.4)" }}
+              >
+                Use this →
+              </button>
+              <button onClick={() => onDismiss(r)} className="text-[11px] text-white/40 hover:text-white">
+                Dismiss
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─────────────────── Main Step 3 ───────────────────
 
 type OracleConfigRow = {
