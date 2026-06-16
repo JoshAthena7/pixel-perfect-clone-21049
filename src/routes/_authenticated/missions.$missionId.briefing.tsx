@@ -24,6 +24,7 @@ import {
   Heart,
   Zap,
   AlertCircle,
+  Pencil,
 } from "lucide-react";
 import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
 import { MissionHealthSummaryCard } from "@/components/mission-command/MissionHealthSummaryCard";
