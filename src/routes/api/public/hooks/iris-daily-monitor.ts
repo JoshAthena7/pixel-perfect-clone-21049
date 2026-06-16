@@ -198,7 +198,7 @@ async function classifyWithIris(args: {
         "Lovable-API-Key": args.apiKey,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: args.systemPrompt },
           { role: "user", content: args.content.slice(0, 20_000) },

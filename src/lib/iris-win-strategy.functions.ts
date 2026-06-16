@@ -154,7 +154,7 @@ export const draftWinStrategy = createServerFn({ method: "POST" })
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "gpt-4o-mini",
+            model: "google/gemini-2.5-flash",
             messages: [
               { role: "system", content: SYSTEM },
               { role: "user", content: `RFP context:\n${ctx}` },
