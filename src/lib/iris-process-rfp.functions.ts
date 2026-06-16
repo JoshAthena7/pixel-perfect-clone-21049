@@ -1,7 +1,14 @@
-// IRIS RFP processing: takes pre-extracted primary RFP text(s), calls Lovable
-// AI for structured extraction, and writes results into mission_volumes /
-// mission_sections / mission_questions / mission_compliance_requirements /
-// mission_submission_checklist. Also stores any disclaimer on missions.
+// IRIS RFP processing: TWO-PASS extraction.
+//
+// PASS 1 (structure): One AI call to extract volumes/sections/sub_sections
+// (with is_form_only flag, no questions). Skipped if mission already has
+// sections — makes re-runs idempotent.
+//
+// PASS 2 (questions): Per non-form section, slice that section's text from
+// the combined RFP and call AI to extract questions. Runs with concurrency
+// of 3. Upserts on (mission_id, question_number) so re-runs don't duplicate.
+//
+// Same signature, same return shape as before.
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -12,7 +19,9 @@ const Input = z.object({
   primary_rfp_text: z.string().trim().min(50).max(800_000),
 });
 
-const SYSTEM = `You are analyzing a government RFP document. Extract the proposal structure and return ONLY valid JSON in exactly this format with no other text. Use confidence "high" when an item is explicitly labeled in the text, "medium" when inferred from headings, "low" when guessed. Keep arrays sized to what the document actually contains — do not invent.
+const STRUCTURE_SYSTEM = `You are analyzing a government RFP document. Extract the proposal structure ONLY — do not extract questions in this pass. Return ONLY valid JSON, no other text. Use confidence "high" when an item is explicitly labeled, "medium" when inferred, "low" when guessed.
+
+Set is_form_only=true for sections that are signature forms, certifications, affirmative-action attestations, ownership disclosures, MacBride, or similar non-narrative attachments. Set is_form_only=false for sections that ask the bidder to write a narrative or technical response (Technical Quote, Management Overview, Mobilization Plan, etc.).
 
 {
   "volumes": [
@@ -25,6 +34,7 @@ const SYSTEM = `You are analyzing a government RFP document. Extract the proposa
           "page_limit": null,
           "evaluation_weight": null,
           "description": "string",
+          "is_form_only": false,
           "confidence": "high|medium|low",
           "sub_sections": [
             {
@@ -33,17 +43,8 @@ const SYSTEM = `You are analyzing a government RFP document. Extract the proposa
               "page_limit": null,
               "evaluation_weight": null,
               "description": "string",
-              "confidence": "high|medium|low",
-              "questions": [
-                {
-                  "number": "string",
-                  "text": "string",
-                  "word_limit": null,
-                  "page_limit": null,
-                  "evaluation_criteria": "string",
-                  "confidence": "high|medium|low"
-                }
-              ]
+              "is_form_only": false,
+              "confidence": "high|medium|low"
             }
           ]
         }
@@ -56,31 +57,55 @@ const SYSTEM = `You are analyzing a government RFP document. Extract the proposa
   "disclaimer": "string or null"
 }`;
 
+const QUESTIONS_SYSTEM = `You are IRIS, extracting proposal questions from one RFP section for a Medicaid procurement response team. Return ONLY valid JSON, no preamble.
+
+{
+  "questions": [
+    {
+      "question_number": "string",
+      "question_text": "string",
+      "page_limit": null,
+      "word_limit": null,
+      "evaluation_weight": null,
+      "is_mandatory": true,
+      "response_type": "narrative|form|table|attachment"
+    }
+  ]
+}
+
+Rules:
+- Extract every discrete question or requirement the section asks the bidder to address.
+- If the section has no discrete questions, return {"questions": []}.
+- Do NOT invent questions — only what is explicitly asked.
+- question_number format: "[section_number].[sequence]" e.g. "3.14.1", "3.14.2".
+- Extract page/word limits and evaluation weight when stated.`;
+
 type Conf = "high" | "medium" | "low";
-type Question = {
-  number?: string;
-  text: string;
-  word_limit?: number | null;
-  page_limit?: number | null;
-  evaluation_criteria?: string | null;
-  confidence?: Conf;
-};
 type SubSection = {
   number?: string;
   name: string;
   page_limit?: number | null;
   evaluation_weight?: number | null;
   description?: string;
+  is_form_only?: boolean;
   confidence?: Conf;
-  questions?: Question[];
 };
 type Section = SubSection & { sub_sections?: SubSection[] };
 type Volume = { name: string; sections?: Section[] };
-type Extracted = {
+type Structure = {
   volumes?: Volume[];
   compliance_requirements?: string[];
   submission_checklist_items?: string[];
   disclaimer?: string | null;
+};
+type AIQuestion = {
+  question_number?: string;
+  question_text: string;
+  page_limit?: number | null;
+  word_limit?: number | null;
+  evaluation_weight?: number | null;
+  is_mandatory?: boolean;
+  response_type?: string;
 };
 
 function safeNum(v: unknown): number | null {
@@ -92,46 +117,85 @@ function conf(v: unknown): Conf {
   return v === "high" || v === "medium" || v === "low" ? v : "low";
 }
 
-function tryParseJSON(s: string): Extracted | null {
-  const cleaned = s
-    .trim()
-    .replace(/^```(?:json)?\s*/i, "")
-    .replace(/\s*```$/i, "")
-    .trim();
+function tryParseJSON<T = unknown>(s: string): T | null {
+  const cleaned = s.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
   try {
-    return JSON.parse(cleaned) as Extracted;
+    return JSON.parse(cleaned) as T;
   } catch {
-    // Try to find the first { ... } block.
     const m = cleaned.match(/\{[\s\S]*\}/);
     if (!m) return null;
     try {
-      return JSON.parse(m[0]) as Extracted;
+      return JSON.parse(m[0]) as T;
     } catch {
       return null;
     }
   }
 }
 
-function questionKey(q: Partial<Question> & { question_number?: string | null; question_text?: string | null }) {
-  const number = q.question_number ?? q.number;
-  const text = q.question_text ?? q.text;
-  return `${String(number ?? "").trim().toLowerCase()}::${String(text ?? "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ")}`;
+async function callAI(apiKey: string, system: string, user: string): Promise<string | null> {
+  const res = await withAICircuit(async () => {
+    const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+      }),
+    });
+    if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
+    return r;
+  });
+  if (res.status === 402) throw new Error("Workspace is out of AI credits.");
+  if (res.status === 429) throw new Error("IRIS is rate limited. Try again shortly.");
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => "");
+    console.error("IRIS gateway error", res.status, errBody);
+    return null;
+  }
+  const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+  return json.choices?.[0]?.message?.content?.trim() ?? null;
 }
 
-function countPlannedQuestions(volumes: Volume[]) {
-  return volumes.reduce((total, volume) => {
-    return total + (volume.sections ?? []).reduce((sectionTotal, section) => {
-      const direct = Array.isArray(section.questions) ? section.questions.length : 0;
-      const nested = (section.sub_sections ?? []).reduce(
-        (subTotal, sub) => subTotal + (Array.isArray(sub.questions) ? sub.questions.length : 0),
-        0,
-      );
-      return sectionTotal + direct + nested;
-    }, 0);
-  }, 0);
+/**
+ * Fuzzy text slice: find the section header in `fullText` by digit pattern and
+ * return up to 4000 chars starting there. Tolerates "3.14", "Section 3.14",
+ * "3.14.", "3.14 NAME", with optional whitespace.
+ */
+function sliceSectionText(fullText: string, sectionNumber: string | null): string {
+  if (!sectionNumber) return "";
+  const escaped = sectionNumber.replace(/\./g, "\\.");
+  // Look for the number at a line start (with optional "Section " prefix),
+  // followed by punctuation/whitespace, not another digit.
+  const re = new RegExp(`(?:^|\\n)[ \\t]*(?:Section[ \\t]+)?${escaped}(?![0-9])[\\.\\s\\)\\:\\-]`, "i");
+  const m = re.exec(fullText);
+  if (!m) return "";
+  const start = m.index;
+  return fullText.slice(start, start + 4000);
+}
+
+async function runWithConcurrency<T>(
+  items: T[],
+  limit: number,
+  fn: (item: T, idx: number) => Promise<void>,
+): Promise<void> {
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (cursor < items.length) {
+      const i = cursor++;
+      try {
+        await fn(items[i], i);
+      } catch (e) {
+        console.error("[iris-pass2] worker item failed", e);
+      }
+    }
+  });
+  await Promise.all(workers);
 }
 
 export type ProcessResult = {
@@ -151,9 +215,8 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => Input.parse(d))
   .handler(async ({ data, context }): Promise<ProcessResult> => {
-    const { supabase, userId } = context;
+    const { supabase } = context;
 
-    // Verify the caller owns or admins this mission.
     const { data: mission, error: mErr } = await supabase
       .from("missions")
       .select("id, created_by")
@@ -164,101 +227,6 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("IRIS is not configured — built-in AI key missing.");
 
-    const res = await withAICircuit(async () => {
-      const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
-            { role: "system", content: SYSTEM },
-            { role: "user", content: data.primary_rfp_text },
-          ],
-        }),
-      });
-      if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
-      return r;
-    });
-
-    if (res.status === 402) throw new Error("Workspace is out of AI credits.");
-    if (res.status === 429) throw new Error("IRIS is rate limited. Try again shortly.");
-    if (!res.ok) {
-      const errBody = await res.text().catch(() => "");
-      console.error("IRIS gateway error", res.status, errBody);
-      throw new Error(`IRIS gateway returned ${res.status}.`);
-    }
-
-    let parsed: Extracted | null = null;
-    try {
-      const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-      const content = json.choices?.[0]?.message?.content?.trim() ?? "";
-      if (!content) {
-        console.warn("IRIS returned an empty response — keeping existing data unchanged.");
-        return {
-          ok: true,
-          counts: { volumes: 0, sections: 0, sub_sections: 0, questions: 0, compliance: 0, checklist: 0 },
-          disclaimer: "IRIS returned no content. Existing questions and assignments were left unchanged.",
-        };
-      }
-      parsed = tryParseJSON(content);
-    } catch (err) {
-      console.warn("IRIS response parsing failed — keeping existing data unchanged.", err);
-      return {
-        ok: true,
-        counts: { volumes: 0, sections: 0, sub_sections: 0, questions: 0, compliance: 0, checklist: 0 },
-        disclaimer: "IRIS response could not be parsed. Existing questions and assignments were left unchanged.",
-      };
-    }
-    if (!parsed) {
-      console.warn("IRIS could not extract a valid structure — keeping existing data unchanged.");
-      return {
-        ok: true,
-        counts: { volumes: 0, sections: 0, sub_sections: 0, questions: 0, compliance: 0, checklist: 0 },
-        disclaimer: "IRIS could not parse this document. Existing questions and assignments were left unchanged.",
-      };
-    }
-
-    const volumes = Array.isArray(parsed.volumes) ? parsed.volumes : [];
-    const plannedQuestionCount = countPlannedQuestions(volumes);
-    const [
-      { data: previousQuestions },
-      { data: previousAssignments },
-      { data: previousSections },
-      { data: previousVolumes },
-    ] = await Promise.all([
-      supabase
-        .from("mission_questions")
-        .select("id, question_number, question_text")
-        .eq("mission_id", data.mission_id),
-      supabase
-        .from("mission_assignments")
-        .select("question_id, assigned_writer_id, sme_member_ids, acceptance_status, writer_confidence, due_date, assigned_by, assigned_at")
-        .eq("mission_id", data.mission_id),
-      supabase.from("mission_sections").select("id").eq("mission_id", data.mission_id),
-      supabase.from("mission_volumes").select("id").eq("mission_id", data.mission_id),
-    ]);
-    if (plannedQuestionCount === 0 && (previousQuestions?.length ?? 0) > 0) {
-      console.warn("IRIS did not return replacement questions — keeping existing questions unchanged.");
-      return {
-        ok: true,
-        counts: { volumes: 0, sections: 0, sub_sections: 0, questions: 0, compliance: 0, checklist: 0 },
-        disclaimer: "IRIS did not find replacement questions in this run. Your existing questions and assignments were left unchanged.",
-      };
-    }
-
-    const questionKeyById = new Map((previousQuestions ?? []).map((q) => [q.id, questionKey(q)]));
-    const previousAssignmentByQuestionKey = new Map(
-      (previousAssignments ?? [])
-        .map((assignment) => {
-          const key = questionKeyById.get(assignment.question_id);
-          return key ? [key, assignment] as const : null;
-        })
-        .filter(Boolean) as Array<readonly [string, NonNullable<typeof previousAssignments>[number]]>,
-    );
-
     const counts = {
       volumes: 0,
       sections: 0,
@@ -267,115 +235,68 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
       compliance: 0,
       checklist: 0,
     };
-    const newVolumeIds: string[] = [];
-    const newSectionIds: string[] = [];
+    let disclaimer: string | null = null;
 
-    const insertQuestions = async (sectionId: string, qs: Question[]) => {
-      if (qs.length === 0) return;
-      const rowsWithKeys = qs
-        .map((q) => ({
-          key: questionKey(q),
-          row: {
-            mission_id: data.mission_id,
-            section_id: sectionId,
-            question_number: q.number ? String(q.number).slice(0, 50) : null,
-            question_text: String(q.text ?? "").slice(0, 4000),
-            word_limit: safeNum(q.word_limit),
-            page_limit: safeNum(q.page_limit),
-            evaluation_criteria: q.evaluation_criteria
-              ? String(q.evaluation_criteria).slice(0, 2000)
-              : null,
-            iris_confidence: conf(q.confidence),
-            status: "not_started",
-          },
-        }))
-        .filter((r) => r.row.question_text.trim().length > 0);
-      if (rowsWithKeys.length === 0) return;
-      const { data: inserted, error: qErr } = await supabase
-        .from("mission_questions")
-        .insert(rowsWithKeys.map((r) => r.row))
-        .select("id, question_number, question_text");
-      if (qErr) throw qErr;
-      counts.questions += inserted?.length ?? 0;
-      const restoreRows: Array<{
-        mission_id: string;
-        question_id: string;
-        assigned_writer_id: string | null;
-        sme_member_ids: string[];
-        acceptance_status: string;
-        writer_confidence: string;
-        due_date: string | null;
-        assigned_by: string | null;
-        assigned_at: string;
-      }> = [];
-      for (const newQuestion of inserted ?? []) {
-        const previous = previousAssignmentByQuestionKey.get(questionKey(newQuestion));
-        if (!previous) continue;
-        restoreRows.push({
-          mission_id: data.mission_id,
-          question_id: newQuestion.id,
-          assigned_writer_id: previous.assigned_writer_id,
-          sme_member_ids: previous.sme_member_ids ?? [],
-          acceptance_status: previous.acceptance_status ?? "pending",
-          writer_confidence: previous.writer_confidence ?? "not_set",
-          due_date: previous.due_date,
-          assigned_by: previous.assigned_by,
-          assigned_at: previous.assigned_at ?? new Date().toISOString(),
-        });
-      }
-      if (restoreRows.length > 0) {
-        const { error: restoreErr } = await supabase.from("mission_assignments").upsert(restoreRows, {
-          onConflict: "mission_id,question_id",
-        });
-        if (restoreErr) throw restoreErr;
-      }
-    };
-    for (let vi = 0; vi < volumes.length; vi++) {
-      const v = volumes[vi] ?? {};
-      const { data: vRow, error: vErr } = await supabase
-        .from("mission_volumes")
-        .insert({
-          mission_id: data.mission_id,
-          name: String(v.name ?? `Volume ${vi + 1}`).slice(0, 500),
-          order_index: vi,
-        })
-        .select("id")
-        .single();
-      if (vErr || !vRow) continue;
-      counts.volumes++;
-      newVolumeIds.push(vRow.id);
+    // -------- PASS 1: structure (skip if sections already exist) --------
+    const { count: existingSectionCount } = await supabase
+      .from("mission_sections")
+      .select("id", { count: "exact", head: true })
+      .eq("mission_id", data.mission_id);
 
-      const sections = Array.isArray(v.sections) ? v.sections : [];
-      for (let si = 0; si < sections.length; si++) {
-        const s = sections[si] ?? ({} as Section);
-        const { data: sRow, error: sErr } = await supabase
-          .from("mission_sections")
+    if ((existingSectionCount ?? 0) === 0) {
+      console.log("[iris] Pass 1: extracting structure");
+      const content = await callAI(apiKey, STRUCTURE_SYSTEM, data.primary_rfp_text);
+      const parsed = content ? tryParseJSON<Structure>(content) : null;
+      if (!parsed) {
+        return {
+          ok: true,
+          counts,
+          disclaimer: "IRIS could not parse the document structure. Existing data left unchanged.",
+        };
+      }
+
+      const volumes = Array.isArray(parsed.volumes) ? parsed.volumes : [];
+      for (let vi = 0; vi < volumes.length; vi++) {
+        const v = volumes[vi] ?? {} as Volume;
+        const { data: vRow, error: vErr } = await supabase
+          .from("mission_volumes")
           .insert({
             mission_id: data.mission_id,
-            volume_id: vRow.id,
-            parent_section_id: null,
-            section_number: s.number ? String(s.number).slice(0, 50) : null,
-            name: String(s.name ?? `Section ${si + 1}`).slice(0, 500),
-            page_limit: safeNum(s.page_limit),
-            evaluation_weight: safeNum(s.evaluation_weight),
-            description: s.description ? String(s.description).slice(0, 4000) : null,
-            iris_confidence: conf(s.confidence),
-            order_index: si,
+            name: String(v.name ?? `Volume ${vi + 1}`).slice(0, 500),
+            order_index: vi,
           })
           .select("id")
           .single();
-        if (sErr || !sRow) continue;
-        counts.sections++;
-        newSectionIds.push(sRow.id);
+        if (vErr || !vRow) continue;
+        counts.volumes++;
 
-        await insertQuestions(sRow.id, Array.isArray(s.questions) ? s.questions : []);
-
-        const subs = Array.isArray(s.sub_sections) ? s.sub_sections : [];
-        for (let ssi = 0; ssi < subs.length; ssi++) {
-          const ss = subs[ssi] ?? ({} as SubSection);
-          const { data: ssRow, error: ssErr } = await supabase
+        const sections = Array.isArray(v.sections) ? v.sections : [];
+        for (let si = 0; si < sections.length; si++) {
+          const s = sections[si] ?? ({} as Section);
+          const { data: sRow, error: sErr } = await supabase
             .from("mission_sections")
             .insert({
+              mission_id: data.mission_id,
+              volume_id: vRow.id,
+              parent_section_id: null,
+              section_number: s.number ? String(s.number).slice(0, 50) : null,
+              name: String(s.name ?? `Section ${si + 1}`).slice(0, 500),
+              page_limit: safeNum(s.page_limit),
+              evaluation_weight: safeNum(s.evaluation_weight),
+              description: s.description ? String(s.description).slice(0, 4000) : null,
+              iris_confidence: conf(s.confidence),
+              is_form_only: s.is_form_only === true,
+              order_index: si,
+            })
+            .select("id")
+            .single();
+          if (sErr || !sRow) continue;
+          counts.sections++;
+
+          const subs = Array.isArray(s.sub_sections) ? s.sub_sections : [];
+          for (let ssi = 0; ssi < subs.length; ssi++) {
+            const ss = subs[ssi] ?? ({} as SubSection);
+            const { error: ssErr } = await supabase.from("mission_sections").insert({
               mission_id: data.mission_id,
               volume_id: vRow.id,
               parent_section_id: sRow.id,
@@ -385,91 +306,150 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
               evaluation_weight: safeNum(ss.evaluation_weight),
               description: ss.description ? String(ss.description).slice(0, 4000) : null,
               iris_confidence: conf(ss.confidence),
+              is_form_only: ss.is_form_only === true,
               order_index: ssi,
-            })
-            .select("id")
-            .single();
-          if (ssErr || !ssRow) continue;
-          counts.sub_sections++;
-          newSectionIds.push(ssRow.id);
-
-          await insertQuestions(ssRow.id, Array.isArray(ss.questions) ? ss.questions : []);
+            });
+            if (!ssErr) counts.sub_sections++;
+          }
         }
       }
+
+      // Compliance + checklist (one-shot, only on first structural pass)
+      const compliance = Array.isArray(parsed.compliance_requirements)
+        ? parsed.compliance_requirements.map((c) => String(c).trim()).filter(Boolean).slice(0, 200)
+        : [];
+      if (compliance.length > 0) {
+        await supabase
+          .from("mission_compliance_requirements")
+          .delete()
+          .eq("mission_id", data.mission_id)
+          .eq("iris_extracted", true);
+        const { error } = await supabase.from("mission_compliance_requirements").insert(
+          compliance.map((requirement) => ({
+            mission_id: data.mission_id,
+            requirement: requirement.slice(0, 2000),
+            status: "not_addressed",
+            iris_extracted: true,
+          })),
+        );
+        if (!error) counts.compliance = compliance.length;
+      }
+
+      const checklist = Array.isArray(parsed.submission_checklist_items)
+        ? parsed.submission_checklist_items.map((c) => String(c).trim()).filter(Boolean).slice(0, 200)
+        : [];
+      if (checklist.length > 0) {
+        await supabase
+          .from("mission_submission_checklist")
+          .delete()
+          .eq("mission_id", data.mission_id)
+          .eq("iris_extracted", true);
+        const { error } = await supabase.from("mission_submission_checklist").insert(
+          checklist.map((label) => ({
+            mission_id: data.mission_id,
+            label: label.slice(0, 500),
+            iris_extracted: true,
+          })),
+        );
+        if (!error) counts.checklist = checklist.length;
+      }
+
+      disclaimer =
+        typeof parsed.disclaimer === "string" && parsed.disclaimer.trim().length > 0
+          ? parsed.disclaimer.trim().slice(0, 2000)
+          : null;
+      await supabase
+        .from("missions")
+        .update({ iris_disclaimer: disclaimer })
+        .eq("id", data.mission_id);
+    } else {
+      console.log(`[iris] Pass 1 skipped — ${existingSectionCount} sections already exist`);
     }
 
-    if (counts.questions === 0 && (previousQuestions?.length ?? 0) > 0) {
-      console.warn("IRIS did not write replacement questions — keeping existing questions unchanged.");
-      if (newSectionIds.length > 0) await supabase.from("mission_sections").delete().in("id", newSectionIds);
-      if (newVolumeIds.length > 0) await supabase.from("mission_volumes").delete().in("id", newVolumeIds);
-      return {
-        ok: true,
-        counts: { volumes: 0, sections: 0, sub_sections: 0, questions: 0, compliance: 0, checklist: 0 },
-        disclaimer: "IRIS did not write replacement questions in this run. Your existing questions and assignments were left unchanged.",
-      };
-    }
-
-    await supabase
-      .from("mission_submission_checklist")
-      .delete()
+    // -------- PASS 2: questions per non-form section --------
+    const { data: sectionRows } = await supabase
+      .from("mission_sections")
+      .select("id, section_number, name, is_form_only")
       .eq("mission_id", data.mission_id)
-      .eq("iris_extracted", true);
-    await supabase
-      .from("mission_compliance_requirements")
-      .delete()
-      .eq("mission_id", data.mission_id)
-      .eq("iris_extracted", true);
-    const previousQuestionIds = (previousQuestions ?? []).map((q) => q.id);
-    const previousSectionIds = (previousSections ?? []).map((s) => s.id);
-    const previousVolumeIds = (previousVolumes ?? []).map((v) => v.id);
-    if (previousQuestionIds.length > 0) await supabase.from("mission_questions").delete().in("id", previousQuestionIds);
-    if (previousSectionIds.length > 0) await supabase.from("mission_sections").delete().in("id", previousSectionIds);
-    if (previousVolumeIds.length > 0) await supabase.from("mission_volumes").delete().in("id", previousVolumeIds);
+      .order("order_index", { ascending: true });
 
-    const compliance = Array.isArray(parsed.compliance_requirements)
-      ? parsed.compliance_requirements
-          .map((c) => String(c).trim())
-          .filter(Boolean)
-          .slice(0, 200)
-      : [];
-    if (compliance.length > 0) {
-      const { error } = await supabase.from("mission_compliance_requirements").insert(
-        compliance.map((requirement) => ({
-          mission_id: data.mission_id,
-          requirement: requirement.slice(0, 2000),
-          status: "not_addressed",
-          iris_extracted: true,
-        })),
+    const targets = (sectionRows ?? []).filter(
+      (s) => s.is_form_only !== true && s.section_number,
+    );
+    const skipped = (sectionRows ?? []).length - targets.length;
+    console.log(`[iris] Pass 2: ${targets.length} targets, ${skipped} skipped (form/no-number)`);
+
+    let questionsInserted = 0;
+    let sectionsFailed = 0;
+    let sectionsWithoutText = 0;
+
+    await runWithConcurrency(targets, 3, async (section) => {
+      const slice = sliceSectionText(data.primary_rfp_text, section.section_number);
+      if (slice.length < 200) {
+        sectionsWithoutText++;
+        return;
+      }
+      const userMsg = `RFP Section: ${section.section_number} — ${section.name}\n\nSection text:\n${slice}`;
+      let content: string | null = null;
+      try {
+        content = await callAI(apiKey, QUESTIONS_SYSTEM, userMsg);
+      } catch (e) {
+        console.error("[iris-pass2] AI call failed", section.section_number, e);
+        sectionsFailed++;
+        return;
+      }
+      if (!content) {
+        sectionsFailed++;
+        return;
+      }
+      const parsed = tryParseJSON<{ questions?: AIQuestion[] }>(content);
+      const qs = Array.isArray(parsed?.questions) ? parsed!.questions : [];
+      if (qs.length === 0) return;
+
+      const rows = qs
+        .map((q, i) => {
+          const text = String(q.question_text ?? "").trim().slice(0, 4000);
+          if (!text) return null;
+          const qnum = (q.question_number && String(q.question_number).trim()) ||
+            `${section.section_number}.${i + 1}`;
+          return {
+            mission_id: data.mission_id,
+            section_id: section.id,
+            question_number: qnum.slice(0, 50),
+            question_text: text,
+            page_limit: safeNum(q.page_limit),
+            word_limit: safeNum(q.word_limit),
+            evaluation_weight: safeNum(q.evaluation_weight),
+            status: "not_started",
+            health_status: "healthy",
+            iris_brief_status: "pending",
+            iris_extracted: true,
+            iris_extracted_at: new Date().toISOString(),
+          };
+        })
+        .filter((r): r is NonNullable<typeof r> => r !== null);
+
+      if (rows.length === 0) return;
+
+      const { data: upserted, error: upErr } = await supabase
+        .from("mission_questions")
+        .upsert(rows, { onConflict: "mission_id,question_number" })
+        .select("id");
+      if (upErr) {
+        console.error("[iris-pass2] upsert failed", section.section_number, upErr.message);
+        sectionsFailed++;
+        return;
+      }
+      questionsInserted += upserted?.length ?? 0;
+      console.log(
+        `[iris-pass2] ✓ ${section.section_number} ${section.name} — ${upserted?.length ?? 0} questions`,
       );
-      if (!error) counts.compliance = compliance.length;
-    }
+    });
 
-    const checklist = Array.isArray(parsed.submission_checklist_items)
-      ? parsed.submission_checklist_items
-          .map((c) => String(c).trim())
-          .filter(Boolean)
-          .slice(0, 200)
-      : [];
-    if (checklist.length > 0) {
-      const { error } = await supabase.from("mission_submission_checklist").insert(
-        checklist.map((label) => ({
-          mission_id: data.mission_id,
-          label: label.slice(0, 500),
-          iris_extracted: true,
-        })),
-      );
-      if (!error) counts.checklist = checklist.length;
-    }
+    counts.questions = questionsInserted;
+    console.log(
+      `[iris] Pass 2 complete — ${questionsInserted} questions across ${targets.length - sectionsFailed - sectionsWithoutText}/${targets.length} sections (${sectionsFailed} failed, ${sectionsWithoutText} no-text)`,
+    );
 
-    const disclaimer =
-      typeof parsed.disclaimer === "string" && parsed.disclaimer.trim().length > 0
-        ? parsed.disclaimer.trim().slice(0, 2000)
-        : null;
-    await supabase
-      .from("missions")
-      .update({ iris_disclaimer: disclaimer })
-      .eq("id", data.mission_id);
-
-    void userId;
     return { ok: true, counts, disclaimer };
   });

@@ -1,0 +1,2 @@
+ALTER TABLE public.mission_sections ADD COLUMN IF NOT EXISTS is_form_only boolean NOT NULL DEFAULT false;
+CREATE UNIQUE INDEX IF NOT EXISTS mq_mission_qnum_uniq ON public.mission_questions(mission_id, question_number) WHERE question_number IS NOT NULL;
