@@ -434,9 +434,13 @@ export const extractQuestionsForSection = createServerFn({ method: "POST" })
         })
         .filter((r): r is NonNullable<typeof r> => r !== null);
 
-      if (rows.length === 0) return { ok: true, inserted: 0, skipped: "empty_rows" };
+      const rowsByQuestionNumber = new Map<string, (typeof rows)[number]>();
+      for (const row of rows) rowsByQuestionNumber.set(row.question_number, row);
+      const uniqueRows = Array.from(rowsByQuestionNumber.values());
 
-      const questionNumbers = rows.map((row) => row.question_number);
+      if (uniqueRows.length === 0) return { ok: true, inserted: 0, skipped: "empty_rows" };
+
+      const questionNumbers = uniqueRows.map((row) => row.question_number);
       const { error: deleteErr } = await supabase
         .from("mission_questions")
         .delete()
@@ -450,7 +454,7 @@ export const extractQuestionsForSection = createServerFn({ method: "POST" })
 
       const { data: inserted, error: insertErr } = await supabase
         .from("mission_questions")
-        .insert(rows)
+        .insert(uniqueRows)
         .select("id");
       if (insertErr) {
         console.error("[iris-pass2] insert failed", section.section_number, insertErr.message);
