@@ -355,39 +355,9 @@ export function Step8Review({
           ),
         ]).then(() => console.log("BLAST OFF: graph + territory settled"));
 
-        // Step 3+4: queue + generate briefs with concurrency = 3
-        try {
-          const { data: questions } = await supabase
-            .from("mission_questions")
-            .select("id")
-            .eq("mission_id", missionId)
-            .eq("is_withdrawn", false);
-          if (!questions || questions.length === 0) {
-            console.warn("BLAST OFF: no questions found to queue");
-            return;
-          }
-          await supabase
-            .from("mission_questions")
-            .update({ iris_brief_status: "queued" })
-            .eq("mission_id", missionId)
-            .in("iris_brief_status", ["pending", "error"]);
-
-          for (let i = 0; i < questions.length; i += 3) {
-            const batch = questions.slice(i, i + 3);
-            await Promise.allSettled(
-              batch.map((q) =>
-                generateIrisBriefFn({ data: { missionId, questionId: q.id } }).catch(
-                  (err) => console.error("BLAST OFF: brief failed for", q.id, err),
-                ),
-              ),
-            );
-          }
-          console.log(
-            `BLAST OFF: IRIS pipeline complete — ${questions.length} briefs processed`,
-          );
-        } catch (err) {
-          console.error("BLAST OFF: brief queue failed", err);
-        }
+        // Brief generation is now triggered inside runIrisRfpExtraction
+        // immediately after Pass 2 inserts questions — no separate loop here
+        // to avoid double-generation.
       })();
 
 
