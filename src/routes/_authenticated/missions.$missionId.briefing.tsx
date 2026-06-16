@@ -567,13 +567,34 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
     },
   });
 
+  // Map each phase name to the matching milestone date so the rail lines
+  // up with the Configured Milestones list below.
+  const milestoneDateFor = (phaseName: string): string | null => {
+    const n = phaseName.toLowerCase();
+    const last = (ms: any[]) =>
+      ms.length === 0 ? null : (ms[ms.length - 1].milestone_date as string);
+    if (n.includes("submission")) {
+      return (
+        last((milestones as any[]).filter((m) => m.milestone_type === "submission")) ??
+        mission?.submission_deadline ??
+        null
+      );
+    }
+    if (n.includes("red")) return last((milestones as any[]).filter((m) => m.milestone_type === "red_team"));
+    if (n.includes("pink")) return last((milestones as any[]).filter((m) => m.milestone_type === "pink_team"));
+    if (n.includes("writing") || n.includes("draft") || n.includes("pens")) {
+      return last((milestones as any[]).filter((m) => m.is_pens_down));
+    }
+    if (n.includes("kick")) return last((milestones as any[]).filter((m) => m.milestone_type === "kickoff"));
+    return null;
+  };
+
   // Build phases: prefer DB rows; fall back to hardcoded array.
   const fallbackIdx = computeJourneyIndex(mission);
-  const phases: PhaseRow[] =
+  const basePhases: PhaseRow[] =
     phaseRows.length > 0
       ? phaseRows.map((r: any, i: number) => {
           const derived = derivePhaseStatus(r.start_date ?? null, r.end_date ?? null);
-          // When dates aren't set, use the legacy mission-status-derived index.
           const status: PhaseRow["status"] =
             derived ?? (i < fallbackIdx ? "complete" : i === fallbackIdx ? "active" : "upcoming");
           return {
@@ -589,6 +610,19 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
           start_date: null,
           end_date: null,
         }));
+
+  // Overlay milestone-anchored end dates onto each phase so the rail's
+  // displayed date matches the corresponding milestone row.
+  const phases: PhaseRow[] = basePhases.map((p) => {
+    const anchored = milestoneDateFor(p.name);
+    if (!anchored) return p;
+    const newEnd = String(anchored).slice(0, 10);
+    return {
+      ...p,
+      end_date: newEnd,
+      status: derivePhaseStatus(p.start_date, newEnd) ?? p.status,
+    };
+  });
 
   // Ensure exactly one "active" phase for the rail's progress bar.
   let activeIndex = phases.findIndex((p) => p.status === "active");
