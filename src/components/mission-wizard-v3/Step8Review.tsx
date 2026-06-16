@@ -632,11 +632,11 @@ export function Step8Review({
               </div>
               <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5">
                 {group.keys.map((k) => {
-                  const v = byKey.get(k);
+                  const v = resolveDisplay(k);
                   return (
                     <div key={k}>
                       <dt className="text-[11px] uppercase tracking-[0.12em] text-white/40">{k.replace(/_/g, " ")}</dt>
-                      <dd className="text-[13px] text-white mt-0.5 line-clamp-2">
+                      <dd className="text-[13px] text-white mt-0.5 whitespace-pre-wrap line-clamp-4">
                         {v?.value || <span className="text-white/35 italic">Not set</span>}
                         {v?.value && !v.confirmed && (
                           <span className="ml-1.5 inline-block text-[10px] px-1.5 py-0.5 rounded bg-amber-400/15 text-amber-300">
