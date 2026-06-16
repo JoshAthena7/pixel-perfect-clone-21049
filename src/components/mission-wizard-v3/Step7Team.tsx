@@ -563,10 +563,31 @@ function AssignmentsSubStep({
   const pct = totalCount > 0 ? Math.round((assignedCount / totalCount) * 100) : 0;
 
   // Idempotent assign: wipe any existing lead_writer rows for the question
-  // (covers stale duplicates and RLS-hidden rows), then insert the new one.
-  // This eliminates the UNIQUE(question_id, assignee_id, role) conflict that
-  // was silently dropping reassignments.
-  async function assignWriter(questionId: string, newAssigneeId: string) {
+  // into both systems: mission_assignments powers Flight Deck; question_progress
+  // powers legacy writer cockpit/readiness checks.
+  async function assignWriter(questionId: string, memberId: string) {
+    const authId = memberId ? authIdByMemberId.get(memberId) : null;
+    const now = new Date().toISOString();
+
+    const { error: assignmentError } = memberId
+      ? await supabase.from("mission_assignments").upsert(
+          {
+            mission_id: missionId,
+            question_id: questionId,
+            assigned_writer_id: memberId,
+            acceptance_status: "pending",
+            acceptance_responded_at: null,
+            writer_confidence: "not_set",
+            assigned_at: now,
+          },
+          { onConflict: "mission_id,question_id" },
+        )
+      : await supabase.from("mission_assignments").delete().eq("mission_id", missionId).eq("question_id", questionId);
+    if (assignmentError) {
+      toast.error(`Could not assign: ${assignmentError.message}`);
+      return;
+    }
+
     const { error: delErr } = await supabase
       .from("question_progress")
       .delete()
@@ -574,21 +595,22 @@ function AssignmentsSubStep({
       .eq("question_id", questionId)
       .eq("role", "lead_writer");
     if (delErr) {
-      toast.error(`Could not save: ${delErr.message}`);
+      toast.error(`Could not update writer progress: ${delErr.message}`);
       return;
     }
-    if (newAssigneeId) {
-      const { error: insErr } = await supabase.from("question_progress").insert({
+
+    if (authId) {
+      const { error: progressError } = await supabase.from("question_progress").insert({
         mission_id: missionId,
         question_id: questionId,
-        assignee_id: newAssigneeId,
+        assignee_id: authId,
         role: "lead_writer",
         status: "not_started",
         acceptance_status: "pending",
-        assigned_at: new Date().toISOString(),
+        assigned_at: now,
       });
-      if (insErr) {
-        toast.error(`Could not assign: ${insErr.message}`);
+      if (progressError) {
+        toast.error(`Could not update writer progress: ${progressError.message}`);
         return;
       }
     }
@@ -603,8 +625,8 @@ function AssignmentsSubStep({
       return;
     }
     const { error } = await supabase
-      .from("question_progress")
-      .update({ internal_due_date: value || null })
+      .from("mission_assignments")
+      .update({ due_date: value || null })
       .eq("id", existing.id);
     if (error) {
       toast.error(`Could not save due date: ${error.message}`);
