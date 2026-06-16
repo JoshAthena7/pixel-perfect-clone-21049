@@ -61,6 +61,22 @@ async function runWithConcurrency<T>(
 }
 
 export async function runIrisRfpExtraction(missionId: string): Promise<ProcessResult> {
+  // Guard — never re-extract if mission_questions already exist. Re-running
+  // PASS 1/2 on a mission that already has questions creates `.1`-suffixed
+  // duplicates and inflates the count (e.g. 75 -> 89). Brief generation for
+  // any pending questions is still handled by the dedicated brief queue.
+  const { count: existingCount } = await supabase
+    .from("mission_questions")
+    .select("id", { count: "exact", head: true })
+    .eq("mission_id", missionId)
+    .eq("is_withdrawn", false);
+  if ((existingCount ?? 0) > 0) {
+    console.log(
+      `[IRIS] Skipping RFP extraction — mission ${missionId} already has ${existingCount} questions.`,
+    );
+    return { sections_created: 0, questions_created: 0, skipped: true } as unknown as ProcessResult;
+  }
+
   const { data: docs, error: docsError } = await supabase
     .from("mission_documents")
     .select("id, title, file_url, content_summary")

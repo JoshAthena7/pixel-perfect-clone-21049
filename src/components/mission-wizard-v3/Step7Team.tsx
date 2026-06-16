@@ -612,51 +612,68 @@ function AssignmentsSubStep({
     }
     const authId = authIdByMemberId.get(bulkWriter);
     const now = new Date().toISOString();
-    const ids = unassigned.map((q) => q.id);
-    const { error: assignmentError } = await supabase.from("mission_assignments").upsert(
-      unassigned.map((q) => ({
-        mission_id: missionId,
-        question_id: q.id,
-        assigned_writer_id: bulkWriter,
-        acceptance_status: "pending",
-        acceptance_responded_at: null,
-        writer_confidence: "not_set",
-        assigned_at: now,
-      })),
-      { onConflict: "mission_id,question_id" },
-    );
-    if (assignmentError) {
-      toast.error(`Bulk assign failed: ${assignmentError.message}`);
-      return;
+    const BATCH = 10;
+    const total = unassigned.length;
+    let done = 0;
+    let failed = 0;
+
+    const progressToast = toast.loading(`Assigning… 0 of ${total}`);
+
+    for (let i = 0; i < unassigned.length; i += BATCH) {
+      const batch = unassigned.slice(i, i + BATCH);
+      const ids = batch.map((q) => q.id);
+
+      const { error: assignmentError } = await supabase.from("mission_assignments").upsert(
+        batch.map((q) => ({
+          mission_id: missionId,
+          question_id: q.id,
+          assigned_writer_id: bulkWriter,
+          acceptance_status: "pending",
+          acceptance_responded_at: null,
+          writer_confidence: "not_set",
+          assigned_at: now,
+        })),
+        { onConflict: "mission_id,question_id" },
+      );
+      if (assignmentError) {
+        failed += batch.length;
+        console.error("[bulk-assign] mission_assignments batch failed", assignmentError);
+      } else {
+        // Mirror to question_progress (best-effort; non-blocking).
+        const { error: delErr } = await supabase
+          .from("question_progress")
+          .delete()
+          .eq("mission_id", missionId)
+          .eq("role", "lead_writer")
+          .in("question_id", ids);
+        if (delErr) console.warn("[bulk-assign] question_progress delete failed", delErr);
+        if (authId) {
+          const { error: insErr } = await supabase.from("question_progress").insert(
+            batch.map((q) => ({
+              mission_id: missionId,
+              question_id: q.id,
+              assignee_id: authId,
+              role: "lead_writer",
+              status: "not_started",
+              acceptance_status: "pending",
+              assigned_at: now,
+            })),
+          );
+          if (insErr) console.warn("[bulk-assign] question_progress insert failed", insErr);
+        }
+        done += batch.length;
+      }
+
+      toast.loading(`Assigning… ${done + failed} of ${total}`, { id: progressToast });
+      // Refresh UI between batches so the counter ticks up live.
+      await qc.refetchQueries({ queryKey: progressKey });
     }
 
-    const { error: delErr } = await supabase
-      .from("question_progress")
-      .delete()
-      .eq("mission_id", missionId)
-      .eq("role", "lead_writer")
-      .in("question_id", ids);
-    if (delErr) {
-      toast.error(`Bulk assign failed: ${delErr.message}`);
-      return;
+    if (failed === 0) {
+      toast.success(`Assigned ${done} question${done === 1 ? "" : "s"}.`, { id: progressToast });
+    } else {
+      toast.error(`Assigned ${done} of ${total}. ${failed} failed — check console.`, { id: progressToast });
     }
-    if (authId) {
-      const rows = unassigned.map((q) => ({
-        mission_id: missionId,
-        question_id: q.id,
-        assignee_id: authId,
-        role: "lead_writer",
-        status: "not_started",
-        acceptance_status: "pending",
-        assigned_at: now,
-      }));
-      const { error } = await supabase.from("question_progress").insert(rows);
-      if (error) {
-        toast.error(`Bulk assign failed: ${error.message}`);
-        return;
-      }
-    }
-    toast.success(`Assigned ${unassigned.length} question${unassigned.length === 1 ? "" : "s"}.`);
     setBulkWriter("");
     await qc.refetchQueries({ queryKey: progressKey });
   }
