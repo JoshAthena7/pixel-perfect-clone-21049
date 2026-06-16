@@ -831,6 +831,17 @@ function MyWorkColumn({
         questionNumber={questionNumber}
         questionText={questionText}
       />
+
+      <WritersBlockDialog
+        open={stuckOpen}
+        onOpenChange={setStuckOpen}
+        missionId={missionId}
+        questionId={questionId}
+        questionNumber={questionNumber}
+        questionText={questionText}
+        dueDate={dueDate}
+        status={status}
+      />
     </div>
   );
 }
