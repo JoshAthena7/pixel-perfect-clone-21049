@@ -35,6 +35,7 @@ type RosterMember = {
   last_name: string | null;
   job_title: string | null;
   skills: string[] | null;
+  email: string | null;
 };
 
 type MissionTeamRow = {
@@ -461,7 +462,7 @@ function AssignmentsSubStep({
       const { data, error } = await supabase
         .from("mission_team_members")
         .select(
-          "id, member_id, mission_role, member:atlas_team_members!mission_team_members_member_id_fkey(id, first_name, last_name, job_title, skills)",
+          "id, member_id, mission_role, member:atlas_team_members!mission_team_members_member_id_fkey(id, first_name, last_name, job_title, skills, email)",
         )
         .eq("mission_id", missionId)
         .in("mission_role", ["writer", "engagement_lead"]);
@@ -469,6 +470,47 @@ function AssignmentsSubStep({
       return (data ?? []) as unknown as MissionTeamRow[];
     },
   });
+
+  // Resolve atlas_team_members -> auth.users id via profiles.email
+  // (question_progress.assignee_id has a FK to auth.users)
+  const teamEmails = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          team
+            .map((t) => t.member?.email?.toLowerCase())
+            .filter((e): e is string => !!e),
+        ),
+      ),
+    [team],
+  );
+  const { data: profilesByEmail } = useQuery({
+    queryKey: ["wizard-assign-profiles-by-email", teamEmails.slice().sort().join("|")],
+    enabled: teamEmails.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, email")
+        .in("email", teamEmails);
+      if (error) throw error;
+      const m = new Map<string, string>();
+      (data ?? []).forEach((p: any) => {
+        if (p.email) m.set(String(p.email).toLowerCase(), p.id as string);
+      });
+      return m;
+    },
+  });
+
+  const authIdByMemberId = useMemo(() => {
+    const m = new Map<string, string>();
+    if (!profilesByEmail) return m;
+    team.forEach((t) => {
+      const email = t.member?.email?.toLowerCase();
+      const authId = email ? profilesByEmail.get(email) : undefined;
+      if (authId) m.set(t.member_id, authId);
+    });
+    return m;
+  }, [team, profilesByEmail]);
 
   const sectionById = useMemo(() => {
     const m = new Map<string, SectionLite>();
@@ -482,11 +524,15 @@ function AssignmentsSubStep({
     return m;
   }, [progress]);
 
+  // Keyed by auth user id (= assignee_id stored in question_progress)
   const memberName = useMemo(() => {
     const m = new Map<string, string>();
-    team.forEach((t) => m.set(t.member_id, fullName(t.member)));
+    team.forEach((t) => {
+      const authId = authIdByMemberId.get(t.member_id);
+      if (authId) m.set(authId, fullName(t.member));
+    });
     return m;
-  }, [team]);
+  }, [team, authIdByMemberId]);
 
   const sortedQuestions = useMemo(() => {
     return [...questions].sort((a, b) => {
@@ -556,6 +602,7 @@ function AssignmentsSubStep({
     }
     qc.invalidateQueries({ queryKey: progressKey });
   }
+
 
   async function setInternalDue(questionId: string, value: string) {
     const existing = progressByQuestion.get(questionId);
@@ -706,11 +753,19 @@ function AssignmentsSubStep({
             className="bg-white/5 border border-white/15 rounded-md px-2 py-1.5 text-[12px] text-white focus:outline-none focus:border-amber-400/60"
           >
             <option value="" className="bg-[#0D1B3E]">— Select writer —</option>
-            {team.map((t) => (
-              <option key={t.member_id} value={t.member_id} className="bg-[#0D1B3E]">
-                {fullName(t.member)}
-              </option>
-            ))}
+            {team.map((t) => {
+              const authId = authIdByMemberId.get(t.member_id);
+              return (
+                <option
+                  key={t.member_id}
+                  value={authId ?? ""}
+                  disabled={!authId}
+                  className="bg-[#0D1B3E]"
+                >
+                  {fullName(t.member)}{!authId ? " (no account)" : ""}
+                </option>
+              );
+            })}
           </select>
           <button
             disabled={!bulkWriter}
@@ -740,11 +795,15 @@ function AssignmentsSubStep({
             className="bg-white/5 border border-white/15 rounded-md px-2 py-1 text-[11.5px] text-white focus:outline-none focus:border-amber-400/60 ml-2"
           >
             <option value="" className="bg-[#0D1B3E]">All writers</option>
-            {team.map((t) => (
-              <option key={t.member_id} value={t.member_id} className="bg-[#0D1B3E]">
-                {fullName(t.member)}
-              </option>
-            ))}
+            {team.map((t) => {
+              const authId = authIdByMemberId.get(t.member_id);
+              if (!authId) return null;
+              return (
+                <option key={t.member_id} value={authId} className="bg-[#0D1B3E]">
+                  {fullName(t.member)}
+                </option>
+              );
+            })}
           </select>
           <button
             onClick={() => setConfirmClear(true)}
@@ -817,11 +876,19 @@ function AssignmentsSubStep({
                         }`}
                       >
                         <option value="" className="bg-[#0D1B3E]">— Unassigned —</option>
-                        {team.map((t) => (
-                          <option key={t.member_id} value={t.member_id} className="bg-[#0D1B3E]">
-                            {memberName.get(t.member_id) ?? "Unknown"}
-                          </option>
-                        ))}
+                        {team.map((t) => {
+                          const authId = authIdByMemberId.get(t.member_id);
+                          return (
+                            <option
+                              key={t.member_id}
+                              value={authId ?? ""}
+                              disabled={!authId}
+                              className="bg-[#0D1B3E]"
+                            >
+                              {fullName(t.member)}{!authId ? " (no account)" : ""}
+                            </option>
+                          );
+                        })}
                       </select>
                     </td>
                     <td className="px-3 py-2">
