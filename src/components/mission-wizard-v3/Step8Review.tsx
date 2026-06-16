@@ -19,6 +19,7 @@ import {
 } from "@/lib/iris-territory.functions";
 // generateIrisBrief is now invoked inside runIrisRfpExtraction.
 import { loadStaged, clearStaged } from "@/lib/oracle/wizard-stage";
+import { syncOracleConfigFromExtractions } from "@/lib/oracle/sync-to-oracle";
 import { WizardStepHeading } from "./WizardShellV3";
 import { LaunchSequence } from "./LaunchSequence";
 
@@ -220,13 +221,58 @@ export function Step8Review({
     });
   });
 
+  // Aggregate numbered keys (e.g. win_theme_1..5) into a single value.
+  function aggregateField(prefix: string, max: number): { value: string | null; confirmed: boolean } {
+    const parts: string[] = [];
+    let anyUnconfirmed = false;
+    let anyValue = false;
+    for (let i = 1; i <= max; i++) {
+      const row = byKey.get(`${prefix}_${i}`);
+      const v = row?.value?.trim();
+      if (v) {
+        parts.push(v);
+        anyValue = true;
+        if (!row?.confirmed) anyUnconfirmed = true;
+      }
+    }
+    return {
+      value: anyValue ? parts.join("\n") : null,
+      confirmed: anyValue && !anyUnconfirmed,
+    };
+  }
+
+  // Synthesise aggregated/alias keys the Review UI expects but the wizard
+  // never writes directly. Numbered keys (win_theme_1..5) collapse into
+  // win_themes; top_risks double as "why we could lose" / "biggest concerns";
+  // win_themes double as "why we win".
+  function resolveDisplay(k: string): { value: string | null; confirmed: boolean } {
+    const direct = byKey.get(k);
+    if (direct?.value) return direct;
+    switch (k) {
+      case "win_themes":
+      case "why_we_win":
+        return aggregateField("win_theme", 5);
+      case "biggest_concerns":
+      case "why_we_could_lose":
+        return aggregateField("top_risk", 5);
+      case "known_competitors":
+        return aggregateField("competitor", 5);
+      case "stakeholder_member_family":
+      case "stakeholder_provider":
+      case "stakeholder_evaluator":
+        return direct ?? { value: null, confirmed: false };
+      default:
+        return direct ?? { value: null, confirmed: false };
+    }
+  }
+
   const unconfirmedByStep: { step: number; title: string; fields: string[] }[] = Object.entries(
     STEP_FIELD_GROUPS,
   )
     .map(([stepStr, group]) => {
       const stepNum = Number(stepStr);
       const fields = group.keys.filter((k) => {
-        const v = byKey.get(k);
+        const v = resolveDisplay(k);
         return v?.value && !v.confirmed;
       });
       return { step: stepNum, title: group.title, fields };
@@ -261,7 +307,7 @@ export function Step8Review({
       // work with. Without this the missions row stays empty and every
       // generated brief comes back with "—" placeholders.
       const get = (k: string) => {
-        const v = byKey.get(k)?.value;
+        const v = resolveDisplay(k).value;
         return v && v.trim().length > 0 ? v.trim() : null;
       };
       const splitList = (v: string | null) =>
@@ -277,6 +323,8 @@ export function Step8Review({
       const opportunityTitle = get("opportunity_title");
       const clientAgency = get("client_agency");
       const competitorsList = splitList(get("known_competitors"));
+      const winThemesText = get("win_themes");
+      const topRisksText = get("biggest_concerns");
 
       const updates: TablesUpdate<"missions"> = {
         status: "active",
@@ -329,11 +377,17 @@ export function Step8Review({
         updates.program_type = mapped;
       }
       if (get("north_star")) updates.north_star = get("north_star");
-      if (get("why_we_win")) updates.why_win = get("why_we_win");
-      if (get("why_we_could_lose")) updates.why_lose = get("why_we_could_lose");
-      if (get("biggest_concerns")) updates.biggest_concerns = get("biggest_concerns");
+      // win themes ARE "why we win" — same data, different label downstream.
+      if (winThemesText) {
+        updates.why_win = winThemesText;
+        updates.win_themes_text = winThemesText;
+      }
+      // top risks ARE "why we could lose" / "biggest concerns".
+      if (topRisksText) {
+        updates.why_lose = topRisksText;
+        updates.biggest_concerns = topRisksText;
+      }
       if (get("state_priorities")) updates.state_priorities = get("state_priorities");
-      if (get("win_themes")) updates.win_themes_text = get("win_themes");
       const reinforceList = splitList(get("things_to_reinforce"));
       if (reinforceList.length) updates.reinforce = reinforceList;
       const avoidList = splitList(get("things_to_avoid"));
@@ -342,6 +396,10 @@ export function Step8Review({
 
       const { error: upErr } = await supabase.from("missions").update(updates).eq("id", missionId);
       if (upErr) throw upErr;
+
+      // Mirror the aggregated strategy values into oracle_engagement_config so
+      // briefing / IRIS / today's focus see them. Non-fatal if it fails.
+      await syncOracleConfigFromExtractions(missionId);
 
       // BLAST OFF — IRIS pipeline. Fire-and-forget so the animation never blocks.
       // Step 1 (processRFPDocuments via runIrisRfpExtraction) MUST complete
@@ -579,11 +637,11 @@ export function Step8Review({
               </div>
               <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5">
                 {group.keys.map((k) => {
-                  const v = byKey.get(k);
+                  const v = resolveDisplay(k);
                   return (
                     <div key={k}>
                       <dt className="text-[11px] uppercase tracking-[0.12em] text-white/40">{k.replace(/_/g, " ")}</dt>
-                      <dd className="text-[13px] text-white mt-0.5 line-clamp-2">
+                      <dd className="text-[13px] text-white mt-0.5 whitespace-pre-wrap line-clamp-4">
                         {v?.value || <span className="text-white/35 italic">Not set</span>}
                         {v?.value && !v.confirmed && (
                           <span className="ml-1.5 inline-block text-[10px] px-1.5 py-0.5 rounded bg-amber-400/15 text-amber-300">

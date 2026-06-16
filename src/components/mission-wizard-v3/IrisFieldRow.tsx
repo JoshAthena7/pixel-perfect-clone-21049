@@ -12,6 +12,14 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { syncOracleConfigFromExtractions } from "@/lib/oracle/sync-to-oracle";
+
+// Field keys whose confirmation should re-aggregate into oracle_engagement_config.
+const ORACLE_SYNC_PREFIXES = ["win_theme_", "top_risk_", "competitor_", "discriminator_", "proof_point_"];
+const ORACLE_SYNC_KEYS = new Set(["north_star", "central_claim"]);
+function shouldSyncOracle(key: string): boolean {
+  return ORACLE_SYNC_KEYS.has(key) || ORACLE_SYNC_PREFIXES.some((p) => key.startsWith(p));
+}
 
 export type ExtractionRow = {
   id: string;
@@ -101,6 +109,9 @@ export function IrisFieldRow({
       }
       lastSavedRef.current = value;
       await propagateToMission(value);
+      if (shouldSyncOracle(fieldKey)) {
+        void syncOracleConfigFromExtractions(missionId);
+      }
       onChange?.();
     } finally {
       setSaving(false);
@@ -152,6 +163,9 @@ export function IrisFieldRow({
         .eq("id", extraction.id);
       const v = (extraction.user_override_value ?? extraction.extracted_value ?? "") as string;
       if (v) await propagateToMission(v);
+      if (shouldSyncOracle(fieldKey)) {
+        void syncOracleConfigFromExtractions(missionId);
+      }
       onChange?.();
     } finally {
       setSaving(false);
