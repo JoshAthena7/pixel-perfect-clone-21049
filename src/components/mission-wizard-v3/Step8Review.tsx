@@ -220,13 +220,58 @@ export function Step8Review({
     });
   });
 
+  // Aggregate numbered keys (e.g. win_theme_1..5) into a single value.
+  function aggregateField(prefix: string, max: number): { value: string | null; confirmed: boolean } {
+    const parts: string[] = [];
+    let anyUnconfirmed = false;
+    let anyValue = false;
+    for (let i = 1; i <= max; i++) {
+      const row = byKey.get(`${prefix}_${i}`);
+      const v = row?.value?.trim();
+      if (v) {
+        parts.push(v);
+        anyValue = true;
+        if (!row?.confirmed) anyUnconfirmed = true;
+      }
+    }
+    return {
+      value: anyValue ? parts.join("\n") : null,
+      confirmed: anyValue && !anyUnconfirmed,
+    };
+  }
+
+  // Synthesise aggregated/alias keys the Review UI expects but the wizard
+  // never writes directly. Numbered keys (win_theme_1..5) collapse into
+  // win_themes; top_risks double as "why we could lose" / "biggest concerns";
+  // win_themes double as "why we win".
+  function resolveDisplay(k: string): { value: string | null; confirmed: boolean } {
+    const direct = byKey.get(k);
+    if (direct?.value) return direct;
+    switch (k) {
+      case "win_themes":
+      case "why_we_win":
+        return aggregateField("win_theme", 5);
+      case "biggest_concerns":
+      case "why_we_could_lose":
+        return aggregateField("top_risk", 5);
+      case "known_competitors":
+        return aggregateField("competitor", 5);
+      case "stakeholder_member_family":
+      case "stakeholder_provider":
+      case "stakeholder_evaluator":
+        return direct ?? { value: null, confirmed: false };
+      default:
+        return direct ?? { value: null, confirmed: false };
+    }
+  }
+
   const unconfirmedByStep: { step: number; title: string; fields: string[] }[] = Object.entries(
     STEP_FIELD_GROUPS,
   )
     .map(([stepStr, group]) => {
       const stepNum = Number(stepStr);
       const fields = group.keys.filter((k) => {
-        const v = byKey.get(k);
+        const v = resolveDisplay(k);
         return v?.value && !v.confirmed;
       });
       return { step: stepNum, title: group.title, fields };
