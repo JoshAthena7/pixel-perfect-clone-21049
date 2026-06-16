@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { extractJourneyMilestones } from "@/lib/journey-extract.functions";
+import { extractRFPText, detectRFPKind } from "@/lib/extract-rfp-text.browser";
 import { WizardStepHeading } from "./WizardShellV3";
 
 type MilestoneType =
