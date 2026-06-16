@@ -773,10 +773,9 @@ function AssignmentsSubStep({
                 <option
                   key={t.member_id}
                   value={t.member_id}
-                  disabled={!authId}
                   className="bg-[#0D1B3E]"
                 >
-                  {fullName(t.member)}{!authId ? " (no account)" : ""}
+                  {fullName(t.member)}{!authId ? " (no login)" : ""}
                 </option>
               );
             })}
@@ -885,7 +884,7 @@ function AssignmentsSubStep({
                         value={p?.assigned_writer_id ?? ""}
                         onChange={(e) => assignWriter(q.id, e.target.value)}
                         className={`w-full bg-white/5 border rounded-md px-2 py-1.5 text-[12px] focus:outline-none focus:border-amber-400/60 ${
-                          !p ? "border-red-500/40 text-red-300" : "border-white/15 text-white"
+                          !p?.assigned_writer_id ? "border-red-500/40 text-red-300" : "border-white/15 text-white"
                         }`}
                       >
                         <option value="" className="bg-[#0D1B3E]">— Unassigned —</option>
@@ -895,10 +894,9 @@ function AssignmentsSubStep({
                             <option
                               key={t.member_id}
                               value={t.member_id}
-                              disabled={!authId}
                               className="bg-[#0D1B3E]"
                             >
-                              {fullName(t.member)}{!authId ? " (no account)" : ""}
+                              {fullName(t.member)}{!authId ? " (no login)" : ""}
                             </option>
                           );
                         })}
