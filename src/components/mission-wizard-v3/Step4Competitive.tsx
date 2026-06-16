@@ -57,6 +57,18 @@ export function Step4Competitive({
   useEffect(() => {
     const threshold = MODES.find((m) => m.value === mode)?.threshold ?? 40;
     saveStaged(missionId, { competitors, monitoring_mode: mode, signal_threshold: threshold });
+    // Also persist competitors directly to the mission so they survive a wizard reload
+    // and become visible to ORACLE/other surfaces even before launch.
+    const t = setTimeout(() => {
+      void supabase
+        .from("missions")
+        .update({ known_competitors: competitors })
+        .eq("id", missionId)
+        .then(({ error }) => {
+          if (error) console.error("[Step4Competitive] save competitors failed:", error.message);
+        });
+    }, 400);
+    return () => clearTimeout(t);
   }, [missionId, competitors, mode]);
 
   const queryKey = ["mission-iris-extractions", missionId, 4] as const;
