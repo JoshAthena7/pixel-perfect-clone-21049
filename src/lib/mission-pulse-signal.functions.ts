@@ -50,20 +50,55 @@ export const listMissionPulse = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => ListInput.parse(i))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const { data: rows, error } = await supabase
-      .from("team_updates" as any)
-      .select("*")
-      .eq("mission_id", data.missionId)
-      .order("created_at", { ascending: false })
-      .limit(200);
+    const [{ data: rows, error }, { data: intel, error: intelErr }] = await Promise.all([
+      supabase
+        .from("team_updates" as any)
+        .select("*")
+        .eq("mission_id", data.missionId)
+        .order("created_at", { ascending: false })
+        .limit(200),
+      supabase
+        .from("intel_events")
+        .select("id, mission_id, title, extracted_summary, content, event_type, significance, created_at")
+        .eq("mission_id", data.missionId)
+        .order("created_at", { ascending: false })
+        .limit(30),
+    ]);
     if (error) throw error;
+    if (intelErr) console.error("[mission-pulse] intel_events fetch failed", intelErr);
 
     const all = (rows ?? []) as unknown as TeamUpdateRow[];
-    const iris = all.filter((r) => IRIS_TYPES.has(r.update_type) || r.sender_name === "IRIS");
-    const team = all.filter((r) => !iris.includes(r));
+    const irisFromUpdates = all.filter((r) => IRIS_TYPES.has(r.update_type) || r.sender_name === "IRIS");
+    const team = all.filter((r) => !irisFromUpdates.includes(r));
+
+    const irisFromIntel: TeamUpdateRow[] = ((intel ?? []) as any[]).map((e) => {
+      const isRisk =
+        e.significance === "critical" ||
+        e.significance === "high" ||
+        e.event_type === "risk" ||
+        e.event_type === "emerging_risk";
+      const summary = (e.extracted_summary ?? e.content ?? "").toString();
+      const body = e.title ? `${e.title}${summary ? `\n\n${summary}` : ""}` : summary;
+      return {
+        id: `intel:${e.id}`,
+        mission_id: e.mission_id,
+        question_id: null,
+        sender_id: null,
+        sender_name: "IRIS",
+        update_type: isRisk ? "emerging_risk" : "oracle_finding",
+        body: body.slice(0, 1200),
+        created_at: e.created_at,
+      };
+    });
+
+    const iris = [...irisFromUpdates, ...irisFromIntel].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
 
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const todayCount = all.filter((r) => r.created_at >= since).length;
+    const todayCount =
+      all.filter((r) => r.created_at >= since).length +
+      irisFromIntel.filter((r) => r.created_at >= since).length;
 
     return { iris, team, todayCount };
   });
