@@ -932,7 +932,7 @@ function MissionLeadersCard({ missionId }: { missionId: string }) {
       const member = a?.user_override_value ? memberById.get(a.user_override_value) : undefined;
       return member ? { role: r.label, member } : null;
     })
-    .filter(Boolean) as Array<{ role: string; member: { full_name: string; title: string | null; email: string | null; avatar_url: string | null } }>;
+    .filter(Boolean) as Array<{ role: string; member: { full_name: string; title: string | null; email: string | null } }>;
 
   return (
     <section style={glass}>
