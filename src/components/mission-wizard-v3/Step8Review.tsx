@@ -17,7 +17,7 @@ import {
   extractRequirementNodesFromRFP,
   seedTerritoryIntelligence,
 } from "@/lib/iris-territory.functions";
-import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
+// generateIrisBrief is now invoked inside runIrisRfpExtraction.
 import { loadStaged, clearStaged } from "@/lib/oracle/wizard-stage";
 import { WizardStepHeading } from "./WizardShellV3";
 import { LaunchSequence } from "./LaunchSequence";
