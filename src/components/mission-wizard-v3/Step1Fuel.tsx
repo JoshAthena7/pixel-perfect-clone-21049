@@ -430,6 +430,17 @@ export function Step1Fuel({
                       {purposeDesc && (
                         <p className="mt-1.5 text-[11px] text-white/45">{purposeDesc}</p>
                       )}
+                      {purpose === "procurement" && (
+                        <label className="mt-1.5 flex items-center gap-1.5 text-[11px] text-white/65 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!r.isPrimaryRfp}
+                            onChange={(e) => setRowPrimaryRfp(r.uid, e.target.checked)}
+                            className="h-3 w-3 accent-amber-500"
+                          />
+                          <span>★ Mark as primary RFP</span>
+                        </label>
+                      )}
                       {purpose === "writing_standards" && (
                         <label className="mt-1.5 flex items-center gap-1.5 text-[11px] text-white/65 cursor-pointer">
                           <input
