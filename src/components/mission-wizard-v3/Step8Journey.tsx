@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { extractJourneyMilestones } from "@/lib/journey-extract.functions";
+import { extractRFPText, detectRFPKind } from "@/lib/extract-rfp-text.browser";
 import { WizardStepHeading } from "./WizardShellV3";
 
 type MilestoneType =
@@ -258,7 +259,24 @@ export function Step8Journey({
     setUploading(true);
     try {
       const name = file.name.toLowerCase();
-      const text = await readFileAsText(file).catch(() => "");
+      const kind = detectRFPKind(file);
+      let text = "";
+
+      if (name.endsWith(".ics")) {
+        text = await readFileAsText(file).catch(() => "");
+      } else if (kind === "pdf" || kind === "docx" || kind === "doc") {
+        // Binary formats — extract with pdfjs / mammoth, not FileReader.
+        try {
+          text = await extractRFPText(file);
+        } catch (e) {
+          console.error("[journey] doc extract failed", e);
+          toast.error("IRIS couldn't read that document. Try a .txt or .ics, or add milestones manually.");
+          return;
+        }
+      } else {
+        text = await readFileAsText(file).catch(() => "");
+      }
+
       let extracted: { title: string; date: string }[] = [];
 
       if (name.endsWith(".ics") || /BEGIN:VEVENT/i.test(text)) {
@@ -270,7 +288,6 @@ export function Step8Journey({
         }
         mergeExtracted(extracted, "client_directive");
       } else {
-        // Non-ICS: send first 6000 chars to IRIS
         if (!text.trim()) {
           toast.error("Couldn't read text from that file. Add milestones manually below.");
         } else {
