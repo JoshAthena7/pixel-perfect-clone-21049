@@ -407,14 +407,31 @@ function HowWeWinCard({ missionId, mission }: { missionId: string; mission?: any
   const { data: themes = [] } = useQuery({
     queryKey: ["briefing-win-themes", missionId],
     queryFn: async () => {
-      const { data } = await supabase
+      // Primary source: curated mission_win_themes table.
+      const { data: curated } = await supabase
         .from("mission_win_themes")
-        .select("id, title, why_it_matters, icon")
+        .select("id, title, why_it_matters")
         .eq("mission_id", missionId)
         .eq("status", "active")
         .order("display_order", { ascending: true })
         .limit(4);
-      return data ?? [];
+      if (curated && curated.length > 0) {
+        return curated.map((t: any) => ({ id: t.id, title: t.title, why: t.why_it_matters }));
+      }
+      // Fallback: pull from oracle_engagement_config (where the Setup Wizard stores them).
+      const { data: cfg } = await supabase
+        .from("oracle_engagement_config")
+        .select("win_themes")
+        .eq("mission_id", missionId)
+        .maybeSingle();
+      const items = Array.isArray((cfg as any)?.win_themes) ? ((cfg as any).win_themes as any[]) : [];
+      return items.slice(0, 4).map((it: any, i: number) => {
+        const raw = String(it?.text ?? "").trim();
+        const firstBreak = raw.search(/[\n–—-]/);
+        const title = (firstBreak > 0 ? raw.slice(0, firstBreak) : raw).trim().slice(0, 80) || `Theme ${i + 1}`;
+        const why = firstBreak > 0 ? raw.slice(firstBreak + 1).trim() : "";
+        return { id: it?.id ?? `wt-${i}`, title, why };
+      });
     },
   });
 
@@ -460,12 +477,12 @@ function HowWeWinCard({ missionId, mission }: { missionId: string; mission?: any
                 >
                   {t.title}
                 </div>
-                {t.why_it_matters && (
+                {t.why && (
                   <div
                     className="mt-1.5"
                     style={{ fontSize: 11.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.4 }}
                   >
-                    {truncate(t.why_it_matters, 80)}
+                    {truncate(t.why, 120)}
                   </div>
                 )}
               </div>
