@@ -960,15 +960,13 @@ function MissionLeadersCard({ missionId }: { missionId: string }) {
                     width: 56,
                     height: 56,
                     borderRadius: "50%",
-                    background: l.member.avatar_url
-                      ? `center/cover url(${l.member.avatar_url})`
-                      : `linear-gradient(135deg, ${GOLD}, ${GOLD_SOFT})`,
+                    background: `linear-gradient(135deg, ${GOLD}, ${GOLD_SOFT})`,
                     color: NAVY,
                     fontSize: 18,
                     border: "2px solid rgba(255,255,255,0.15)",
                   }}
                 >
-                  {!l.member.avatar_url && initials}
+                  {initials}
                 </div>
                 <div className="mt-3 font-bold" style={{ fontSize: 13.5 }}>
                   {name}
