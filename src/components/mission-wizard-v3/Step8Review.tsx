@@ -79,7 +79,7 @@ export function Step8Review({
   const enrichMissionWithPerplexityFn = useServerFn(enrichMissionWithPerplexity);
   const extractRequirementNodesFn = useServerFn(extractRequirementNodesFromRFP);
   const seedTerritoryFn = useServerFn(seedTerritoryIntelligence);
-  const generateIrisBriefFn = useServerFn(generateIrisBrief);
+  // generateIrisBrief is now invoked inside runIrisRfpExtraction.
   const [launching, setLaunching] = useState(false);
   const [enriching, setEnriching] = useState(false);
   const [enrichMsg, setEnrichMsg] = useState<string | null>(null);
