@@ -776,19 +776,29 @@ function MyWorkColumn({
         </div>
       </div>
 
-      {/* Score Me CTA */}
-      <button
-        onClick={() => setScoreOpen(true)}
-        className="w-full text-left rounded-lg p-3"
-        style={{ background: "rgba(196,154,43,0.06)", border: "1px solid rgba(196,154,43,0.4)" }}
-      >
-        <div className="flex items-center gap-2 text-[13px] font-medium" style={{ color: "#C49A2B" }}>
-          <Target className="h-3.5 w-3.5" /> Score My Response
-        </div>
-        <div className="mt-1 text-[11px] text-muted-foreground">
-          Paste your draft from the client environment — IRIS coaches it before anyone else sees it.
-        </div>
-      </button>
+      {/* Action row: Score Me + Stuck? */}
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+        <button
+          onClick={() => setScoreOpen(true)}
+          className="w-full text-left rounded-lg p-3"
+          style={{ background: "rgba(196,154,43,0.06)", border: "1px solid rgba(196,154,43,0.4)" }}
+        >
+          <div className="flex items-center gap-2 text-[13px] font-medium" style={{ color: "#C49A2B" }}>
+            <Target className="h-3.5 w-3.5" /> Score My Response
+          </div>
+          <div className="mt-1 text-[11px] text-muted-foreground">
+            Paste your draft from the client environment — IRIS coaches it before anyone else sees it.
+          </div>
+        </button>
+        <button
+          onClick={() => setStuckOpen(true)}
+          title="IRIS can unstick you"
+          className="rounded-lg px-3 py-2 text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 self-start"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.75)" }}
+        >
+          🧱 Stuck?
+        </button>
+      </div>
 
       {/* Ask IRIS */}
       <div className="rounded-lg p-3" style={{ background: "rgba(127,119,221,0.06)", border: "0.5px solid rgba(127,119,221,0.2)" }}>
