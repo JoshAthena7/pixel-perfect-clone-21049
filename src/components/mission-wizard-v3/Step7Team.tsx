@@ -753,11 +753,19 @@ function AssignmentsSubStep({
             className="bg-white/5 border border-white/15 rounded-md px-2 py-1.5 text-[12px] text-white focus:outline-none focus:border-amber-400/60"
           >
             <option value="" className="bg-[#0D1B3E]">— Select writer —</option>
-            {team.map((t) => (
-              <option key={t.member_id} value={t.member_id} className="bg-[#0D1B3E]">
-                {fullName(t.member)}
-              </option>
-            ))}
+            {team.map((t) => {
+              const authId = authIdByMemberId.get(t.member_id);
+              return (
+                <option
+                  key={t.member_id}
+                  value={authId ?? ""}
+                  disabled={!authId}
+                  className="bg-[#0D1B3E]"
+                >
+                  {fullName(t.member)}{!authId ? " (no account)" : ""}
+                </option>
+              );
+            })}
           </select>
           <button
             disabled={!bulkWriter}
