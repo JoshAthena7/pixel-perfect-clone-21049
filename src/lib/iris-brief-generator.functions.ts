@@ -151,6 +151,7 @@ CRITICAL RULES:
         body: JSON.stringify({
           model: "google/gemini-2.5-flash",
           response_format: { type: "json_object" },
+          max_tokens: 8000,
           messages: [
             { role: "system", content: system },
             { role: "user", content: userMsg },
@@ -167,25 +168,65 @@ CRITICAL RULES:
       }
 
       const j = (await res.json()) as {
-        choices?: Array<{ message?: { content?: string } }>;
+        choices?: Array<{ message?: { content?: string }; finish_reason?: string }>;
       };
+      const finishReason = j.choices?.[0]?.finish_reason;
       const raw = (j.choices?.[0]?.message?.content ?? "").trim();
       // Strip ```json fences if the model wrapped its reply in a code block.
       const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
       const start = cleaned.indexOf("{");
-      const end = cleaned.lastIndexOf("}");
-      if (start === -1 || end === -1 || end <= start) {
-        console.error("[iris-brief] unreadable content", raw.slice(0, 500));
+      if (start === -1) {
+        console.error("[iris-brief] unreadable content", { finishReason, preview: raw.slice(0, 500) });
         throw new Error("IRIS returned an unreadable response.");
       }
-      const jsonStr = cleaned.slice(start, end + 1);
 
-      let brief: any;
-      try {
-        brief = JSON.parse(jsonStr);
-      } catch {
-        console.error("[iris-brief] invalid JSON", jsonStr.slice(0, 500));
-        throw new Error("IRIS brief generation failed: invalid JSON.");
+      const tryParse = (s: string): any | null => {
+        try { return JSON.parse(s); } catch { return null; }
+      };
+
+      // Repair truncated JSON by closing open strings/braces/brackets.
+      const repair = (s: string): string => {
+        let out = s.replace(/,\s*$/g, "");
+        // Close unterminated string (count unescaped quotes)
+        let inStr = false, esc = false;
+        for (const ch of out) {
+          if (esc) { esc = false; continue; }
+          if (ch === "\\") { esc = true; continue; }
+          if (ch === '"') inStr = !inStr;
+        }
+        if (inStr) out += '"';
+        out = out.replace(/,\s*$/g, "");
+        const stack: string[] = [];
+        let inS = false, es = false;
+        for (const ch of out) {
+          if (es) { es = false; continue; }
+          if (inS) {
+            if (ch === "\\") { es = true; }
+            else if (ch === '"') inS = false;
+            continue;
+          }
+          if (ch === '"') inS = true;
+          else if (ch === "{" || ch === "[") stack.push(ch);
+          else if (ch === "}" || ch === "]") stack.pop();
+        }
+        while (stack.length) {
+          const open = stack.pop();
+          out += open === "{" ? "}" : "]";
+        }
+        return out;
+      };
+
+      const end = cleaned.lastIndexOf("}");
+      let brief: any = null;
+      if (end > start) brief = tryParse(cleaned.slice(start, end + 1));
+      if (!brief) brief = tryParse(repair(cleaned.slice(start)));
+      if (!brief) {
+        console.error("[iris-brief] invalid JSON", { finishReason, preview: cleaned.slice(0, 800) });
+        throw new Error(
+          finishReason === "length"
+            ? "IRIS response was truncated. Try again."
+            : "IRIS brief generation failed: invalid JSON.",
+        );
       }
 
       // 5) Write back
