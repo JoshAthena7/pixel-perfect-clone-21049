@@ -69,7 +69,7 @@ function BriefingPage() {
       const { data } = await supabase
         .from("missions")
         .select(
-          "name, client_name, status, health_score, state_code, state, submission_deadline, blast_off_at, iris_disclaimer, why_it_matters, why_win, today_focus, how_we_win, mission_journey, watch_items",
+          "name, client_name, status, health_score, state_code, state, submission_deadline, blast_off_at, iris_disclaimer, why_it_matters, why_win, today_focus, how_we_win, mission_journey, watch_items, created_by",
         )
         .eq("id", missionId)
         .maybeSingle();
@@ -102,7 +102,7 @@ function BriefingPage() {
             <IrisGuidanceCard mission={mission} />
           </div>
 
-          <MissionJourneyCard mission={mission} />
+          <MissionJourneyCard missionId={missionId} mission={mission} />
 
           <div className="grid grid-cols-1">
             <EvaluatorLensCard mission={mission} />
@@ -407,14 +407,31 @@ function HowWeWinCard({ missionId, mission }: { missionId: string; mission?: any
   const { data: themes = [] } = useQuery({
     queryKey: ["briefing-win-themes", missionId],
     queryFn: async () => {
-      const { data } = await supabase
+      // Primary source: curated mission_win_themes table.
+      const { data: curated } = await supabase
         .from("mission_win_themes")
-        .select("id, title, why_it_matters, icon")
+        .select("id, title, why_it_matters")
         .eq("mission_id", missionId)
         .eq("status", "active")
         .order("display_order", { ascending: true })
         .limit(4);
-      return data ?? [];
+      if (curated && curated.length > 0) {
+        return curated.map((t: any) => ({ id: t.id, title: t.title, why: t.why_it_matters }));
+      }
+      // Fallback: pull from oracle_engagement_config (where the Setup Wizard stores them).
+      const { data: cfg } = await supabase
+        .from("oracle_engagement_config")
+        .select("win_themes")
+        .eq("mission_id", missionId)
+        .maybeSingle();
+      const items = Array.isArray((cfg as any)?.win_themes) ? ((cfg as any).win_themes as any[]) : [];
+      return items.slice(0, 4).map((it: any, i: number) => {
+        const raw = String(it?.text ?? "").trim();
+        const firstBreak = raw.search(/[\n–—-]/);
+        const title = (firstBreak > 0 ? raw.slice(0, firstBreak) : raw).trim().slice(0, 80) || `Theme ${i + 1}`;
+        const why = firstBreak > 0 ? raw.slice(firstBreak + 1).trim() : "";
+        return { id: it?.id ?? `wt-${i}`, title, why };
+      });
     },
   });
 
@@ -460,12 +477,12 @@ function HowWeWinCard({ missionId, mission }: { missionId: string; mission?: any
                 >
                   {t.title}
                 </div>
-                {t.why_it_matters && (
+                {t.why && (
                   <div
                     className="mt-1.5"
                     style={{ fontSize: 11.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.4 }}
                   >
-                    {truncate(t.why_it_matters, 80)}
+                    {truncate(t.why, 120)}
                   </div>
                 )}
               </div>
@@ -478,12 +495,24 @@ function HowWeWinCard({ missionId, mission }: { missionId: string; mission?: any
 }
 
 /* ───────────────── 3. Mission Journey ───────────────── */
-function MissionJourneyCard({ mission }: { mission: any }) {
+function MissionJourneyCard({ missionId, mission }: { missionId: string; mission: any }) {
   const stages = ["Kickoff", "Strategy", "Team", "Writing", "Pink Team", "Red Team", "Submission"];
   const currentIndex = computeJourneyIndex(mission);
 
   const subDate = mission?.submission_deadline ? new Date(mission.submission_deadline) : null;
   const subDays = subDate ? Math.max(0, Math.ceil((subDate.getTime() - Date.now()) / 86400000)) : null;
+
+  const { data: milestones = [] } = useQuery({
+    queryKey: ["briefing-journey-milestones", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_milestones")
+        .select("id, title, milestone_date, milestone_type, is_pens_down")
+        .eq("mission_id", missionId)
+        .order("milestone_date", { ascending: true });
+      return data ?? [];
+    },
+  });
 
   return (
     <section style={glass}>
@@ -593,7 +622,10 @@ function MissionJourneyCard({ mission }: { mission: any }) {
         >
           <div style={cardLabel}>Next Milestone</div>
           <div className="mt-2 font-bold" style={{ fontSize: 18 }}>
-            {currentIndex < stages.length - 1 ? stages[currentIndex + 1] : "Submission"}
+            {(() => {
+              const upcoming = milestones.find((m: any) => m.milestone_date && new Date(m.milestone_date) >= new Date());
+              return upcoming?.title ?? (currentIndex < stages.length - 1 ? stages[currentIndex + 1] : "Submission");
+            })()}
           </div>
           {subDate && (
             <div className="mt-1" style={{ fontSize: 13, color: GOLD }}>
@@ -603,20 +635,47 @@ function MissionJourneyCard({ mission }: { mission: any }) {
           )}
         </div>
       </div>
-      {(mission?.mission_journey ?? "").trim() && (
-        <div
-          className="mt-6 p-4"
-          style={{
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.07)",
-            borderRadius: 12,
-            fontSize: 13.5,
-            color: "rgba(255,255,255,0.8)",
-            lineHeight: 1.6,
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          {mission.mission_journey}
+
+      {milestones.length > 0 && (
+        <div className="mt-6">
+          <div style={{ ...cardLabel, marginBottom: 10 }}>Configured Milestones</div>
+          <ul className="space-y-2">
+            {milestones.map((m: any) => {
+              const d = m.milestone_date ? new Date(m.milestone_date) : null;
+              const past = d ? d.getTime() < Date.now() : false;
+              return (
+                <li
+                  key={m.id}
+                  className="flex items-center gap-3 px-3 py-2"
+                  style={{
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    borderRadius: 8,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: m.is_pens_down ? "#ef4444" : past ? "rgba(255,255,255,0.3)" : GOLD,
+                    }}
+                  />
+                  <span style={{ fontSize: 13, color: past ? META_SOFT : TEXT, flex: 1 }}>{m.title}</span>
+                  {m.milestone_type && (
+                    <span style={{ fontSize: 10, color: META_SOFT, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      {String(m.milestone_type).replace(/_/g, " ")}
+                    </span>
+                  )}
+                  {d && (
+                    <span style={{ fontSize: 12, color: past ? META_SOFT : GOLD, minWidth: 90, textAlign: "right" }}>
+                      {d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
     </section>
@@ -939,50 +998,98 @@ function LeadershipBroadcastCard() {
 }
 
 /* ───────────────── 6. Mission Leaders ───────────────── */
-const LEADER_ROLES: { key: string; label: string }[] = [
-  { key: "team_exec", label: "Admin" },
-  { key: "team_project_manager", label: "Project Manager" },
-  { key: "team_engagement_lead", label: "Engagement Lead" },
-  { key: "team_lead_graphics", label: "Graphics Lead" },
-  { key: "team_lead_writer", label: "Lead Writer" },
+const LEADER_ROLES: { role: string; label: string }[] = [
+  { role: "project_manager", label: "Project Manager" },
+  { role: "engagement_lead", label: "Engagement Lead" },
+  { role: "lead_graphics", label: "Graphics Lead" },
+  { role: "lead_writer", label: "Lead Writer" },
 ];
 
+type LeaderMember = { id: string; name: string; email: string | null };
+type LeaderRow = { role: string; member: LeaderMember };
+
 function MissionLeadersCard({ missionId }: { missionId: string }) {
-  const { data: assignments = [] } = useQuery({
-    queryKey: ["briefing-leaders", missionId],
+  // Pull mission to get created_by (mission Admin).
+  const { data: missionRow } = useQuery({
+    queryKey: ["briefing-leaders-mission", missionId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("mission_iris_extractions")
-        .select("extracted_field, user_override_value")
+        .from("missions")
+        .select("created_by")
+        .eq("id", missionId)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  // Pull team members in the four leadership roles.
+  const { data: teamRows = [] } = useQuery({
+    queryKey: ["briefing-leaders-team", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_team_members")
+        .select("member_id, mission_role")
         .eq("mission_id", missionId)
-        .in("extracted_field", LEADER_ROLES.map((r) => r.key));
-      return (data ?? []) as Array<{ extracted_field: string; user_override_value: string | null }>;
+        .in("mission_role", LEADER_ROLES.map((r) => r.role));
+      return (data ?? []) as Array<{ member_id: string; mission_role: string }>;
     },
   });
 
-  const memberIds = assignments.map((a) => a.user_override_value).filter(Boolean) as string[];
-
-  const { data: members = [] } = useQuery({
-    queryKey: ["briefing-leaders-members", memberIds.sort().join(",")],
-    enabled: memberIds.length > 0,
+  const atlasIds = teamRows.map((r) => r.member_id);
+  const { data: atlasMembers = [] } = useQuery({
+    queryKey: ["briefing-leaders-atlas", atlasIds.sort().join(",")],
+    enabled: atlasIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
-        .from("collective_members")
-        .select("id, full_name, title, email")
-        .in("id", memberIds);
-      return (data ?? []) as Array<{ id: string; full_name: string; title: string | null; email: string | null }>;
+        .from("atlas_team_members")
+        .select("id, first_name, last_name, email")
+        .in("id", atlasIds);
+      return (data ?? []) as Array<{ id: string; first_name: string | null; last_name: string | null; email: string | null }>;
     },
   });
 
-  const memberById = new Map(members.map((m) => [m.id, m]));
+  // Admin profile (mission creator).
+  const adminId = missionRow?.created_by ?? null;
+  const { data: adminProfile } = useQuery({
+    queryKey: ["briefing-leaders-admin", adminId],
+    enabled: !!adminId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, display_name, email")
+        .eq("id", adminId!)
+        .maybeSingle();
+      return data;
+    },
+  });
 
-  const leaders = LEADER_ROLES
-    .map((r) => {
-      const a = assignments.find((x) => x.extracted_field === r.key);
-      const member = a?.user_override_value ? memberById.get(a.user_override_value) : undefined;
-      return member ? { role: r.label, member } : null;
-    })
-    .filter(Boolean) as Array<{ role: string; member: { full_name: string; title: string | null; email: string | null } }>;
+  const atlasById = new Map(
+    atlasMembers.map((m) => [
+      m.id,
+      {
+        id: m.id,
+        name: [m.first_name, m.last_name].filter(Boolean).join(" ").trim() || (m.email ?? "Team Member"),
+        email: m.email,
+      } as LeaderMember,
+    ]),
+  );
+
+  const leaders: LeaderRow[] = [];
+  if (adminProfile) {
+    leaders.push({
+      role: "Admin",
+      member: {
+        id: adminProfile.id,
+        name: (adminProfile.display_name as string | null)?.trim() || (adminProfile.email ?? "Admin"),
+        email: (adminProfile.email as string | null) ?? null,
+      },
+    });
+  }
+  for (const r of LEADER_ROLES) {
+    const row = teamRows.find((t) => t.mission_role === r.role);
+    const member = row ? atlasById.get(row.member_id) : undefined;
+    if (member) leaders.push({ role: r.label, member });
+  }
 
   return (
     <section style={glass}>
@@ -994,7 +1101,7 @@ function MissionLeadersCard({ missionId }: { missionId: string }) {
       ) : (
         <div className="flex flex-wrap gap-6">
           {leaders.map((l, idx) => {
-            const name = l.member.full_name || "Team Member";
+            const name = l.member.name || "Team Member";
             const initials = name
               .split(/\s+/)
               .map((p) => p[0])
@@ -1003,7 +1110,7 @@ function MissionLeadersCard({ missionId }: { missionId: string }) {
               .join("")
               .toUpperCase();
             return (
-              <div key={idx} className="flex flex-col items-center text-center" style={{ width: 140 }}>
+              <div key={`${l.role}-${idx}`} className="flex flex-col items-center text-center" style={{ width: 140 }}>
                 <div
                   className="grid place-items-center font-bold"
                   style={{
