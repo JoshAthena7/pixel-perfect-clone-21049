@@ -847,11 +847,12 @@ function JourneyTab({
     setDirty(true);
   }
   function add() {
+    const newId = `new-${items.length}-${Math.random().toString(36).slice(2, 8)}`;
     setItems((xs) => [
       ...xs,
       {
-        id: `new-${xs.length}-${Math.random().toString(36).slice(2, 8)}`,
-        name: "New milestone",
+        id: newId,
+        name: "",
         kind: "Required",
         status: "pending",
         target_date: null,
@@ -859,6 +860,7 @@ function JourneyTab({
         _new: true,
       },
     ]);
+    setFocusNewId(newId);
     setDirty(true);
   }
   function reorder(from: number, to: number) {
