@@ -767,6 +767,9 @@ function JourneyTab({
   const [items, setItems] = useState<Milestone[]>([]);
   const [removedIds, setRemovedIds] = useState<string[]>([]);
   const dragIndex = useRef<number | null>(null);
+  const [editingCount, setEditingCount] = useState(0);
+  const [focusNewId, setFocusNewId] = useState<string | null>(null);
+  const isEditing = editingCount > 0;
 
   // Load from DB; if empty, seed defaults locally (persisted on Save & cascade)
   useEffect(() => {
