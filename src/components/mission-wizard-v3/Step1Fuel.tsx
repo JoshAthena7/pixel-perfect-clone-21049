@@ -7,7 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { AlertCircle, FileText, Loader2, Plus, Sparkles, UploadCloud, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { analyzeMissionStep } from "@/lib/iris-mission-analysis.functions";
-import { processRFPDocuments } from "@/lib/iris-process-rfp.functions";
+import { runIrisRfpExtraction } from "@/lib/run-iris-rfp.browser";
 import { extractRFPText } from "@/lib/extract-rfp-text.browser";
 import { Input } from "@/components/ui/input";
 import { WizardStepHeading, WizardFooter } from "./WizardShellV3";
