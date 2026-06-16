@@ -150,6 +150,8 @@ export function IrisFieldRow({
           confirmed_at: new Date().toISOString(),
         })
         .eq("id", extraction.id);
+      const v = (extraction.user_override_value ?? extraction.extracted_value ?? "") as string;
+      if (v) await propagateToMission(v);
       onChange?.();
     } finally {
       setSaving(false);
