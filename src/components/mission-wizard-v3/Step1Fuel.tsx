@@ -196,31 +196,41 @@ export function Step1Fuel({
   function setRowPrimaryRfp(uid: string, isPrimary: boolean) {
     const toClear: string[] = [];
     let docId: string | undefined;
-    setRows((cur) =>
-      cur.map((r) => {
+    setRows((cur) => {
+      const next = cur.map((r) => {
         if (r.uid === uid) {
           docId = r.documentId;
-          return { ...r, isPrimaryRfp: isPrimary, purpose: isPrimary ? "procurement" : r.purpose };
+          return { ...r, isPrimaryRfp: isPrimary, purpose: isPrimary ? "procurement" as DocumentPurpose : r.purpose };
         }
         if (isPrimary && r.isPrimaryRfp) {
           if (r.documentId) toClear.push(r.documentId);
           return { ...r, isPrimaryRfp: false };
         }
         return r;
-      }),
-    );
-    toClear.forEach((id) => {
-      void supabase.from("mission_documents").update({ document_type: "other" }).eq("id", id);
+      });
+      // Fire DB writes from inside the updater so we have fresh state & ids.
+      toClear.forEach((id) => {
+        void supabase.from("mission_documents").update({ document_type: "other" }).eq("id", id);
+      });
+      if (docId) {
+        void supabase
+          .from("mission_documents")
+          .update({
+            document_type: isPrimary ? "primary_rfp" : "other",
+            ...(isPrimary ? { document_purpose: "procurement" as DocumentPurpose } : {}),
+          })
+          .eq("id", docId)
+          .then(({ error }) => {
+            if (error) {
+              console.error("[Step1Fuel] primary RFP save failed", error);
+              console.error("[Step1Fuel] primary RFP save failed:", error.message);
+            }
+          });
+      } else {
+        console.warn("[Step1Fuel] primary RFP toggle ignored — upload not finished yet");
+      }
+      return next;
     });
-    if (docId) {
-      void supabase
-        .from("mission_documents")
-        .update({
-          document_type: isPrimary ? "primary_rfp" : "other",
-          ...(isPrimary ? { document_purpose: "procurement" as DocumentPurpose } : {}),
-        })
-        .eq("id", docId);
-    }
   }
 
 
