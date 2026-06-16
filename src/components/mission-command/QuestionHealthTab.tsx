@@ -629,6 +629,8 @@ function DueDatePicker({
   );
 }
 
+type HealthState = "healthy" | "watch" | "at_risk";
+
 function HealthCard({
   q,
   a,
@@ -640,6 +642,15 @@ function HealthCard({
   flag,
   smes,
   latestScore,
+  isAdmin,
+  canManage,
+  managerFlag,
+  latestOverride,
+  onFlag,
+  onResolveFlag,
+  onOpenThread,
+  onApplyOverride,
+  onSaveAdminNote,
 }: {
   q: Question;
   a?: Assignment;
@@ -651,10 +662,20 @@ function HealthCard({
   flag?: any;
   smes: string[];
   latestScore?: number;
+  isAdmin: boolean;
+  canManage: boolean;
+  managerFlag: { id: string; reason: string | null; flaggedBy: string } | null;
+  latestOverride: { id: string; new_state: string; reason: string; admin_note: string | null; created_at: string } | null;
+  onFlag: (reason: string | null) => void;
+  onResolveFlag: () => void;
+  onOpenThread: () => void;
+  onApplyOverride: (state: HealthState, reason: string) => void;
+  onSaveAdminNote: (note: string) => Promise<void> | void;
 }) {
-  const h = q.health_status ?? "healthy";
+  const h = (q.health_status ?? "healthy") as HealthState;
   const borderColor =
     h === "at_risk" ? "border-l-red-500" : h === "watch" ? "border-l-amber-500" : "border-l-green-500";
+  const flagAccent = managerFlag ? "ring-1 ring-amber-500/40" : "";
   const due = q.due_date ? new Date(q.due_date) : null;
   const days = due ? differenceInDays(due, new Date()) : null;
   const dueColor =
@@ -669,9 +690,58 @@ function HealthCard({
   const text = q.question_text ?? "";
   const truncated = text.length > 140 ? text.slice(0, 140) + "…" : text;
 
+  // Override marker — clears next time the engine recomputes (compare timestamps).
+  const overrideActive = !!(
+    latestOverride &&
+    q.health_calculated_at &&
+    new Date(q.health_calculated_at).getTime() <=
+      new Date(latestOverride.created_at).getTime() + 1500
+  );
+
+  // Admin private note (debounced save).
+  const [adminNote, setAdminNote] = useState<string>(latestOverride?.admin_note ?? "");
+  const [noteSaved, setNoteSaved] = useState(false);
+  useEffect(() => {
+    setAdminNote(latestOverride?.admin_note ?? "");
+  }, [latestOverride?.id, latestOverride?.admin_note]);
+  useEffect(() => {
+    if (!latestOverride) return;
+    if (adminNote === (latestOverride.admin_note ?? "")) return;
+    const t = setTimeout(async () => {
+      await onSaveAdminNote(adminNote);
+      setNoteSaved(true);
+      setTimeout(() => setNoteSaved(false), 1500);
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminNote]);
+
+  const copyReport = () => {
+    const lines = [
+      `Q${q.question_number} — ${q.question_text ?? ""}`,
+      `Health: ${h.replace("_", " ")} | Writer: ${writerLabel ?? "Unassigned"} | Due: ${
+        due ? format(due, "MMM d, yyyy") : "—"
+      }`,
+      `Brief: ${a?.acceptance_status ?? "—"} | Last Activity: ${
+        q.updated_at ? formatDistanceToNow(new Date(q.updated_at), { addSuffix: true }) : "—"
+      }`,
+      `Open Feedback: ${flag ? 1 : 0} items`,
+    ];
+    if (h === "at_risk" && flag) {
+      lines.push(`Trip wire: ${flag.flag_text ?? flag.reason ?? "—"}`);
+    }
+    lines.push(`Generated: ${format(new Date(), "MMM d, yyyy h:mm a")} · ATLAS`);
+    void navigator.clipboard.writeText(lines.join("\n"));
+    toast.success("Health report copied to clipboard");
+  };
+
   return (
     <div
-      className={cn("rounded-xl border border-border border-l-4 bg-surface/40 p-4 cursor-pointer", borderColor)}
+      className={cn(
+        "rounded-xl border border-border border-l-4 bg-surface/40 p-4 cursor-pointer",
+        borderColor,
+        flagAccent,
+      )}
       onClick={(e) => {
         if ((e.target as HTMLElement).closest("[data-no-toggle]")) return;
         onToggle();
@@ -679,6 +749,16 @@ function HealthCard({
     >
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <HealthBadge value={h} />
+        {overrideActive && (
+          <span className="px-1.5 py-0.5 rounded uppercase font-semibold bg-primary/15 text-primary border border-primary/40">
+            Manually set
+          </span>
+        )}
+        {managerFlag && (
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded uppercase font-semibold bg-amber-500/20 text-amber-300">
+            <Flag className="h-3 w-3" /> Flagged
+          </span>
+        )}
         <span className="font-mono text-primary">{q.question_number}</span>
         <span className="text-muted-foreground">{section?.name ?? "—"}</span>
         {typeof latestScore === "number" && <ScorePill score={latestScore} />}
@@ -702,7 +782,9 @@ function HealthCard({
       {flag && (
         <div className="mt-2 flex items-start gap-2 text-xs text-amber-400 bg-amber-500/10 rounded p-2">
           <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-          <span>{flag.flag_text ?? flag.reason ?? "IRIS has flagged this question."}</span>
+          <span>
+            {isAdmin ? `Trip wire: ${flag.flag_text ?? flag.reason ?? "—"}` : flag.flag_text ?? flag.reason ?? "IRIS has flagged this question."}
+          </span>
         </div>
       )}
       {expanded && (
@@ -717,6 +799,37 @@ function HealthCard({
               <p>{q.evaluation_criteria}</p>
             </div>
           )}
+
+          {/* Manager + Admin actions */}
+          {canManage && (
+            <div className="flex flex-wrap items-center gap-2" data-no-toggle>
+              {managerFlag ? (
+                <>
+                  <span className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/15 px-2.5 py-1.5 text-xs text-amber-300">
+                    <Flag className="h-3.5 w-3.5" /> Flagged
+                  </span>
+                  <button
+                    onClick={onResolveFlag}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Resolve
+                  </button>
+                </>
+              ) : (
+                <FlagPopover onConfirm={onFlag} />
+              )}
+              <Button size="sm" variant="outline" onClick={onOpenThread}>
+                <MessageSquare className="h-3.5 w-3.5 mr-1" /> Open Thread
+              </Button>
+              <Button size="sm" variant="outline" onClick={copyReport}>
+                <Clipboard className="h-3.5 w-3.5 mr-1" /> Copy Health Report
+              </Button>
+              {isAdmin && (
+                <OverridePopover currentState={h} onApply={onApplyOverride} />
+              )}
+            </div>
+          )}
+
           <div className="flex items-center gap-4">
             <div>
               <div className="text-xs uppercase text-muted-foreground">Days until due</div>
@@ -733,6 +846,23 @@ function HealthCard({
               </Button>
             </div>
           </div>
+
+          {/* Admin private note — only admins see this section */}
+          {isAdmin && latestOverride && (
+            <div data-no-toggle className="rounded-md border border-border bg-background/40 p-3">
+              <div className="flex items-center gap-1.5 mb-2 text-[11px] uppercase tracking-wide text-muted-foreground">
+                <Lock className="h-3 w-3" /> Admin Note — not visible to team
+                {noteSaved && <span className="ml-auto text-green-400 normal-case">Saved</span>}
+              </div>
+              <Textarea
+                value={adminNote}
+                onChange={(e) => setAdminNote(e.target.value)}
+                placeholder="Private notes for admins only…"
+                rows={2}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          )}
         </div>
       )}
       <div className="mt-2 text-right" data-no-toggle>
@@ -746,6 +876,105 @@ function HealthCard({
     </div>
   );
 }
+
+function FlagPopover({ onConfirm }: { onConfirm: (reason: string | null) => void }) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button size="sm" variant="outline" className="border-amber-500/40 text-amber-300 hover:bg-amber-500/10">
+          <Flag className="h-3.5 w-3.5 mr-1" /> Flag for Review
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 space-y-2" onClick={(e) => e.stopPropagation()}>
+        <div className="text-xs font-semibold">Flag for Review</div>
+        <Input
+          value={reason}
+          onChange={(e) => setReason(e.target.value.slice(0, 100))}
+          placeholder="Optional reason (max 100 chars)"
+          maxLength={100}
+        />
+        <div className="flex justify-end gap-2">
+          <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => {
+              onConfirm(reason.trim() ? reason.trim() : null);
+              setReason("");
+              setOpen(false);
+            }}
+          >
+            Flag it
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function OverridePopover({
+  currentState,
+  onApply,
+}: {
+  currentState: HealthState;
+  onApply: (state: HealthState, reason: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [state, setState] = useState<HealthState>(currentState);
+  const [reason, setReason] = useState("");
+  const valid = reason.trim().length > 0;
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          data-no-toggle
+          className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+        >
+          <ShieldAlert className="h-3.5 w-3.5" /> Override
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 space-y-2" onClick={(e) => e.stopPropagation()}>
+        <div className="text-xs font-semibold">Health Override (admin)</div>
+        <Select value={state} onValueChange={(v) => setState(v as HealthState)}>
+          <SelectTrigger className="h-9">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="healthy">Healthy</SelectItem>
+            <SelectItem value="watch">Watch</SelectItem>
+            <SelectItem value="at_risk">At Risk</SelectItem>
+          </SelectContent>
+        </Select>
+        <Input
+          value={reason}
+          onChange={(e) => setReason(e.target.value.slice(0, 150))}
+          placeholder="Reason for override (required, max 150)"
+          maxLength={150}
+        />
+        <div className="flex justify-end gap-2">
+          <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            disabled={!valid}
+            onClick={() => {
+              onApply(state, reason.trim());
+              setReason("");
+              setOpen(false);
+            }}
+          >
+            Apply Override
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 
 function HealthBadge({ value }: { value: string }) {
   const map: Record<string, string> = {
