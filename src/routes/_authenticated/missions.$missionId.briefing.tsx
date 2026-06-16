@@ -495,12 +495,24 @@ function HowWeWinCard({ missionId, mission }: { missionId: string; mission?: any
 }
 
 /* ───────────────── 3. Mission Journey ───────────────── */
-function MissionJourneyCard({ mission }: { mission: any }) {
+function MissionJourneyCard({ missionId, mission }: { missionId: string; mission: any }) {
   const stages = ["Kickoff", "Strategy", "Team", "Writing", "Pink Team", "Red Team", "Submission"];
   const currentIndex = computeJourneyIndex(mission);
 
   const subDate = mission?.submission_deadline ? new Date(mission.submission_deadline) : null;
   const subDays = subDate ? Math.max(0, Math.ceil((subDate.getTime() - Date.now()) / 86400000)) : null;
+
+  const { data: milestones = [] } = useQuery({
+    queryKey: ["briefing-journey-milestones", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_milestones")
+        .select("id, title, milestone_date, milestone_type, pens_down")
+        .eq("mission_id", missionId)
+        .order("milestone_date", { ascending: true });
+      return data ?? [];
+    },
+  });
 
   return (
     <section style={glass}>
@@ -610,7 +622,10 @@ function MissionJourneyCard({ mission }: { mission: any }) {
         >
           <div style={cardLabel}>Next Milestone</div>
           <div className="mt-2 font-bold" style={{ fontSize: 18 }}>
-            {currentIndex < stages.length - 1 ? stages[currentIndex + 1] : "Submission"}
+            {(() => {
+              const upcoming = milestones.find((m: any) => m.milestone_date && new Date(m.milestone_date) >= new Date());
+              return upcoming?.title ?? (currentIndex < stages.length - 1 ? stages[currentIndex + 1] : "Submission");
+            })()}
           </div>
           {subDate && (
             <div className="mt-1" style={{ fontSize: 13, color: GOLD }}>
@@ -620,20 +635,47 @@ function MissionJourneyCard({ mission }: { mission: any }) {
           )}
         </div>
       </div>
-      {(mission?.mission_journey ?? "").trim() && (
-        <div
-          className="mt-6 p-4"
-          style={{
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.07)",
-            borderRadius: 12,
-            fontSize: 13.5,
-            color: "rgba(255,255,255,0.8)",
-            lineHeight: 1.6,
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          {mission.mission_journey}
+
+      {milestones.length > 0 && (
+        <div className="mt-6">
+          <div style={{ ...cardLabel, marginBottom: 10 }}>Configured Milestones</div>
+          <ul className="space-y-2">
+            {milestones.map((m: any) => {
+              const d = m.milestone_date ? new Date(m.milestone_date) : null;
+              const past = d ? d.getTime() < Date.now() : false;
+              return (
+                <li
+                  key={m.id}
+                  className="flex items-center gap-3 px-3 py-2"
+                  style={{
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    borderRadius: 8,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: m.pens_down ? "#ef4444" : past ? "rgba(255,255,255,0.3)" : GOLD,
+                    }}
+                  />
+                  <span style={{ fontSize: 13, color: past ? META_SOFT : TEXT, flex: 1 }}>{m.title}</span>
+                  {m.milestone_type && (
+                    <span style={{ fontSize: 10, color: META_SOFT, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      {String(m.milestone_type).replace(/_/g, " ")}
+                    </span>
+                  )}
+                  {d && (
+                    <span style={{ fontSize: 12, color: past ? META_SOFT : GOLD, minWidth: 90, textAlign: "right" }}>
+                      {d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
     </section>
