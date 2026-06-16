@@ -543,7 +543,7 @@ function AssignmentsSubStep({
     });
   }, [sortedQuestions, progressByQuestion, filterMode, filterWriter]);
 
-  const assignedCount = progress.length;
+  const assignedCount = sortedQuestions.filter((q) => !!progressByQuestion.get(q.id)?.assigned_writer_id).length;
   const totalCount = questions.length;
   const allAssigned = totalCount > 0 && assignedCount >= totalCount;
   const pct = totalCount > 0 ? Math.round((assignedCount / totalCount) * 100) : 0;
