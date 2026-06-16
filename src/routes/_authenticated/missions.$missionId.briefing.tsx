@@ -720,7 +720,7 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
           </div>
           {subDate && (
             <div className="mt-1" style={{ fontSize: 13, color: GOLD }}>
-              {subDate.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+              {fmtUtc(mission?.submission_deadline)}
               {subDays !== null && ` · ${subDays} days remaining`}
             </div>
           )}
