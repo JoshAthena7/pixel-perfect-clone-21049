@@ -250,7 +250,7 @@ function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
                 Submission:{" "}
                 <span style={{ color: TEXT, fontWeight: 600 }}>
                   {subDate
-                    ? subDate.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+                    ? fmtUtc(mission?.submission_deadline)
                     : "TBD"}
                 </span>
               </span>
