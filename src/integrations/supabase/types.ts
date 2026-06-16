@@ -8785,6 +8785,7 @@ export type Database = {
           competitors: Json
           created_at: string
           discriminators: Json
+          evaluator_priorities: Json
           id: string
           mission_id: string
           mission_profile: Json | null
@@ -8803,6 +8804,7 @@ export type Database = {
           competitors?: Json
           created_at?: string
           discriminators?: Json
+          evaluator_priorities?: Json
           id?: string
           mission_id: string
           mission_profile?: Json | null
@@ -8821,6 +8823,7 @@ export type Database = {
           competitors?: Json
           created_at?: string
           discriminators?: Json
+          evaluator_priorities?: Json
           id?: string
           mission_id?: string
           mission_profile?: Json | null
