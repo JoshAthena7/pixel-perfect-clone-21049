@@ -17,6 +17,7 @@ import { analyzeMissionStep } from "@/lib/iris-mission-analysis.functions";
 import { loadStaged, saveStaged } from "@/lib/oracle/wizard-stage";
 import type { OracleTaggedItem, OracleSignalAuthority } from "@/lib/oracle/types";
 import { WizardStepHeading, WizardFooter } from "./WizardShellV3";
+import { StepFieldList } from "./StepFieldList";
 
 const GOLD = "#C49A2B";
 
@@ -1490,6 +1491,42 @@ export function Step3Strategy({
           right={<CompetitorChips items={competitors} onChange={(n) => void saveCompetitors(n)} max={6} />}
         />
       </div>
+
+      <div className="border-t border-white/10 my-6" />
+
+      <SectionHeader
+        emoji="🧭"
+        title="Competitive Context"
+        subtitle="Plain-text fields that shape Today's Focus, the briefing, and writer guidance."
+      />
+      <div className="mb-6">
+        <StepFieldList
+          missionId={missionId}
+          wizardStep={3}
+          fields={[
+            {
+              key: "state_priorities",
+              label: "State Priorities",
+              hint: "What does the state explicitly prioritize in this procurement?",
+              multiline: true,
+            },
+            {
+              key: "things_to_reinforce",
+              label: "Things to Reinforce",
+              hint: "What must the proposal consistently reinforce to score well?",
+              multiline: true,
+            },
+            {
+              key: "things_to_avoid",
+              label: "Things to Avoid",
+              hint: "What would hurt our score or give evaluators pause?",
+              multiline: true,
+            },
+          ]}
+        />
+      </div>
+
+
 
 
       {/* Gate indicator */}
