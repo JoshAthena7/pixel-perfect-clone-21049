@@ -767,14 +767,30 @@ function WatchItemsCard({ missionId, mission }: { missionId: string; mission?: a
   const { data: items = [] } = useQuery({
     queryKey: ["briefing-watch-items", missionId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("mission_risks")
-        .select("id, title, severity")
-        .eq("mission_id", missionId)
-        .eq("status", "active")
-        .order("severity", { ascending: true })
-        .limit(4);
-      return data ?? [];
+      const [risksRes, qRes] = await Promise.all([
+        supabase
+          .from("mission_risks")
+          .select("id, title, severity")
+          .eq("mission_id", missionId)
+          .eq("status", "active")
+          .order("severity", { ascending: true })
+          .limit(4),
+        supabase
+          .from("mission_questions")
+          .select("id, question_number, question_text, health_status")
+          .eq("mission_id", missionId)
+          .in("health_status", ["at_risk", "watch"])
+          .limit(4),
+      ]);
+      const combined: Array<{ id: string; title: string }> = [];
+      (risksRes.data ?? []).forEach((r: any) => combined.push({ id: r.id, title: r.title }));
+      (qRes.data ?? []).forEach((q: any) =>
+        combined.push({
+          id: `q-${q.id}`,
+          title: `Q${q.question_number ?? ""} — ${truncate(q.question_text ?? "", 100)}`,
+        }),
+      );
+      return combined.slice(0, 4);
     },
   });
 
