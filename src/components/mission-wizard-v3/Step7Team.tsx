@@ -536,8 +536,8 @@ function AssignmentsSubStep({
   const visibleQuestions = useMemo(() => {
     return sortedQuestions.filter((q) => {
       const p = progressByQuestion.get(q.id);
-      if (filterMode === "assigned" && !p) return false;
-      if (filterMode === "unassigned" && p) return false;
+      if (filterMode === "assigned" && !p?.assigned_writer_id) return false;
+      if (filterMode === "unassigned" && p?.assigned_writer_id) return false;
       if (filterWriter && p?.assigned_writer_id !== filterWriter) return false;
       return true;
     });
@@ -605,7 +605,7 @@ function AssignmentsSubStep({
 
   async function bulkAssignAllUnassigned() {
     if (!bulkWriter) return;
-    const unassigned = sortedQuestions.filter((q) => !progressByQuestion.has(q.id));
+    const unassigned = sortedQuestions.filter((q) => !progressByQuestion.get(q.id)?.assigned_writer_id);
     if (unassigned.length === 0) {
       toast.info("No unassigned questions.");
       return;
