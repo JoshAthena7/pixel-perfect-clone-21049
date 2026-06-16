@@ -895,10 +895,6 @@ function AssignmentsSubStep({
                 );
               })
             )}
-                  </tr>
-                );
-              })
-            )}
           </tbody>
         </table>
       </div>
