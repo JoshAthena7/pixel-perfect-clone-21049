@@ -115,6 +115,7 @@ export function Step8Review({
         rfpDocs,
         questions,
         oracleCfg,
+        winThemesRows,
         milestones,
         teamLeads,
         progress,
@@ -124,6 +125,7 @@ export function Step8Review({
         supabase.from("mission_documents").select("id").eq("mission_id", missionId).eq("document_type", "primary_rfp").limit(1),
         supabase.from("mission_questions").select("id,is_withdrawn").eq("mission_id", missionId),
         supabase.from("oracle_engagement_config").select("win_themes").eq("mission_id", missionId).maybeSingle(),
+        supabase.from("mission_win_themes").select("id").eq("mission_id", missionId).eq("status", "active").limit(1),
         supabase.from("mission_milestones").select("id,is_pens_down").eq("mission_id", missionId),
         supabase
           .from("mission_team_members")
@@ -144,7 +146,8 @@ export function Step8Review({
       const assignedQIds = new Set((progress.data ?? []).map((p) => p.question_id));
       const assignedCount = activeQs.filter((q) => assignedQIds.has(q.id)).length;
       const wt = oracleCfg.data?.win_themes;
-      const hasWinThemes = Array.isArray(wt) ? wt.length > 0 : !!wt;
+      const hasOracleWinThemes = Array.isArray(wt) ? wt.length > 0 : !!wt;
+      const hasWinThemes = hasOracleWinThemes || (winThemesRows.data?.length ?? 0) > 0;
       const pensDown = (milestones.data ?? []).some((mm) => mm.is_pens_down);
       const lead = teamLeads.data?.[0];
       const leadName = lead?.atlas_team_members
