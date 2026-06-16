@@ -365,7 +365,7 @@ function TodaysFocusCard({ missionId, mission }: { missionId: string; mission?: 
         .order("milestone_date", { ascending: true })
         .limit(3 - lines.length);
       (ms ?? []).forEach((m: any) => {
-        const dt = new Date(m.milestone_date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        const dt = fmtUtc(m.milestone_date, { month: "short", day: "numeric" });
         lines.push(`${dt} — ${m.title}`);
       });
       return lines;
