@@ -123,7 +123,7 @@ export function IrisFieldRow({
     try {
       await supabase
         .from("missions")
-        .update({ [col]: value || null })
+        .update({ [col]: value || null } as any)
         .eq("id", missionId);
     } catch {
       /* non-fatal */
