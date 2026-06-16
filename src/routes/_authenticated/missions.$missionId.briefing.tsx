@@ -1035,7 +1035,21 @@ function MissionLeadersCard({ missionId }: { missionId: string }) {
     },
   });
 
-  const atlasIds = teamRows.map((r) => r.member_id);
+  const { data: assignmentLeadRows = [] } = useQuery({
+    queryKey: ["briefing-leaders-assignment-leads", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_assignments")
+        .select("assigned_writer_id")
+        .eq("mission_id", missionId)
+        .not("assigned_writer_id", "is", null)
+        .limit(20);
+      return (data ?? []) as Array<{ assigned_writer_id: string | null }>;
+    },
+  });
+
+  const assignmentLeadIds = Array.from(new Set(assignmentLeadRows.map((r) => r.assigned_writer_id).filter((id): id is string => !!id)));
+  const atlasIds = Array.from(new Set([...teamRows.map((r) => r.member_id), ...assignmentLeadIds]));
   const { data: atlasMembers = [] } = useQuery({
     queryKey: ["briefing-leaders-atlas", atlasIds.sort().join(",")],
     enabled: atlasIds.length > 0,
@@ -1087,7 +1101,8 @@ function MissionLeadersCard({ missionId }: { missionId: string }) {
   }
   for (const r of LEADER_ROLES) {
     const row = teamRows.find((t) => t.mission_role === r.role);
-    const member = row ? atlasById.get(row.member_id) : undefined;
+    const fallbackWriterId = r.role === "lead_writer" ? assignmentLeadIds[0] : undefined;
+    const member = row ? atlasById.get(row.member_id) : fallbackWriterId ? atlasById.get(fallbackWriterId) : undefined;
     if (member) leaders.push({ role: r.label, member });
   }
 
