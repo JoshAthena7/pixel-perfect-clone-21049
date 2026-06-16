@@ -712,18 +712,26 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
           }}
         >
           <div style={cardLabel}>Next Milestone</div>
-          <div className="mt-2 font-bold" style={{ fontSize: 18 }}>
-            {(() => {
-              const upcoming = milestones.find((m: any) => m.milestone_date && new Date(m.milestone_date) >= new Date());
-              return upcoming?.title ?? (currentIndex < stages.length - 1 ? stages[currentIndex + 1] : "Submission");
-            })()}
-          </div>
-          {subDate && (
-            <div className="mt-1" style={{ fontSize: 13, color: GOLD }}>
-              {fmtUtc(mission?.submission_deadline)}
-              {subDays !== null && ` · ${subDays} days remaining`}
-            </div>
-          )}
+          {(() => {
+            const upcoming = milestones.find((m: any) => m.milestone_date && new Date(m.milestone_date) >= new Date());
+            const label = upcoming?.title ?? (currentIndex < stages.length - 1 ? stages[currentIndex + 1] : "Submission");
+            const dateStr = upcoming?.milestone_date ?? mission?.submission_deadline ?? null;
+            const parsed = dateStr ? parseDateLike(dateStr) : null;
+            const days = parsed
+              ? Math.max(0, Math.ceil((parsed.getTime() - Date.now()) / 86400000))
+              : null;
+            return (
+              <>
+                <div className="mt-2 font-bold" style={{ fontSize: 18 }}>{label}</div>
+                {dateStr && (
+                  <div className="mt-1" style={{ fontSize: 13, color: GOLD }}>
+                    {fmtUtc(dateStr)}
+                    {days !== null && ` · ${days} days remaining`}
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
 
