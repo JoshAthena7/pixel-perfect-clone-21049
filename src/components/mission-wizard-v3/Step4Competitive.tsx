@@ -54,9 +54,39 @@ export function Step4Competitive({
   const [draft, setDraft] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
 
+  // Hydrate from missions.known_competitors when sessionStorage is empty.
+  useEffect(() => {
+    if ((staged.competitors ?? []).length > 0) return;
+    let cancelled = false;
+    void supabase
+      .from("missions")
+      .select("known_competitors")
+      .eq("id", missionId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const existing = (data?.known_competitors ?? []) as string[];
+        if (existing.length) setCompetitors(existing);
+      });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [missionId]);
+
   useEffect(() => {
     const threshold = MODES.find((m) => m.value === mode)?.threshold ?? 40;
     saveStaged(missionId, { competitors, monitoring_mode: mode, signal_threshold: threshold });
+    // Also persist competitors directly to the mission so they survive a wizard reload
+    // and become visible to ORACLE/other surfaces even before launch.
+    const t = setTimeout(() => {
+      void supabase
+        .from("missions")
+        .update({ known_competitors: competitors })
+        .eq("id", missionId)
+        .then(({ error }) => {
+          if (error) console.error("[Step4Competitive] save competitors failed:", error.message);
+        });
+    }, 400);
+    return () => clearTimeout(t);
   }, [missionId, competitors, mode]);
 
   const queryKey = ["mission-iris-extractions", missionId, 4] as const;
