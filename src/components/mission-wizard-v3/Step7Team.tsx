@@ -824,7 +824,6 @@ function AssignmentsSubStep({
               <th className="px-3 py-2 text-left font-medium">Question</th>
               <th className="px-3 py-2 text-left font-medium w-40">Section</th>
               <th className="px-3 py-2 text-left font-medium w-56">Assigned To</th>
-              <th className="px-3 py-2 text-left font-medium w-40">Internal Due</th>
             </tr>
           </thead>
           <tbody>
@@ -891,15 +890,6 @@ function AssignmentsSubStep({
                           );
                         })}
                       </select>
-                    </td>
-                    <td className="px-3 py-2">
-                      <input
-                        type="date"
-                        value={p?.internal_due_date ?? ""}
-                        onChange={(e) => setInternalDue(q.id, e.target.value)}
-                        disabled={!p}
-                        className="bg-white/5 border border-white/15 rounded-md px-2 py-1.5 text-[12px] text-white focus:outline-none focus:border-amber-400/60 disabled:opacity-40"
-                      />
                     </td>
                   </tr>
                 );
