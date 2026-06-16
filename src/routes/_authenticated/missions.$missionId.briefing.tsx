@@ -716,8 +716,9 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
             const upcoming = milestones.find((m: any) => m.milestone_date && new Date(m.milestone_date) >= new Date());
             const label = upcoming?.title ?? (currentIndex < stages.length - 1 ? stages[currentIndex + 1] : "Submission");
             const dateStr = upcoming?.milestone_date ?? mission?.submission_deadline ?? null;
-            const days = dateStr
-              ? Math.max(0, Math.ceil((parseDateLike(dateStr).getTime() - Date.now()) / 86400000))
+            const parsed = dateStr ? parseDateLike(dateStr) : null;
+            const days = parsed
+              ? Math.max(0, Math.ceil((parsed.getTime() - Date.now()) / 86400000))
               : null;
             return (
               <>
