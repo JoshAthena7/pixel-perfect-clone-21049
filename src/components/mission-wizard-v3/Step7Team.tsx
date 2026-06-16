@@ -22,6 +22,7 @@ import { WizardStepHeading } from "./WizardShellV3";
 const MISSION_ROLE_OPTIONS: { value: string; label: string }[] = [
   { value: "engagement_lead", label: "Engagement Lead" },
   { value: "project_manager", label: "Project Manager" },
+  { value: "lead_writer", label: "Lead Writer" },
   { value: "writer", label: "Writer" },
   { value: "lead_graphics", label: "Lead Graphics" },
   { value: "graphics", label: "Graphics" },
@@ -54,11 +55,12 @@ type MissionQuestionRow = {
   section_id: string | null;
 };
 
-type ProgressRow = {
+type AssignmentRow = {
   id: string;
   question_id: string;
-  assignee_id: string;
-  internal_due_date: string | null;
+  assigned_writer_id: string | null;
+  due_date: string | null;
+  acceptance_status: string | null;
 };
 
 export function Step7Team({
@@ -445,14 +447,13 @@ function AssignmentsSubStep({
 
   const { data: progress = [] } = useQuery({
     queryKey: progressKey,
-    queryFn: async (): Promise<ProgressRow[]> => {
+    queryFn: async (): Promise<AssignmentRow[]> => {
       const { data, error } = await supabase
-        .from("question_progress")
-        .select("id, question_id, assignee_id, internal_due_date")
-        .eq("mission_id", missionId)
-        .eq("role", "lead_writer");
+        .from("mission_assignments")
+        .select("id, question_id, assigned_writer_id, due_date, acceptance_status")
+        .eq("mission_id", missionId);
       if (error) throw error;
-      return (data ?? []) as ProgressRow[];
+      return (data ?? []) as AssignmentRow[];
     },
   });
 
@@ -465,14 +466,13 @@ function AssignmentsSubStep({
           "id, member_id, mission_role, member:atlas_team_members!mission_team_members_member_id_fkey(id, first_name, last_name, job_title, skills, email)",
         )
         .eq("mission_id", missionId)
-        .in("mission_role", ["writer", "engagement_lead"]);
+        .in("mission_role", ["writer", "lead_writer", "engagement_lead", "project_manager"]);
       if (error) throw error;
       return (data ?? []) as unknown as MissionTeamRow[];
     },
   });
 
-  // Resolve atlas_team_members -> auth.users id via profiles.email
-  // (question_progress.assignee_id has a FK to auth.users)
+  // Resolve atlas_team_members -> auth.users id for legacy question_progress rows.
   const teamEmails = useMemo(
     () =>
       Array.from(
@@ -519,20 +519,10 @@ function AssignmentsSubStep({
   }, [sections]);
 
   const progressByQuestion = useMemo(() => {
-    const m = new Map<string, ProgressRow>();
+    const m = new Map<string, AssignmentRow>();
     progress.forEach((p) => m.set(p.question_id, p));
     return m;
   }, [progress]);
-
-  // Keyed by auth user id (= assignee_id stored in question_progress)
-  const memberName = useMemo(() => {
-    const m = new Map<string, string>();
-    team.forEach((t) => {
-      const authId = authIdByMemberId.get(t.member_id);
-      if (authId) m.set(authId, fullName(t.member));
-    });
-    return m;
-  }, [team, authIdByMemberId]);
 
   const sortedQuestions = useMemo(() => {
     return [...questions].sort((a, b) => {
@@ -546,23 +536,44 @@ function AssignmentsSubStep({
   const visibleQuestions = useMemo(() => {
     return sortedQuestions.filter((q) => {
       const p = progressByQuestion.get(q.id);
-      if (filterMode === "assigned" && !p) return false;
-      if (filterMode === "unassigned" && p) return false;
-      if (filterWriter && p?.assignee_id !== filterWriter) return false;
+      if (filterMode === "assigned" && !p?.assigned_writer_id) return false;
+      if (filterMode === "unassigned" && p?.assigned_writer_id) return false;
+      if (filterWriter && p?.assigned_writer_id !== filterWriter) return false;
       return true;
     });
   }, [sortedQuestions, progressByQuestion, filterMode, filterWriter]);
 
-  const assignedCount = progress.length;
+  const assignedCount = sortedQuestions.filter((q) => !!progressByQuestion.get(q.id)?.assigned_writer_id).length;
   const totalCount = questions.length;
   const allAssigned = totalCount > 0 && assignedCount >= totalCount;
   const pct = totalCount > 0 ? Math.round((assignedCount / totalCount) * 100) : 0;
 
   // Idempotent assign: wipe any existing lead_writer rows for the question
-  // (covers stale duplicates and RLS-hidden rows), then insert the new one.
-  // This eliminates the UNIQUE(question_id, assignee_id, role) conflict that
-  // was silently dropping reassignments.
-  async function assignWriter(questionId: string, newAssigneeId: string) {
+  // into both systems: mission_assignments powers Flight Deck; question_progress
+  // powers legacy writer cockpit/readiness checks.
+  async function assignWriter(questionId: string, memberId: string) {
+    const authId = memberId ? authIdByMemberId.get(memberId) : null;
+    const now = new Date().toISOString();
+
+    const { error: assignmentError } = memberId
+      ? await supabase.from("mission_assignments").upsert(
+          {
+            mission_id: missionId,
+            question_id: questionId,
+            assigned_writer_id: memberId,
+            acceptance_status: "pending",
+            acceptance_responded_at: null,
+            writer_confidence: "not_set",
+            assigned_at: now,
+          },
+          { onConflict: "mission_id,question_id" },
+        )
+      : await supabase.from("mission_assignments").delete().eq("mission_id", missionId).eq("question_id", questionId);
+    if (assignmentError) {
+      toast.error(`Could not assign: ${assignmentError.message}`);
+      return;
+    }
+
     const { error: delErr } = await supabase
       .from("question_progress")
       .delete()
@@ -570,55 +581,55 @@ function AssignmentsSubStep({
       .eq("question_id", questionId)
       .eq("role", "lead_writer");
     if (delErr) {
-      toast.error(`Could not save: ${delErr.message}`);
+      toast.error(`Could not update writer progress: ${delErr.message}`);
       return;
     }
-    if (newAssigneeId) {
-      const { error: insErr } = await supabase.from("question_progress").insert({
+
+    if (authId) {
+      const { error: progressError } = await supabase.from("question_progress").insert({
         mission_id: missionId,
         question_id: questionId,
-        assignee_id: newAssigneeId,
+        assignee_id: authId,
         role: "lead_writer",
         status: "not_started",
         acceptance_status: "pending",
-        assigned_at: new Date().toISOString(),
+        assigned_at: now,
       });
-      if (insErr) {
-        toast.error(`Could not assign: ${insErr.message}`);
+      if (progressError) {
+        toast.error(`Could not update writer progress: ${progressError.message}`);
         return;
       }
     }
     await qc.refetchQueries({ queryKey: progressKey });
   }
 
-
-  async function setInternalDue(questionId: string, value: string) {
-    const existing = progressByQuestion.get(questionId);
-    if (!existing) {
-      toast.error("Assign a writer before setting an internal due date.");
-      return;
-    }
-    const { error } = await supabase
-      .from("question_progress")
-      .update({ internal_due_date: value || null })
-      .eq("id", existing.id);
-    if (error) {
-      toast.error(`Could not save due date: ${error.message}`);
-      return;
-    }
-    await qc.refetchQueries({ queryKey: progressKey });
-  }
-
   async function bulkAssignAllUnassigned() {
     if (!bulkWriter) return;
-    const unassigned = sortedQuestions.filter((q) => !progressByQuestion.has(q.id));
+    const unassigned = sortedQuestions.filter((q) => !progressByQuestion.get(q.id)?.assigned_writer_id);
     if (unassigned.length === 0) {
       toast.info("No unassigned questions.");
       return;
     }
-    // Defensively wipe any stale lead_writer rows for those questions before
-    // inserting — guards against duplicates the client SELECT didn't see.
+    const authId = authIdByMemberId.get(bulkWriter);
+    const now = new Date().toISOString();
     const ids = unassigned.map((q) => q.id);
+    const { error: assignmentError } = await supabase.from("mission_assignments").upsert(
+      unassigned.map((q) => ({
+        mission_id: missionId,
+        question_id: q.id,
+        assigned_writer_id: bulkWriter,
+        acceptance_status: "pending",
+        acceptance_responded_at: null,
+        writer_confidence: "not_set",
+        assigned_at: now,
+      })),
+      { onConflict: "mission_id,question_id" },
+    );
+    if (assignmentError) {
+      toast.error(`Bulk assign failed: ${assignmentError.message}`);
+      return;
+    }
+
     const { error: delErr } = await supabase
       .from("question_progress")
       .delete()
@@ -629,19 +640,21 @@ function AssignmentsSubStep({
       toast.error(`Bulk assign failed: ${delErr.message}`);
       return;
     }
-    const rows = unassigned.map((q) => ({
-      mission_id: missionId,
-      question_id: q.id,
-      assignee_id: bulkWriter,
-      role: "lead_writer",
-      status: "not_started",
-      acceptance_status: "pending",
-      assigned_at: new Date().toISOString(),
-    }));
-    const { error } = await supabase.from("question_progress").insert(rows);
-    if (error) {
-      toast.error(`Bulk assign failed: ${error.message}`);
-      return;
+    if (authId) {
+      const rows = unassigned.map((q) => ({
+        mission_id: missionId,
+        question_id: q.id,
+        assignee_id: authId,
+        role: "lead_writer",
+        status: "not_started",
+        acceptance_status: "pending",
+        assigned_at: now,
+      }));
+      const { error } = await supabase.from("question_progress").insert(rows);
+      if (error) {
+        toast.error(`Bulk assign failed: ${error.message}`);
+        return;
+      }
     }
     toast.success(`Assigned ${unassigned.length} question${unassigned.length === 1 ? "" : "s"}.`);
     setBulkWriter("");
@@ -650,16 +663,16 @@ function AssignmentsSubStep({
 
   async function clearAllAssignments() {
     const { error } = await supabase
-      .from("question_progress")
+      .from("mission_assignments")
       .delete()
-      .eq("mission_id", missionId)
-      .eq("role", "lead_writer");
+      .eq("mission_id", missionId);
     if (error) {
       toast.error(`Clear failed: ${error.message}`);
       return;
     }
     toast.success("Cleared all assignments.");
     setConfirmClear(false);
+    await supabase.from("question_progress").delete().eq("mission_id", missionId).eq("role", "lead_writer");
     qc.invalidateQueries({ queryKey: progressKey });
   }
 
@@ -759,7 +772,7 @@ function AssignmentsSubStep({
               return (
                 <option
                   key={t.member_id}
-                  value={authId ?? ""}
+                  value={t.member_id}
                   disabled={!authId}
                   className="bg-[#0D1B3E]"
                 >
@@ -800,7 +813,7 @@ function AssignmentsSubStep({
               const authId = authIdByMemberId.get(t.member_id);
               if (!authId) return null;
               return (
-                <option key={t.member_id} value={authId} className="bg-[#0D1B3E]">
+                <option key={t.member_id} value={t.member_id} className="bg-[#0D1B3E]">
                   {fullName(t.member)}
                 </option>
               );
@@ -869,7 +882,7 @@ function AssignmentsSubStep({
                     </td>
                     <td className="px-3 py-2">
                       <select
-                        value={p?.assignee_id ?? ""}
+                        value={p?.assigned_writer_id ?? ""}
                         onChange={(e) => assignWriter(q.id, e.target.value)}
                         className={`w-full bg-white/5 border rounded-md px-2 py-1.5 text-[12px] focus:outline-none focus:border-amber-400/60 ${
                           !p ? "border-red-500/40 text-red-300" : "border-white/15 text-white"
@@ -881,7 +894,7 @@ function AssignmentsSubStep({
                           return (
                             <option
                               key={t.member_id}
-                              value={authId ?? ""}
+                              value={t.member_id}
                               disabled={!authId}
                               className="bg-[#0D1B3E]"
                             >

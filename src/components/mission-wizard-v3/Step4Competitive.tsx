@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Sparkles, X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { analyzeMissionStep } from "@/lib/iris-mission-analysis.functions";
 import { loadStaged, saveStaged } from "@/lib/oracle/wizard-stage";
@@ -150,6 +151,32 @@ export function Step4Competitive({
   }
   function removeCompetitor(name: string) {
     setCompetitors(competitors.filter((c) => c !== name));
+  }
+  async function saveAndContinue() {
+    const threshold = MODES.find((m) => m.value === mode)?.threshold ?? 40;
+    const cleanCompetitors = Array.from(new Set([...competitors, draft].map((c) => c.trim()).filter(Boolean)));
+    const [missionSave, oracleSave] = await Promise.all([
+      supabase.from("missions").update({ known_competitors: cleanCompetitors }).eq("id", missionId),
+      supabase.from("oracle_engagement_config").upsert(
+        {
+          mission_id: missionId,
+          competitors: cleanCompetitors as never,
+          monitoring_mode: mode,
+          signal_threshold: threshold,
+          status: "active",
+        } as never,
+        { onConflict: "mission_id" },
+      ),
+    ]);
+    if (missionSave.error || oracleSave.error) {
+      console.error("[Step4Competitive] save failed", missionSave.error ?? oracleSave.error);
+      toast.error("Could not save competitive context.");
+      return;
+    }
+    setCompetitors(cleanCompetitors);
+    setDraft("");
+    saveStaged(missionId, { competitors: cleanCompetitors, monitoring_mode: mode, signal_threshold: threshold });
+    onAdvance();
   }
   async function markExtraction(id: string, patch: { confirmed_by_user?: boolean; overridden_by_user?: boolean }) {
     await supabase.from("mission_iris_extractions").update(patch).eq("id", id);
@@ -305,7 +332,7 @@ export function Step4Competitive({
         </div>
       </div>
 
-      <WizardFooter step={4} onBack={onBack} onContinue={onAdvance} />
+      <WizardFooter step={4} onBack={onBack} onContinue={saveAndContinue} />
     </div>
   );
 }

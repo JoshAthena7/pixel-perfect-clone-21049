@@ -384,16 +384,19 @@ export function Step8Review({
         const signalThreshold = staged.signal_threshold ?? 40;
         const ns = staged.north_star ?? null;
 
-        const { error: configError } = await supabase.from("oracle_engagement_config").insert({
-          mission_id: missionId,
-          north_star: ns,
-          win_themes: winThemes as never,
-          top_risks: topRisks as never,
-          competitors: competitorList as never,
-          signal_threshold: signalThreshold,
-          monitoring_mode: monitoringMode,
-          status: "active",
-        });
+        const { error: configError } = await supabase.from("oracle_engagement_config").upsert(
+          {
+            mission_id: missionId,
+            north_star: ns,
+            win_themes: winThemes as never,
+            top_risks: topRisks as never,
+            competitors: competitorList as never,
+            signal_threshold: signalThreshold,
+            monitoring_mode: monitoringMode,
+            status: "active",
+          },
+          { onConflict: "mission_id" },
+        );
 
         if (configError) {
           console.error("ORACLE config creation failed — non-blocking:", configError.message);
