@@ -677,7 +677,7 @@ function PurplePlaceholder({ text }: { text: string }) {
 /* -------------------- RIGHT: My Work -------------------- */
 function MyWorkColumn({
   missionId, questionId, questionNumber, questionText, sectionName,
-  assignmentId, writerConfidence, onChanged,
+  assignmentId, writerConfidence, dueDate, status, onChanged,
 }: {
   missionId: string | null;
   questionId: string;
@@ -686,9 +686,12 @@ function MyWorkColumn({
   sectionName: string | null;
   assignmentId: string | null;
   writerConfidence: string | null;
+  dueDate: string | null;
+  status: string | null;
   onChanged: () => void;
 }) {
   const [scoreOpen, setScoreOpen] = useState(false);
+  const [stuckOpen, setStuckOpen] = useState(false);
   const [confidence, setConfidence] = useState<string | null>(writerConfidence);
 
   useEffect(() => setConfidence(writerConfidence), [writerConfidence]);
