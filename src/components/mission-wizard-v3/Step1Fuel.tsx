@@ -74,6 +74,7 @@ type Row = {
   error?: string;
   purpose?: DocumentPurpose;
   isStyleGuide?: boolean;
+  isPrimaryRfp?: boolean;
 };
 
 async function extractTextFromBlob(blob: Blob, fileName: string): Promise<string> {
