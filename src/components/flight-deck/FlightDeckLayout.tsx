@@ -237,6 +237,9 @@ export function FlightDeckLayout({
     <div className="space-y-4">
       <FlightDeckHeader name={activeMissionName} status={activeMissionStatus} />
 
+      <ShoutoutToastListener missionId={activeMissionId} />
+      <TeamPulseCard missionId={activeMissionId} />
+
       <NavStrip
         missionId={activeMissionId}
         activeQ={activeQ}
