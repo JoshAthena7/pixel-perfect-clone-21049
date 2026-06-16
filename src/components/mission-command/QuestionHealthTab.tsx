@@ -91,6 +91,68 @@ export function QuestionHealthTab({
   const [sortBy, setSortBy] = useState<"health" | "due" | "activity" | "writer">("health");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  // Role gating: platform admin vs mission manager (EL / PM / lead) vs writer.
+  const { isAdmin } = useIsAdmin();
+  const { data: missionAccess } = useMissionAccess(missionId);
+  const role = (missionAccess?.role ?? "").toLowerCase();
+  const isPmOrEL =
+    role === "engagement_lead" || role === "project_manager" || role === "lead" || role === "lead_writer";
+  const isManager = !isAdmin && isPmOrEL;
+  const canManage = isAdmin || isPmOrEL; // sees manager-only controls
+
+  // "My Watch List" toggle, persisted per mission per user.
+  const watchKey = `atlas:watchlist:${missionId}`;
+  const [watchOnly, setWatchOnly] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem(watchKey) === "1";
+  });
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(watchKey, watchOnly ? "1" : "0");
+  }, [watchOnly, watchKey]);
+
+  // Open Thread panel state (reuses flight-deck ThreadPanel).
+  const [threadFor, setThreadFor] = useState<{
+    questionId: string;
+    questionNumber: string;
+    questionText: string;
+  } | null>(null);
+
+  // Manager flags (visible to all members; only managers/admin can write).
+  const listFlagsFn = useServerFn(listMissionFlags);
+  const { data: flagsData, refetch: refetchFlags } = useQuery({
+    queryKey: ["mission-manager-flags", missionId],
+    queryFn: () => listFlagsFn({ data: { missionId } }),
+    staleTime: 30_000,
+  });
+  const activeFlagByQ = useMemo(() => {
+    const m = new Map<string, { id: string; reason: string | null; flaggedBy: string }>();
+    for (const f of (flagsData?.flags ?? []) as any[]) {
+      if (f.resolved) continue;
+      if (!m.has(f.question_id)) {
+        m.set(f.question_id, { id: f.id, reason: f.flag_reason, flaggedBy: f.flagged_by });
+      }
+    }
+    return m;
+  }, [flagsData]);
+
+  // Admin override history (admin-only via RLS).
+  const getOverridesFn = useServerFn(getLatestOverride);
+  const { data: overridesData, refetch: refetchOverrides } = useQuery({
+    queryKey: ["mission-health-overrides", missionId, isAdmin],
+    queryFn: () => getOverridesFn({ data: { missionId } }),
+    enabled: isAdmin,
+    staleTime: 30_000,
+  });
+  const latestOverrideByQ = useMemo(() => {
+    const m = new Map<string, any>();
+    for (const o of (overridesData?.overrides ?? []) as any[]) {
+      if (!m.has(o.question_id)) m.set(o.question_id, o);
+    }
+    return m;
+  }, [overridesData]);
+
+
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["question-health", missionId],
     queryFn: async () => {
