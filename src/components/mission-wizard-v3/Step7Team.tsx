@@ -642,9 +642,26 @@ function AssignmentsSubStep({
       toast.info("No unassigned questions.");
       return;
     }
-    // Defensively wipe any stale lead_writer rows for those questions before
-    // inserting — guards against duplicates the client SELECT didn't see.
+    const authId = authIdByMemberId.get(bulkWriter);
+    const now = new Date().toISOString();
     const ids = unassigned.map((q) => q.id);
+    const { error: assignmentError } = await supabase.from("mission_assignments").upsert(
+      unassigned.map((q) => ({
+        mission_id: missionId,
+        question_id: q.id,
+        assigned_writer_id: bulkWriter,
+        acceptance_status: "pending",
+        acceptance_responded_at: null,
+        writer_confidence: "not_set",
+        assigned_at: now,
+      })),
+      { onConflict: "mission_id,question_id" },
+    );
+    if (assignmentError) {
+      toast.error(`Bulk assign failed: ${assignmentError.message}`);
+      return;
+    }
+
     const { error: delErr } = await supabase
       .from("question_progress")
       .delete()
@@ -655,19 +672,21 @@ function AssignmentsSubStep({
       toast.error(`Bulk assign failed: ${delErr.message}`);
       return;
     }
-    const rows = unassigned.map((q) => ({
-      mission_id: missionId,
-      question_id: q.id,
-      assignee_id: bulkWriter,
-      role: "lead_writer",
-      status: "not_started",
-      acceptance_status: "pending",
-      assigned_at: new Date().toISOString(),
-    }));
-    const { error } = await supabase.from("question_progress").insert(rows);
-    if (error) {
-      toast.error(`Bulk assign failed: ${error.message}`);
-      return;
+    if (authId) {
+      const rows = unassigned.map((q) => ({
+        mission_id: missionId,
+        question_id: q.id,
+        assignee_id: authId,
+        role: "lead_writer",
+        status: "not_started",
+        acceptance_status: "pending",
+        assigned_at: now,
+      }));
+      const { error } = await supabase.from("question_progress").insert(rows);
+      if (error) {
+        toast.error(`Bulk assign failed: ${error.message}`);
+        return;
+      }
     }
     toast.success(`Assigned ${unassigned.length} question${unassigned.length === 1 ? "" : "s"}.`);
     setBulkWriter("");
@@ -676,16 +695,16 @@ function AssignmentsSubStep({
 
   async function clearAllAssignments() {
     const { error } = await supabase
-      .from("question_progress")
+      .from("mission_assignments")
       .delete()
-      .eq("mission_id", missionId)
-      .eq("role", "lead_writer");
+      .eq("mission_id", missionId);
     if (error) {
       toast.error(`Clear failed: ${error.message}`);
       return;
     }
     toast.success("Cleared all assignments.");
     setConfirmClear(false);
+    await supabase.from("question_progress").delete().eq("mission_id", missionId).eq("role", "lead_writer");
     qc.invalidateQueries({ queryKey: progressKey });
   }
 
