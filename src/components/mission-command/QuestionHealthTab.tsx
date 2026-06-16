@@ -244,7 +244,8 @@ export function QuestionHealthTab({
     sectionFilter !== "all" ||
     writerFilter !== "all" ||
     dueFrom ||
-    dueTo;
+    dueTo ||
+    watchOnly;
 
   const filtered = useMemo(() => {
     if (!data) return [];
@@ -255,9 +256,11 @@ export function QuestionHealthTab({
       if (writerFilter !== "all" && a?.assigned_writer_id !== writerFilter) return false;
       if (dueFrom && (!q.due_date || new Date(q.due_date) < dueFrom)) return false;
       if (dueTo && (!q.due_date || new Date(q.due_date) > dueTo)) return false;
+      if (watchOnly && !activeFlagByQ.has(q.id)) return false;
       return true;
     });
-  }, [data, healthFilter, sectionFilter, writerFilter, dueFrom, dueTo]);
+  }, [data, healthFilter, sectionFilter, writerFilter, dueFrom, dueTo, watchOnly, activeFlagByQ]);
+
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
