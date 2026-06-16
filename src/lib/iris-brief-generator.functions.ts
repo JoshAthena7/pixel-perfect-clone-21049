@@ -150,6 +150,7 @@ CRITICAL RULES:
         },
         body: JSON.stringify({
           model: "google/gemini-2.5-flash",
+          response_format: { type: "json_object" },
           messages: [
             { role: "system", content: system },
             { role: "user", content: userMsg },
@@ -168,14 +169,22 @@ CRITICAL RULES:
       const j = (await res.json()) as {
         choices?: Array<{ message?: { content?: string } }>;
       };
-      const content = j.choices?.[0]?.message?.content ?? "";
-      const match = content.match(/\{[\s\S]*\}/);
-      if (!match) throw new Error("IRIS returned an unreadable response.");
+      const raw = (j.choices?.[0]?.message?.content ?? "").trim();
+      // Strip ```json fences if the model wrapped its reply in a code block.
+      const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+      const start = cleaned.indexOf("{");
+      const end = cleaned.lastIndexOf("}");
+      if (start === -1 || end === -1 || end <= start) {
+        console.error("[iris-brief] unreadable content", raw.slice(0, 500));
+        throw new Error("IRIS returned an unreadable response.");
+      }
+      const jsonStr = cleaned.slice(start, end + 1);
 
       let brief: any;
       try {
-        brief = JSON.parse(match[0]);
+        brief = JSON.parse(jsonStr);
       } catch {
+        console.error("[iris-brief] invalid JSON", jsonStr.slice(0, 500));
         throw new Error("IRIS brief generation failed: invalid JSON.");
       }
 
