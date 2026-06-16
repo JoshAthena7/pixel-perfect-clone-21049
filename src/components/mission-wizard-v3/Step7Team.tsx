@@ -876,11 +876,19 @@ function AssignmentsSubStep({
                         }`}
                       >
                         <option value="" className="bg-[#0D1B3E]">— Unassigned —</option>
-                        {team.map((t) => (
-                          <option key={t.member_id} value={t.member_id} className="bg-[#0D1B3E]">
-                            {memberName.get(t.member_id) ?? "Unknown"}
-                          </option>
-                        ))}
+                        {team.map((t) => {
+                          const authId = authIdByMemberId.get(t.member_id);
+                          return (
+                            <option
+                              key={t.member_id}
+                              value={authId ?? ""}
+                              disabled={!authId}
+                              className="bg-[#0D1B3E]"
+                            >
+                              {fullName(t.member)}{!authId ? " (no account)" : ""}
+                            </option>
+                          );
+                        })}
                       </select>
                     </td>
                     <td className="px-3 py-2">
