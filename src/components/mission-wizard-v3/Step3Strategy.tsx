@@ -935,6 +935,108 @@ export function Step3Strategy({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config]);
 
+  // ── Backfill: write through confirmed extractions that never landed
+  // in oracle_engagement_config (legacy data from before the confirm
+  // action wrote through). Runs once on mount when the config is empty.
+  const backfilledRef = useRef(false);
+  useEffect(() => {
+    if (!hydrated || backfilledRef.current) return;
+    const configIsEmpty =
+      !northStar &&
+      !centralClaim &&
+      winThemes.length === 0 &&
+      topRisks.length === 0 &&
+      discriminators.length === 0 &&
+      proofPoints.length === 0 &&
+      stakeholders.length === 0 &&
+      competitors.length === 0;
+    if (!configIsEmpty) return;
+    backfilledRef.current = true;
+    void (async () => {
+      const { data: confirmed } = await supabase
+        .from("mission_iris_extractions")
+        .select("extracted_field, extracted_value, confidence_score")
+        .eq("mission_id", missionId)
+        .eq("wizard_step", 3)
+        .eq("confirmed_by_user", true)
+        .eq("overridden_by_user", false);
+      if (!confirmed || confirmed.length === 0) return;
+
+      const nextWin: OracleTaggedItem[] = [];
+      const nextRisk: OracleTaggedItem[] = [];
+      const nextDisc: ListItem[] = [];
+      const nextProof: ListItem[] = [];
+      const nextStake: Stakeholder[] = [];
+      const nextComp: string[] = [];
+      let nextNorthStar: string | null = null;
+      let nextCentralClaim: string | null = null;
+
+      for (const row of confirmed) {
+        const field = (row as { extracted_field: string }).extracted_field;
+        const value = ((row as { extracted_value: string | null }).extracted_value ?? "").trim();
+        const confPct = Math.round((((row as { confidence_score: number | null }).confidence_score) ?? 1) * 100);
+        if (!value) continue;
+        if (field === "north_star") { if (!nextNorthStar) nextNorthStar = value.slice(0, 150); continue; }
+        if (field === "central_claim") { if (!nextCentralClaim) nextCentralClaim = value; continue; }
+        if (field.startsWith("win_theme_")) {
+          if (!nextWin.some((i) => i.text.toLowerCase() === value.toLowerCase())) {
+            nextWin.push({ id: uid(), text: value, signal_authority: "athena_assumed", rfp_reference: null, confidence: confPct, status: "confirmed" });
+          }
+          continue;
+        }
+        if (field.startsWith("top_risk_")) {
+          if (!nextRisk.some((i) => i.text.toLowerCase() === value.toLowerCase())) {
+            nextRisk.push({ id: uid(), text: value, signal_authority: "athena_assumed", rfp_reference: null, confidence: confPct, status: "confirmed" });
+          }
+          continue;
+        }
+        if (field.startsWith("discriminator_")) {
+          if (!nextDisc.some((i) => i.text.toLowerCase() === value.toLowerCase())) {
+            nextDisc.push({ id: uid(), text: value });
+          }
+          continue;
+        }
+        if (field.startsWith("proof_point_")) {
+          if (!nextProof.some((i) => i.text.toLowerCase() === value.toLowerCase())) {
+            nextProof.push({ id: uid(), text: value });
+          }
+          continue;
+        }
+        if (field.startsWith("stakeholder_")) {
+          const [n, r] = value.split(/\s*[—\-|·]\s*/);
+          nextStake.push({ id: uid(), name: (n ?? value).trim(), role: (r ?? "").trim(), influence: "influencer" });
+          continue;
+        }
+        if (field.startsWith("competitor_")) {
+          if (!nextComp.some((c) => c.toLowerCase() === value.toLowerCase())) nextComp.push(value);
+          continue;
+        }
+      }
+
+      const patch: Record<string, unknown> = {};
+      if (nextNorthStar) { patch.north_star = nextNorthStar; setNorthStar(nextNorthStar); }
+      if (nextCentralClaim) { patch.central_claim = nextCentralClaim; setCentralClaim(nextCentralClaim); }
+      if (nextWin.length) { patch.win_themes = nextWin; setWinThemes(nextWin); }
+      if (nextRisk.length) { patch.top_risks = nextRisk; setTopRisks(nextRisk); }
+      if (nextDisc.length) { patch.discriminators = nextDisc; setDiscriminators(nextDisc); }
+      if (nextProof.length) { patch.proof_points = nextProof; setProofPoints(nextProof); }
+      if (nextStake.length) { patch.stakeholders = nextStake; setStakeholders(nextStake); }
+      if (nextComp.length) { patch.competitors = nextComp; setCompetitors(nextComp); }
+
+      if (Object.keys(patch).length === 0) return;
+      const { error } = await supabase
+        .from("oracle_engagement_config")
+        .upsert({ mission_id: missionId, ...patch } as never, { onConflict: "mission_id" });
+      if (error) {
+        console.error("[step3] backfill failed:", error);
+      } else {
+        console.log("[step3] Backfilled confirmed extractions:", Object.keys(patch));
+        qc.invalidateQueries({ queryKey: configKey });
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated]);
+
   // ── Save helpers ──
   const flashSaved = useCallback(() => setSavedTickAt(Date.now()), []);
   const upsertConfig = useCallback(
