@@ -13,7 +13,8 @@ export const WIZARD_STEPS = [
   { n: 4, label: "Competitive" },
   { n: 5, label: "Intel Seeds" },
   { n: 6, label: "Team & Assignments" },
-  { n: 7, label: "Review & Launch" },
+  { n: 7, label: "Journey" },
+  { n: 8, label: "Review & Launch" },
 ] as const;
 
 export const TOTAL_STEPS = WIZARD_STEPS.length;
