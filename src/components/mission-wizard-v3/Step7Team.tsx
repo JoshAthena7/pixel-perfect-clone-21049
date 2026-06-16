@@ -558,35 +558,23 @@ function AssignmentsSubStep({
   const allAssigned = totalCount > 0 && assignedCount >= totalCount;
   const pct = totalCount > 0 ? Math.round((assignedCount / totalCount) * 100) : 0;
 
+  // Idempotent assign: wipe any existing lead_writer rows for the question
+  // (covers stale duplicates and RLS-hidden rows), then insert the new one.
+  // This eliminates the UNIQUE(question_id, assignee_id, role) conflict that
+  // was silently dropping reassignments.
   async function assignWriter(questionId: string, newAssigneeId: string) {
-    const existing = progressByQuestion.get(questionId);
-    if (!newAssigneeId) {
-      if (!existing) return;
-      const { error } = await supabase
-        .from("question_progress")
-        .delete()
-        .eq("mission_id", missionId)
-        .eq("question_id", questionId)
-        .eq("role", "lead_writer");
-      if (error) {
-        toast.error(`Could not unassign: ${error.message}`);
-        return;
-      }
-    } else if (existing) {
-      const { error } = await supabase
-        .from("question_progress")
-        .update({
-          assignee_id: newAssigneeId,
-          assigned_at: new Date().toISOString(),
-          acceptance_status: "pending",
-        })
-        .eq("id", existing.id);
-      if (error) {
-        toast.error(`Could not reassign: ${error.message}`);
-        return;
-      }
-    } else {
-      const { error } = await supabase.from("question_progress").insert({
+    const { error: delErr } = await supabase
+      .from("question_progress")
+      .delete()
+      .eq("mission_id", missionId)
+      .eq("question_id", questionId)
+      .eq("role", "lead_writer");
+    if (delErr) {
+      toast.error(`Could not save: ${delErr.message}`);
+      return;
+    }
+    if (newAssigneeId) {
+      const { error: insErr } = await supabase.from("question_progress").insert({
         mission_id: missionId,
         question_id: questionId,
         assignee_id: newAssigneeId,
@@ -595,12 +583,12 @@ function AssignmentsSubStep({
         acceptance_status: "pending",
         assigned_at: new Date().toISOString(),
       });
-      if (error) {
-        toast.error(`Could not assign: ${error.message}`);
+      if (insErr) {
+        toast.error(`Could not assign: ${insErr.message}`);
         return;
       }
     }
-    qc.invalidateQueries({ queryKey: progressKey });
+    await qc.refetchQueries({ queryKey: progressKey });
   }
 
 
@@ -618,7 +606,7 @@ function AssignmentsSubStep({
       toast.error(`Could not save due date: ${error.message}`);
       return;
     }
-    qc.invalidateQueries({ queryKey: progressKey });
+    await qc.refetchQueries({ queryKey: progressKey });
   }
 
   async function bulkAssignAllUnassigned() {
@@ -626,6 +614,19 @@ function AssignmentsSubStep({
     const unassigned = sortedQuestions.filter((q) => !progressByQuestion.has(q.id));
     if (unassigned.length === 0) {
       toast.info("No unassigned questions.");
+      return;
+    }
+    // Defensively wipe any stale lead_writer rows for those questions before
+    // inserting — guards against duplicates the client SELECT didn't see.
+    const ids = unassigned.map((q) => q.id);
+    const { error: delErr } = await supabase
+      .from("question_progress")
+      .delete()
+      .eq("mission_id", missionId)
+      .eq("role", "lead_writer")
+      .in("question_id", ids);
+    if (delErr) {
+      toast.error(`Bulk assign failed: ${delErr.message}`);
       return;
     }
     const rows = unassigned.map((q) => ({
@@ -644,7 +645,7 @@ function AssignmentsSubStep({
     }
     toast.success(`Assigned ${unassigned.length} question${unassigned.length === 1 ? "" : "s"}.`);
     setBulkWriter("");
-    qc.invalidateQueries({ queryKey: progressKey });
+    await qc.refetchQueries({ queryKey: progressKey });
   }
 
   async function clearAllAssignments() {
