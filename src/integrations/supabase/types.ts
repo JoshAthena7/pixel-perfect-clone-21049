@@ -865,6 +865,44 @@ export type Database = {
         }
         Relationships: []
       }
+      atlas_mission_moments: {
+        Row: {
+          active_date: string
+          content: Json
+          created_at: string
+          generated_by: string | null
+          id: string
+          mission_id: string
+          moment_type: string
+        }
+        Insert: {
+          active_date?: string
+          content: Json
+          created_at?: string
+          generated_by?: string | null
+          id?: string
+          mission_id: string
+          moment_type: string
+        }
+        Update: {
+          active_date?: string
+          content?: Json
+          created_at?: string
+          generated_by?: string | null
+          id?: string
+          mission_id?: string
+          moment_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atlas_mission_moments_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       atlas_notifications: {
         Row: {
           created_at: string
@@ -1056,6 +1094,51 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "atlas_states"
             referencedColumns: ["state_code"]
+          },
+        ]
+      }
+      atlas_shoutouts: {
+        Row: {
+          created_at: string
+          from_user_id: string
+          id: string
+          message: string
+          mission_id: string
+          question_id: string | null
+          to_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id: string
+          id?: string
+          message: string
+          mission_id: string
+          question_id?: string | null
+          to_user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          message?: string
+          mission_id?: string
+          question_id?: string | null
+          to_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atlas_shoutouts_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atlas_shoutouts_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1632,6 +1715,54 @@ export type Database = {
           synced_by?: string | null
         }
         Relationships: []
+      }
+      atlas_writer_block_sessions: {
+        Row: {
+          block_type: string
+          created_at: string
+          id: string
+          iris_response: Json | null
+          mission_id: string
+          question_id: string | null
+          user_id: string
+          was_helpful: boolean | null
+        }
+        Insert: {
+          block_type: string
+          created_at?: string
+          id?: string
+          iris_response?: Json | null
+          mission_id: string
+          question_id?: string | null
+          user_id: string
+          was_helpful?: boolean | null
+        }
+        Update: {
+          block_type?: string
+          created_at?: string
+          id?: string
+          iris_response?: Json | null
+          mission_id?: string
+          question_id?: string | null
+          user_id?: string
+          was_helpful?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atlas_writer_block_sessions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atlas_writer_block_sessions_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       brief_update_signals: {
         Row: {

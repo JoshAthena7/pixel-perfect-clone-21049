@@ -24,6 +24,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useIris } from "@/components/iris/IrisContext";
 import { FlightDeckAssistBar } from "@/components/flight-deck/FlightDeckAssistBar";
 import { ScoreMeDialog } from "@/components/flight-deck/ScoreMeDialog";
+import { TeamPulseCard } from "@/components/atlas/TeamPulseCard";
+import { AtlasAssistBar } from "@/components/atlas/AtlasAssistBar";
+import { WritersBlockDialog } from "@/components/atlas/WritersBlockDialog";
+import { ShoutoutToastListener } from "@/components/atlas/ShoutoutToastListener";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useIsAdmin } from "@/hooks/useAccess";
@@ -233,6 +237,9 @@ export function FlightDeckLayout({
     <div className="space-y-4">
       <FlightDeckHeader name={activeMissionName} status={activeMissionStatus} />
 
+      <ShoutoutToastListener missionId={activeMissionId} />
+      <TeamPulseCard missionId={activeMissionId} />
+
       <NavStrip
         missionId={activeMissionId}
         activeQ={activeQ}
@@ -265,6 +272,8 @@ export function FlightDeckLayout({
             sectionName={sectionInfo?.name ?? null}
             assignmentId={activeAsg?.id ?? null}
             writerConfidence={activeAsg?.writer_confidence ?? null}
+            dueDate={activeAsg?.due_date ?? activeQ?.due_date ?? null}
+            status={activeQ.status ?? null}
             onChanged={() => qc.invalidateQueries({ queryKey: ["fd-assignments"] })}
           />
         </div>
@@ -668,7 +677,7 @@ function PurplePlaceholder({ text }: { text: string }) {
 /* -------------------- RIGHT: My Work -------------------- */
 function MyWorkColumn({
   missionId, questionId, questionNumber, questionText, sectionName,
-  assignmentId, writerConfidence, onChanged,
+  assignmentId, writerConfidence, dueDate, status, onChanged,
 }: {
   missionId: string | null;
   questionId: string;
@@ -677,9 +686,12 @@ function MyWorkColumn({
   sectionName: string | null;
   assignmentId: string | null;
   writerConfidence: string | null;
+  dueDate: string | null;
+  status: string | null;
   onChanged: () => void;
 }) {
   const [scoreOpen, setScoreOpen] = useState(false);
+  const [stuckOpen, setStuckOpen] = useState(false);
   const [confidence, setConfidence] = useState<string | null>(writerConfidence);
 
   useEffect(() => setConfidence(writerConfidence), [writerConfidence]);
@@ -728,6 +740,9 @@ function MyWorkColumn({
         </div>
       </div>
 
+      {/* Atlas IRIS coach — Decode / Win Angle / Evidence / Watch Out */}
+      <AtlasAssistBar missionId={missionId} questionId={questionId} />
+
       {/* Status updates live in Thread (question-level) and Mission Pulse (mission-level).
           See the assist bar at the bottom of the page. */}
 
@@ -761,19 +776,29 @@ function MyWorkColumn({
         </div>
       </div>
 
-      {/* Score Me CTA */}
-      <button
-        onClick={() => setScoreOpen(true)}
-        className="w-full text-left rounded-lg p-3"
-        style={{ background: "rgba(196,154,43,0.06)", border: "1px solid rgba(196,154,43,0.4)" }}
-      >
-        <div className="flex items-center gap-2 text-[13px] font-medium" style={{ color: "#C49A2B" }}>
-          <Target className="h-3.5 w-3.5" /> Score My Response
-        </div>
-        <div className="mt-1 text-[11px] text-muted-foreground">
-          Paste your draft from the client environment — IRIS coaches it before anyone else sees it.
-        </div>
-      </button>
+      {/* Action row: Score Me + Stuck? */}
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+        <button
+          onClick={() => setScoreOpen(true)}
+          className="w-full text-left rounded-lg p-3"
+          style={{ background: "rgba(196,154,43,0.06)", border: "1px solid rgba(196,154,43,0.4)" }}
+        >
+          <div className="flex items-center gap-2 text-[13px] font-medium" style={{ color: "#C49A2B" }}>
+            <Target className="h-3.5 w-3.5" /> Score My Response
+          </div>
+          <div className="mt-1 text-[11px] text-muted-foreground">
+            Paste your draft from the client environment — IRIS coaches it before anyone else sees it.
+          </div>
+        </button>
+        <button
+          onClick={() => setStuckOpen(true)}
+          title="IRIS can unstick you"
+          className="rounded-lg px-3 py-2 text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 self-start"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.75)" }}
+        >
+          🧱 Stuck?
+        </button>
+      </div>
 
       {/* Ask IRIS */}
       <div className="rounded-lg p-3" style={{ background: "rgba(127,119,221,0.06)", border: "0.5px solid rgba(127,119,221,0.2)" }}>
@@ -805,6 +830,17 @@ function MyWorkColumn({
         questionId={questionId}
         questionNumber={questionNumber}
         questionText={questionText}
+      />
+
+      <WritersBlockDialog
+        open={stuckOpen}
+        onOpenChange={setStuckOpen}
+        missionId={missionId}
+        questionId={questionId}
+        questionNumber={questionNumber}
+        questionText={questionText}
+        dueDate={dueDate}
+        status={status}
       />
     </div>
   );
