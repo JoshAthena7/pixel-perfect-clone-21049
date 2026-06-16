@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Sparkles, X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { analyzeMissionStep } from "@/lib/iris-mission-analysis.functions";
 import { loadStaged, saveStaged } from "@/lib/oracle/wizard-stage";
@@ -169,6 +170,7 @@ export function Step4Competitive({
     ]);
     if (missionSave.error || oracleSave.error) {
       console.error("[Step4Competitive] save failed", missionSave.error ?? oracleSave.error);
+      toast.error("Could not save competitive context.");
       return;
     }
     setCompetitors(cleanCompetitors);
