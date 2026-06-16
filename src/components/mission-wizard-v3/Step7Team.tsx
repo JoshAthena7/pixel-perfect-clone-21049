@@ -35,6 +35,7 @@ type RosterMember = {
   last_name: string | null;
   job_title: string | null;
   skills: string[] | null;
+  email: string | null;
 };
 
 type MissionTeamRow = {
