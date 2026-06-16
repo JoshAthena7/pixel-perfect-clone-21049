@@ -1,13 +1,18 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { OracleTab } from "@/components/mission-command/oracle/OracleTab";
 
 // /intelligence is a nav alias for the Oracle intelligence surface.
-// Sidebar "INTELLIGENCE" already routes to /oracle; this redirect makes
-// the bare /intelligence URL resolve instead of 404'ing as "Mission not found."
+// Renders the same component as /oracle so the URL resolves cleanly
+// inside the mission layout (which provides the header/nav).
 export const Route = createFileRoute("/_authenticated/missions/$missionId/intelligence")({
-  beforeLoad: ({ params }) => {
-    throw redirect({
-      to: "/missions/$missionId/oracle" as never,
-      params: { missionId: params.missionId } as never,
-    });
-  },
+  component: IntelligenceRoute,
 });
+
+function IntelligenceRoute() {
+  const { missionId } = Route.useParams();
+  return (
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+      <OracleTab missionId={missionId} />
+    </div>
+  );
+}
