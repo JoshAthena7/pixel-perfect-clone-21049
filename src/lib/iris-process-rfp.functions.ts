@@ -366,45 +366,50 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
       console.log(`[iris] Pass 1 skipped — ${existingSectionCount} sections already exist`);
     }
 
-    // -------- PASS 2: questions per non-form section --------
-    const { data: sectionRows } = await supabase
-      .from("mission_sections")
-      .select("id, section_number, name, is_form_only")
-      .eq("mission_id", data.mission_id)
-      .order("order_index", { ascending: true });
+    // PASS 2 is performed per-section by the browser orchestrator via
+    // `extractQuestionsForSection` below. Each per-section call is a tiny,
+    // fast request so the Worker never exceeds its timeout and the wizard
+    // never bounces on a long single-shot.
+    return { ok: true, counts, disclaimer };
+  });
 
-    const targets = (sectionRows ?? []).filter(
-      (s) => s.is_form_only !== true && s.section_number,
-    );
-    const skipped = (sectionRows ?? []).length - targets.length;
-    console.log(`[iris] Pass 2: ${targets.length} targets, ${skipped} skipped (form/no-number)`);
+// ---------------------------------------------------------------------------
+// PASS 2 — extract questions for ONE section. Called by the browser
+// orchestrator with the pre-sliced section text so the server stays fast.
+// ---------------------------------------------------------------------------
 
-    let questionsInserted = 0;
-    let sectionsFailed = 0;
-    let sectionsWithoutText = 0;
+const SectionInput = z.object({
+  mission_id: z.string().uuid(),
+  section_id: z.string().uuid(),
+  section_text: z.string().trim().min(50).max(20_000),
+});
 
-    await runWithConcurrency(targets, 3, async (section) => {
-      const slice = sliceSectionText(data.primary_rfp_text, section.section_number);
-      if (slice.length < 200) {
-        sectionsWithoutText++;
-        return;
-      }
-      const userMsg = `RFP Section: ${section.section_number} — ${section.name}\n\nSection text:\n${slice}`;
-      let content: string | null = null;
-      try {
-        content = await callAI(apiKey, QUESTIONS_SYSTEM, userMsg);
-      } catch (e) {
-        console.error("[iris-pass2] AI call failed", section.section_number, e);
-        sectionsFailed++;
-        return;
-      }
-      if (!content) {
-        sectionsFailed++;
-        return;
-      }
+export const extractQuestionsForSection = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => SectionInput.parse(d))
+  .handler(
+    async ({ data, context }): Promise<{ ok: boolean; inserted: number; skipped?: string }> => {
+      const { supabase } = context;
+      const apiKey = process.env.LOVABLE_API_KEY;
+      if (!apiKey) throw new Error("IRIS is not configured — built-in AI key missing.");
+
+      const { data: section, error: sErr } = await supabase
+        .from("mission_sections")
+        .select("id, section_number, name, is_form_only, mission_id")
+        .eq("id", data.section_id)
+        .single();
+      if (sErr || !section) throw new Error("Section not found or access denied.");
+      if (section.mission_id !== data.mission_id) throw new Error("Section/mission mismatch.");
+      if (section.is_form_only) return { ok: true, inserted: 0, skipped: "form_only" };
+      if (!section.section_number) return { ok: true, inserted: 0, skipped: "no_number" };
+
+      const userMsg = `RFP Section: ${section.section_number} — ${section.name}\n\nSection text:\n${data.section_text}`;
+      const content = await callAI(apiKey, QUESTIONS_SYSTEM, userMsg);
+      if (!content) return { ok: false, inserted: 0, skipped: "ai_no_response" };
+
       const parsed = tryParseJSON<{ questions?: AIQuestion[] }>(content);
       const qs = Array.isArray(parsed?.questions) ? parsed!.questions : [];
-      if (qs.length === 0) return;
+      if (qs.length === 0) return { ok: true, inserted: 0, skipped: "no_questions" };
 
       const rows = qs
         .map((q, i) => {
@@ -429,7 +434,7 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
         })
         .filter((r): r is NonNullable<typeof r> => r !== null);
 
-      if (rows.length === 0) return;
+      if (rows.length === 0) return { ok: true, inserted: 0, skipped: "empty_rows" };
 
       const { data: upserted, error: upErr } = await supabase
         .from("mission_questions")
@@ -437,19 +442,16 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
         .select("id");
       if (upErr) {
         console.error("[iris-pass2] upsert failed", section.section_number, upErr.message);
-        sectionsFailed++;
-        return;
+        return { ok: false, inserted: 0, skipped: `upsert_error` };
       }
-      questionsInserted += upserted?.length ?? 0;
-      console.log(
-        `[iris-pass2] ✓ ${section.section_number} ${section.name} — ${upserted?.length ?? 0} questions`,
-      );
-    });
+      return { ok: true, inserted: upserted?.length ?? 0 };
+    },
+  );
 
-    counts.questions = questionsInserted;
-    console.log(
-      `[iris] Pass 2 complete — ${questionsInserted} questions across ${targets.length - sectionsFailed - sectionsWithoutText}/${targets.length} sections (${sectionsFailed} failed, ${sectionsWithoutText} no-text)`,
-    );
-
-    return { ok: true, counts, disclaimer };
-  });
+// Exported so the browser orchestrator can slice text the same way.
+export function sliceSectionTextForClient(
+  fullText: string,
+  sectionNumber: string | null,
+): string {
+  return sliceSectionText(fullText, sectionNumber);
+}
