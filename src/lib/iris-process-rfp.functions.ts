@@ -434,17 +434,33 @@ export const extractQuestionsForSection = createServerFn({ method: "POST" })
         })
         .filter((r): r is NonNullable<typeof r> => r !== null);
 
-      if (rows.length === 0) return { ok: true, inserted: 0, skipped: "empty_rows" };
+      const rowsByQuestionNumber = new Map<string, (typeof rows)[number]>();
+      for (const row of rows) rowsByQuestionNumber.set(row.question_number, row);
+      const uniqueRows = Array.from(rowsByQuestionNumber.values());
 
-      const { data: upserted, error: upErr } = await supabase
+      if (uniqueRows.length === 0) return { ok: true, inserted: 0, skipped: "empty_rows" };
+
+      const questionNumbers = uniqueRows.map((row) => row.question_number);
+      const { error: deleteErr } = await supabase
         .from("mission_questions")
-        .upsert(rows, { onConflict: "mission_id,question_number" })
-        .select("id");
-      if (upErr) {
-        console.error("[iris-pass2] upsert failed", section.section_number, upErr.message);
-        return { ok: false, inserted: 0, skipped: `upsert_error` };
+        .delete()
+        .eq("mission_id", data.mission_id)
+        .eq("iris_extracted", true)
+        .in("question_number", questionNumbers);
+      if (deleteErr) {
+        console.error("[iris-pass2] cleanup failed", section.section_number, deleteErr.message);
+        return { ok: false, inserted: 0, skipped: "cleanup_error" };
       }
-      return { ok: true, inserted: upserted?.length ?? 0 };
+
+      const { data: inserted, error: insertErr } = await supabase
+        .from("mission_questions")
+        .insert(uniqueRows)
+        .select("id");
+      if (insertErr) {
+        console.error("[iris-pass2] insert failed", section.section_number, insertErr.message);
+        return { ok: false, inserted: 0, skipped: "insert_error" };
+      }
+      return { ok: true, inserted: inserted?.length ?? 0 };
     },
   );
 
