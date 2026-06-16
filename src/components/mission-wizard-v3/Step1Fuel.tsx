@@ -120,7 +120,7 @@ export function Step1Fuel({
     (async () => {
       const { data } = await supabase
         .from("mission_documents")
-        .select("id, title, file_url, document_purpose, is_style_guide")
+        .select("id, title, file_url, document_purpose, is_style_guide, document_type")
         .eq("mission_id", missionId)
         .order("created_at", { ascending: true });
       if (!data) return;
@@ -136,6 +136,7 @@ export function Step1Fuel({
               documentId: d.id,
               purpose: (d.document_purpose as DocumentPurpose | null) ?? guessPurpose(d.title ?? ""),
               isStyleGuide: !!d.is_style_guide,
+              isPrimaryRfp: d.document_type === "primary_rfp",
             })),
       );
     })();
