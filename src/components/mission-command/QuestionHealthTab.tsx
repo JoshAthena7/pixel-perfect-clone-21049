@@ -296,7 +296,55 @@ export function QuestionHealthTab({
     setWriterFilter("all");
     setDueFrom(undefined);
     setDueTo(undefined);
+    setWatchOnly(false);
   };
+
+  // Mutations for manager/admin actions.
+  const createFlagFn = useServerFn(createManagerFlag);
+  const resolveFlagFn = useServerFn(resolveManagerFlag);
+  const applyOverrideFn = useServerFn(applyHealthOverride);
+  const saveNoteFn = useServerFn(saveAdminNote);
+
+  const onCreateFlag = async (questionId: string, reason: string | null) => {
+    try {
+      await createFlagFn({ data: { missionId, questionId, reason } });
+      toast.success("Flagged for review");
+      refetchFlags();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't flag question");
+    }
+  };
+  const onResolveFlag = async (flagId: string) => {
+    try {
+      await resolveFlagFn({ data: { flagId } });
+      toast.success("Flag resolved");
+      refetchFlags();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't resolve flag");
+    }
+  };
+  const onApplyOverride = async (
+    questionId: string,
+    newState: "healthy" | "watch" | "at_risk",
+    reason: string,
+  ) => {
+    try {
+      await applyOverrideFn({ data: { missionId, questionId, newState, reason } });
+      toast.success("Health override applied");
+      qc.invalidateQueries({ queryKey: ["question-health", missionId] });
+      refetchOverrides();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't apply override");
+    }
+  };
+  const onSaveAdminNote = async (overrideId: string, note: string) => {
+    try {
+      await saveNoteFn({ data: { overrideId, adminNote: note } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't save note");
+    }
+  };
+
 
   if (isError) return <ErrorState message="Couldn't load question health." onRetry={() => refetch()} />;
   if (isLoading || !data) {
