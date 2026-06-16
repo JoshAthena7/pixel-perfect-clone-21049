@@ -1044,6 +1044,7 @@ export function Step3Strategy({
         .from("mission_iris_extractions")
         .select("id, extracted_field, extracted_value, source_file_name, confidence_score, confirmed_by_user, overridden_by_user")
         .eq("mission_id", missionId)
+        .eq("wizard_step", 3)
         .in("extracted_field", STEP3_FIELDS.map((f) => f.key));
       return (data ?? []) as ExtractionRow[];
     },
