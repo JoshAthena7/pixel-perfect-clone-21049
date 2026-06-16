@@ -740,6 +740,9 @@ function MyWorkColumn({
         </div>
       </div>
 
+      {/* Atlas IRIS coach — Decode / Win Angle / Evidence / Watch Out */}
+      <AtlasAssistBar missionId={missionId} questionId={questionId} />
+
       {/* Status updates live in Thread (question-level) and Mission Pulse (mission-level).
           See the assist bar at the bottom of the page. */}
 
