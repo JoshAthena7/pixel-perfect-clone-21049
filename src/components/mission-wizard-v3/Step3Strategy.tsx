@@ -980,13 +980,13 @@ export function Step3Strategy({
         if (field === "central_claim") { if (!nextCentralClaim) nextCentralClaim = value; continue; }
         if (field.startsWith("win_theme_")) {
           if (!nextWin.some((i) => i.text.toLowerCase() === value.toLowerCase())) {
-            nextWin.push({ id: uid(), text: value, signal_authority: "athena_assumed", rfp_reference: null, confidence: confPct, status: "confirmed" });
+            nextWin.push({ id: uid(), text: value, signal_authority: "iris_suggested", rfp_reference: null, confidence: confPct, status: "confirmed" });
           }
           continue;
         }
         if (field.startsWith("top_risk_")) {
           if (!nextRisk.some((i) => i.text.toLowerCase() === value.toLowerCase())) {
-            nextRisk.push({ id: uid(), text: value, signal_authority: "athena_assumed", rfp_reference: null, confidence: confPct, status: "confirmed" });
+            nextRisk.push({ id: uid(), text: value, signal_authority: "iris_suggested", rfp_reference: null, confidence: confPct, status: "confirmed" });
           }
           continue;
         }
