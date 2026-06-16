@@ -457,8 +457,9 @@ export const extractQuestionsForSection = createServerFn({ method: "POST" })
             status: "not_started",
             health_status: "healthy",
             iris_brief_status: "pending",
-            iris_extracted: true,
+            iris_extracted: !isInferred,
             iris_extracted_at: new Date().toISOString(),
+            is_inferred: isInferred,
           };
         })
         .filter((r): r is NonNullable<typeof r> => r !== null);
@@ -467,18 +468,17 @@ export const extractQuestionsForSection = createServerFn({ method: "POST" })
       for (const row of rows) rowsByQuestionNumber.set(row.question_number, row);
       const uniqueRows = Array.from(rowsByQuestionNumber.values());
 
-      if (uniqueRows.length === 0) return { ok: true, inserted: 0, skipped: "empty_rows" };
+      if (uniqueRows.length === 0) return { ok: true, inserted: 0, skipped: "empty_rows", inferred: isInferred };
 
       const questionNumbers = uniqueRows.map((row) => row.question_number);
       const { error: deleteErr } = await supabase
         .from("mission_questions")
         .delete()
         .eq("mission_id", data.mission_id)
-        .eq("iris_extracted", true)
         .in("question_number", questionNumbers);
       if (deleteErr) {
         console.error("[iris-pass2] cleanup failed", section.section_number, deleteErr.message);
-        return { ok: false, inserted: 0, skipped: "cleanup_error" };
+        return { ok: false, inserted: 0, skipped: "cleanup_error", inferred: isInferred };
       }
 
       const { data: inserted, error: insertErr } = await supabase
@@ -487,9 +487,9 @@ export const extractQuestionsForSection = createServerFn({ method: "POST" })
         .select("id");
       if (insertErr) {
         console.error("[iris-pass2] insert failed", section.section_number, insertErr.message);
-        return { ok: false, inserted: 0, skipped: "insert_error" };
+        return { ok: false, inserted: 0, skipped: "insert_error", inferred: isInferred };
       }
-      return { ok: true, inserted: inserted?.length ?? 0 };
+      return { ok: true, inserted: inserted?.length ?? 0, inferred: isInferred };
     },
   );
 
