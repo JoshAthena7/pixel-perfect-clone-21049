@@ -101,7 +101,7 @@ export function MissionHeader({
                   </div>
                   {deadline && (
                     <div className="text-xs text-muted-foreground">
-                      {format(deadline, "MMM d, yyyy")}
+                      {deadline.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}
                     </div>
                   )}
                 </>
