@@ -1,5 +1,6 @@
+import * as React from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Calendar,
@@ -23,6 +24,7 @@ import {
   Heart,
   Zap,
   AlertCircle,
+  Pencil,
 } from "lucide-react";
 import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
 import { MissionHealthSummaryCard } from "@/components/mission-command/MissionHealthSummaryCard";
@@ -69,13 +71,15 @@ function BriefingPage() {
       const { data } = await supabase
         .from("missions")
         .select(
-          "name, client_name, status, health_score, state_code, state, submission_deadline, blast_off_at, iris_disclaimer, why_it_matters, why_win, today_focus, how_we_win, mission_journey, watch_items, created_by",
+          "name, client_name, status, health_score, state_code, state, submission_deadline, blast_off_at, iris_disclaimer, why_it_matters, why_win, today_focus, how_we_win, mission_journey, watch_items, created_by, leadership_broadcast, leadership_broadcast_author",
         )
         .eq("id", missionId)
         .maybeSingle();
       return data;
     },
   });
+  const { data: access } = useMissionAccess(missionId);
+  const canEditBroadcast = !!(access?.isAdmin || access?.role === "founder" || access?.role === "pm");
 
   return (
     <>
@@ -111,7 +115,7 @@ function BriefingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <WatchItemsCard missionId={missionId} mission={mission} />
             <WhatChangedCard missionId={missionId} />
-            <LeadershipBroadcastCard />
+            <LeadershipBroadcastCard missionId={missionId} mission={mission} canEdit={canEditBroadcast} />
           </div>
 
           <MissionLeadersCard missionId={missionId} />
@@ -976,23 +980,161 @@ function WhatChangedCard({ missionId }: { missionId: string }) {
 }
 
 /* ───────────────── 5c. Leadership Broadcast ───────────────── */
-function LeadershipBroadcastCard() {
-  // No persisted column for this yet — show a polished placeholder
+function LeadershipBroadcastCard({
+  missionId,
+  mission,
+  canEdit,
+}: {
+  missionId: string;
+  mission: any;
+  canEdit: boolean;
+}) {
+  const qc = useQueryClient();
+  const [editing, setEditing] = React.useState(false);
+  const [text, setText] = React.useState("");
+  const [author, setAuthor] = React.useState("");
+  const [saving, setSaving] = React.useState(false);
+  const [savedAt, setSavedAt] = React.useState<number | null>(null);
+
+  const quote = (mission?.leadership_broadcast ?? "").trim();
+  const attribution = (mission?.leadership_broadcast_author ?? "").trim() || "Leadership";
+
+  React.useEffect(() => {
+    if (editing) {
+      setText(mission?.leadership_broadcast ?? "");
+      setAuthor(mission?.leadership_broadcast_author ?? "");
+    }
+  }, [editing, mission?.leadership_broadcast, mission?.leadership_broadcast_author]);
+
+  // Hide entirely when there's nothing to show and the viewer can't add one.
+  if (!quote && !editing && !canEdit) return null;
+
+  const save = async () => {
+    setSaving(true);
+    const nextText = text.trim();
+    const nextAuthor = author.trim();
+    const { error } = await supabase
+      .from("missions")
+      .update({
+        leadership_broadcast: nextText || null,
+        leadership_broadcast_author: nextAuthor || null,
+      })
+      .eq("id", missionId);
+    setSaving(false);
+    if (error) {
+      console.error("leadership broadcast save failed", error);
+      return;
+    }
+    setSavedAt(Date.now());
+    await qc.invalidateQueries({ queryKey: ["briefing-mission", missionId] });
+    setEditing(false);
+    setTimeout(() => setSavedAt(null), 2000);
+  };
+
   return (
-    <section style={glass}>
-      <div className="flex items-center gap-2 mb-4" style={cardLabel}>
-        <Megaphone size={14} /> Leadership Broadcast
+    <section style={{ ...glass, position: "relative" }}>
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2" style={cardLabel}>
+          <Megaphone size={14} /> Leadership Broadcast
+        </div>
+        {canEdit && !editing && (
+          <button
+            onClick={() => setEditing(true)}
+            aria-label="Edit leadership broadcast"
+            className="grid place-items-center"
+            style={{
+              width: 26,
+              height: 26,
+              borderRadius: 6,
+              background: "rgba(255,255,255,0.06)",
+              color: META,
+            }}
+          >
+            <Pencil size={12} />
+          </button>
+        )}
+        {savedAt && (
+          <span style={{ fontSize: 11, color: "#4ade80", fontWeight: 700 }}>Saved ✓</span>
+        )}
       </div>
-      <div style={{ fontFamily: "Georgia, serif", fontSize: 48, color: GOLD, lineHeight: 1, marginBottom: -8 }}>
-        “
-      </div>
-      <p className="italic" style={{ fontSize: 17, lineHeight: 1.5, color: "rgba(255,255,255,0.92)" }}>
-        Win this one. The families in this state deserve continuity, and our team is the
-        right team to deliver it.
-      </p>
-      <div className="mt-4 text-right" style={{ color: GOLD, fontSize: 13, fontWeight: 600 }}>
-        — Leadership
-      </div>
+
+      {editing ? (
+        <div className="space-y-3">
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            rows={4}
+            placeholder="What does leadership want the team to hear?"
+            style={{
+              width: "100%",
+              background: "rgba(0,0,0,0.25)",
+              border: "1px solid rgba(255,255,255,0.15)",
+              borderRadius: 8,
+              padding: 10,
+              color: TEXT,
+              fontSize: 14,
+              lineHeight: 1.5,
+              resize: "vertical",
+            }}
+          />
+          <input
+            value={author}
+            onChange={(e) => setAuthor(e.target.value)}
+            placeholder="Attribution (e.g. Josh Kahn, CEO)"
+            style={{
+              width: "100%",
+              background: "rgba(0,0,0,0.25)",
+              border: "1px solid rgba(255,255,255,0.15)",
+              borderRadius: 8,
+              padding: "8px 10px",
+              color: TEXT,
+              fontSize: 13,
+            }}
+          />
+          <div className="flex items-center justify-end gap-2">
+            <button
+              onClick={() => setEditing(false)}
+              disabled={saving}
+              style={{
+                fontSize: 12,
+                color: META,
+                padding: "6px 12px",
+                borderRadius: 6,
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={save}
+              disabled={saving}
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                color: NAVY,
+                background: GOLD,
+                padding: "6px 14px",
+                borderRadius: 6,
+              }}
+            >
+              {saving ? "Saving…" : "Save"}
+            </button>
+          </div>
+        </div>
+      ) : quote ? (
+        <>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: 48, color: GOLD, lineHeight: 1, marginBottom: -8 }}>
+            “
+          </div>
+          <p className="italic" style={{ fontSize: 17, lineHeight: 1.5, color: "rgba(255,255,255,0.92)" }}>
+            {quote}
+          </p>
+          <div className="mt-4 text-right" style={{ color: GOLD, fontSize: 13, fontWeight: 600 }}>
+            — {attribution}
+          </div>
+        </>
+      ) : (
+        <EmptyState>No broadcast yet. Click the pencil to add one.</EmptyState>
+      )}
     </section>
   );
 }
