@@ -760,7 +760,7 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
                   )}
                   {d && (
                     <span style={{ fontSize: 12, color: past ? META_SOFT : GOLD, minWidth: 90, textAlign: "right" }}>
-                      {d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                      {fmtUtc(m.milestone_date)}
                     </span>
                   )}
                 </li>
