@@ -824,7 +824,6 @@ function AssignmentsSubStep({
               <th className="px-3 py-2 text-left font-medium">Question</th>
               <th className="px-3 py-2 text-left font-medium w-40">Section</th>
               <th className="px-3 py-2 text-left font-medium w-56">Assigned To</th>
-              <th className="px-3 py-2 text-left font-medium w-40">Internal Due</th>
             </tr>
           </thead>
           <tbody>
