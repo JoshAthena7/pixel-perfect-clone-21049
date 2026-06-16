@@ -151,6 +151,25 @@ export function Step4Competitive({
   function removeCompetitor(name: string) {
     setCompetitors(competitors.filter((c) => c !== name));
   }
+  async function saveAndContinue() {
+    const threshold = MODES.find((m) => m.value === mode)?.threshold ?? 40;
+    const cleanCompetitors = competitors.map((c) => c.trim()).filter(Boolean);
+    await Promise.all([
+      supabase.from("missions").update({ known_competitors: cleanCompetitors }).eq("id", missionId),
+      supabase.from("oracle_engagement_config").upsert(
+        {
+          mission_id: missionId,
+          competitors: cleanCompetitors as never,
+          monitoring_mode: mode,
+          signal_threshold: threshold,
+          status: "active",
+        } as never,
+        { onConflict: "mission_id" },
+      ),
+    ]);
+    saveStaged(missionId, { competitors: cleanCompetitors, monitoring_mode: mode, signal_threshold: threshold });
+    onAdvance();
+  }
   async function markExtraction(id: string, patch: { confirmed_by_user?: boolean; overridden_by_user?: boolean }) {
     await supabase.from("mission_iris_extractions").update(patch).eq("id", id);
     qc.invalidateQueries({ queryKey });
@@ -305,7 +324,7 @@ export function Step4Competitive({
         </div>
       </div>
 
-      <WizardFooter step={4} onBack={onBack} onContinue={onAdvance} />
+      <WizardFooter step={4} onBack={onBack} onContinue={saveAndContinue} />
     </div>
   );
 }
