@@ -918,7 +918,7 @@ function MissionLeadersCard({ missionId }: { missionId: string }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("collective_members")
-        .select("id, full_name, title, email, avatar_url")
+        .select("id, full_name, title, email")
         .in("id", memberIds);
       return (data ?? []) as Array<{ id: string; full_name: string; title: string | null; email: string | null; avatar_url: string | null }>;
     },
