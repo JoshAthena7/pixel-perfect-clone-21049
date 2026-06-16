@@ -507,7 +507,7 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
     queryFn: async () => {
       const { data } = await supabase
         .from("mission_milestones")
-        .select("id, title, milestone_date, milestone_type, pens_down")
+        .select("id, title, milestone_date, milestone_type, is_pens_down")
         .eq("mission_id", missionId)
         .order("milestone_date", { ascending: true });
       return data ?? [];
