@@ -154,6 +154,22 @@ export function OracleTab({ missionId }: { missionId: string }) {
 
   return (
     <div className="space-y-4">
+      <div
+        className="flex items-center justify-between rounded-md px-3 py-2"
+        style={{ background: "rgba(196,154,43,0.06)", border: "0.5px solid rgba(196,154,43,0.2)" }}
+      >
+        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>
+          Admin View — writers see the curated surface.
+        </span>
+        <button
+          type="button"
+          onClick={() => setPreviewWriter(true)}
+          style={{ fontSize: 11, color: GOLD }}
+          className="hover:underline"
+        >
+          👁 Preview Writer View
+        </button>
+      </div>
       <div className="rounded-lg px-4 py-3" style={{ background: "rgba(5,13,24,0.6)", border: "1px solid rgba(255,255,255,0.06)" }}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
