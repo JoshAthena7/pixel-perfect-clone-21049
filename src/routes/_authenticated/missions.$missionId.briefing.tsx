@@ -25,6 +25,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
+import { MissionHealthSummaryCard } from "@/components/mission-command/MissionHealthSummaryCard";
 import { useMissionAccess } from "@/hooks/useAccess";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/briefing")({
@@ -93,13 +94,17 @@ function BriefingPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             <div className="lg:col-span-3"><TodaysFocusCard missionId={missionId} mission={mission} /></div>
-            <div className="lg:col-span-2"><HowWeWinCard missionId={missionId} mission={mission} /></div>
+            <div className="lg:col-span-2"><MissionHealthSummaryCard missionId={missionId} /></div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <HowWeWinCard missionId={missionId} mission={mission} />
+            <IrisGuidanceCard mission={mission} />
           </div>
 
           <MissionJourneyCard mission={mission} />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <IrisGuidanceCard mission={mission} />
+          <div className="grid grid-cols-1">
             <EvaluatorLensCard mission={mission} />
           </div>
 

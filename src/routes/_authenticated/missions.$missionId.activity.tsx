@@ -22,9 +22,20 @@ import {
 } from "@/lib/mission-activity.functions";
 import { resolveConflict } from "@/lib/iris-conflicts.functions";
 
+import { MissionRoleGuard } from "@/components/mission-command/MissionRoleGuard";
+
 export const Route = createFileRoute("/_authenticated/missions/$missionId/activity")({
-  component: ActivityPage,
+  component: ActivityRoute,
 });
+
+function ActivityRoute() {
+  const { missionId } = Route.useParams();
+  return (
+    <MissionRoleGuard missionId={missionId} gate="admin">
+      <ActivityPage />
+    </MissionRoleGuard>
+  );
+}
 
 const RANGES: { key: ActivityRange; label: string }[] = [
   { key: "24h", label: "Last 24h" },

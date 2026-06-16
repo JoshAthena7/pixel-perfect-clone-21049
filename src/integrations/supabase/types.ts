@@ -6077,6 +6077,57 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_health_overrides: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          id: string
+          mission_id: string
+          new_state: string
+          overridden_by: string
+          previous_state: string | null
+          question_id: string
+          reason: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          mission_id: string
+          new_state: string
+          overridden_by: string
+          previous_state?: string | null
+          question_id: string
+          reason: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          mission_id?: string
+          new_state?: string
+          overridden_by?: string
+          previous_state?: string | null
+          question_id?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_health_overrides_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_health_overrides_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_intelligence: {
         Row: {
           content: Json
@@ -6451,6 +6502,57 @@ export type Database = {
             columns: ["mission_id"]
             isOneToOne: false
             referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_manager_flags: {
+        Row: {
+          created_at: string
+          flag_reason: string | null
+          flagged_by: string
+          id: string
+          mission_id: string
+          question_id: string
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          flag_reason?: string | null
+          flagged_by: string
+          id?: string
+          mission_id: string
+          question_id: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          flag_reason?: string | null
+          flagged_by?: string
+          id?: string
+          mission_id?: string
+          question_id?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_manager_flags_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_manager_flags_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
             referencedColumns: ["id"]
           },
         ]
