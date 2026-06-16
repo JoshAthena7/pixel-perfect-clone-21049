@@ -93,7 +93,12 @@ function BriefingPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             <div className="lg:col-span-3"><TodaysFocusCard missionId={missionId} mission={mission} /></div>
-            <div className="lg:col-span-2"><HowWeWinCard missionId={missionId} mission={mission} /></div>
+            <div className="lg:col-span-2"><MissionHealthSummaryCard missionId={missionId} /></div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <HowWeWinCard missionId={missionId} mission={mission} />
+            <IrisGuidanceCard mission={mission} />
           </div>
 
           <MissionJourneyCard mission={mission} />
