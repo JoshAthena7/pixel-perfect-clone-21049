@@ -104,8 +104,7 @@ function BriefingPage() {
 
           <MissionJourneyCard mission={mission} />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <IrisGuidanceCard mission={mission} />
+          <div className="grid grid-cols-1">
             <EvaluatorLensCard mission={mission} />
           </div>
 
