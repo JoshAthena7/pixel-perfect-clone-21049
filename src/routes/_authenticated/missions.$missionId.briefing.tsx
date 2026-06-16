@@ -658,7 +658,7 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
                       width: 8,
                       height: 8,
                       borderRadius: "50%",
-                      background: m.pens_down ? "#ef4444" : past ? "rgba(255,255,255,0.3)" : GOLD,
+                      background: m.is_pens_down ? "#ef4444" : past ? "rgba(255,255,255,0.3)" : GOLD,
                     }}
                   />
                   <span style={{ fontSize: 13, color: past ? META_SOFT : TEXT, flex: 1 }}>{m.title}</span>
