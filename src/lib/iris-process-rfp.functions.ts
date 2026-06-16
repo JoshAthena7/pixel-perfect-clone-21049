@@ -500,3 +500,45 @@ export function sliceSectionTextForClient(
 ): string {
   return sliceSectionText(fullText, sectionNumber);
 }
+
+/**
+ * Fallback chain for form-driven RFPs where the canonical line-anchored
+ * regex misses. Returns the best slice we can find, or "" if none.
+ *   1. line-anchored regex (sliceSectionText)
+ *   2. inline regex: section number anywhere in the text
+ *   3. proportional slice based on section position
+ */
+export function sliceSectionTextWithFallbacks(
+  fullText: string,
+  sectionNumber: string | null,
+  sectionIndex: number,
+  totalSections: number,
+): { text: string; attempt: 1 | 2 | 3 | 0 } {
+  if (!sectionNumber) return { text: "", attempt: 0 };
+
+  // Attempt 1 — strict line-anchored regex
+  const attempt1 = sliceSectionText(fullText, sectionNumber);
+  if (attempt1.length >= 50) return { text: attempt1, attempt: 1 };
+
+  // Attempt 2 — inline regex (section number anywhere)
+  try {
+    const escaped = sectionNumber.replace(/\./g, "\\.");
+    const inline = new RegExp(`${escaped}(?![0-9])[\\.\\s\\)\\:\\-]`, "i");
+    const m = inline.exec(fullText);
+    if (m) {
+      const slice = fullText.slice(m.index, m.index + 4000);
+      if (slice.length >= 50) return { text: slice, attempt: 2 };
+    }
+  } catch {
+    // ignore regex errors
+  }
+
+  // Attempt 3 — proportional slice based on position
+  if (totalSections > 0 && fullText.length > 0) {
+    const startPos = Math.floor((sectionIndex / totalSections) * fullText.length);
+    const slice = fullText.slice(startPos, startPos + 4000);
+    if (slice.length >= 50) return { text: slice, attempt: 3 };
+  }
+
+  return { text: "", attempt: 0 };
+}
