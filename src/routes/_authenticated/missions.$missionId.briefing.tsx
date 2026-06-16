@@ -603,11 +603,16 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
           }}
         />
         <div className="relative grid" style={{ gridTemplateColumns: `repeat(${stages.length}, 1fr)` }}>
-          {stages.map((stage, i) => {
-            const isComplete = i < currentIndex;
-            const isCurrent = i === currentIndex;
+          {phases.map((p, i) => {
+            const isComplete = p.status === "complete";
+            const isCurrent = p.status === "active";
+            const dateLabel = (() => {
+              const d = p.end_date ?? p.start_date;
+              if (!d) return isComplete ? "Complete" : isCurrent ? "Active" : "";
+              return new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+            })();
             return (
-              <div key={stage} className="flex flex-col items-center text-center">
+              <div key={`${p.name}-${i}`} className="flex flex-col items-center text-center">
                 <div className="relative" style={{ width: 40, height: 40 }}>
                   {isCurrent && (
                     <span
@@ -648,15 +653,16 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
                   className="mt-3 font-bold"
                   style={{ fontSize: 12, color: isCurrent || isComplete ? TEXT : META_SOFT }}
                 >
-                  {stage}
+                  {p.name}
                 </div>
                 <div style={{ fontSize: 10, color: META_SOFT, marginTop: 2, height: 14 }}>
-                  {isComplete ? "Complete" : isCurrent ? "Active" : ""}
+                  {dateLabel}
                 </div>
               </div>
             );
           })}
         </div>
+
       </div>
 
       {/* Metadata boxes */}
