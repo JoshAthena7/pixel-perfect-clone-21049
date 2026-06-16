@@ -889,63 +889,94 @@ function LeadershipBroadcastCard() {
 }
 
 /* ───────────────── 6. Mission Leaders ───────────────── */
+const LEADER_ROLES: { key: string; label: string }[] = [
+  { key: "team_exec", label: "Admin" },
+  { key: "team_project_manager", label: "Project Manager" },
+  { key: "team_engagement_lead", label: "Engagement Lead" },
+  { key: "team_lead_graphics", label: "Graphics Lead" },
+  { key: "team_lead_writer", label: "Lead Writer" },
+];
+
 function MissionLeadersCard({ missionId }: { missionId: string }) {
-  const { data: members = [] } = useQuery({
+  const { data: assignments = [] } = useQuery({
     queryKey: ["briefing-leaders", missionId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("mission_team_members")
-        .select(
-          "id, mission_role, atlas_team_members:member_id(first_name, last_name, job_title, email, avatar_url)",
-        )
+        .from("mission_iris_extractions")
+        .select("extracted_field, user_override_value")
         .eq("mission_id", missionId)
-        .limit(12);
-      return data ?? [];
+        .in("extracted_field", LEADER_ROLES.map((r) => r.key));
+      return (data ?? []) as Array<{ extracted_field: string; user_override_value: string | null }>;
     },
   });
+
+  const memberIds = assignments.map((a) => a.user_override_value).filter(Boolean) as string[];
+
+  const { data: members = [] } = useQuery({
+    queryKey: ["briefing-leaders-members", memberIds.sort().join(",")],
+    enabled: memberIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("collective_members")
+        .select("id, full_name, title, email, avatar_url")
+        .in("id", memberIds);
+      return (data ?? []) as Array<{ id: string; full_name: string; title: string | null; email: string | null; avatar_url: string | null }>;
+    },
+  });
+
+  const memberById = new Map(members.map((m) => [m.id, m]));
+
+  const leaders = LEADER_ROLES
+    .map((r) => {
+      const a = assignments.find((x) => x.extracted_field === r.key);
+      const member = a?.user_override_value ? memberById.get(a.user_override_value) : undefined;
+      return member ? { role: r.label, member } : null;
+    })
+    .filter(Boolean) as Array<{ role: string; member: { full_name: string; title: string | null; email: string | null; avatar_url: string | null } }>;
 
   return (
     <section style={glass}>
       <div className="flex items-center gap-2 mb-5" style={cardLabel}>
         <Users size={14} /> Mission Leaders
       </div>
-      {members.length === 0 ? (
-        <EmptyState>Add team members in the Setup Wizard.</EmptyState>
+      {leaders.length === 0 ? (
+        <EmptyState>Assign mission leadership in the Setup Wizard (Team step).</EmptyState>
       ) : (
         <div className="flex flex-wrap gap-6">
-          {members.map((m: any) => {
-            const p = m.atlas_team_members ?? {};
-            const name =
-              [p.first_name, p.last_name].filter(Boolean).join(" ").trim() || "Team Member";
-            const initials =
-              (p.first_name?.[0] ?? "") + (p.last_name?.[0] ?? "") || name.slice(0, 2).toUpperCase();
+          {leaders.map((l, idx) => {
+            const name = l.member.full_name || "Team Member";
+            const initials = name
+              .split(/\s+/)
+              .map((p) => p[0])
+              .filter(Boolean)
+              .slice(0, 2)
+              .join("")
+              .toUpperCase();
             return (
-              <div key={m.id} className="flex flex-col items-center text-center" style={{ width: 140 }}>
+              <div key={idx} className="flex flex-col items-center text-center" style={{ width: 140 }}>
                 <div
                   className="grid place-items-center font-bold"
                   style={{
                     width: 56,
                     height: 56,
                     borderRadius: "50%",
-                    background: p.avatar_url
-                      ? `center/cover url(${p.avatar_url})`
+                    background: l.member.avatar_url
+                      ? `center/cover url(${l.member.avatar_url})`
                       : `linear-gradient(135deg, ${GOLD}, ${GOLD_SOFT})`,
                     color: NAVY,
                     fontSize: 18,
                     border: "2px solid rgba(255,255,255,0.15)",
                   }}
                 >
-                  {!p.avatar_url && initials.toUpperCase()}
+                  {!l.member.avatar_url && initials}
                 </div>
                 <div className="mt-3 font-bold" style={{ fontSize: 13.5 }}>
                   {name}
                 </div>
-                <div style={{ fontSize: 11.5, color: GOLD, marginTop: 2 }}>
-                  {m.mission_role ?? p.job_title ?? "Contributor"}
-                </div>
-                {p.email && (
+                <div style={{ fontSize: 11.5, color: GOLD, marginTop: 2 }}>{l.role}</div>
+                {l.member.email && (
                   <a
-                    href={`mailto:${p.email}`}
+                    href={`mailto:${l.member.email}`}
                     className="mt-2 grid place-items-center"
                     style={{
                       width: 28,
