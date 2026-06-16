@@ -920,7 +920,7 @@ function MissionLeadersCard({ missionId }: { missionId: string }) {
         .from("collective_members")
         .select("id, full_name, title, email")
         .in("id", memberIds);
-      return (data ?? []) as Array<{ id: string; full_name: string; title: string | null; email: string | null; avatar_url: string | null }>;
+      return (data ?? []) as Array<{ id: string; full_name: string; title: string | null; email: string | null }>;
     },
   });
 
