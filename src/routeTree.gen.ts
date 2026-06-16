@@ -41,6 +41,7 @@ import { Route as AuthenticatedMissionNewRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated/admin.team'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminMessagingRouteImport } from './routes/_authenticated/admin.messaging'
+import { Route as AuthenticatedAdminIrisWriterViewRouteImport } from './routes/_authenticated/admin.iris-writer-view'
 import { Route as AuthenticatedAdminIrisHealthRouteImport } from './routes/_authenticated/admin.iris-health'
 import { Route as AuthenticatedAdminIrisControlRouteImport } from './routes/_authenticated/admin.iris-control'
 import { Route as AuthenticatedAdminInsightsRouteImport } from './routes/_authenticated/admin.insights'
@@ -251,6 +252,12 @@ const AuthenticatedAdminMessagingRoute =
   AuthenticatedAdminMessagingRouteImport.update({
     id: '/messaging',
     path: '/messaging',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminIrisWriterViewRoute =
+  AuthenticatedAdminIrisWriterViewRouteImport.update({
+    id: '/iris-writer-view',
+    path: '/iris-writer-view',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminIrisHealthRoute =
@@ -525,6 +532,7 @@ export interface FileRoutesByFullPath {
   '/admin/insights': typeof AuthenticatedAdminInsightsRoute
   '/admin/iris-control': typeof AuthenticatedAdminIrisControlRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
+  '/admin/iris-writer-view': typeof AuthenticatedAdminIrisWriterViewRoute
   '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
@@ -599,6 +607,7 @@ export interface FileRoutesByTo {
   '/admin/insights': typeof AuthenticatedAdminInsightsRoute
   '/admin/iris-control': typeof AuthenticatedAdminIrisControlRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
+  '/admin/iris-writer-view': typeof AuthenticatedAdminIrisWriterViewRoute
   '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
@@ -675,6 +684,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/insights': typeof AuthenticatedAdminInsightsRoute
   '/_authenticated/admin/iris-control': typeof AuthenticatedAdminIrisControlRoute
   '/_authenticated/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
+  '/_authenticated/admin/iris-writer-view': typeof AuthenticatedAdminIrisWriterViewRoute
   '/_authenticated/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
@@ -752,6 +762,7 @@ export interface FileRouteTypes {
     | '/admin/insights'
     | '/admin/iris-control'
     | '/admin/iris-health'
+    | '/admin/iris-writer-view'
     | '/admin/messaging'
     | '/admin/settings'
     | '/admin/team'
@@ -826,6 +837,7 @@ export interface FileRouteTypes {
     | '/admin/insights'
     | '/admin/iris-control'
     | '/admin/iris-health'
+    | '/admin/iris-writer-view'
     | '/admin/messaging'
     | '/admin/settings'
     | '/admin/team'
@@ -901,6 +913,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/insights'
     | '/_authenticated/admin/iris-control'
     | '/_authenticated/admin/iris-health'
+    | '/_authenticated/admin/iris-writer-view'
     | '/_authenticated/admin/messaging'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/team'
@@ -1208,6 +1221,13 @@ declare module '@tanstack/react-router' {
       path: '/messaging'
       fullPath: '/admin/messaging'
       preLoaderRoute: typeof AuthenticatedAdminMessagingRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/iris-writer-view': {
+      id: '/_authenticated/admin/iris-writer-view'
+      path: '/iris-writer-view'
+      fullPath: '/admin/iris-writer-view'
+      preLoaderRoute: typeof AuthenticatedAdminIrisWriterViewRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/iris-health': {
@@ -1526,6 +1546,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminInsightsRoute: typeof AuthenticatedAdminInsightsRoute
   AuthenticatedAdminIrisControlRoute: typeof AuthenticatedAdminIrisControlRoute
   AuthenticatedAdminIrisHealthRoute: typeof AuthenticatedAdminIrisHealthRoute
+  AuthenticatedAdminIrisWriterViewRoute: typeof AuthenticatedAdminIrisWriterViewRoute
   AuthenticatedAdminMessagingRoute: typeof AuthenticatedAdminMessagingRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRouteWithChildren
@@ -1538,6 +1559,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminInsightsRoute: AuthenticatedAdminInsightsRoute,
   AuthenticatedAdminIrisControlRoute: AuthenticatedAdminIrisControlRoute,
   AuthenticatedAdminIrisHealthRoute: AuthenticatedAdminIrisHealthRoute,
+  AuthenticatedAdminIrisWriterViewRoute: AuthenticatedAdminIrisWriterViewRoute,
   AuthenticatedAdminMessagingRoute: AuthenticatedAdminMessagingRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminTeamRoute: AuthenticatedAdminTeamRouteWithChildren,

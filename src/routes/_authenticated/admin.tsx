@@ -22,6 +22,7 @@ const TABS = [
   { id: "messaging", label: "Messaging", to: "/admin/messaging" as const, match: (p: string) => p.startsWith("/admin/messaging") },
   
   { id: "iris-control", label: "IRIS Control", to: "/admin/iris-control" as const, match: (p: string) => p.startsWith("/admin/iris-control") },
+  { id: "iris-writer-view", label: "IRIS Writer View", to: "/admin/iris-writer-view" as const, match: (p: string) => p.startsWith("/admin/iris-writer-view") },
 ];
 
 function AdminLayout() {
