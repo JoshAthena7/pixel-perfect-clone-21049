@@ -396,6 +396,10 @@ export function Step8Review({
       const { error: upErr } = await supabase.from("missions").update(updates).eq("id", missionId);
       if (upErr) throw upErr;
 
+      // Mirror the aggregated strategy values into oracle_engagement_config so
+      // briefing / IRIS / today's focus see them. Non-fatal if it fails.
+      await syncOracleConfigFromExtractions(missionId);
+
       // BLAST OFF — IRIS pipeline. Fire-and-forget so the animation never blocks.
       // Step 1 (processRFPDocuments via runIrisRfpExtraction) MUST complete
       // before steps 2-4. Everything runs in a background IIFE so the user is
