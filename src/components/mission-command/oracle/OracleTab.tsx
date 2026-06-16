@@ -15,6 +15,7 @@ import { EcosystemGraph } from "@/components/intelligence/EcosystemGraph";
 import { SignalFeed } from "@/components/intelligence/SignalFeed";
 import { NodeDetailDrawer } from "@/components/intelligence/NodeDetailDrawer";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
+import { WriterIntelView } from "@/components/oracle/WriterIntelView";
 
 const GOLD = "#C49A2B";
 
