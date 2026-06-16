@@ -381,14 +381,39 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
 const SectionInput = z.object({
   mission_id: z.string().uuid(),
   section_id: z.string().uuid(),
-  section_text: z.string().trim().min(50).max(20_000),
+  // Allow very short or empty text — orchestrator may pass an empty string
+  // when invoking the inferred fallback path.
+  section_text: z.string().max(20_000).default(""),
+  is_inferred: z.boolean().optional().default(false),
 });
+
+const INFERRED_SYSTEM = `You are IRIS, generating LIKELY proposal questions for one RFP section when the actual section text could not be extracted. Return ONLY valid JSON, no preamble.
+
+{
+  "questions": [
+    {
+      "question_number": "string",
+      "question_text": "string",
+      "page_limit": null,
+      "word_limit": null,
+      "evaluation_weight": null,
+      "is_mandatory": true,
+      "response_type": "narrative|form|table|attachment"
+    }
+  ]
+}
+
+Rules:
+- Based on the section name/number, generate the questions a typical NJ Medicaid RFP section with this title would require bidders to address.
+- These are inferred — keep them realistic and conservative.
+- If the section name strongly suggests forms only (e.g. signature pages, disclosures, certifications), return {"questions": []}.
+- question_number format: "[section_number].[sequence]" e.g. "3.14.1".`;
 
 export const extractQuestionsForSection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => SectionInput.parse(d))
   .handler(
-    async ({ data, context }): Promise<{ ok: boolean; inserted: number; skipped?: string }> => {
+    async ({ data, context }): Promise<{ ok: boolean; inserted: number; skipped?: string; inferred?: boolean }> => {
       const { supabase } = context;
       const apiKey = process.env.LOVABLE_API_KEY;
       if (!apiKey) throw new Error("IRIS is not configured — built-in AI key missing.");
@@ -403,13 +428,17 @@ export const extractQuestionsForSection = createServerFn({ method: "POST" })
       if (section.is_form_only) return { ok: true, inserted: 0, skipped: "form_only" };
       if (!section.section_number) return { ok: true, inserted: 0, skipped: "no_number" };
 
-      const userMsg = `RFP Section: ${section.section_number} — ${section.name}\n\nSection text:\n${data.section_text}`;
-      const content = await callAI(apiKey, QUESTIONS_SYSTEM, userMsg);
-      if (!content) return { ok: false, inserted: 0, skipped: "ai_no_response" };
+      const isInferred = data.is_inferred === true || (data.section_text ?? "").trim().length < 50;
+      const systemPrompt = isInferred ? INFERRED_SYSTEM : QUESTIONS_SYSTEM;
+      const userMsg = isInferred
+        ? `RFP Section: ${section.section_number} — ${section.name}\n\nThe RFP text for this section could not be extracted. Based on the section name and number above, generate the likely questions a typical NJ Medicaid RFP section with this title would require bidders to address.`
+        : `RFP Section: ${section.section_number} — ${section.name}\n\nSection text:\n${data.section_text}`;
+      const content = await callAI(apiKey, systemPrompt, userMsg);
+      if (!content) return { ok: false, inserted: 0, skipped: "ai_no_response", inferred: isInferred };
 
       const parsed = tryParseJSON<{ questions?: AIQuestion[] }>(content);
       const qs = Array.isArray(parsed?.questions) ? parsed!.questions : [];
-      if (qs.length === 0) return { ok: true, inserted: 0, skipped: "no_questions" };
+      if (qs.length === 0) return { ok: true, inserted: 0, skipped: "no_questions", inferred: isInferred };
 
       const rows = qs
         .map((q, i) => {
