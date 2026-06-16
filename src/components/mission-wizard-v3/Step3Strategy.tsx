@@ -916,6 +916,9 @@ export function Step3Strategy({
   const [hydrated, setHydrated] = useState(false);
   const [savedTickAt, setSavedTickAt] = useState(0);
   const [analyzing, setAnalyzing] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const lastPatchRef = useRef<Partial<OracleConfigRow> | null>(null);
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Hydrate from DB row (fallback to staged sessionStorage values)
   useEffect(() => {
@@ -936,13 +939,29 @@ export function Step3Strategy({
   const flashSaved = useCallback(() => setSavedTickAt(Date.now()), []);
   const upsertConfig = useCallback(
     async (patch: Partial<OracleConfigRow>) => {
+      lastPatchRef.current = patch;
+      setSaveState("saving");
       const { error } = await supabase
         .from("oracle_engagement_config")
         .upsert({ mission_id: missionId, ...patch } as never, { onConflict: "mission_id" });
-      if (!error) flashSaved();
+      if (error) {
+        console.error("Step3 save failed:", error);
+        setSaveState("error");
+        return;
+      }
+      flashSaved();
+      setSaveState("saved");
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+      savedTimerRef.current = setTimeout(
+        () => setSaveState((s) => (s === "saved" ? "idle" : s)),
+        2000,
+      );
     },
     [missionId, flashSaved],
   );
+  const retrySave = useCallback(() => {
+    if (lastPatchRef.current) void upsertConfig(lastPatchRef.current);
+  }, [upsertConfig]);
 
   // Debounced text save (north_star, central_claim) — also mirror to staged
   const nsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
