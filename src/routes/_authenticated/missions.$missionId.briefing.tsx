@@ -841,16 +841,23 @@ function EvaluatorLensCard({ missionId }: { missionId: string }) {
   );
 }
 
-function LensItem({ icon: Icon, color, label }: { icon: any; color: string; label: string }) {
+function LensItem({ icon: Icon, color, label, detail }: { icon: any; color: string; label: string; detail?: string }) {
   return (
-    <li className="flex items-center gap-3">
+    <li className="flex items-start gap-3" title={detail || undefined}>
       <span
-        className="grid place-items-center shrink-0"
+        className="grid place-items-center shrink-0 mt-0.5"
         style={{ width: 28, height: 28, borderRadius: 8, background: `${color}22`, color }}
       >
         <Icon size={14} />
       </span>
-      <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.9)" }}>{label}</span>
+      <div className="min-w-0">
+        <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.92)", fontWeight: 600, lineHeight: 1.3 }}>{label}</div>
+        {detail && (
+          <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.6)", lineHeight: 1.4, marginTop: 2 }}>
+            {detail}
+          </div>
+        )}
+      </div>
     </li>
   );
 }
