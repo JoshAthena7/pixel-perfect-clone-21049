@@ -804,7 +804,7 @@ function AssignmentsSubStep({
               return (
                 <option
                   key={t.member_id}
-                  value={authId ?? ""}
+                  value={t.member_id}
                   disabled={!authId}
                   className="bg-[#0D1B3E]"
                 >
@@ -845,7 +845,7 @@ function AssignmentsSubStep({
               const authId = authIdByMemberId.get(t.member_id);
               if (!authId) return null;
               return (
-                <option key={t.member_id} value={authId} className="bg-[#0D1B3E]">
+                <option key={t.member_id} value={t.member_id} className="bg-[#0D1B3E]">
                   {fullName(t.member)}
                 </option>
               );
@@ -914,7 +914,7 @@ function AssignmentsSubStep({
                     </td>
                     <td className="px-3 py-2">
                       <select
-                        value={p?.assignee_id ?? ""}
+                        value={p?.assigned_writer_id ?? ""}
                         onChange={(e) => assignWriter(q.id, e.target.value)}
                         className={`w-full bg-white/5 border rounded-md px-2 py-1.5 text-[12px] focus:outline-none focus:border-amber-400/60 ${
                           !p ? "border-red-500/40 text-red-300" : "border-white/15 text-white"
@@ -926,7 +926,7 @@ function AssignmentsSubStep({
                           return (
                             <option
                               key={t.member_id}
-                              value={authId ?? ""}
+                              value={t.member_id}
                               disabled={!authId}
                               className="bg-[#0D1B3E]"
                             >
