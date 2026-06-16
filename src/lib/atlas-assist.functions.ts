@@ -77,9 +77,9 @@ export const runAssistTool = createServerFn({ method: "POST" })
       supabase.from("competitor_profiles").select("organization_name").eq("mission_id", missionId).limit(10),
     ]);
 
-    const q = qRes.data ?? {};
-    const m = mRes.data ?? {};
-    const o = oRes.data ?? {};
+    const q: any = qRes.data ?? {};
+    const m: any = mRes.data ?? {};
+    const o: any = oRes.data ?? {};
     const competitorNames = (compRes.data ?? []).map((c: any) => c.organization_name).filter(Boolean);
     const oecCompetitors = flatten(o?.competitors);
     const weight = (q as any).evaluation_weight ?? "—";
