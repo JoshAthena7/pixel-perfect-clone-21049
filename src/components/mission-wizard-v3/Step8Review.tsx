@@ -306,7 +306,7 @@ export function Step8Review({
       // work with. Without this the missions row stays empty and every
       // generated brief comes back with "—" placeholders.
       const get = (k: string) => {
-        const v = byKey.get(k)?.value;
+        const v = resolveDisplay(k).value;
         return v && v.trim().length > 0 ? v.trim() : null;
       };
       const splitList = (v: string | null) =>
@@ -322,6 +322,8 @@ export function Step8Review({
       const opportunityTitle = get("opportunity_title");
       const clientAgency = get("client_agency");
       const competitorsList = splitList(get("known_competitors"));
+      const winThemesText = get("win_themes");
+      const topRisksText = get("biggest_concerns");
 
       const updates: TablesUpdate<"missions"> = {
         status: "active",
@@ -374,11 +376,17 @@ export function Step8Review({
         updates.program_type = mapped;
       }
       if (get("north_star")) updates.north_star = get("north_star");
-      if (get("why_we_win")) updates.why_win = get("why_we_win");
-      if (get("why_we_could_lose")) updates.why_lose = get("why_we_could_lose");
-      if (get("biggest_concerns")) updates.biggest_concerns = get("biggest_concerns");
+      // win themes ARE "why we win" — same data, different label downstream.
+      if (winThemesText) {
+        updates.why_win = winThemesText;
+        updates.win_themes_text = winThemesText;
+      }
+      // top risks ARE "why we could lose" / "biggest concerns".
+      if (topRisksText) {
+        updates.why_lose = topRisksText;
+        updates.biggest_concerns = topRisksText;
+      }
       if (get("state_priorities")) updates.state_priorities = get("state_priorities");
-      if (get("win_themes")) updates.win_themes_text = get("win_themes");
       const reinforceList = splitList(get("things_to_reinforce"));
       if (reinforceList.length) updates.reinforce = reinforceList;
       const avoidList = splitList(get("things_to_avoid"));
