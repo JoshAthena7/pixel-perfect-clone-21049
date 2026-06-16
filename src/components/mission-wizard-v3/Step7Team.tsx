@@ -55,13 +55,6 @@ type MissionQuestionRow = {
   section_id: string | null;
 };
 
-type ProgressRow = {
-  id: string;
-  question_id: string;
-  assignee_id: string;
-  internal_due_date: string | null;
-};
-
 type AssignmentRow = {
   id: string;
   question_id: string;
@@ -479,8 +472,7 @@ function AssignmentsSubStep({
     },
   });
 
-  // Resolve atlas_team_members -> auth.users id via profiles.email
-  // (question_progress.assignee_id has a FK to auth.users)
+  // Resolve atlas_team_members -> auth.users id for legacy question_progress rows.
   const teamEmails = useMemo(
     () =>
       Array.from(
@@ -519,12 +511,6 @@ function AssignmentsSubStep({
     });
     return m;
   }, [team, profilesByEmail]);
-
-  const memberIdByAuthId = useMemo(() => {
-    const m = new Map<string, string>();
-    authIdByMemberId.forEach((authId, memberId) => m.set(authId, memberId));
-    return m;
-  }, [authIdByMemberId]);
 
   const sectionById = useMemo(() => {
     const m = new Map<string, SectionLite>();
@@ -613,24 +599,6 @@ function AssignmentsSubStep({
         toast.error(`Could not update writer progress: ${progressError.message}`);
         return;
       }
-    }
-    await qc.refetchQueries({ queryKey: progressKey });
-  }
-
-
-  async function setInternalDue(questionId: string, value: string) {
-    const existing = progressByQuestion.get(questionId);
-    if (!existing) {
-      toast.error("Assign a writer before setting an internal due date.");
-      return;
-    }
-    const { error } = await supabase
-      .from("mission_assignments")
-      .update({ due_date: value || null })
-      .eq("id", existing.id);
-    if (error) {
-      toast.error(`Could not save due date: ${error.message}`);
-      return;
     }
     await qc.refetchQueries({ queryKey: progressKey });
   }
