@@ -8,10 +8,18 @@ import {
   Loader2,
   CheckCircle2,
   RefreshCw,
+  Flag,
+  MessageSquare,
+  Clipboard,
+  ShieldAlert,
+  Lock,
+  Bookmark,
 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SkeletonRows, ErrorState, EmptyState } from "@/components/shared/data-states";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -24,8 +32,19 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { runHealthCalculation } from "@/lib/health-calc";
 import { listQuestionLatestScores } from "@/lib/v2-home.functions";
+import {
+  listMissionFlags,
+  createManagerFlag,
+  resolveManagerFlag,
+  applyHealthOverride,
+  getLatestOverride,
+  saveAdminNote,
+} from "@/lib/health-controls.functions";
+import { useIsAdmin, useMissionAccess } from "@/hooks/useAccess";
+import { ThreadPanel } from "@/components/flight-deck/ThreadPanel";
 import { cn } from "@/lib/utils";
 import type { TabId } from "./MissionTabs";
+
 
 type Question = {
   id: string;
