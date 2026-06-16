@@ -153,8 +153,8 @@ export function Step4Competitive({
   }
   async function saveAndContinue() {
     const threshold = MODES.find((m) => m.value === mode)?.threshold ?? 40;
-    const cleanCompetitors = competitors.map((c) => c.trim()).filter(Boolean);
-    await Promise.all([
+    const cleanCompetitors = Array.from(new Set([...competitors, draft].map((c) => c.trim()).filter(Boolean)));
+    const [missionSave, oracleSave] = await Promise.all([
       supabase.from("missions").update({ known_competitors: cleanCompetitors }).eq("id", missionId),
       supabase.from("oracle_engagement_config").upsert(
         {
@@ -167,6 +167,12 @@ export function Step4Competitive({
         { onConflict: "mission_id" },
       ),
     ]);
+    if (missionSave.error || oracleSave.error) {
+      console.error("[Step4Competitive] save failed", missionSave.error ?? oracleSave.error);
+      return;
+    }
+    setCompetitors(cleanCompetitors);
+    setDraft("");
     saveStaged(missionId, { competitors: cleanCompetitors, monitoring_mode: mode, signal_threshold: threshold });
     onAdvance();
   }
