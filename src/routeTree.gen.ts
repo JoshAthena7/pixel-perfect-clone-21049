@@ -75,6 +75,7 @@ import { Route as AuthenticatedMissionsMissionIdReportsRouteImport } from './rou
 import { Route as AuthenticatedMissionsMissionIdQaRouteImport } from './routes/_authenticated/missions.$missionId.qa'
 import { Route as AuthenticatedMissionsMissionIdOracleRouteImport } from './routes/_authenticated/missions.$missionId.oracle'
 import { Route as AuthenticatedMissionsMissionIdJourneyRouteImport } from './routes/_authenticated/missions.$missionId.journey'
+import { Route as AuthenticatedMissionsMissionIdIntelligenceRouteImport } from './routes/_authenticated/missions.$missionId.intelligence'
 import { Route as AuthenticatedMissionsMissionIdInsightsRouteImport } from './routes/_authenticated/missions.$missionId.insights'
 import { Route as AuthenticatedMissionsMissionIdHealthRouteImport } from './routes/_authenticated/missions.$missionId.health'
 import { Route as AuthenticatedMissionsMissionIdFlightDeckRouteImport } from './routes/_authenticated/missions.$missionId.flight-deck'
@@ -457,6 +458,12 @@ const AuthenticatedMissionsMissionIdJourneyRoute =
     path: '/journey',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedMissionsMissionIdIntelligenceRoute =
+  AuthenticatedMissionsMissionIdIntelligenceRouteImport.update({
+    id: '/intelligence',
+    path: '/intelligence',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdInsightsRoute =
   AuthenticatedMissionsMissionIdInsightsRouteImport.update({
     id: '/insights',
@@ -564,6 +571,7 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   '/missions/$missionId/health': typeof AuthenticatedMissionsMissionIdHealthRoute
   '/missions/$missionId/insights': typeof AuthenticatedMissionsMissionIdInsightsRoute
+  '/missions/$missionId/intelligence': typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   '/missions/$missionId/journey': typeof AuthenticatedMissionsMissionIdJourneyRoute
   '/missions/$missionId/oracle': typeof AuthenticatedMissionsMissionIdOracleRoute
   '/missions/$missionId/qa': typeof AuthenticatedMissionsMissionIdQaRoute
@@ -639,6 +647,7 @@ export interface FileRoutesByTo {
   '/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   '/missions/$missionId/health': typeof AuthenticatedMissionsMissionIdHealthRoute
   '/missions/$missionId/insights': typeof AuthenticatedMissionsMissionIdInsightsRoute
+  '/missions/$missionId/intelligence': typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   '/missions/$missionId/journey': typeof AuthenticatedMissionsMissionIdJourneyRoute
   '/missions/$missionId/oracle': typeof AuthenticatedMissionsMissionIdOracleRoute
   '/missions/$missionId/qa': typeof AuthenticatedMissionsMissionIdQaRoute
@@ -718,6 +727,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/flight-deck': typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   '/_authenticated/missions/$missionId/health': typeof AuthenticatedMissionsMissionIdHealthRoute
   '/_authenticated/missions/$missionId/insights': typeof AuthenticatedMissionsMissionIdInsightsRoute
+  '/_authenticated/missions/$missionId/intelligence': typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   '/_authenticated/missions/$missionId/journey': typeof AuthenticatedMissionsMissionIdJourneyRoute
   '/_authenticated/missions/$missionId/oracle': typeof AuthenticatedMissionsMissionIdOracleRoute
   '/_authenticated/missions/$missionId/qa': typeof AuthenticatedMissionsMissionIdQaRoute
@@ -797,6 +807,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/flight-deck'
     | '/missions/$missionId/health'
     | '/missions/$missionId/insights'
+    | '/missions/$missionId/intelligence'
     | '/missions/$missionId/journey'
     | '/missions/$missionId/oracle'
     | '/missions/$missionId/qa'
@@ -872,6 +883,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/flight-deck'
     | '/missions/$missionId/health'
     | '/missions/$missionId/insights'
+    | '/missions/$missionId/intelligence'
     | '/missions/$missionId/journey'
     | '/missions/$missionId/oracle'
     | '/missions/$missionId/qa'
@@ -950,6 +962,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/flight-deck'
     | '/_authenticated/missions/$missionId/health'
     | '/_authenticated/missions/$missionId/insights'
+    | '/_authenticated/missions/$missionId/intelligence'
     | '/_authenticated/missions/$missionId/journey'
     | '/_authenticated/missions/$missionId/oracle'
     | '/_authenticated/missions/$missionId/qa'
@@ -1474,6 +1487,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdJourneyRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/missions/$missionId/intelligence': {
+      id: '/_authenticated/missions/$missionId/intelligence'
+      path: '/intelligence'
+      fullPath: '/missions/$missionId/intelligence'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdIntelligenceRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
     '/_authenticated/missions/$missionId/insights': {
       id: '/_authenticated/missions/$missionId/insights'
       path: '/insights'
@@ -1600,6 +1620,7 @@ interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdFlightDeckRoute: typeof AuthenticatedMissionsMissionIdFlightDeckRoute
   AuthenticatedMissionsMissionIdHealthRoute: typeof AuthenticatedMissionsMissionIdHealthRoute
   AuthenticatedMissionsMissionIdInsightsRoute: typeof AuthenticatedMissionsMissionIdInsightsRoute
+  AuthenticatedMissionsMissionIdIntelligenceRoute: typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   AuthenticatedMissionsMissionIdJourneyRoute: typeof AuthenticatedMissionsMissionIdJourneyRoute
   AuthenticatedMissionsMissionIdOracleRoute: typeof AuthenticatedMissionsMissionIdOracleRoute
   AuthenticatedMissionsMissionIdQaRoute: typeof AuthenticatedMissionsMissionIdQaRoute
@@ -1625,6 +1646,8 @@ const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionI
       AuthenticatedMissionsMissionIdHealthRoute,
     AuthenticatedMissionsMissionIdInsightsRoute:
       AuthenticatedMissionsMissionIdInsightsRoute,
+    AuthenticatedMissionsMissionIdIntelligenceRoute:
+      AuthenticatedMissionsMissionIdIntelligenceRoute,
     AuthenticatedMissionsMissionIdJourneyRoute:
       AuthenticatedMissionsMissionIdJourneyRoute,
     AuthenticatedMissionsMissionIdOracleRoute:
