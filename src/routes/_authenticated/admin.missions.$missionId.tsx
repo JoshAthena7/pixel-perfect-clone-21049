@@ -895,24 +895,42 @@ function JourneyTab({
           return (
             <li
               key={m.id}
-              draggable
-              onDragStart={() => (dragIndex.current = i)}
-              onDragOver={(e) => e.preventDefault()}
+              draggable={!isEditing}
+              onDragStart={(e) => {
+                if (isEditing) {
+                  e.preventDefault();
+                  return;
+                }
+                dragIndex.current = i;
+              }}
+              onDragOver={(e) => {
+                if (!isEditing) e.preventDefault();
+              }}
               onDrop={() => {
+                if (isEditing) return;
                 if (dragIndex.current !== null) reorder(dragIndex.current, i);
                 dragIndex.current = null;
               }}
+              onFocusCapture={() => setEditingCount((c) => c + 1)}
+              onBlurCapture={() => setEditingCount((c) => Math.max(0, c - 1))}
               className="relative flex items-center gap-3 rounded-md px-3 py-2.5"
               style={{
                 background: "rgba(255,255,255,0.03)",
                 border: "1px solid rgba(255,255,255,0.06)",
+                minHeight: 48,
               }}
             >
               <button
                 type="button"
                 aria-label="Drag to reorder"
-                className="cursor-grab active:cursor-grabbing p-1 -ml-1"
-                style={{ color: "rgba(255,255,255,0.3)" }}
+                tabIndex={-1}
+                className="p-1 -ml-1"
+                style={{
+                  color: "rgba(255,255,255,0.3)",
+                  cursor: isEditing ? "not-allowed" : "grab",
+                  pointerEvents: isEditing ? "none" : "auto",
+                  opacity: isEditing ? 0.3 : 1,
+                }}
               >
                 <GripVertical className="h-4 w-4" />
               </button>
@@ -929,6 +947,13 @@ function JourneyTab({
                 value={m.name}
                 onChange={(e) => patch(m.id, { name: e.target.value })}
                 placeholder="Milestone name"
+                autoFocus={focusNewId === m.id}
+                ref={(el) => {
+                  if (el && focusNewId === m.id) {
+                    el.focus();
+                    setFocusNewId(null);
+                  }
+                }}
                 style={{
                   ...inputStyle,
                   background: "transparent",
@@ -939,6 +964,7 @@ function JourneyTab({
                 }}
                 className="hover:bg-white/[0.03] focus:bg-white/[0.04] rounded"
               />
+
 
               <select
                 value={m.kind}
