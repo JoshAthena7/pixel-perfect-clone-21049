@@ -998,50 +998,98 @@ function LeadershipBroadcastCard() {
 }
 
 /* ───────────────── 6. Mission Leaders ───────────────── */
-const LEADER_ROLES: { key: string; label: string }[] = [
-  { key: "team_exec", label: "Admin" },
-  { key: "team_project_manager", label: "Project Manager" },
-  { key: "team_engagement_lead", label: "Engagement Lead" },
-  { key: "team_lead_graphics", label: "Graphics Lead" },
-  { key: "team_lead_writer", label: "Lead Writer" },
+const LEADER_ROLES: { role: string; label: string }[] = [
+  { role: "project_manager", label: "Project Manager" },
+  { role: "engagement_lead", label: "Engagement Lead" },
+  { role: "lead_graphics", label: "Graphics Lead" },
+  { role: "lead_writer", label: "Lead Writer" },
 ];
 
+type LeaderMember = { id: string; name: string; email: string | null };
+type LeaderRow = { role: string; member: LeaderMember };
+
 function MissionLeadersCard({ missionId }: { missionId: string }) {
-  const { data: assignments = [] } = useQuery({
-    queryKey: ["briefing-leaders", missionId],
+  // Pull mission to get created_by (mission Admin).
+  const { data: missionRow } = useQuery({
+    queryKey: ["briefing-leaders-mission", missionId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("mission_iris_extractions")
-        .select("extracted_field, user_override_value")
+        .from("missions")
+        .select("created_by")
+        .eq("id", missionId)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  // Pull team members in the four leadership roles.
+  const { data: teamRows = [] } = useQuery({
+    queryKey: ["briefing-leaders-team", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_team_members")
+        .select("member_id, mission_role")
         .eq("mission_id", missionId)
-        .in("extracted_field", LEADER_ROLES.map((r) => r.key));
-      return (data ?? []) as Array<{ extracted_field: string; user_override_value: string | null }>;
+        .in("mission_role", LEADER_ROLES.map((r) => r.role));
+      return (data ?? []) as Array<{ member_id: string; mission_role: string }>;
     },
   });
 
-  const memberIds = assignments.map((a) => a.user_override_value).filter(Boolean) as string[];
-
-  const { data: members = [] } = useQuery({
-    queryKey: ["briefing-leaders-members", memberIds.sort().join(",")],
-    enabled: memberIds.length > 0,
+  const atlasIds = teamRows.map((r) => r.member_id);
+  const { data: atlasMembers = [] } = useQuery({
+    queryKey: ["briefing-leaders-atlas", atlasIds.sort().join(",")],
+    enabled: atlasIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
-        .from("collective_members")
-        .select("id, full_name, title, email")
-        .in("id", memberIds);
-      return (data ?? []) as Array<{ id: string; full_name: string; title: string | null; email: string | null }>;
+        .from("atlas_team_members")
+        .select("id, first_name, last_name, email")
+        .in("id", atlasIds);
+      return (data ?? []) as Array<{ id: string; first_name: string | null; last_name: string | null; email: string | null }>;
     },
   });
 
-  const memberById = new Map(members.map((m) => [m.id, m]));
+  // Admin profile (mission creator).
+  const adminId = missionRow?.created_by ?? null;
+  const { data: adminProfile } = useQuery({
+    queryKey: ["briefing-leaders-admin", adminId],
+    enabled: !!adminId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, display_name, email")
+        .eq("id", adminId!)
+        .maybeSingle();
+      return data;
+    },
+  });
 
-  const leaders = LEADER_ROLES
-    .map((r) => {
-      const a = assignments.find((x) => x.extracted_field === r.key);
-      const member = a?.user_override_value ? memberById.get(a.user_override_value) : undefined;
-      return member ? { role: r.label, member } : null;
-    })
-    .filter(Boolean) as Array<{ role: string; member: { full_name: string; title: string | null; email: string | null } }>;
+  const atlasById = new Map(
+    atlasMembers.map((m) => [
+      m.id,
+      {
+        id: m.id,
+        name: [m.first_name, m.last_name].filter(Boolean).join(" ").trim() || (m.email ?? "Team Member"),
+        email: m.email,
+      } as LeaderMember,
+    ]),
+  );
+
+  const leaders: LeaderRow[] = [];
+  if (adminProfile) {
+    leaders.push({
+      role: "Admin",
+      member: {
+        id: adminProfile.id,
+        name: (adminProfile.display_name as string | null)?.trim() || (adminProfile.email ?? "Admin"),
+        email: (adminProfile.email as string | null) ?? null,
+      },
+    });
+  }
+  for (const r of LEADER_ROLES) {
+    const row = teamRows.find((t) => t.mission_role === r.role);
+    const member = row ? atlasById.get(row.member_id) : undefined;
+    if (member) leaders.push({ role: r.label, member });
+  }
 
   return (
     <section style={glass}>
@@ -1053,7 +1101,7 @@ function MissionLeadersCard({ missionId }: { missionId: string }) {
       ) : (
         <div className="flex flex-wrap gap-6">
           {leaders.map((l, idx) => {
-            const name = l.member.full_name || "Team Member";
+            const name = l.member.name || "Team Member";
             const initials = name
               .split(/\s+/)
               .map((p) => p[0])
@@ -1062,7 +1110,7 @@ function MissionLeadersCard({ missionId }: { missionId: string }) {
               .join("")
               .toUpperCase();
             return (
-              <div key={idx} className="flex flex-col items-center text-center" style={{ width: 140 }}>
+              <div key={`${l.role}-${idx}`} className="flex flex-col items-center text-center" style={{ width: 140 }}>
                 <div
                   className="grid place-items-center font-bold"
                   style={{
