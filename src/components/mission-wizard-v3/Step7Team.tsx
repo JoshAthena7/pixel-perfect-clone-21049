@@ -22,6 +22,7 @@ import { WizardStepHeading } from "./WizardShellV3";
 const MISSION_ROLE_OPTIONS: { value: string; label: string }[] = [
   { value: "engagement_lead", label: "Engagement Lead" },
   { value: "project_manager", label: "Project Manager" },
+  { value: "lead_writer", label: "Lead Writer" },
   { value: "writer", label: "Writer" },
   { value: "lead_graphics", label: "Lead Graphics" },
   { value: "graphics", label: "Graphics" },
@@ -59,6 +60,14 @@ type ProgressRow = {
   question_id: string;
   assignee_id: string;
   internal_due_date: string | null;
+};
+
+type AssignmentRow = {
+  id: string;
+  question_id: string;
+  assigned_writer_id: string | null;
+  due_date: string | null;
+  acceptance_status: string | null;
 };
 
 export function Step7Team({
