@@ -54,6 +54,24 @@ export function Step4Competitive({
   const [draft, setDraft] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
 
+  // Hydrate from missions.known_competitors when sessionStorage is empty.
+  useEffect(() => {
+    if ((staged.competitors ?? []).length > 0) return;
+    let cancelled = false;
+    void supabase
+      .from("missions")
+      .select("known_competitors")
+      .eq("id", missionId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const existing = (data?.known_competitors ?? []) as string[];
+        if (existing.length) setCompetitors(existing);
+      });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [missionId]);
+
   useEffect(() => {
     const threshold = MODES.find((m) => m.value === mode)?.threshold ?? 40;
     saveStaged(missionId, { competitors, monitoring_mode: mode, signal_threshold: threshold });
