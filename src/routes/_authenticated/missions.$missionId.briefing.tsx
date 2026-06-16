@@ -63,6 +63,29 @@ const cardLabel: React.CSSProperties = {
   fontWeight: 700,
 };
 
+/* ───────────────── Date helpers (UTC-safe) ───────────────── */
+// `mission_milestones.milestone_date` is a Postgres DATE -> "YYYY-MM-DD".
+// `new Date("YYYY-MM-DD")` parses as UTC midnight, then displays in local
+// time, shifting the calendar day back in negative-UTC zones. Always format
+// such dates in UTC. Also use UTC for timestamptz values like
+// `submission_deadline` so the displayed calendar day matches the stored
+// UTC date.
+function parseDateLike(value: string | Date | null | undefined): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return new Date(value + "T00:00:00Z");
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d;
+}
+function fmtUtc(
+  value: string | Date | null | undefined,
+  opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" },
+): string {
+  const d = parseDateLike(value);
+  if (!d) return "—";
+  return d.toLocaleDateString(undefined, { ...opts, timeZone: "UTC" });
+}
+
 /* ───────────────── Page ───────────────── */
 function BriefingPage() {
   const { missionId } = Route.useParams();
