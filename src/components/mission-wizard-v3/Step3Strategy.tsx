@@ -1094,7 +1094,7 @@ export function Step3Strategy({
     (e) => e.extracted_field.startsWith("proof_point_") && !hasSimpleText(proofPoints, e.extracted_value),
   );
   const stakeholderSuggestions = usableExtractions.filter((e) => e.extracted_field.startsWith("stakeholder_"));
-  const competitorSuggestions = visible.filter(
+  const competitorSuggestions = usableExtractions.filter(
     (e) => e.extracted_field.startsWith("competitor_") &&
       !competitors.some((c) => c.toLowerCase() === e.extracted_value!.toLowerCase()),
   );
