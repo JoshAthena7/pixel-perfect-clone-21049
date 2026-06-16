@@ -773,10 +773,9 @@ function AssignmentsSubStep({
                 <option
                   key={t.member_id}
                   value={t.member_id}
-                  disabled={!authId}
                   className="bg-[#0D1B3E]"
                 >
-                  {fullName(t.member)}{!authId ? " (no account)" : ""}
+                  {fullName(t.member)}{!authId ? " (no login)" : ""}
                 </option>
               );
             })}
