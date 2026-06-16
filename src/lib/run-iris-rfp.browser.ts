@@ -60,21 +60,28 @@ async function runWithConcurrency<T>(
   await Promise.all(workers);
 }
 
-export async function runIrisRfpExtraction(missionId: string): Promise<ProcessResult> {
+export async function runIrisRfpExtraction(
+  missionId: string,
+  opts: { force?: boolean } = {},
+): Promise<ProcessResult> {
   // Guard — never re-extract if mission_questions already exist. Re-running
   // PASS 1/2 on a mission that already has questions creates `.1`-suffixed
-  // duplicates and inflates the count (e.g. 75 -> 89). Brief generation for
-  // any pending questions is still handled by the dedicated brief queue.
-  const { count: existingCount } = await supabase
-    .from("mission_questions")
-    .select("id", { count: "exact", head: true })
-    .eq("mission_id", missionId)
-    .eq("is_withdrawn", false);
-  if ((existingCount ?? 0) > 0) {
-    console.log(
-      `[IRIS] Skipping RFP extraction — mission ${missionId} already has ${existingCount} questions.`,
-    );
-    return { sections_created: 0, questions_created: 0, skipped: true } as unknown as ProcessResult;
+  // duplicates and inflates the count (e.g. 75 -> 89). Pass `{ force: true }`
+  // for an admin-driven manual restore.
+  if (!opts.force) {
+    const { count: existingCount } = await supabase
+      .from("mission_questions")
+      .select("id", { count: "exact", head: true })
+      .eq("mission_id", missionId)
+      .eq("is_withdrawn", false);
+    if ((existingCount ?? 0) > 0) {
+      console.log(
+        `[IRIS] Skipping RFP extraction — mission ${missionId} already has ${existingCount} questions. Pass { force: true } to override.`,
+      );
+      return { sections_created: 0, questions_created: 0, skipped: true } as unknown as ProcessResult;
+    }
+  } else {
+    console.warn(`[IRIS] FORCE re-extraction requested for mission ${missionId}.`);
   }
 
   const { data: docs, error: docsError } = await supabase
