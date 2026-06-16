@@ -223,11 +223,11 @@ export function Step1Fuel({
           .then(({ error }) => {
             if (error) {
               console.error("[Step1Fuel] primary RFP save failed", error);
-              toast({ title: "Couldn't save primary RFP", description: error.message, variant: "destructive" });
+              console.error("[Step1Fuel] primary RFP save failed:", error.message);
             }
           });
       } else {
-        toast({ title: "Upload still finishing", description: "Wait for the upload to complete before marking primary RFP.", variant: "destructive" });
+        console.warn("[Step1Fuel] primary RFP toggle ignored — upload not finished yet");
       }
       return next;
     });
