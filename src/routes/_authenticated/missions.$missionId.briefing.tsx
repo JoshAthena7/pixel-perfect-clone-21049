@@ -632,7 +632,7 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
             const dateLabel = (() => {
               const d = p.end_date ?? p.start_date;
               if (!d) return isComplete ? "Complete" : isCurrent ? "Active" : "";
-              return new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+              return fmtUtc(d, { month: "short", day: "numeric" });
             })();
             return (
               <div key={`${p.name}-${i}`} className="flex flex-col items-center text-center">
