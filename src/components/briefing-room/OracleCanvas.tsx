@@ -145,8 +145,20 @@ export function OracleCanvas({
   async function save(patch: Partial<OracleConfig>) {
     const { error } = await supabase
       .from("oracle_engagement_config")
-      .update(patch as never)
-      .eq("mission_id", missionId);
+      .upsert(
+        {
+          mission_id: missionId,
+          north_star: oracleConfig?.north_star ?? null,
+          win_themes: (oracleConfig?.win_themes ?? []) as never,
+          top_risks: (oracleConfig?.top_risks ?? []) as never,
+          competitors: (oracleConfig?.competitors ?? []) as never,
+          monitoring_mode: oracleConfig?.monitoring_mode ?? "balanced",
+          signal_threshold: oracleConfig?.signal_threshold ?? 40,
+          status: oracleConfig?.status ?? "active",
+          ...patch,
+        } as never,
+        { onConflict: "mission_id" },
+      );
     if (error) {
       toast.error("Save failed");
       return false;
