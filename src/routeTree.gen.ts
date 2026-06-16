@@ -65,6 +65,7 @@ import { Route as ApiPublicHooksIrisAcademicSweepRouteImport } from './routes/ap
 import { Route as ApiPublicHooksGenerateDailyBriefsRouteImport } from './routes/api/public/hooks/generate-daily-briefs'
 import { Route as ApiPublicHooksAtlasDailyMomentsRouteImport } from './routes/api/public/hooks/atlas-daily-moments'
 import { Route as ApiPublicHooksAtlasDailyHealthRecalcRouteImport } from './routes/api/public/hooks/atlas-daily-health-recalc'
+import { Route as ApiPublicHooksAtlasDailyFocusGeneratorRouteImport } from './routes/api/public/hooks/atlas-daily-focus-generator'
 import { Route as AuthenticatedOlympusWizardNewRouteImport } from './routes/_authenticated/olympus.wizard.new'
 import { Route as AuthenticatedOlympusWizardMissionIdRouteImport } from './routes/_authenticated/olympus.wizard.$missionId'
 import { Route as AuthenticatedOlympusMissionsNewRouteImport } from './routes/_authenticated/olympus.missions.new'
@@ -399,6 +400,12 @@ const ApiPublicHooksAtlasDailyHealthRecalcRoute =
     path: '/api/public/hooks/atlas-daily-health-recalc',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksAtlasDailyFocusGeneratorRoute =
+  ApiPublicHooksAtlasDailyFocusGeneratorRouteImport.update({
+    id: '/api/public/hooks/atlas-daily-focus-generator',
+    path: '/api/public/hooks/atlas-daily-focus-generator',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedOlympusWizardNewRoute =
   AuthenticatedOlympusWizardNewRouteImport.update({
     id: '/olympus/wizard/new',
@@ -590,6 +597,7 @@ export interface FileRoutesByFullPath {
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/olympus/wizard/$missionId': typeof AuthenticatedOlympusWizardMissionIdRoute
   '/olympus/wizard/new': typeof AuthenticatedOlympusWizardNewRoute
+  '/api/public/hooks/atlas-daily-focus-generator': typeof ApiPublicHooksAtlasDailyFocusGeneratorRoute
   '/api/public/hooks/atlas-daily-health-recalc': typeof ApiPublicHooksAtlasDailyHealthRecalcRoute
   '/api/public/hooks/atlas-daily-moments': typeof ApiPublicHooksAtlasDailyMomentsRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
@@ -667,6 +675,7 @@ export interface FileRoutesByTo {
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/olympus/wizard/$missionId': typeof AuthenticatedOlympusWizardMissionIdRoute
   '/olympus/wizard/new': typeof AuthenticatedOlympusWizardNewRoute
+  '/api/public/hooks/atlas-daily-focus-generator': typeof ApiPublicHooksAtlasDailyFocusGeneratorRoute
   '/api/public/hooks/atlas-daily-health-recalc': typeof ApiPublicHooksAtlasDailyHealthRecalcRoute
   '/api/public/hooks/atlas-daily-moments': typeof ApiPublicHooksAtlasDailyMomentsRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
@@ -748,6 +757,7 @@ export interface FileRoutesById {
   '/_authenticated/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/_authenticated/olympus/wizard/$missionId': typeof AuthenticatedOlympusWizardMissionIdRoute
   '/_authenticated/olympus/wizard/new': typeof AuthenticatedOlympusWizardNewRoute
+  '/api/public/hooks/atlas-daily-focus-generator': typeof ApiPublicHooksAtlasDailyFocusGeneratorRoute
   '/api/public/hooks/atlas-daily-health-recalc': typeof ApiPublicHooksAtlasDailyHealthRecalcRoute
   '/api/public/hooks/atlas-daily-moments': typeof ApiPublicHooksAtlasDailyMomentsRoute
   '/api/public/hooks/generate-daily-briefs': typeof ApiPublicHooksGenerateDailyBriefsRoute
@@ -829,6 +839,7 @@ export interface FileRouteTypes {
     | '/olympus/missions/new'
     | '/olympus/wizard/$missionId'
     | '/olympus/wizard/new'
+    | '/api/public/hooks/atlas-daily-focus-generator'
     | '/api/public/hooks/atlas-daily-health-recalc'
     | '/api/public/hooks/atlas-daily-moments'
     | '/api/public/hooks/generate-daily-briefs'
@@ -906,6 +917,7 @@ export interface FileRouteTypes {
     | '/olympus/missions/new'
     | '/olympus/wizard/$missionId'
     | '/olympus/wizard/new'
+    | '/api/public/hooks/atlas-daily-focus-generator'
     | '/api/public/hooks/atlas-daily-health-recalc'
     | '/api/public/hooks/atlas-daily-moments'
     | '/api/public/hooks/generate-daily-briefs'
@@ -986,6 +998,7 @@ export interface FileRouteTypes {
     | '/_authenticated/olympus/missions/new'
     | '/_authenticated/olympus/wizard/$missionId'
     | '/_authenticated/olympus/wizard/new'
+    | '/api/public/hooks/atlas-daily-focus-generator'
     | '/api/public/hooks/atlas-daily-health-recalc'
     | '/api/public/hooks/atlas-daily-moments'
     | '/api/public/hooks/generate-daily-briefs'
@@ -1019,6 +1032,7 @@ export interface RootRouteChildren {
   WelcomeTokenRoute: typeof WelcomeTokenRoute
   ApiChatIrisRoute: typeof ApiChatIrisRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  ApiPublicHooksAtlasDailyFocusGeneratorRoute: typeof ApiPublicHooksAtlasDailyFocusGeneratorRoute
   ApiPublicHooksAtlasDailyHealthRecalcRoute: typeof ApiPublicHooksAtlasDailyHealthRecalcRoute
   ApiPublicHooksAtlasDailyMomentsRoute: typeof ApiPublicHooksAtlasDailyMomentsRoute
   ApiPublicHooksGenerateDailyBriefsRoute: typeof ApiPublicHooksGenerateDailyBriefsRoute
@@ -1431,6 +1445,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksAtlasDailyHealthRecalcRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/atlas-daily-focus-generator': {
+      id: '/api/public/hooks/atlas-daily-focus-generator'
+      path: '/api/public/hooks/atlas-daily-focus-generator'
+      fullPath: '/api/public/hooks/atlas-daily-focus-generator'
+      preLoaderRoute: typeof ApiPublicHooksAtlasDailyFocusGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/olympus/wizard/new': {
       id: '/_authenticated/olympus/wizard/new'
       path: '/olympus/wizard/new'
@@ -1769,6 +1790,8 @@ const rootRouteChildren: RootRouteChildren = {
   WelcomeTokenRoute: WelcomeTokenRoute,
   ApiChatIrisRoute: ApiChatIrisRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  ApiPublicHooksAtlasDailyFocusGeneratorRoute:
+    ApiPublicHooksAtlasDailyFocusGeneratorRoute,
   ApiPublicHooksAtlasDailyHealthRecalcRoute:
     ApiPublicHooksAtlasDailyHealthRecalcRoute,
   ApiPublicHooksAtlasDailyMomentsRoute: ApiPublicHooksAtlasDailyMomentsRoute,

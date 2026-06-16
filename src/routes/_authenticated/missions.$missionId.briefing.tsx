@@ -63,6 +63,29 @@ const cardLabel: React.CSSProperties = {
   fontWeight: 700,
 };
 
+/* ───────────────── Date helpers (UTC-safe) ───────────────── */
+// `mission_milestones.milestone_date` is a Postgres DATE -> "YYYY-MM-DD".
+// `new Date("YYYY-MM-DD")` parses as UTC midnight, then displays in local
+// time, shifting the calendar day back in negative-UTC zones. Always format
+// such dates in UTC. Also use UTC for timestamptz values like
+// `submission_deadline` so the displayed calendar day matches the stored
+// UTC date.
+function parseDateLike(value: string | Date | null | undefined): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return new Date(value + "T00:00:00Z");
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d;
+}
+function fmtUtc(
+  value: string | Date | null | undefined,
+  opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" },
+): string {
+  const d = parseDateLike(value);
+  if (!d) return "—";
+  return d.toLocaleDateString(undefined, { ...opts, timeZone: "UTC" });
+}
+
 /* ───────────────── Page ───────────────── */
 function BriefingPage() {
   const { missionId } = Route.useParams();
@@ -227,7 +250,7 @@ function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
                 Submission:{" "}
                 <span style={{ color: TEXT, fontWeight: 600 }}>
                   {subDate
-                    ? subDate.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+                    ? fmtUtc(mission?.submission_deadline)
                     : "TBD"}
                 </span>
               </span>
@@ -342,7 +365,7 @@ function TodaysFocusCard({ missionId, mission }: { missionId: string; mission?: 
         .order("milestone_date", { ascending: true })
         .limit(3 - lines.length);
       (ms ?? []).forEach((m: any) => {
-        const dt = new Date(m.milestone_date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        const dt = fmtUtc(m.milestone_date, { month: "short", day: "numeric" });
         lines.push(`${dt} — ${m.title}`);
       });
       return lines;
@@ -609,7 +632,7 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
             const dateLabel = (() => {
               const d = p.end_date ?? p.start_date;
               if (!d) return isComplete ? "Complete" : isCurrent ? "Active" : "";
-              return new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+              return fmtUtc(d, { month: "short", day: "numeric" });
             })();
             return (
               <div key={`${p.name}-${i}`} className="flex flex-col items-center text-center">
@@ -697,7 +720,7 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
           </div>
           {subDate && (
             <div className="mt-1" style={{ fontSize: 13, color: GOLD }}>
-              {subDate.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+              {fmtUtc(mission?.submission_deadline)}
               {subDays !== null && ` · ${subDays} days remaining`}
             </div>
           )}
@@ -737,7 +760,7 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
                   )}
                   {d && (
                     <span style={{ fontSize: 12, color: past ? META_SOFT : GOLD, minWidth: 90, textAlign: "right" }}>
-                      {d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                      {fmtUtc(m.milestone_date)}
                     </span>
                   )}
                 </li>

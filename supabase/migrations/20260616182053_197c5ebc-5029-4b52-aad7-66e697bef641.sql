@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS uq_daily_brief_mission_date ON public.daily_intelligence_briefs (mission_id, brief_date);

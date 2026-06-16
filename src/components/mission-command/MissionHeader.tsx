@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { differenceInCalendarDays, format } from "date-fns";
+import { differenceInCalendarDays } from "date-fns";
 import { Link } from "@tanstack/react-router";
 import { Plane, Pencil } from "lucide-react";
 import { IntelligenceCompletenessChip } from "@/components/mission-command/IntelligenceCompletenessChip";
@@ -101,7 +101,7 @@ export function MissionHeader({
                   </div>
                   {deadline && (
                     <div className="text-xs text-muted-foreground">
-                      {format(deadline, "MMM d, yyyy")}
+                      {deadline.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}
                     </div>
                   )}
                 </>
