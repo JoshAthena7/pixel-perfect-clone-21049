@@ -7,7 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { AlertCircle, FileText, Loader2, Plus, Sparkles, UploadCloud, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { analyzeMissionStep } from "@/lib/iris-mission-analysis.functions";
-import { processRFPDocuments } from "@/lib/iris-process-rfp.functions";
+import { runIrisRfpExtraction } from "@/lib/run-iris-rfp.browser";
 import { extractRFPText } from "@/lib/extract-rfp-text.browser";
 import { Input } from "@/components/ui/input";
 import { WizardStepHeading, WizardFooter } from "./WizardShellV3";
@@ -105,7 +105,8 @@ export function Step1Fuel({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const analyzeFn = useServerFn(analyzeMissionStep);
-  const processRfpFn = useServerFn(processRFPDocuments);
+  // Pass 2 (per-section question extraction) is orchestrated client-side
+  // via runIrisRfpExtraction so we don't need a direct server fn wrapper here.
   const [rows, setRows] = useState<Row[]>([]);
   const [name, setName] = useState(missionName);
   const [analyzing, setAnalyzing] = useState(false);
@@ -259,50 +260,12 @@ export function Step1Fuel({
     setAnalyzing(true);
     setAnalyzeResult(null);
     try {
-      const { data: docs, error: docsError } = await supabase
-        .from("mission_documents")
-        .select("id, title, file_url, content_summary")
-        .eq("mission_id", missionId)
-        .order("created_at", { ascending: true });
-      if (docsError) throw docsError;
-
-      const textParts: string[] = [];
-      for (const doc of docs ?? []) {
-        const title = doc.title ?? "Document";
-        const cachedText = (doc.content_summary ?? "").trim();
-        if (cachedText.length > 50) {
-          textParts.push(`# ${title}\n\n${cachedText}`);
-          continue;
-        }
-        if (!doc.file_url) continue;
-        const { data: blob, error: downloadError } = await supabase.storage
-          .from(BUCKET)
-          .download(doc.file_url);
-        if (downloadError || !blob) continue;
-        const fileName = doc.file_url.split("/").pop() || title;
-        try {
-          const extracted = (await extractTextFromBlob(blob, fileName)).trim();
-          if (extracted.length > 50) {
-            textParts.push(`# ${title}\n\n${extracted}`);
-            await supabase
-              .from("mission_documents")
-              .update({ content_summary: extracted.slice(0, 220_000) })
-              .eq("id", doc.id);
-          }
-        } catch (e) {
-          console.warn("[IRIS] Text extraction failed:", title, e);
-        }
-      }
-
-      const primaryRfpText = textParts.join("\n\n---\n\n").slice(0, 700_000);
-      if (primaryRfpText.trim().length < 50)
-        throw new Error("IRIS could not read text from the uploaded RFP documents.");
-
-      // Run RFP structure extraction (volumes/sections/questions/compliance) AND
-      // basics field extraction in parallel. The RFP processor is what populates
-      // mission_questions so Step 7 has questions to assign writers to.
+      // runIrisRfpExtraction reads documents, runs Pass 1 (structure) as a
+      // single short server call, then drives Pass 2 (per-section questions)
+      // from the browser with bounded concurrency — no long single-shot
+      // server request, so the Worker can't time out and bounce the wizard.
       const [rfp, basics] = await Promise.all([
-        processRfpFn({ data: { mission_id: missionId, primary_rfp_text: primaryRfpText } }),
+        runIrisRfpExtraction(missionId),
         analyzeFn({ data: { missionId, wizardStep: 2, fields: BASICS_FIELDS } }),
       ]);
       const basicsCount = basics.extractions?.length ?? 0;
