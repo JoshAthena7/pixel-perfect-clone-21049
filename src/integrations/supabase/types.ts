@@ -7476,6 +7476,7 @@ export type Database = {
           evaluation_weight: number | null
           id: string
           iris_confidence: string | null
+          is_form_only: boolean
           mission_id: string
           name: string | null
           order_index: number | null
@@ -7498,6 +7499,7 @@ export type Database = {
           evaluation_weight?: number | null
           id?: string
           iris_confidence?: string | null
+          is_form_only?: boolean
           mission_id: string
           name?: string | null
           order_index?: number | null
@@ -7520,6 +7522,7 @@ export type Database = {
           evaluation_weight?: number | null
           id?: string
           iris_confidence?: string | null
+          is_form_only?: boolean
           mission_id?: string
           name?: string | null
           order_index?: number | null
