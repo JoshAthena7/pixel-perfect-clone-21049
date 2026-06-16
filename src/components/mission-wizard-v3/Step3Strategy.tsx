@@ -1149,8 +1149,20 @@ export function Step3Strategy({
         subtitle="IRIS has read your documents. Confirm what's right, add what's missing, paste the client's exact language where it matters."
       />
 
-      <div className="flex items-center justify-end mb-2 -mt-2">
-        <SavedTick visible={Date.now() - savedTickAt < 2000} />
+      <div className="flex items-center justify-end gap-3 mb-2 -mt-2 min-h-[18px]">
+        {saveState === "saving" && (
+          <span className="text-[11px] text-white/55">⏳ Saving…</span>
+        )}
+        {saveState === "saved" && (
+          <span className="text-[11px]" style={{ color: "rgba(134,239,172,0.95)" }}>✅ Saved</span>
+        )}
+        {saveState === "error" && (
+          <span className="inline-flex items-center gap-2 text-[11px]" style={{ color: "#fca5a5" }}>
+            ⚠ Save failed — check your connection
+            <button onClick={retrySave} className="underline hover:text-white">Retry</button>
+          </span>
+        )}
+        {saveState === "idle" && <SavedTick visible={Date.now() - savedTickAt < 2000} />}
       </div>
 
       {analyzing && (
@@ -1163,36 +1175,62 @@ export function Step3Strategy({
       <SectionHeader emoji="🎯" title="Strategic Foundation" />
 
       <div className="mb-5">
-        <h3 className="text-white text-[15px] font-medium">North Star</h3>
-        <p className="text-[12.5px] text-white/55 mt-0.5 mb-2">
+        <h3 className="text-white text-[15px] font-medium mb-2">North Star</h3>
+        <p className="text-[12.5px] text-white/55 mt-0.5 mb-3">
           The single sentence that anchors everything. What is the one truth this pursuit is built on?
         </p>
-        <ClaimTextarea
-          value={northStar}
-          onChange={(v) => { setNorthStar(v); if (northStarFromRfp) setNorthStarFromRfp(false); }}
-          maxLen={150}
-          placeholder="One sentence describing the truth this pursuit is built on…"
-          irisSuggestion={northStarSuggestion}
-          onUseIris={(t) => { setNorthStar(t); if (northStarSuggestion) void markExtraction(northStarSuggestion.id, { confirmed_by_user: true }); }}
-          isClientStated={northStarFromRfp}
-          onMarkClient={() => setNorthStarFromRfp(true)}
+        <TwoColumn
+          left={
+            <IrisLeft
+              rows={northStarSuggestion ? [northStarSuggestion] : []}
+              onUse={(r) => {
+                setNorthStar((r.extracted_value ?? "").slice(0, 150));
+                void markExtraction(r.id, { confirmed_by_user: true });
+              }}
+              onDismiss={(r) => void markExtraction(r.id, { overridden_by_user: true })}
+            />
+          }
+          right={
+            <ClaimTextarea
+              value={northStar}
+              onChange={(v) => { setNorthStar(v); if (northStarFromRfp) setNorthStarFromRfp(false); }}
+              maxLen={150}
+              placeholder="One sentence describing the truth this pursuit is built on…"
+              irisSuggestion={null}
+              isClientStated={northStarFromRfp}
+              onMarkClient={() => setNorthStarFromRfp(true)}
+            />
+          }
         />
       </div>
 
       <div className="mb-6">
-        <h3 className="text-white text-[15px] font-medium">Central Claim</h3>
-        <p className="text-[12.5px] text-white/55 mt-0.5 mb-2">
+        <h3 className="text-white text-[15px] font-medium mb-2">Central Claim</h3>
+        <p className="text-[12.5px] text-white/55 mt-0.5 mb-3">
           Complete this sentence: <em>We win this if we convince the state that…</em>
         </p>
-        <ClaimTextarea
-          value={centralClaim}
-          onChange={(v) => { setCentralClaim(v); if (centralClaimFromRfp) setCentralClaimFromRfp(false); }}
-          maxLen={200}
-          placeholder="…the next CSA will not just maintain the system — it will transform it."
-          irisSuggestion={centralClaimSuggestion}
-          onUseIris={(t) => { setCentralClaim(t); if (centralClaimSuggestion) void markExtraction(centralClaimSuggestion.id, { confirmed_by_user: true }); }}
-          isClientStated={centralClaimFromRfp}
-          onMarkClient={() => setCentralClaimFromRfp(true)}
+        <TwoColumn
+          left={
+            <IrisLeft
+              rows={centralClaimSuggestion ? [centralClaimSuggestion] : []}
+              onUse={(r) => {
+                setCentralClaim((r.extracted_value ?? "").slice(0, 200));
+                void markExtraction(r.id, { confirmed_by_user: true });
+              }}
+              onDismiss={(r) => void markExtraction(r.id, { overridden_by_user: true })}
+            />
+          }
+          right={
+            <ClaimTextarea
+              value={centralClaim}
+              onChange={(v) => { setCentralClaim(v); if (centralClaimFromRfp) setCentralClaimFromRfp(false); }}
+              maxLen={200}
+              placeholder="…the next CSA will not just maintain the system — it will transform it."
+              irisSuggestion={null}
+              isClientStated={centralClaimFromRfp}
+              onMarkClient={() => setCentralClaimFromRfp(true)}
+            />
+          }
         />
       </div>
 
@@ -1202,64 +1240,77 @@ export function Step3Strategy({
       <SectionHeader emoji="🏆" title="How We Win" />
 
       <div className="mb-5">
-        <h3 className="text-white text-[15px] font-medium">Win Themes</h3>
-        <TaggedListEditor
-          prompt="What wins this pursuit? Tag each theme by source — RFP language carries the highest weight."
-          items={winThemes}
-          onChange={saveWinThemes}
-          min={2}
-          max={5}
-          inputPlaceholder="Add a win theme — press Enter."
-        />
-        <IrisSuggestionsPanel
-          rows={winSuggestions}
-          onAccept={(r) => acceptToList(r, winThemes, saveWinThemes, "team_validated")}
-          onMarkClient={(r) => acceptToList(r, winThemes, saveWinThemes, "client_stated")}
-          onDismiss={(r) => void markExtraction(r.id, { overridden_by_user: true })}
+        <h3 className="text-white text-[15px] font-medium mb-2">Win Themes</h3>
+        <TwoColumn
+          left={
+            <IrisLeft
+              rows={winSuggestions}
+              onUse={(r) => acceptToList(r, winThemes, saveWinThemes, "client_stated")}
+              onDismiss={(r) => void markExtraction(r.id, { overridden_by_user: true })}
+            />
+          }
+          right={
+            <TaggedListEditor
+              prompt="What wins this pursuit? Tag each theme by source — RFP language carries the highest weight."
+              items={winThemes}
+              onChange={saveWinThemes}
+              min={2}
+              max={5}
+              inputPlaceholder="Add a win theme — press Enter."
+            />
+          }
         />
       </div>
 
       <div className="mb-5">
-        <h3 className="text-white text-[15px] font-medium">Discriminators</h3>
-        <p className="text-[12.5px] text-white/55 mt-0.5 mb-2">
+        <h3 className="text-white text-[15px] font-medium mb-2">Discriminators</h3>
+        <p className="text-[12.5px] text-white/55 mt-0.5 mb-3">
           What makes Athena specifically different from every other bidder? Not generic strengths — the things only we can say.
         </p>
-        <SimpleListEditor
-          items={discriminators}
-          onChange={saveDiscriminators}
-          max={4}
-          maxLen={100}
-          addPlaceholder="+ Add a discriminator — press Enter."
-        />
-        <div className="mt-3" />
-        <IrisSuggestionsPanel
-          rows={discriminatorSuggestions}
-          onAccept={(r) => acceptToSimple(r, discriminators, saveDiscriminators, false)}
-          onMarkClient={(r) => acceptToSimple(r, discriminators, saveDiscriminators, true)}
-          onDismiss={(r) => void markExtraction(r.id, { overridden_by_user: true })}
+        <TwoColumn
+          left={
+            <IrisLeft
+              rows={discriminatorSuggestions}
+              onUse={(r) => acceptToSimple(r, discriminators, saveDiscriminators, true)}
+              onDismiss={(r) => void markExtraction(r.id, { overridden_by_user: true })}
+            />
+          }
+          right={
+            <SimpleListEditor
+              items={discriminators}
+              onChange={saveDiscriminators}
+              max={4}
+              maxLen={100}
+              addPlaceholder="+ Add a discriminator — press Enter."
+            />
+          }
         />
       </div>
 
       <div className="mb-6">
-        <h3 className="text-white text-[15px] font-medium">Proof Points</h3>
-        <p className="text-[12.5px] text-white/55 mt-0.5 mb-2">
+        <h3 className="text-white text-[15px] font-medium mb-2">Proof Points</h3>
+        <p className="text-[12.5px] text-white/55 mt-0.5 mb-3">
           Evidence that backs the claim — data, outcomes, performance metrics. IRIS will suggest from your documents.
         </p>
-        <SimpleListEditor
-          items={proofPoints}
-          onChange={saveProofPoints}
-          max={8}
-          maxLen={150}
-          addPlaceholder="+ Add a proof point — press Enter."
-          pasteLabel="+ Paste the client's exact language (verbatim language scores highest)"
-          pastePlaceholder="Paste the state's exact words — evaluation criteria, scoring rubrics, required outcomes…"
-        />
-        <div className="mt-3" />
-        <IrisSuggestionsPanel
-          rows={proofSuggestions}
-          onAccept={(r) => acceptToSimple(r, proofPoints, saveProofPoints, false)}
-          onMarkClient={(r) => acceptToSimple(r, proofPoints, saveProofPoints, true)}
-          onDismiss={(r) => void markExtraction(r.id, { overridden_by_user: true })}
+        <TwoColumn
+          left={
+            <IrisLeft
+              rows={proofSuggestions}
+              onUse={(r) => acceptToSimple(r, proofPoints, saveProofPoints, true)}
+              onDismiss={(r) => void markExtraction(r.id, { overridden_by_user: true })}
+            />
+          }
+          right={
+            <SimpleListEditor
+              items={proofPoints}
+              onChange={saveProofPoints}
+              max={8}
+              maxLen={150}
+              addPlaceholder="+ Add a proof point — press Enter."
+              pasteLabel="+ Paste the client's exact language (verbatim language scores highest)"
+              pastePlaceholder="Paste the state's exact words — evaluation criteria, scoring rubrics, required outcomes…"
+            />
+          }
         />
       </div>
 
@@ -1269,52 +1320,62 @@ export function Step3Strategy({
       <SectionHeader emoji="👀" title="What We're Watching" />
 
       <div className="mb-5">
-        <h3 className="text-white text-[15px] font-medium">Top Risks</h3>
-        <TaggedListEditor
-          prompt="What could cost us this pursuit? Tag each risk by source — RFP-stated risks become gates in the brief."
-          items={topRisks}
-          onChange={saveTopRisks}
-          min={1}
-          max={5}
-          inputPlaceholder="Add a top risk — press Enter."
-        />
-        <IrisSuggestionsPanel
-          rows={riskSuggestions}
-          onAccept={(r) => acceptToList(r, topRisks, saveTopRisks, "team_validated")}
-          onMarkClient={(r) => acceptToList(r, topRisks, saveTopRisks, "client_stated")}
-          onDismiss={(r) => void markExtraction(r.id, { overridden_by_user: true })}
+        <h3 className="text-white text-[15px] font-medium mb-2">Top Risks</h3>
+        <TwoColumn
+          left={
+            <IrisLeft
+              rows={riskSuggestions}
+              onUse={(r) => acceptToList(r, topRisks, saveTopRisks, "client_stated")}
+              onDismiss={(r) => void markExtraction(r.id, { overridden_by_user: true })}
+            />
+          }
+          right={
+            <TaggedListEditor
+              prompt="What could cost us this pursuit? Tag each risk by source — RFP-stated risks become gates in the brief."
+              items={topRisks}
+              onChange={saveTopRisks}
+              min={1}
+              max={5}
+              inputPlaceholder="Add a top risk — press Enter."
+            />
+          }
         />
       </div>
 
       <div className="mb-5">
-        <h3 className="text-white text-[15px] font-medium">Key Stakeholders</h3>
-        <p className="text-[12.5px] text-white/55 mt-0.5 mb-2">
+        <h3 className="text-white text-[15px] font-medium mb-2">Key Stakeholders</h3>
+        <p className="text-[12.5px] text-white/55 mt-0.5 mb-3">
           Who has influence over this decision? IRIS will suggest from the documents — add anyone it missed.
         </p>
-        <StakeholderEditor items={stakeholders} onChange={(n) => void saveStakeholders(n)} />
-        <div className="mt-3" />
-        <IrisSuggestionsPanel
-          rows={stakeholderSuggestions}
-          onAccept={(r) => acceptStakeholder(r)}
-          onDismiss={(r) => void markExtraction(r.id, { overridden_by_user: true })}
-          showClientOption={false}
+        <TwoColumn
+          left={
+            <IrisLeft
+              rows={stakeholderSuggestions}
+              onUse={(r) => acceptStakeholder(r)}
+              onDismiss={(r) => void markExtraction(r.id, { overridden_by_user: true })}
+            />
+          }
+          right={<StakeholderEditor items={stakeholders} onChange={(n) => void saveStakeholders(n)} />}
         />
       </div>
 
       <div className="mb-6">
-        <h3 className="text-white text-[15px] font-medium">Likely Competitors</h3>
-        <p className="text-[12.5px] text-white/55 mt-0.5 mb-2">
+        <h3 className="text-white text-[15px] font-medium mb-2">Likely Competitors</h3>
+        <p className="text-[12.5px] text-white/55 mt-0.5 mb-3">
           Who else is going to bid? IRIS will suggest based on program type and state history. (Monitoring intensity is set in Step 4.)
         </p>
-        <CompetitorChips items={competitors} onChange={(n) => void saveCompetitors(n)} max={6} />
-        <div className="mt-3" />
-        <IrisSuggestionsPanel
-          rows={competitorSuggestions}
-          onAccept={(r) => acceptCompetitor(r)}
-          onDismiss={(r) => void markExtraction(r.id, { overridden_by_user: true })}
-          showClientOption={false}
+        <TwoColumn
+          left={
+            <IrisLeft
+              rows={competitorSuggestions}
+              onUse={(r) => acceptCompetitor(r)}
+              onDismiss={(r) => void markExtraction(r.id, { overridden_by_user: true })}
+            />
+          }
+          right={<CompetitorChips items={competitors} onChange={(n) => void saveCompetitors(n)} max={6} />}
         />
       </div>
+
 
       {/* Gate indicator */}
       <div
