@@ -470,6 +470,26 @@ export function QuestionHealthTab({
             <SelectItem value="writer">Sort: Writer</SelectItem>
           </SelectContent>
         </Select>
+        {canManage && (
+          <button
+            onClick={() => setWatchOnly((v) => !v)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-md border px-3 h-9 text-xs transition-colors",
+              watchOnly
+                ? "border-amber-500/60 bg-amber-500/15 text-amber-300"
+                : "border-border bg-surface/40 text-muted-foreground hover:text-foreground",
+            )}
+            title="Show only questions you've flagged"
+          >
+            <Bookmark className="h-3.5 w-3.5" />
+            My Watch List
+            {activeFlagByQ.size > 0 && (
+              <span className="ml-1 rounded-full bg-amber-500/30 px-1.5 py-0.5 text-[10px] font-semibold">
+                {activeFlagByQ.size}
+              </span>
+            )}
+          </button>
+        )}
         {filtersActive && (
           <button onClick={clearFilters} className="text-xs text-primary hover:underline">
             Clear all filters
@@ -496,6 +516,8 @@ export function QuestionHealthTab({
                   .filter((s) => s.assignment_id === a.id)
                   .map((s) => writerName(s.sme_member_id) ?? "Unknown")
               : [];
+            const managerFlag = activeFlagByQ.get(q.id) ?? null;
+            const latestOverride = latestOverrideByQ.get(q.id) ?? null;
             return (
               <HealthCard
                 key={q.id}
@@ -509,14 +531,42 @@ export function QuestionHealthTab({
                 flag={flag}
                 smes={smesForQ}
                 latestScore={scoreMap[q.id]?.score}
+                isAdmin={isAdmin}
+                canManage={canManage}
+                managerFlag={managerFlag}
+                latestOverride={latestOverride}
+                onFlag={(reason) => onCreateFlag(q.id, reason)}
+                onResolveFlag={() => managerFlag && onResolveFlag(managerFlag.id)}
+                onOpenThread={() =>
+                  setThreadFor({
+                    questionId: q.id,
+                    questionNumber: q.question_number,
+                    questionText: q.question_text ?? "",
+                  })
+                }
+                onApplyOverride={(state, reason) => onApplyOverride(q.id, state, reason)}
+                onSaveAdminNote={(note) =>
+                  latestOverride ? onSaveAdminNote(latestOverride.id, note) : Promise.resolve()
+                }
               />
             );
           })}
         </div>
       )}
+
+      {/* Reuses the existing flight-deck Thread Panel scoped to this question */}
+      <ThreadPanel
+        open={!!threadFor}
+        onClose={() => setThreadFor(null)}
+        missionId={missionId}
+        questionId={threadFor?.questionId ?? null}
+        questionNumber={threadFor?.questionNumber ?? null}
+        questionText={threadFor?.questionText ?? null}
+      />
     </div>
   );
 }
+
 
 function StatCard({
   label,
