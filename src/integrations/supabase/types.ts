@@ -8374,6 +8374,8 @@ export type Database = {
           iris_extraction_note: string | null
           iris_extraction_status: string | null
           known_competitors: string[] | null
+          leadership_broadcast: string | null
+          leadership_broadcast_author: string | null
           mission_journey: string | null
           monitoring_schedule: string
           name: string
@@ -8428,6 +8430,8 @@ export type Database = {
           iris_extraction_note?: string | null
           iris_extraction_status?: string | null
           known_competitors?: string[] | null
+          leadership_broadcast?: string | null
+          leadership_broadcast_author?: string | null
           mission_journey?: string | null
           monitoring_schedule?: string
           name: string
@@ -8482,6 +8486,8 @@ export type Database = {
           iris_extraction_note?: string | null
           iris_extraction_status?: string | null
           known_competitors?: string[] | null
+          leadership_broadcast?: string | null
+          leadership_broadcast_author?: string | null
           mission_journey?: string | null
           monitoring_schedule?: string
           name?: string
