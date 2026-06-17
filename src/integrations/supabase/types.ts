@@ -4746,6 +4746,72 @@ export type Database = {
           },
         ]
       }
+      iris_answers: {
+        Row: {
+          confidence_level: string | null
+          context_snapshot: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          mission_id: string
+          prompt_type: string
+          question_id: string | null
+          response_full: Json
+          sources_used: string[]
+          updated_at: string
+          user_correction: string | null
+          user_rating: number | null
+          was_helpful: boolean | null
+        }
+        Insert: {
+          confidence_level?: string | null
+          context_snapshot?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mission_id: string
+          prompt_type: string
+          question_id?: string | null
+          response_full?: Json
+          sources_used?: string[]
+          updated_at?: string
+          user_correction?: string | null
+          user_rating?: number | null
+          was_helpful?: boolean | null
+        }
+        Update: {
+          confidence_level?: string | null
+          context_snapshot?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mission_id?: string
+          prompt_type?: string
+          question_id?: string | null
+          response_full?: Json
+          sources_used?: string[]
+          updated_at?: string
+          user_correction?: string | null
+          user_rating?: number | null
+          was_helpful?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iris_answers_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "iris_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       iris_brief_cache: {
         Row: {
           brief_text: string
