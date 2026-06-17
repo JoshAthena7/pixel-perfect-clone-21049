@@ -86,6 +86,7 @@ import { Route as AuthenticatedMissionsMissionIdComplianceRouteImport } from './
 import { Route as AuthenticatedMissionsMissionIdBriefingRouteImport } from './routes/_authenticated/missions.$missionId.briefing'
 import { Route as AuthenticatedMissionsMissionIdActivityRouteImport } from './routes/_authenticated/missions.$missionId.activity'
 import { Route as AuthenticatedAdminTeamMemberIdRouteImport } from './routes/_authenticated/admin.team.$memberId'
+import { Route as AuthenticatedAdminOracleSourcesMissionIdRouteImport } from './routes/_authenticated/admin.oracle-sources.$missionId'
 import { Route as AuthenticatedAdminMissionsMissionIdRouteImport } from './routes/_authenticated/admin.missions.$missionId'
 import { Route as AuthenticatedOlympusMissionsMissionIdIndexRouteImport } from './routes/_authenticated/olympus.missions.$missionId.index'
 import { Route as AuthenticatedOlympusMissionsMissionIdWizardRouteImport } from './routes/_authenticated/olympus.missions.$missionId.wizard'
@@ -527,6 +528,12 @@ const AuthenticatedAdminTeamMemberIdRoute =
     path: '/$memberId',
     getParentRoute: () => AuthenticatedAdminTeamRoute,
   } as any)
+const AuthenticatedAdminOracleSourcesMissionIdRoute =
+  AuthenticatedAdminOracleSourcesMissionIdRouteImport.update({
+    id: '/oracle-sources/$missionId',
+    path: '/oracle-sources/$missionId',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminMissionsMissionIdRoute =
   AuthenticatedAdminMissionsMissionIdRouteImport.update({
     id: '/missions/$missionId',
@@ -586,6 +593,7 @@ export interface FileRoutesByFullPath {
   '/missions/': typeof AuthenticatedMissionsIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/admin/missions/$missionId': typeof AuthenticatedAdminMissionsMissionIdRoute
+  '/admin/oracle-sources/$missionId': typeof AuthenticatedAdminOracleSourcesMissionIdRoute
   '/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -665,6 +673,7 @@ export interface FileRoutesByTo {
   '/missions': typeof AuthenticatedMissionsIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/admin/missions/$missionId': typeof AuthenticatedAdminMissionsMissionIdRoute
+  '/admin/oracle-sources/$missionId': typeof AuthenticatedAdminOracleSourcesMissionIdRoute
   '/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -748,6 +757,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/admin/missions/$missionId': typeof AuthenticatedAdminMissionsMissionIdRoute
+  '/_authenticated/admin/oracle-sources/$missionId': typeof AuthenticatedAdminOracleSourcesMissionIdRoute
   '/_authenticated/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
   '/_authenticated/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -831,6 +841,7 @@ export interface FileRouteTypes {
     | '/missions/'
     | '/profile/'
     | '/admin/missions/$missionId'
+    | '/admin/oracle-sources/$missionId'
     | '/admin/team/$memberId'
     | '/missions/$missionId/activity'
     | '/missions/$missionId/briefing'
@@ -910,6 +921,7 @@ export interface FileRouteTypes {
     | '/missions'
     | '/profile'
     | '/admin/missions/$missionId'
+    | '/admin/oracle-sources/$missionId'
     | '/admin/team/$memberId'
     | '/missions/$missionId/activity'
     | '/missions/$missionId/briefing'
@@ -992,6 +1004,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/'
     | '/_authenticated/profile/'
     | '/_authenticated/admin/missions/$missionId'
+    | '/_authenticated/admin/oracle-sources/$missionId'
     | '/_authenticated/admin/team/$memberId'
     | '/_authenticated/missions/$missionId/activity'
     | '/_authenticated/missions/$missionId/briefing'
@@ -1605,6 +1618,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTeamMemberIdRouteImport
       parentRoute: typeof AuthenticatedAdminTeamRoute
     }
+    '/_authenticated/admin/oracle-sources/$missionId': {
+      id: '/_authenticated/admin/oracle-sources/$missionId'
+      path: '/oracle-sources/$missionId'
+      fullPath: '/admin/oracle-sources/$missionId'
+      preLoaderRoute: typeof AuthenticatedAdminOracleSourcesMissionIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/missions/$missionId': {
       id: '/_authenticated/admin/missions/$missionId'
       path: '/missions/$missionId'
@@ -1656,6 +1676,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRouteWithChildren
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminMissionsMissionIdRoute: typeof AuthenticatedAdminMissionsMissionIdRoute
+  AuthenticatedAdminOracleSourcesMissionIdRoute: typeof AuthenticatedAdminOracleSourcesMissionIdRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
@@ -1673,6 +1694,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedAdminMissionsMissionIdRoute:
     AuthenticatedAdminMissionsMissionIdRoute,
+  AuthenticatedAdminOracleSourcesMissionIdRoute:
+    AuthenticatedAdminOracleSourcesMissionIdRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
