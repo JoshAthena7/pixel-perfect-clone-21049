@@ -130,7 +130,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
       const qids = qpRows.map(r => r.question_id);
       if (qids.length === 0) return { questions: [] as Q[], feedback: [], conflicts: [], connections: [], mission: null, pensDown: false, pulse: [], winThemes: [] };
 
-      const [mq, ms, mission, milestones, feedback, conflicts, connections, pulse, oec] = await Promise.all([
+      const [mq, ms, mission, milestones, feedback, conflicts, connections, pulse, oec, mwt] = await Promise.all([
         supabase.from("mission_questions").select("*").in("id", qids),
         supabase.from("mission_sections").select("id,name,section_number,evaluation_weight,coherence_status").eq("mission_id", missionId),
         supabase.from("missions").select("id,name,submission_deadline").eq("id", missionId).maybeSingle(),
@@ -140,6 +140,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
         supabase.from("question_connections").select("*").eq("mission_id", missionId),
         supabase.from("mission_pulse_updates").select("domain,created_at").eq("mission_id", missionId).order("created_at", { ascending: false }),
         supabase.from("oracle_engagement_config").select("win_themes").eq("mission_id", missionId).maybeSingle(),
+        supabase.from("mission_win_themes").select("id,title,why_it_matters,status,display_order").eq("mission_id", missionId).order("display_order", { ascending: true }),
       ]);
 
       const sectionMap = new Map<string, any>((ms.data ?? []).map((s: any) => [s.id, s]));
