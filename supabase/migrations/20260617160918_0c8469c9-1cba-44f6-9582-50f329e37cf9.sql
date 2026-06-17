@@ -1,0 +1,1 @@
+ALTER TABLE public.missions DROP CONSTRAINT IF EXISTS missions_procurement_type_check;
