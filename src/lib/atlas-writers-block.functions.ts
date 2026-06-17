@@ -94,14 +94,15 @@ Writer context: ${freeText || "(none)"}`;
         break;
     }
 
-    const { runOracleAnswerCore } = await import("@/lib/oracle-answer.functions");
-    const oracle = await runOracleAnswerCore(supabase, userId, {
-      mission_id: missionId,
-      question_id: questionId,
-      prompt: `${head}\n\n${task}\nMax 300 words. Direct and immediately actionable.`,
-      prompt_type: "writers_block",
-    });
-    const text = oracle.answer;
+    // Use the plain-prose IRIS call — runOracleAnswerCore forces a strict
+    // JSON envelope which Gemini frequently breaks when asked for prose like
+    // "write the opening paragraph" or "give 4-5 section headers", causing the
+    // grounded-answer fallback message. The `head` already contains the full
+    // grounded mission context via buildMissionContext.
+    const text = await callIrisText(
+      SYSTEM,
+      `${head}\n\n${task}\nMax 300 words. Direct and immediately actionable.`,
+    );
     if (!text) throw new Error("IRIS returned an empty response. Try again shortly.");
 
     // Persist the session
