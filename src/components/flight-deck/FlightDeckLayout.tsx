@@ -712,21 +712,12 @@ function MyWorkColumn({
     }
   }
 
-  function askIris(prompt: string) {
-    const context = [
-      questionNumber ? `Question ${questionNumber}` : null,
-      sectionName ? `Section: ${sectionName}` : null,
-      questionText ? `Question: ${questionText}` : null,
-    ].filter(Boolean).join("\n");
-    window.dispatchEvent(new CustomEvent("atlas:iris:prefill", { detail: `${prompt}\n\n${context}` }));
-  }
+  // IRIS coaching for this question is delivered exclusively via
+  // <AtlasAssistBar /> (Decode / Win Angle / Evidence / Watch Out).
+  // The old "Ask IRIS quick prompts" block below was removed to avoid
+  // duplicating the same guidance in two spots.
 
-  const prompts = [
-    "Explain what evaluators are really asking in this section",
-    "Recommend proof points for this question",
-    "What risks should I watch for in this section?",
-    "What does the scoring panel care most about here?",
-  ];
+
 
   return (
     <div className="space-y-3">
