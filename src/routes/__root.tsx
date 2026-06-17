@@ -8,6 +8,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -82,10 +83,13 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const isTransitioning = useRouterState({ select: (s) => s.isTransitioning });
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSync />
-      <Outlet />
+      <main className={isTransitioning ? "atlas-route-frame is-transitioning" : "atlas-route-frame"}>
+        <Outlet />
+      </main>
       <Toaster theme="dark" position="top-right" />
     </QueryClientProvider>
   );
