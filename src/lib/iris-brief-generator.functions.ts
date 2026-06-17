@@ -28,48 +28,22 @@ export const generateIrisBrief = createServerFn({ method: "POST" })
       .eq("id", data.questionId);
 
     try {
-      // 2) Parallel context fetch
-      const [
-        { data: question },
-        { data: oracleConfig },
-        { data: mission },
-        { data: signals },
-      ] = await Promise.all([
+      // 2) Build full mission context (parallel, cached 5min) + question-only fields
+      const [ctx, { data: question }, { data: mission }] = await Promise.all([
+        buildMissionContext(supabase, data.missionId, {
+          questionId: data.questionId,
+          includeDocumentText: true,
+        }),
         supabase
           .from("mission_questions")
-          .select(
-            "question_number, question_text, word_limit, page_limit, point_value, evaluation_criteria, brief_notes",
-          )
+          .select("question_number, question_text, word_limit, page_limit, point_value, evaluation_criteria, brief_notes")
           .eq("id", data.questionId)
           .single(),
-        supabase
-          .from("oracle_engagement_config")
-          .select("north_star, win_themes, top_risks, competitors, monitoring_mode")
-          .eq("mission_id", data.missionId)
-          .maybeSingle(),
-        supabase
-          .from("missions")
-          .select("name, client_name, agency_name")
-          .eq("id", data.missionId)
-          .single(),
-        supabase
-          .from("intel_events")
-          .select("title, content, confidence, event_type, created_at")
-          .eq("mission_id", data.missionId)
-          .order("created_at", { ascending: false })
-          .limit(20),
+        supabase.from("missions").select("name, client_name, agency_name").eq("id", data.missionId).single(),
       ]);
 
-      // 3) Build prompts
-      const winThemes = Array.isArray((oracleConfig as any)?.win_themes)
-        ? ((oracleConfig as any).win_themes as any[])
-        : [];
-      const topRisks = Array.isArray((oracleConfig as any)?.top_risks)
-        ? ((oracleConfig as any).top_risks as any[])
-        : [];
-      const competitors = Array.isArray((oracleConfig as any)?.competitors)
-        ? ((oracleConfig as any).competitors as any[])
-        : [];
+      const contextBlock = serializeContextForPrompt(ctx, "question");
+      console.log(`[iris-brief] context built in ${ctx._buildMs}ms, ${contextBlock.length} chars, errors=${ctx._errors.length}`);
 
       const system = `You are IRIS, the intelligence co-pilot for Athena Strategy Group's ATLAS platform. You are generating a pre-writing intelligence brief for a Medicaid RFP writer.
 
@@ -80,28 +54,16 @@ CRITICAL RULES:
 - Never generate client-specific performance data, outcomes, or case studies.
 - client_proof_points_prompt must instruct the writer to add their own organization's data.
 - All content must be grounded in Medicaid managed care context.
-- Be specific to the actual question being briefed.`;
+- Be specific to the actual question being briefed — reference the win themes, evaluator priorities, graph intelligence, and proof points provided.`;
 
       const q = (question ?? {}) as any;
       const m = (mission ?? {}) as any;
-      const oc = (oracleConfig ?? {}) as any;
 
       const userMsg = [
-        `Mission: ${m.name ?? "(unspecified)"}`,
-        `Client: ${m.client_name ?? "(unspecified)"} — ${m.agency_name ?? "(unspecified)"}`,
-        `North Star: ${oc.north_star ?? "Not set"}`,
+        `=== MISSION INTELLIGENCE ===`,
+        contextBlock,
         "",
-        `Win Themes: ${JSON.stringify(winThemes)}`,
-        `Top Risks: ${JSON.stringify(topRisks)}`,
-        `Competitors: ${competitors.join(", ") || "(none)"}`,
-        "",
-        `Recent Intelligence (top 20):`,
-        ...((signals ?? []) as any[]).map(
-          (s) =>
-            `- [${s.event_type ?? "signal"}] ${s.title ?? ""}: ${String(s.content ?? "").slice(0, 120)}`,
-        ),
-        "",
-        `QUESTION TO BRIEF:`,
+        `=== QUESTION TO BRIEF ===`,
         `Number: ${q.question_number ?? "N/A"}`,
         `Text: ${q.question_text ?? ""}`,
         `Word Limit: ${q.word_limit ?? "Not specified"}`,
@@ -109,7 +71,9 @@ CRITICAL RULES:
         `Point Value: ${q.point_value ?? "Not specified"}`,
         `Evaluation Criteria: ${q.evaluation_criteria ?? "Not specified"}`,
         `Leadership Notes: ${q.brief_notes ?? "None"}`,
+        `Mission Client: ${m.client_name ?? "(unspecified)"} — ${m.agency_name ?? "(unspecified)"}`,
         "",
+
         `Return this exact JSON shape:
 {
   "decoded_intent": "what the evaluator is really asking beneath the surface — 2 sentences max",
