@@ -791,28 +791,10 @@ function MyWorkColumn({
         </button>
       </div>
 
-      {/* Ask IRIS */}
-      <div className="rounded-lg p-3" style={{ background: "rgba(127,119,221,0.06)", border: "0.5px solid rgba(127,119,221,0.2)" }}>
-        <div className="text-[12px] font-medium" style={{ color: "#C8C3FF" }}>
-          Ask IRIS anything about this question
-        </div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {prompts.map((p) => (
-            <button
-              key={p}
-              onClick={() => askIris(p)}
-              className="px-2.5 py-1 rounded-full text-[10px]"
-              style={{
-                background: "rgba(127,119,221,0.1)",
-                border: "1px solid rgba(127,119,221,0.3)",
-                color: "rgba(200,195,255,0.9)",
-              }}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* "Ask IRIS quick prompts" block intentionally removed — duplicates the
+          AtlasAssistBar (Decode / Win Angle / Evidence / Watch Out) above. */}
+
+
 
       <ScoreMeDialog
         open={scoreOpen}
