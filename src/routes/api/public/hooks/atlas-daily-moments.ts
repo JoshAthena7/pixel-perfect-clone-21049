@@ -61,11 +61,9 @@ export const Route = createFileRoute("/api/public/hooks/atlas-daily-moments")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apiKey = request.headers.get("apikey");
-        const expected = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY;
-        if (!apiKey || !expected || apiKey !== expected) {
-          return new Response("Unauthorized", { status: 401 });
-        }
+        const { authorizeCron } = await import("@/lib/monitoring/cron-auth.server");
+        const unauthorized = authorizeCron(request);
+        if (unauthorized) return unauthorized;
         const lovableKey = process.env.LOVABLE_API_KEY;
         if (!lovableKey) return Response.json({ error: "LOVABLE_API_KEY missing" }, { status: 500 });
 
