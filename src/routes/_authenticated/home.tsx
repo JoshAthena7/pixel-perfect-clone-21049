@@ -15,9 +15,15 @@ function HomeRoute() {
     return <div className="p-8 text-sm text-muted-foreground">Loading…</div>;
   }
 
-  if (data?.isAdmin) return <Navigate to="/admin" replace />;
+  if (data?.isAdmin) {
+    // eslint-disable-next-line no-console
+    console.warn("[ATLAS-NAV] /home → /admin (isAdmin)");
+    return <Navigate to="/admin" replace />;
+  }
 
   if (data && !data.usedFallback && data.assignedCount === 1 && data.missions[0]) {
+    // eslint-disable-next-line no-console
+    console.warn("[ATLAS-NAV] /home → /missions/$id/briefing (single assignment)");
     return (
       <Navigate
         to="/missions/$missionId/briefing"
@@ -27,6 +33,8 @@ function HomeRoute() {
     );
   }
 
+  // eslint-disable-next-line no-console
+  console.warn("[ATLAS-NAV] /home → /missions (fallback list)", data);
   return <Navigate to="/missions" replace />;
 }
 
