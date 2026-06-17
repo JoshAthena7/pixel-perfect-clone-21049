@@ -93,7 +93,14 @@ export const runAssistTool = createServerFn({ method: "POST" })
       user += `\n\nGo deeper on this prior response, adding texture and specificity (do not repeat it):\n${priorResponse}`;
     }
 
-    const text = await callIrisText(SYSTEM, user);
+    const { runOracleAnswerCore } = await import("@/lib/oracle-answer.functions");
+    const oracle = await runOracleAnswerCore(supabase, context.userId, {
+      mission_id: missionId,
+      question_id: questionId,
+      prompt: user,
+      prompt_type: "atlas_assist",
+    });
+    const text = oracle.answer;
     if (!text) throw new Error("IRIS returned an empty response. Try again shortly.");
     return { text };
   });

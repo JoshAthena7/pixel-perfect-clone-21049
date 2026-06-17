@@ -63,8 +63,19 @@ export const generateOracleAnswer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => Input.parse(d))
   .handler(async ({ data, context }): Promise<OracleAnswer> => {
-    const { supabase, userId } = context;
+    return runOracleAnswerCore(context.supabase, context.userId, data);
+  });
 
+/**
+ * Plain-function core. Lets other server fns (AtlasAssist, WritersBlock)
+ * reuse the canonical grounded-answer engine without re-invoking auth
+ * middleware. Caller must provide an authenticated supabase client + userId.
+ */
+export async function runOracleAnswerCore(
+  supabase: any,
+  userId: string,
+  data: z.infer<typeof Input>,
+): Promise<OracleAnswer> {
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("ORACLE is not configured — built-in AI key missing.");
 
@@ -229,4 +240,4 @@ export const generateOracleAnswer = createServerFn({ method: "POST" })
       gaps,
       answer_id: row?.id ?? null,
     };
-  });
+}

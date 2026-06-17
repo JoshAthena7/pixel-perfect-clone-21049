@@ -94,7 +94,14 @@ Writer context: ${freeText || "(none)"}`;
         break;
     }
 
-    const text = await callIrisText(SYSTEM, `${head}\n\n${task}\nMax 300 words. Direct and immediately actionable.`);
+    const { runOracleAnswerCore } = await import("@/lib/oracle-answer.functions");
+    const oracle = await runOracleAnswerCore(supabase, userId, {
+      mission_id: missionId,
+      question_id: questionId,
+      prompt: `${head}\n\n${task}\nMax 300 words. Direct and immediately actionable.`,
+      prompt_type: "writers_block",
+    });
+    const text = oracle.answer;
     if (!text) throw new Error("IRIS returned an empty response. Try again shortly.");
 
     // Persist the session
