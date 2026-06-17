@@ -231,7 +231,7 @@ export const extractSourceIntelligence = createServerFn({ method: "POST" })
       extracted_field: "oracle_extraction_summary",
       extracted_value: JSON.stringify({ document_type: docType, counts, at: new Date().toISOString() }),
       confidence_score: 0.8,
-      wizard_step: "oracle_extract",
+      wizard_step: null,
     });
 
     return { ok: true, document_type: docType, counts };
