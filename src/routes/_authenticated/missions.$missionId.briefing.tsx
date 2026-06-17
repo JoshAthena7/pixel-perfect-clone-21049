@@ -137,6 +137,12 @@ function BriefingPage() {
             <EvaluatorLensCard missionId={missionId} />
           </div>
 
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <StrategicRisksCard missionId={missionId} />
+            <CompetitorsCard missionId={missionId} />
+          </div>
+
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <WatchItemsCard missionId={missionId} mission={mission} />
             <WhatChangedCard missionId={missionId} />
@@ -1071,6 +1077,187 @@ function WatchItemsCard({ missionId, mission }: { missionId: string; mission?: a
         View all watch items <ArrowRight size={12} />
       </Link>
     </section>
+  );
+}
+
+/* ───────────────── 4c. Strategic Risks ───────────────── */
+function StrategicRisksCard({ missionId }: { missionId: string }) {
+  const { data: risks = [], isLoading } = useQuery({
+    queryKey: ["briefing-strategic-risks", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_risks")
+        .select("id, title, description, severity, mitigation, status")
+        .eq("mission_id", missionId)
+        .neq("status", "resolved")
+        .order("severity", { ascending: true })
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const sevColor = (s?: string | null) => {
+    const v = (s ?? "").toLowerCase();
+    if (v === "critical" || v === "high") return "#ef4444";
+    if (v === "medium" || v === "moderate") return "#f59e0b";
+    return "#5b9bd5";
+  };
+
+  return (
+    <section style={glass}>
+      <div className="flex items-center gap-2 mb-4" style={cardLabel}>
+        <ShieldCheck size={14} /> Strategic Risks
+      </div>
+      {isLoading ? (
+        <div style={{ fontSize: 13, color: META }}>Loading…</div>
+      ) : risks.length === 0 ? (
+        <EmptyState>No strategic risks logged. Add them in mission setup.</EmptyState>
+      ) : (
+        <ul className="space-y-3">
+          {risks.map((r: any) => {
+            const c = sevColor(r.severity);
+            return (
+              <li
+                key={r.id}
+                className="p-3"
+                style={{ background: `${c}11`, border: `1px solid ${c}33`, borderRadius: 10 }}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: TEXT, lineHeight: 1.3 }}>
+                    {r.title}
+                  </div>
+                  <span
+                    className="shrink-0"
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      color: c,
+                      padding: "2px 8px",
+                      borderRadius: 999,
+                      background: `${c}22`,
+                    }}
+                  >
+                    {r.severity ?? "—"}
+                  </span>
+                </div>
+                {r.description && (
+                  <div className="mt-1.5" style={{ fontSize: 12.5, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}>
+                    {truncate(r.description, 220)}
+                  </div>
+                )}
+                {r.mitigation && (
+                  <div className="mt-2" style={{ fontSize: 11.5, color: META }}>
+                    <span style={{ color: GOLD, fontWeight: 700 }}>Mitigation: </span>
+                    {truncate(r.mitigation, 180)}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/* ───────────────── 4d. Competitors ───────────────── */
+function CompetitorsCard({ missionId }: { missionId: string }) {
+  const { data: competitors = [], isLoading } = useQuery({
+    queryKey: ["briefing-competitors", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("competitor_profiles")
+        .select(
+          "id, organization_name, competitor_type, likely_narrative, known_strengths, known_weaknesses, iris_confidence",
+        )
+        .eq("mission_id", missionId)
+        .order("created_at", { ascending: true })
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const typeLabel = (t?: string | null) =>
+    (t ?? "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || "Competitor";
+
+  return (
+    <section style={glass}>
+      <div className="flex items-center gap-2 mb-4" style={cardLabel}>
+        <Users size={14} /> Known Competitors
+      </div>
+      {isLoading ? (
+        <div style={{ fontSize: 13, color: META }}>Loading…</div>
+      ) : competitors.length === 0 ? (
+        <EmptyState>No competitors tracked yet.</EmptyState>
+      ) : (
+        <ul className="space-y-3">
+          {competitors.map((c: any) => (
+            <li
+              key={c.id}
+              className="p-3"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 10,
+              }}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div style={{ fontSize: 14, fontWeight: 700, color: TEXT, lineHeight: 1.3 }}>
+                  {c.organization_name}
+                </div>
+                <span
+                  className="shrink-0"
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    color: GOLD,
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                    background: `${GOLD}22`,
+                  }}
+                >
+                  {typeLabel(c.competitor_type)}
+                </span>
+              </div>
+              {c.likely_narrative && (
+                <div className="mt-1.5 italic" style={{ fontSize: 12.5, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}>
+                  "{truncate(c.likely_narrative, 200)}"
+                </div>
+              )}
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <CompetitorBullets label="Strengths" color="#4ade80" items={c.known_strengths} />
+                <CompetitorBullets label="Weaknesses" color="#f87171" items={c.known_weaknesses} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function CompetitorBullets({ label, color, items }: { label: string; color: string; items: any }) {
+  const list = Array.isArray(items)
+    ? items.map((i: any) => (typeof i === "string" ? i : i?.text ?? i?.title ?? "")).filter(Boolean)
+    : [];
+  if (list.length === 0) return null;
+  return (
+    <div>
+      <div style={{ fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color, fontWeight: 700 }}>
+        {label}
+      </div>
+      <ul className="mt-1 space-y-0.5">
+        {list.slice(0, 3).map((t: string, i: number) => (
+          <li key={i} style={{ fontSize: 11.5, color: "rgba(255,255,255,0.78)", lineHeight: 1.4 }}>
+            • {truncate(t, 80)}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
