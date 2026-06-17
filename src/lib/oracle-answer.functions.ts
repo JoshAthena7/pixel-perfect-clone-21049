@@ -91,7 +91,7 @@ export const generateOracleAnswer = createServerFn({ method: "POST" })
         .limit(20),
       supabase
         .from("mission_win_themes")
-        .select("id, theme, supporting_evidence")
+        .select("id, title, why_it_matters")
         .eq("mission_id", data.mission_id)
         .limit(15),
       supabase
