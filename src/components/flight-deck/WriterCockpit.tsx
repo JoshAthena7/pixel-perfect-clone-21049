@@ -14,6 +14,9 @@ import {
 import { ScoreMeDialog } from "@/components/flight-deck/ScoreMeDialog";
 import { MissionPulsePanel } from "@/components/flight-deck/MissionPulsePanel";
 import { CheckInDialog } from "@/components/flight-deck/CheckInDialog";
+import { AtlasAssistBar } from "@/components/atlas/AtlasAssistBar";
+import { WritersBlockDialog } from "@/components/atlas/WritersBlockDialog";
+import { TeamPulseCard } from "@/components/atlas/TeamPulseCard";
 
 const BG = "#060f1a";
 const CARD = "#0a1828";
@@ -97,6 +100,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   const [scoreMeFor, setScoreMeFor] = useState<Q | null>(null);
   const [pulseOpen, setPulseOpen] = useState(false);
   const [checkInFor, setCheckInFor] = useState<Q | null>(null);
+  const [stuckFor, setStuckFor] = useState<Q | null>(null);
   const updateStatus = useServerFn(updateProgressStatus);
 
   useEffect(() => {
@@ -440,6 +444,10 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
           </div>
         )}
 
+        <div style={{ marginBottom: 16 }}>
+          <TeamPulseCard missionId={missionId} />
+        </div>
+
         {questions.length === 0 ? (
           <div style={{ padding: 60, textAlign: "center", color: "rgba(255,255,255,0.5)" }}>
             <FileText size={36} style={{ opacity: 0.4, marginBottom: 12 }} />
@@ -612,6 +620,10 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
               </div>
             )}
 
+            <div style={{ marginTop: 14 }}>
+              <AtlasAssistBar missionId={missionId} questionId={q.id} />
+            </div>
+
             <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
               {q.iris_brief && (
                 q.brief_opened_at
@@ -624,6 +636,15 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
 
               <button onClick={() => setCheckInFor(q)} style={btn("#3b82f6")}><Activity size={12}/> Check-In</button>
               <button onClick={() => setScoreMeFor(q)} style={btn("#a78bfa")}><Gauge size={12}/> Score Me</button>
+              <button
+                onClick={() => setStuckFor(q)}
+                style={{
+                  background: "transparent", color: GOLD, border: `1px solid ${GOLD}`,
+                  borderRadius: 6, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer",
+                }}
+              >
+                🧱 Stuck?
+              </button>
               <button onClick={() => setPulseOpen(true)} style={btn("#0ea5e9")}><Radio size={12}/> Pulse</button>
 
               {q.acceptance_status === "pending" && (
