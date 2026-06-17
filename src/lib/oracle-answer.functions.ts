@@ -240,4 +240,4 @@ export async function runOracleAnswerCore(
       gaps,
       answer_id: row?.id ?? null,
     };
-  });
+}
