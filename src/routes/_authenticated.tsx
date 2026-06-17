@@ -131,15 +131,21 @@ function AuthenticatedLayout() {
     // /home is the canonical post-login landing; render MissionsListPage there.
     const landingPaths = new Set(["/", "/atrium", "/olympus", "/v1", "/flight-deck"]);
     if (landingPaths.has(path)) {
+      // eslint-disable-next-line no-console
+      console.warn("[ATLAS-NAV] landing-path redirect → /home from", path);
       navigate({ to: "/home", replace: true });
       return;
     }
     if (path.startsWith("/portfolio") && homeInfo.home !== "portfolio" && !isAdmin) {
+      // eslint-disable-next-line no-console
+      console.warn("[ATLAS-NAV] portfolio gate → /my-work from", path);
       toast.info("That page is for executives.");
       navigate({ to: "/my-work", replace: true });
       return;
     }
     if (path.startsWith("/my-work") && homeInfo.home === "portfolio") {
+      // eslint-disable-next-line no-console
+      console.warn("[ATLAS-NAV] my-work gate → /portfolio from", path);
       toast.info("Writers use that page.");
       navigate({ to: "/portfolio", replace: true });
     }
