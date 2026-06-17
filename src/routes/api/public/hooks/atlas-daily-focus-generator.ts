@@ -12,6 +12,7 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { withAICircuit } from "@/lib/ai-circuit-breaker";
+import { buildMissionContext, serializeContextForPrompt } from "@/lib/iris/build-mission-context";
 
 async function callIris(apiKey: string, system: string, user: string): Promise<string> {
   const res = await withAICircuit(async () => {
