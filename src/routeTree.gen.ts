@@ -40,6 +40,7 @@ import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_au
 import { Route as AuthenticatedMissionNewRouteImport } from './routes/_authenticated/mission.new'
 import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated/admin.team'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
+import { Route as AuthenticatedAdminOraclePhase2TestRouteImport } from './routes/_authenticated/admin.oracle-phase2-test'
 import { Route as AuthenticatedAdminMessagingRouteImport } from './routes/_authenticated/admin.messaging'
 import { Route as AuthenticatedAdminIrisWriterViewRouteImport } from './routes/_authenticated/admin.iris-writer-view'
 import { Route as AuthenticatedAdminIrisRefreshRouteImport } from './routes/_authenticated/admin.iris-refresh'
@@ -250,6 +251,12 @@ const AuthenticatedAdminSettingsRoute =
   AuthenticatedAdminSettingsRouteImport.update({
     id: '/settings',
     path: '/settings',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminOraclePhase2TestRoute =
+  AuthenticatedAdminOraclePhase2TestRouteImport.update({
+    id: '/oracle-phase2-test',
+    path: '/oracle-phase2-test',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminMessagingRoute =
@@ -563,6 +570,7 @@ export interface FileRoutesByFullPath {
   '/admin/iris-refresh': typeof AuthenticatedAdminIrisRefreshRoute
   '/admin/iris-writer-view': typeof AuthenticatedAdminIrisWriterViewRoute
   '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
+  '/admin/oracle-phase2-test': typeof AuthenticatedAdminOraclePhase2TestRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/mission/new': typeof AuthenticatedMissionNewRoute
@@ -642,6 +650,7 @@ export interface FileRoutesByTo {
   '/admin/iris-refresh': typeof AuthenticatedAdminIrisRefreshRoute
   '/admin/iris-writer-view': typeof AuthenticatedAdminIrisWriterViewRoute
   '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
+  '/admin/oracle-phase2-test': typeof AuthenticatedAdminOraclePhase2TestRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/mission/new': typeof AuthenticatedMissionNewRoute
@@ -723,6 +732,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/iris-refresh': typeof AuthenticatedAdminIrisRefreshRoute
   '/_authenticated/admin/iris-writer-view': typeof AuthenticatedAdminIrisWriterViewRoute
   '/_authenticated/admin/messaging': typeof AuthenticatedAdminMessagingRoute
+  '/_authenticated/admin/oracle-phase2-test': typeof AuthenticatedAdminOraclePhase2TestRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/_authenticated/mission/new': typeof AuthenticatedMissionNewRoute
@@ -805,6 +815,7 @@ export interface FileRouteTypes {
     | '/admin/iris-refresh'
     | '/admin/iris-writer-view'
     | '/admin/messaging'
+    | '/admin/oracle-phase2-test'
     | '/admin/settings'
     | '/admin/team'
     | '/mission/new'
@@ -884,6 +895,7 @@ export interface FileRouteTypes {
     | '/admin/iris-refresh'
     | '/admin/iris-writer-view'
     | '/admin/messaging'
+    | '/admin/oracle-phase2-test'
     | '/admin/settings'
     | '/admin/team'
     | '/mission/new'
@@ -964,6 +976,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/iris-refresh'
     | '/_authenticated/admin/iris-writer-view'
     | '/_authenticated/admin/messaging'
+    | '/_authenticated/admin/oracle-phase2-test'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/team'
     | '/_authenticated/mission/new'
@@ -1268,6 +1281,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/oracle-phase2-test': {
+      id: '/_authenticated/admin/oracle-phase2-test'
+      path: '/oracle-phase2-test'
+      fullPath: '/admin/oracle-phase2-test'
+      preLoaderRoute: typeof AuthenticatedAdminOraclePhase2TestRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/messaging': {
@@ -1631,6 +1651,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminIrisRefreshRoute: typeof AuthenticatedAdminIrisRefreshRoute
   AuthenticatedAdminIrisWriterViewRoute: typeof AuthenticatedAdminIrisWriterViewRoute
   AuthenticatedAdminMessagingRoute: typeof AuthenticatedAdminMessagingRoute
+  AuthenticatedAdminOraclePhase2TestRoute: typeof AuthenticatedAdminOraclePhase2TestRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRouteWithChildren
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -1645,6 +1666,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminIrisRefreshRoute: AuthenticatedAdminIrisRefreshRoute,
   AuthenticatedAdminIrisWriterViewRoute: AuthenticatedAdminIrisWriterViewRoute,
   AuthenticatedAdminMessagingRoute: AuthenticatedAdminMessagingRoute,
+  AuthenticatedAdminOraclePhase2TestRoute:
+    AuthenticatedAdminOraclePhase2TestRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminTeamRoute: AuthenticatedAdminTeamRouteWithChildren,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
