@@ -527,6 +527,17 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
         progressId={checkInFor?.progress_id ?? null}
         onSubmitted={() => qc.invalidateQueries({ queryKey: refreshKey })}
       />
+
+      <WritersBlockDialog
+        open={!!stuckFor}
+        onOpenChange={(v) => { if (!v) setStuckFor(null); }}
+        missionId={missionId}
+        questionId={stuckFor?.id ?? null}
+        questionNumber={stuckFor?.question_number ?? null}
+        questionText={stuckFor?.question_text ?? null}
+        dueDate={stuckFor?.due_date ?? null}
+        status={stuckFor?.progress_status ?? null}
+      />
     </div>
   );
 
