@@ -8,6 +8,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { buildMissionContext, serializeContextForPrompt } from "@/lib/iris/build-mission-context";
 
 const Input = z.object({
   missionId: z.string().uuid(),
