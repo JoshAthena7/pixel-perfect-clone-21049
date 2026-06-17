@@ -8,6 +8,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { withAICircuit } from "@/lib/ai-circuit-breaker";
+import { buildMissionContext, serializeContextForPrompt } from "@/lib/iris/build-mission-context";
 
 const BLOCK = z.enum([
   "dont_know_where_to_start",
@@ -67,20 +68,13 @@ export const unstickMe = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { missionId, questionId, blockType, freeText, sessionId } = data;
 
-    const [qRes, oRes] = await Promise.all([
-      supabase.from("mission_questions")
-        .select("question_number, question_text, evaluation_weight, iris_decoded_intent")
-        .eq("id", questionId).maybeSingle(),
-      supabase.from("oracle_engagement_config")
-        .select("win_themes, central_claim").eq("mission_id", missionId).maybeSingle(),
-    ]);
-    const q: any = qRes.data ?? {};
-    const o: any = oRes.data ?? {};
+    const ctx = await buildMissionContext(supabase, missionId, { questionId });
+    const contextBlock = serializeContextForPrompt(ctx, "question");
+    console.log(`[unstick] context ${ctx._buildMs}ms ${contextBlock.length} chars`);
 
-    const head = `Question ${q.question_number ?? "?"} (weight: ${q.evaluation_weight ?? "—"}): ${q.question_text ?? ""}
-IRIS decoded intent: ${q.iris_decoded_intent ?? "(none)"}
-Win themes: ${flatten(o.win_themes) || "(none)"}
-Central claim: ${o.central_claim ?? "(none)"}
+    const head = `=== FULL MISSION INTELLIGENCE ===
+${contextBlock}
+
 Blocker: ${blockType}
 Writer context: ${freeText || "(none)"}`;
 

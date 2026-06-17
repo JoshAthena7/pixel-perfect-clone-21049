@@ -9,6 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { withAICircuit } from "@/lib/ai-circuit-breaker";
+import { buildMissionContext, serializeContextForPrompt } from "@/lib/iris/build-mission-context";
 
 const TOOL = z.enum(["decode", "win_angle", "evidence", "watch_out"]);
 const MODE = z.enum(["initial", "regenerate", "go_deeper"]);
@@ -66,53 +67,27 @@ export const runAssistTool = createServerFn({ method: "POST" })
     const { supabase } = context;
     const { missionId, questionId, tool, mode, priorResponse } = data;
 
-    const [qRes, mRes, oRes, compRes] = await Promise.all([
-      supabase.from("mission_questions")
-        .select("question_number, question_text, evaluation_weight, iris_decoded_intent")
-        .eq("id", questionId).maybeSingle(),
-      supabase.from("missions").select("name, state, program_type").eq("id", missionId).maybeSingle(),
-      supabase.from("oracle_engagement_config")
-        .select("win_themes, central_claim, discriminators, proof_points, top_risks, north_star, competitors")
-        .eq("mission_id", missionId).maybeSingle(),
-      supabase.from("competitor_profiles").select("organization_name").eq("mission_id", missionId).limit(10),
-    ]);
+    // Watch-out uses competitive focus; everything else uses question focus.
+    const focus = tool === "watch_out" ? "competitive" : "question";
+    const ctx = await buildMissionContext(supabase, missionId, { questionId });
+    const contextBlock = serializeContextForPrompt(ctx, focus);
+    console.log(`[assist:${tool}] context ${ctx._buildMs}ms ${contextBlock.length} chars`);
 
-    const q: any = qRes.data ?? {};
-    const m: any = mRes.data ?? {};
-    const o: any = oRes.data ?? {};
-    const competitorNames = (compRes.data ?? []).map((c: any) => c.organization_name).filter(Boolean);
-    const oecCompetitors = flatten(o.competitors);
-    const weight = q.evaluation_weight ?? "—";
-
-    const base = `Mission: ${m.name ?? "—"} (${m.state ?? "—"}, ${m.program_type ?? "—"})
-Question ${q.question_number ?? "?"} (weight: ${weight}): ${q.question_text ?? ""}
-IRIS decoded intent: ${q.iris_decoded_intent ?? "(none)"}
-Win themes: ${flatten(o.win_themes) || "(none)"}
-Central claim: ${o.central_claim ?? "(none)"}
-Discriminators: ${flatten(o.discriminators) || "(none)"}`;
+    const base = `=== FULL MISSION INTELLIGENCE ===\n${contextBlock}`;
 
     let user = "";
     if (tool === "decode") {
-      user = `${base}
-
-What is this question REALLY asking beyond the literal words? What are evaluators testing for? What does a high-scoring answer look like vs low-scoring? Specific to this mission. Max 200 words. Direct.`;
+      user = `${base}\n\nWhat is this question REALLY asking beyond the literal words? What are evaluators testing for? What does a high-scoring answer look like vs low-scoring? Reference specific win themes and evaluator priorities from the context above. Max 200 words. Direct.`;
     } else if (tool === "win_angle") {
-      user = `${base}
-Competitors: ${[oecCompetitors, competitorNames.join(", ")].filter(Boolean).join(" | ") || "(unknown)"}
-
-How should Athena specifically attack this question? What's the unique angle given who we are vs who else is bidding? Concrete strategic direction. Max 150 words.`;
+      user = `${base}\n\nHow should Athena specifically attack this question? What's the unique angle given who we are vs who else is bidding (use the competitive landscape above)? Concrete strategic direction tied to win themes and discriminators. Max 150 words.`;
     } else if (tool === "evidence") {
-      user = `${base}
-Proof points: ${flatten(o.proof_points) || "(none)"}
-North star: ${o.north_star ?? "(none)"}
-
-What specific evidence, data, or proof points should this writer use? Name them concretely. Reference numbers or sources from mission context where possible. Max 150 words. Numbered list.`;
+      const pp = ctx.proofPoints.length ? `\n\nProof points available:\n${ctx.proofPoints.map((p, i) => `${i + 1}. ${p}`).join("\n")}` : "";
+      const ex = ctx.confirmedExtractions.length ? `\n\nConfirmed RFP facts:\n${ctx.confirmedExtractions.slice(0, 8).map((e) => `- ${e.field}: ${e.value}`).join("\n")}` : "";
+      user = `${base}${pp}${ex}\n\nWhat specific evidence, data, or proof points should this writer use? Name them concretely — reference proof points and confirmed RFP facts above by name. Max 150 words. Numbered list.`;
     } else {
-      user = `${base}
-Mission risks: ${flatten(o.top_risks) || "(none)"}
-
-What are the traps in this question? What do evaluators test for that most bidders get wrong? What language would score poorly? Direct and specific. Max 150 words.`;
+      user = `${base}\n\nWhat are the traps in this question? What do evaluators test for that most bidders get wrong (use competitive signals + top risks above)? What language would score poorly? Direct and specific. Max 150 words.`;
     }
+
 
     if (mode === "go_deeper" && priorResponse) {
       user += `\n\nGo deeper on this prior response, adding texture and specificity (do not repeat it):\n${priorResponse}`;

@@ -9,6 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { withAICircuit } from "@/lib/ai-circuit-breaker";
+import { buildMissionContext, serializeContextForPrompt } from "@/lib/iris/build-mission-context";
 
 type MomentType = "inspiration" | "trivia" | "teamwork_nudge";
 
@@ -93,18 +94,17 @@ export const ensureMissionMoment = createServerFn({ method: "POST" })
       .maybeSingle();
     if (existing) return existing;
 
-    // 2) Generate via AI
-    const ctx = await buildContext(supabase, missionId);
+    // 2) Generate via AI with full mission context
+    const ctx = await buildMissionContext(supabase, missionId);
+    const strategicBlock = serializeContextForPrompt(ctx, "strategic");
+    const sectionsList = ctx.sections.slice(0, 10).map((s) => `${s.number} ${s.name}`).join("\n") || "(none yet)";
 
     let content: Record<string, unknown> | null = null;
     if (momentType === "inspiration") {
-      const userMsg = `Mission: ${ctx.mission.name} (${ctx.mission.client_name ?? "—"})
-State: ${ctx.mission.state ?? "—"} | Program: ${ctx.mission.program_type ?? "—"}
-Win themes: ${ctx.winThemes.join(" | ") || "(none yet)"}
-North star: ${ctx.northStar || "(none yet)"}
-Team: ${ctx.teamNames.join(", ") || "(no team listed)"}
+      const userMsg = `=== STRATEGIC CONTEXT ===
+${strategicBlock}
 
-Generate one short inspiration moment. Return JSON:
+Generate one short inspiration moment grounded in this mission's actual stakes and win themes (not generic). Return JSON:
 {
   "quote": "max 180 chars — specific to this mission and what's at stake for the people served",
   "attribution": "who this is from — e.g. 'Josh Boynton · Athena Strategy Group' or 'IRIS · Mission Brief'",
@@ -123,12 +123,16 @@ Generate one short inspiration moment. Return JSON:
       const qList = (asgs ?? [])
         .map((a: any) => `${a.mission_questions?.question_number ?? "?"} — ${(a.mission_questions?.question_text ?? "").slice(0, 100)}`)
         .filter(Boolean);
-      const userMsg = `Mission: ${ctx.mission.name}
-State: ${ctx.mission.state ?? "—"} | Program: ${ctx.mission.program_type ?? "—"}
+      const userMsg = `Mission: ${ctx.mission.name} (${ctx.mission.state ?? "—"} · ${ctx.mission.programType ?? "—"})
+North star: ${ctx.northStar || "(none)"}
+
+RFP structure (sections):
+${sectionsList}
+
 Questions assigned to this user:
 ${qList.length ? qList.map(q => `- ${q}`).join("\n") : "(none yet)"}
 
-Generate ONE trivia question that makes this writer smarter about the specific program. Return JSON:
+Generate ONE trivia question that makes this writer smarter about THIS specific RFP — reference a real section name, real population, or real program detail above (not generic Medicaid trivia). Return JSON:
 {
   "question": "the trivia question",
   "options": ["A","B","C","D"],
@@ -139,6 +143,7 @@ Generate ONE trivia question that makes this writer smarter about the specific p
       const raw = await callIris(TRIVIA_SYS, userMsg);
       content = parseJson(raw);
     }
+
 
     if (!content) {
       throw new Error("IRIS returned an unreadable moment. Try again shortly.");

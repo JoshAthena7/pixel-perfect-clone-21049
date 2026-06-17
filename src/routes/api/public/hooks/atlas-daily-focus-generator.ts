@@ -12,6 +12,7 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { withAICircuit } from "@/lib/ai-circuit-breaker";
+import { buildMissionContext, serializeContextForPrompt } from "@/lib/iris/build-mission-context";
 
 async function callIris(apiKey: string, system: string, user: string): Promise<string> {
   const res = await withAICircuit(async () => {
@@ -105,14 +106,9 @@ export const Route = createFileRoute("/api/public/hooks/atlas-daily-focus-genera
               continue;
             }
 
-            const { data: oec } = await supabaseAdmin
-              .from("oracle_engagement_config")
-              .select("north_star, win_themes, top_risks, central_claim")
-              .eq("mission_id", m.id)
-              .maybeSingle();
-
-            const winThemes = flatten(oec?.win_themes);
-            const topRisks = flatten(oec?.top_risks);
+            const ctx = await buildMissionContext(supabaseAdmin as any, m.id);
+            const contextBlock = serializeContextForPrompt(ctx, "full");
+            console.log(`[atlas-daily-focus] ${m.id} context ${ctx._buildMs}ms ${contextBlock.length} chars`);
 
             let daysRemaining: number | null = null;
             if (m.submission_deadline) {
@@ -126,15 +122,14 @@ export const Route = createFileRoute("/api/public/hooks/atlas-daily-focus-genera
               .eq("mission_id", m.id)
               .eq("health_status", "at_risk");
 
-            const userMsg = `Mission: ${m.name} (${m.client_name ?? "—"})
-State: ${m.state ?? "—"} | Program: ${m.program_type ?? "—"}
+            const userMsg = `=== FULL MISSION INTELLIGENCE ===
+${contextBlock}
+
+=== TODAY ===
 Submission: ${m.submission_deadline ?? "TBD"} | Days remaining: ${daysRemaining ?? "—"}
-North star: ${oec?.north_star ?? "(none)"}
-Win themes: ${winThemes || "(none)"}
-Strategic risks: ${topRisks || "(none)"}
 Questions at risk: ${atRisk ?? 0}
 
-Generate 3 specific focus items for the proposal team for today. Actionable tasks or intelligence priorities — not motivational statements. What should the team actually DO today to advance this pursuit?
+Generate 3 specific focus items for the proposal team for today. Reference specific intelligence signals, named organizations or people, named win themes, or specific RFP sections from the context above — not generic advice. Actionable tasks for today.
 
 Return JSON only:
 { "items": [
@@ -142,6 +137,7 @@ Return JSON only:
   { "priority": 2, "title": "...", "detail": "...", "category": "..." },
   { "priority": 3, "title": "...", "detail": "...", "category": "..." }
 ] }`;
+
 
             const raw = await callIris(lovableKey, FOCUS_SYS, userMsg);
             const parsed = parseJson<{ items?: FocusItem[] }>(raw);
