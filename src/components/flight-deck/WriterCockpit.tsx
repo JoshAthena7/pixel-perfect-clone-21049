@@ -590,27 +590,11 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
         </button>
 
         {open && (
-          <div style={{ padding: "0 16px 16px 16px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-            {q.iris_decoded_intent && (
-              <div style={{ marginTop: 12, padding: "10px 12px", borderLeft: `2px solid ${GOLD}`, background: "rgba(201,151,43,0.05)", borderRadius: 4 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: GOLD, letterSpacing: "0.1em", marginBottom: 4 }}>⚡ IRIS DECODED INTENT</div>
-                <div style={{ fontSize: 12, fontStyle: "italic", color: "rgba(255,255,255,0.75)", lineHeight: 1.5 }}>{q.iris_decoded_intent}</div>
-              </div>
-            )}
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 14 }}>
-              <SignalRow label="Brief Status" value={q.iris_brief_status ? `${q.iris_brief_status}${briefAge != null ? ` · ${briefAge}d old` : ""}` : "—"} />
-              <SignalRow label="Brief Exported" value={q.brief_exported_at ? new Date(q.brief_exported_at).toLocaleDateString() : "Not yet exported"} />
-              <SignalRow label="Last Activity" value={relTime(q.last_activity_at)} />
-              <SignalRow label="Mock Score" value={q.mock_score != null ? `${q.mock_score} / ${q.max_score ?? 100}` : "Not yet scored"} />
-              <SignalRow label="Confidence" value={q.writer_confidence || "Not set"} />
-              <SignalRow label="Internal Due" value={q.internal_due_date ? new Date(q.internal_due_date).toLocaleDateString() : "Not set"} />
-              <SignalRow label="Coherence" value={q.coherence_status || "Unreviewed"} />
-              <SignalRow label="Weight / Pages" value={`${q.evaluation_weight ?? "—"}% · ${q.page_limit ?? "—"}p`} />
-            </div>
-
+          <div style={{ padding: "14px 16px 16px 16px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+            {/* Full-width alert strip — feedback + need-help only.
+                Everything else lives inside one of the two pillars below. */}
             {fbList.length > 0 && (
-              <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ marginBottom: 14, display: "flex", flexDirection: "column", gap: 8 }}>
                 {fbList.map((f: any) => (
                   <div key={f.id} style={{ padding: 10, borderRadius: 6, background: "rgba(245,158,11,0.08)", border: `1px solid ${AMBER}`, display: "flex", gap: 10, alignItems: "flex-start" }}>
                     <div style={{ flex: 1 }}>
@@ -626,59 +610,153 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
             )}
 
             {q.acceptance_status === "need_help" && q.sme_assigned === false && (
-              <div style={{ marginTop: 12, padding: "8px 12px", background: "rgba(239,68,68,0.1)", border: `1px solid ${RED}`, borderRadius: 6, fontSize: 12, color: "#fecaca" }}>
+              <div style={{ marginBottom: 14, padding: "8px 12px", background: "rgba(239,68,68,0.1)", border: `1px solid ${RED}`, borderRadius: 6, fontSize: 12, color: "#fecaca" }}>
                 🆘 Awaiting SME Assignment — your Engagement Lead has been notified.
               </div>
             )}
 
-            <div style={{ marginTop: 14 }}>
-              <AtlasAssistBar missionId={missionId} questionId={q.id} />
-            </div>
-
-            <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-              {q.iris_brief && (
-                q.brief_opened_at
-                  ? <button onClick={() => handleOpenBrief(q)} style={btn(GOLD)}><FileText size={12}/> View Brief</button>
-                  : <button onClick={() => handleOpenBrief(q)} style={btn(GOLD, true)}><Sparkles size={12}/> Open Brief</button>
-              )}
-              {q.brief_exported_at && <button onClick={() => handleExportBrief(q)} style={btn("#6b7280")}><Download size={12}/> Re-export</button>}
-              {!q.brief_exported_at && q.iris_brief && <button onClick={() => handleExportBrief(q)} style={btn("#6b7280")}><Download size={12}/> Export Brief</button>}
-              {q.iris_brief_status === "stale" && <span style={{ fontSize: 11, color: AMBER }}>⚠ Brief is stale — admin must regenerate</span>}
-
-              <button onClick={() => setCheckInFor(q)} style={btn("#3b82f6")}><Activity size={12}/> Check-In</button>
-              <button onClick={() => setScoreMeFor(q)} style={btn("#a78bfa")}><Gauge size={12}/> Score Me</button>
-              <button
-                onClick={() => setStuckFor(q)}
+            {/* Two equal pillars: STATUS HUD (left) | BRIEF (right) */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 12,
+                alignItems: "stretch",
+              }}
+            >
+              {/* LEFT PILLAR — STATUS HUD */}
+              <div
                 style={{
-                  background: "transparent", color: GOLD, border: `1px solid ${GOLD}`,
-                  borderRadius: 6, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer",
+                  padding: 14,
+                  borderRadius: 8,
+                  background: "rgba(255,255,255,0.025)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
                 }}
               >
-                🧱 Stuck?
-              </button>
-              <button onClick={() => setPulseOpen(true)} style={btn("#0ea5e9")}><Radio size={12}/> Pulse</button>
+                <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.14em", color: "rgba(255,255,255,0.45)", textTransform: "uppercase" }}>
+                  Status HUD
+                </div>
 
-              {q.acceptance_status === "pending" && (
-                <>
-                  <button onClick={() => handleAcceptAssignment(q)} style={btn(GREEN)}>Accept Assignment</button>
-                  <button onClick={() => handleNeedHelp(q)} style={btn(RED)}><LifeBuoy size={12}/> Need Help</button>
-                </>
-              )}
+                {/* Hero status: health + days remaining */}
+                <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+                  <span style={{
+                    fontSize: 22, fontWeight: 700,
+                    color: healthColor(q.health_status),
+                    textTransform: "uppercase", letterSpacing: "0.04em",
+                  }}>
+                    {q.health_status === "at_risk" ? "At Risk" : q.health_status === "watch" ? "Watch" : "On Track"}
+                  </span>
+                  {dRem !== null && (
+                    <span style={{ fontSize: 13, color: dRem < 7 ? RED : dRem < 14 ? AMBER : GREEN, fontWeight: 600 }}>
+                      {dRem}d to due
+                    </span>
+                  )}
+                </div>
 
-              <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Update status:</span>
-                <select
-                  value=""
-                  onChange={(e) => e.target.value && handleStatusChange(q, e.target.value as ProgressStatus)}
-                  style={{ background: "#1a2433", color: "white", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "5px 8px", fontSize: 11 }}
-                >
-                  <option value="">→ next…</option>
-                  {nextOptions.map(s => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
-                </select>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
+                  Status:{" "}
+                  <span style={{ color: STATUS_COLORS[q.progress_status] || "white", fontWeight: 600 }}>
+                    {q.progress_status.replace(/_/g, " ")}
+                  </span>
+                </div>
+
+                {/* Compact signal grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <SignalRow label="Brief Status" value={q.iris_brief_status ? `${q.iris_brief_status}${briefAge != null ? ` · ${briefAge}d old` : ""}` : "—"} />
+                  <SignalRow label="Brief Exported" value={q.brief_exported_at ? new Date(q.brief_exported_at).toLocaleDateString() : "Not yet exported"} />
+                  <SignalRow label="Last Activity" value={relTime(q.last_activity_at)} />
+                  <SignalRow label="Mock Score" value={q.mock_score != null ? `${q.mock_score} / ${q.max_score ?? 100}` : "Not yet scored"} />
+                  <SignalRow label="Confidence" value={q.writer_confidence || "Not set"} />
+                  <SignalRow label="Internal Due" value={q.internal_due_date ? new Date(q.internal_due_date).toLocaleDateString() : "Not set"} />
+                  <SignalRow label="Coherence" value={q.coherence_status || "Unreviewed"} />
+                  <SignalRow label="Weight / Pages" value={`${q.evaluation_weight ?? "—"}% · ${q.page_limit ?? "—"}p`} />
+                </div>
+
+                {/* Status-action buttons live with the status info */}
+                <div style={{ marginTop: "auto", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                  <button onClick={() => setCheckInFor(q)} style={btn("#3b82f6")}><Activity size={12}/> Check-In</button>
+                  <button onClick={() => setScoreMeFor(q)} style={btn("#a78bfa")}><Gauge size={12}/> Score Me</button>
+                  <button
+                    onClick={() => setStuckFor(q)}
+                    style={{
+                      background: "transparent", color: GOLD, border: `1px solid ${GOLD}`,
+                      borderRadius: 6, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer",
+                    }}
+                  >
+                    🧱 Stuck?
+                  </button>
+                  <button onClick={() => setPulseOpen(true)} style={btn("#0ea5e9")}><Radio size={12}/> Pulse</button>
+
+                  {q.acceptance_status === "pending" && (
+                    <>
+                      <button onClick={() => handleAcceptAssignment(q)} style={btn(GREEN)}>Accept</button>
+                      <button onClick={() => handleNeedHelp(q)} style={btn(RED)}><LifeBuoy size={12}/> Need Help</button>
+                    </>
+                  )}
+
+                  <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Next:</span>
+                    <select
+                      value=""
+                      onChange={(e) => e.target.value && handleStatusChange(q, e.target.value as ProgressStatus)}
+                      style={{ background: "#1a2433", color: "white", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "5px 8px", fontSize: 11 }}
+                    >
+                      <option value="">→ status…</option>
+                      {nextOptions.map(s => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT PILLAR — BRIEF */}
+              <div
+                style={{
+                  padding: 14,
+                  borderRadius: 8,
+                  background: "rgba(201,151,43,0.04)",
+                  border: "1px solid rgba(201,151,43,0.18)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                }}
+              >
+                <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.14em", color: GOLD, textTransform: "uppercase" }}>
+                  Brief
+                </div>
+
+                {q.iris_decoded_intent ? (
+                  <div style={{ padding: "10px 12px", borderLeft: `2px solid ${GOLD}`, background: "rgba(201,151,43,0.06)", borderRadius: 4 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: GOLD, letterSpacing: "0.1em", marginBottom: 4 }}>⚡ IRIS DECODED INTENT</div>
+                    <div style={{ fontSize: 12, fontStyle: "italic", color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>{q.iris_decoded_intent}</div>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontStyle: "italic" }}>
+                    IRIS has not decoded the intent yet.
+                  </div>
+                )}
+
+                {/* IRIS coaching — single source */}
+                <AtlasAssistBar missionId={missionId} questionId={q.id} />
+
+                {/* Brief actions */}
+                <div style={{ marginTop: "auto", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", paddingTop: 10, borderTop: "1px solid rgba(201,151,43,0.15)" }}>
+                  {q.iris_brief && (
+                    q.brief_opened_at
+                      ? <button onClick={() => handleOpenBrief(q)} style={btn(GOLD)}><FileText size={12}/> View Brief</button>
+                      : <button onClick={() => handleOpenBrief(q)} style={btn(GOLD, true)}><Sparkles size={12}/> Open Brief</button>
+                  )}
+                  {q.brief_exported_at && <button onClick={() => handleExportBrief(q)} style={btn("#6b7280")}><Download size={12}/> Re-export</button>}
+                  {!q.brief_exported_at && q.iris_brief && <button onClick={() => handleExportBrief(q)} style={btn("#6b7280")}><Download size={12}/> Export Brief</button>}
+                  {q.iris_brief_status === "stale" && <span style={{ fontSize: 11, color: AMBER }}>⚠ Brief is stale — admin must regenerate</span>}
+                </div>
               </div>
             </div>
           </div>
         )}
+
       </div>
     );
   }
