@@ -22,6 +22,7 @@ import {
   ShieldAlert,
   Eye,
   Activity,
+  RefreshCw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -264,8 +265,35 @@ export function OracleCanvas({
         </Section>
       )}
 
-      {/* Status badge */}
-      <div className="flex justify-end">
+      {/* Status badge + re-hydrate */}
+      <div className="flex justify-end items-center gap-2">
+        {canEdit && (
+          <button
+            onClick={async () => {
+              const ok = await save({
+                win_themes: winThemes as never,
+                top_risks: topRisks as never,
+                competitors: competitors as never,
+              });
+              if (ok) toast.success("ORACLE re-hydrated from mission data");
+            }}
+            className="inline-flex items-center gap-1.5 rounded-full"
+            style={{
+              fontSize: 10,
+              padding: "4px 10px",
+              background: "rgba(196,154,43,0.08)",
+              border: `0.5px solid ${GOLD}`,
+              color: GOLD,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              fontWeight: 600,
+            }}
+            title="Persist current win themes, risks, and competitors into ORACLE config"
+          >
+            <RefreshCw size={10} />
+            Re-hydrate ORACLE
+          </button>
+        )}
         <span
           className="inline-flex items-center gap-2 rounded-full"
           style={{
