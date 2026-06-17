@@ -136,7 +136,7 @@ function SourcesPage() {
         await qc.invalidateQueries({ queryKey: ["oracle-source-counts", missionId] });
       } else {
         const r = await densify({ data: { mission_id: missionId } });
-        toast.success(`Densified • new edges ${r.edges_created ?? 0}`);
+        toast.success(`Densified • new edges ${r.edgesAdded}`);
       }
     } catch (e) {
       toast.error((e as Error).message);
