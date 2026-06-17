@@ -140,7 +140,7 @@ export const generateOracleAnswer = createServerFn({ method: "POST" })
     if (themes.length) {
       ctxParts.push("\n# Win Themes");
       for (const t of themes) {
-        ctxParts.push(`- win_theme:${t.id} ${t.theme}${t.supporting_evidence ? ` — ${t.supporting_evidence}` : ""}`);
+        ctxParts.push(`- win_theme:${t.id} ${t.title}${t.why_it_matters ? ` — ${t.why_it_matters}` : ""}`);
       }
     }
     if (risks.length) {
