@@ -250,7 +250,17 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
         pensDown,
         internalReview,
         pulse: pulseList,
-        winThemes: ((oec.data as any)?.win_themes ?? []) as any[],
+        winThemes: (() => {
+          const oracleThemes = ((oec.data as any)?.win_themes ?? []) as any[];
+          if (oracleThemes.length > 0) return oracleThemes;
+          return ((mwt.data ?? []) as any[])
+            .filter((t: any) => t.status !== "archived")
+            .map((t: any) => ({
+              id: t.id,
+              title: t.title,
+              text: t.why_it_matters ? `${t.title} — ${t.why_it_matters}` : t.title,
+            }));
+        })(),
         qNumByQid,
         writerByQid,
         myQids: Array.from(myQids),
