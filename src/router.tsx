@@ -94,8 +94,8 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
     defaultPendingComponent: AtlasPendingScreen,
-    defaultPendingMs: 400,
-    defaultPendingMinMs: 200,
+    defaultPendingMs: 60,
+    defaultPendingMinMs: 180,
   });
 
   return router;
