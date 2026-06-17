@@ -58,6 +58,7 @@ const NODE_TYPES = new Set([
 ]);
 const SEVERITY = new Set(["Low", "Medium", "High", "Critical"]);
 const CONF = new Set(["high", "medium", "low"]);
+const CONF_TO_NUM: Record<string, number> = { high: 0.9, medium: 0.6, low: 0.3 };
 const AUTH = new Set(["client_stated", "public", "inferred"]);
 
 function tryParseJSON<T>(s: string): T | null {
