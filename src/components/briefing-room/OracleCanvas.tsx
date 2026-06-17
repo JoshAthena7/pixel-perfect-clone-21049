@@ -99,32 +99,70 @@ export function OracleCanvas({
   const { data: oracleConfig, refetch } = useQuery({
     queryKey: ["oracle-canvas", missionId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("oracle_engagement_config")
-        .select(
-          "north_star, win_themes, top_risks, competitors, monitoring_mode, signal_threshold, status",
-        )
-        .eq("mission_id", missionId)
-        .maybeSingle();
+      const [cfgRes, missionRes, themesRes, risksRes, compsRes] = await Promise.all([
+        supabase
+          .from("oracle_engagement_config")
+          .select("north_star, win_themes, top_risks, competitors, monitoring_mode, signal_threshold, status")
+          .eq("mission_id", missionId)
+          .maybeSingle(),
+        supabase.from("missions").select("known_competitors").eq("id", missionId).maybeSingle(),
+        supabase
+          .from("mission_win_themes")
+          .select("id, title, why_it_matters, status, display_order")
+          .eq("mission_id", missionId)
+          .order("display_order", { ascending: true }),
+        supabase
+          .from("mission_risks")
+          .select("id, title, description, severity, status")
+          .eq("mission_id", missionId)
+          .neq("status", "Closed"),
+        supabase
+          .from("competitor_profiles")
+          .select("id, organization_name")
+          .eq("mission_id", missionId),
+      ]);
 
-      if (data) return data as unknown as OracleConfig;
+      const cfg = (cfgRes.data ?? null) as OracleConfig | null;
+      const cfgThemes = Array.isArray(cfg?.win_themes) ? (cfg!.win_themes as TaggedItem[]) : [];
+      const cfgRisks = Array.isArray(cfg?.top_risks) ? (cfg!.top_risks as TaggedItem[]) : [];
+      const cfgComps = Array.isArray(cfg?.competitors) ? (cfg!.competitors as string[]) : [];
 
-      // Bootstrap: no oracle config yet — hydrate from missions.known_competitors so
-      // the Monitored Competitors section still populates after Setup.
-      const { data: mission } = await supabase
-        .from("missions")
-        .select("known_competitors")
-        .eq("id", missionId)
-        .maybeSingle();
-      const known = (mission?.known_competitors ?? []) as string[];
+      const fallbackThemes: TaggedItem[] = cfgThemes.length
+        ? cfgThemes
+        : ((themesRes.data ?? []).filter((t: any) => t.status !== "archived")).map((t: any) => ({
+            id: t.id,
+            text: t.why_it_matters ? `${t.title} — ${t.why_it_matters}` : t.title,
+            signal_authority: "team_validated" as SignalAuthority,
+            rfp_reference: null,
+            confidence: 80,
+            status: t.status ?? "active",
+          }));
+
+      const fallbackRisks: TaggedItem[] = cfgRisks.length
+        ? cfgRisks
+        : (risksRes.data ?? []).map((r: any) => ({
+            id: r.id,
+            text: r.description ? `${r.title} — ${r.description}` : r.title,
+            signal_authority: "team_validated" as SignalAuthority,
+            rfp_reference: null,
+            confidence: 70,
+            status: r.severity ?? r.status ?? "active",
+          }));
+
+      const known = ((missionRes.data?.known_competitors ?? []) as string[]) || [];
+      const profileNames = (compsRes.data ?? []).map((c: any) => c.organization_name).filter(Boolean);
+      const mergedComps = cfgComps.length
+        ? cfgComps
+        : Array.from(new Set([...profileNames, ...known]));
+
       return {
-        north_star: null,
-        win_themes: [],
-        top_risks: [],
-        competitors: known,
-        monitoring_mode: "balanced",
-        signal_threshold: 40,
-        status: "active",
+        north_star: cfg?.north_star ?? null,
+        win_themes: fallbackThemes,
+        top_risks: fallbackRisks,
+        competitors: mergedComps,
+        monitoring_mode: cfg?.monitoring_mode ?? "balanced",
+        signal_threshold: cfg?.signal_threshold ?? 40,
+        status: cfg?.status ?? "active",
       } as unknown as OracleConfig;
     },
     staleTime: 30_000,
