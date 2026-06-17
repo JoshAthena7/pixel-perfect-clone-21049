@@ -169,7 +169,7 @@ export const extractSourceIntelligence = createServerFn({ method: "POST" })
         source: sourceTag,
         signal_authority: auth,
         is_manually_added: false,
-        iris_confidence: conf,
+        iris_confidence: CONF_TO_NUM[conf] ?? 0.6,
         iris_sources: [{ document_id: doc.id, document_type: docType, title: doc.title }],
       });
       if (!error) counts.proof_points++;
