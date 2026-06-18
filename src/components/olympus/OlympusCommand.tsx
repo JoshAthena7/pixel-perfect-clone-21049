@@ -5,6 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { runOracleStage } from "@/lib/oracle-pipeline.functions";
 import { toast } from "sonner";
 import { Loader2, Zap } from "lucide-react";
+import { TaxonomyBrowser } from "./TaxonomyBrowser";
+import { IntelReviewQueue } from "./IntelReviewQueue";
+import { SourcesPanel } from "./SourcesPanel";
 
 type MissionRow = { id: string; name: string; submission_deadline: string | null };
 
@@ -65,6 +68,8 @@ function formatRelative(iso: string | null | undefined): string {
 export function OlympusCommand() {
   const missionsQ = useMissions();
   const [missionId, setMissionId] = useState<string | null>(null);
+  const [leftTab, setLeftTab] = useState<"taxonomy" | "sources">("taxonomy");
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const lastRunQ = useLastPipelineRun();
   const runStage = useServerFn(runOracleStage);
 
@@ -146,15 +151,32 @@ export function OlympusCommand() {
 
       {/* 3-column shell */}
       <div className="grid" style={{ gridTemplateColumns: "24% 48% 28%", height: "calc(100vh - 48px)" }}>
-        <Column title="TAXONOMY BROWSER">
-          <PhasePlaceholder phase="B" note="67-node tree, gap map, source manager." />
+        <Column
+          title={
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setLeftTab("taxonomy")}
+                className={leftTab === "taxonomy" ? "text-white/90" : "text-white/40 hover:text-white/70"}
+              >
+                TAXONOMY
+              </button>
+              <button
+                onClick={() => setLeftTab("sources")}
+                className={leftTab === "sources" ? "text-white/90" : "text-white/40 hover:text-white/70"}
+              >
+                SOURCES
+              </button>
+            </div>
+          }
+        >
+          {leftTab === "taxonomy" ? (
+            <TaxonomyBrowser selectedNodeId={selectedNodeId} onSelect={setSelectedNodeId} />
+          ) : (
+            <SourcesPanel />
+          )}
         </Column>
         <Column title="INTEL REVIEW QUEUE" borderX>
-          {missionId ? (
-            <PhasePlaceholder phase="B" note="Review cards with Approve/Push/Dismiss + detail drawer." />
-          ) : (
-            <EmptyMessage>Select a mission to load the review queue.</EmptyMessage>
-          )}
+          <IntelReviewQueue missionId={missionId} taxonomyNodeId={selectedNodeId} />
         </Column>
         <Column title="ORACLE HEALTH">
           <PhasePlaceholder phase="C" note="Briefing coverage, pipeline health, IRIS usage, top intel." />
@@ -169,7 +191,7 @@ function Column({
   children,
   borderX,
 }: {
-  title: string;
+  title: React.ReactNode;
   children: React.ReactNode;
   borderX?: boolean;
 }) {
