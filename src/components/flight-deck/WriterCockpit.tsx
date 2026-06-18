@@ -15,7 +15,7 @@ import { ScoreMeDialog } from "@/components/flight-deck/ScoreMeDialog";
 import { MissionPulsePanel } from "@/components/flight-deck/MissionPulsePanel";
 import { CheckInDialog } from "@/components/flight-deck/CheckInDialog";
 import { AtlasAssistBar } from "@/components/atlas/AtlasAssistBar";
-import { WritersBlockDialog } from "@/components/atlas/WritersBlockDialog";
+
 import { TeamPulseCard } from "@/components/atlas/TeamPulseCard";
 import { NarrativeBriefSection } from "@/components/flight-deck/NarrativeBriefSection";
 
