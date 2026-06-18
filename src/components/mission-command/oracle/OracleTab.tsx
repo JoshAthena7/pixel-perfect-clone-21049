@@ -21,7 +21,7 @@ import { StoryMapTab } from "./StoryMapTab";
 
 const GOLD = "#C49A2B";
 
-type TabId = "feed" | "people" | "organizations" | "sources" | "graph" | "graph-health";
+type TabId = "feed" | "people" | "organizations" | "sources" | "graph" | "graph-health" | "story-map";
 
 const BASE_TABS: { id: TabId; label: string }[] = [
   { id: "feed", label: "Feed" },
@@ -30,19 +30,28 @@ const BASE_TABS: { id: TabId; label: string }[] = [
   { id: "sources", label: "Sources" },
   { id: "graph", label: "Graph" },
 ];
+const LEAD_TABS: { id: TabId; label: string }[] = [
+  { id: "story-map", label: "Story Map" },
+];
 const ADMIN_TABS: { id: TabId; label: string }[] = [
   { id: "graph-health", label: "Graph Health" },
 ];
 
 export function OracleTab({ missionId }: { missionId: string }) {
   const { isAdmin } = useIsAdmin();
+  const { data: access } = useMissionAccess(missionId);
+  const canLead = isAdmin || access?.allowed === true;
   const [active, setActive] = useState<TabId>("feed");
   const [visited, setVisited] = useState<Set<TabId>>(new Set(["feed"]));
   const [selectedEcosystemNode, setSelectedEcosystemNode] = useState<any | null>(null);
   const [previewWriter, setPreviewWriter] = useState(false);
 
   const showWriter = !isAdmin || previewWriter;
-  const TABS = isAdmin ? [...BASE_TABS, ...ADMIN_TABS] : BASE_TABS;
+  const TABS = [
+    ...BASE_TABS,
+    ...(canLead ? LEAD_TABS : []),
+    ...(isAdmin ? ADMIN_TABS : []),
+  ];
 
 
 
