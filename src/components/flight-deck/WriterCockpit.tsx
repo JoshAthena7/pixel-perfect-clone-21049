@@ -17,6 +17,7 @@ import { CheckInDialog } from "@/components/flight-deck/CheckInDialog";
 import { AtlasAssistBar } from "@/components/atlas/AtlasAssistBar";
 import { WritersBlockDialog } from "@/components/atlas/WritersBlockDialog";
 import { TeamPulseCard } from "@/components/atlas/TeamPulseCard";
+import { NarrativeBriefSection } from "@/components/flight-deck/NarrativeBriefSection";
 
 const BG = "#060f1a";
 const CARD = "#0a1828";
