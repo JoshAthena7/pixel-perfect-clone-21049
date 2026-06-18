@@ -135,17 +135,24 @@ function conf(v: unknown): Conf {
 
 function tryParseJSON<T = unknown>(s: string): T | null {
   const cleaned = s.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
-  try {
-    return JSON.parse(cleaned) as T;
-  } catch {
-    const m = cleaned.match(/\{[\s\S]*\}/);
-    if (!m) return null;
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace = cleaned.lastIndexOf("}");
+  const candidates = [
+    cleaned,
+    firstBrace >= 0 && lastBrace > firstBrace ? cleaned.slice(firstBrace, lastBrace + 1) : "",
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    const repaired = candidate
+      .replace(/[\u0000-\u001F\u007F]/g, (char) => (char === "\n" || char === "\r" || char === "\t" ? char : " "))
+      .replace(/,\s*([}\]])/g, "$1");
     try {
-      return JSON.parse(m[0]) as T;
+      return JSON.parse(repaired) as T;
     } catch {
-      return null;
+      // Try the next boundary/repair candidate.
     }
   }
+  return null;
 }
 
 async function callAI(apiKey: string, system: string, user: string): Promise<string | null> {
@@ -210,61 +217,89 @@ export function classifySectionFormOnly(name: string, description?: string | nul
   return false;
 }
 
+export type SectionLocator = { section_number?: string | null; name?: string | null };
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function sectionCompare(a: string, b: string): number {
+  const ap = a.split(".").map((p) => parseInt(p, 10) || 0);
+  const bp = b.split(".").map((p) => parseInt(p, 10) || 0);
+  for (let i = 0; i < Math.max(ap.length, bp.length); i++) {
+    const av = ap[i] ?? 0;
+    const bv = bp[i] ?? 0;
+    if (av !== bv) return av - bv;
+  }
+  return 0;
+}
+
+function isTocCluster(fullText: string, idx: number, allSections: SectionLocator[]): boolean {
+  if (idx > 12_000) return false;
+  const window = fullText.slice(Math.max(0, idx - 120), idx + 900);
+  const hits = allSections.filter((s) => {
+    if (!s.section_number) return false;
+    const escaped = escapeRegExp(s.section_number);
+    return new RegExp(`(?:^|\\n)[ \\t]*(?:Section[ \\t]+)?${escaped}(?![0-9])`, "i").test(window);
+  }).length;
+  return hits >= 4;
+}
+
+function sectionHeaderIndexes(
+  fullText: string,
+  section: SectionLocator,
+  allSections: SectionLocator[],
+): number[] {
+  const indexes = new Set<number>();
+  const name = section.name?.trim();
+  if (name) {
+    const namePattern = escapeRegExp(name).replace(/\s+/g, "\\s+");
+    const nameRe = new RegExp(`(?:^|\\n)[ \\t]*${namePattern}[ \\t]*(?:\\n|$)`, "gi");
+    for (const match of fullText.matchAll(nameRe)) indexes.add(match.index ?? 0);
+  }
+
+  if (section.section_number) {
+    const escaped = escapeRegExp(section.section_number);
+    const numberRe = new RegExp(
+      `(?:^|\\n)[ \\t]*(?:Section[ \\t]+)?${escaped}(?![0-9])[\\.\\s\\)\\:\\-]`,
+      "gi",
+    );
+    for (const match of fullText.matchAll(numberRe)) indexes.add(match.index ?? 0);
+  }
+
+  return Array.from(indexes)
+    .filter((idx) => !isTocCluster(fullText, idx, allSections))
+    .sort((a, b) => a - b);
+}
+
 /**
- * Bounded section slice: starts at the section header match and stops at the
- * NEXT section header in `allSectionNumbers`. Caps at 12_000 chars. Returns
- * "" if no header match.
+ * Bounded section slice: starts at the body section heading (prefer exact
+ * line-only title headings over TOC number hits) and stops at the NEXT known
+ * section body heading. Caps at 12_000 chars. Returns "" if no header match.
  */
 function sliceSectionText(
   fullText: string,
   sectionNumber: string | null,
   allSectionNumbers: string[] = [],
+  sectionName?: string | null,
+  allSectionLocators: SectionLocator[] = [],
 ): string {
   if (!sectionNumber) return "";
-  const escaped = sectionNumber.replace(/\./g, "\\.");
-  const startRe = new RegExp(
-    `(?:^|\\n)[ \\t]*(?:Section[ \\t]+)?${escaped}(?![0-9])[\\.\\s\\)\\:\\-]`,
-    "i",
-  );
-  const startMatch = startRe.exec(fullText);
-  if (!startMatch) return "";
-  const startIdx = startMatch.index;
+  const locators = allSectionLocators.length > 0
+    ? allSectionLocators
+    : allSectionNumbers.map((n) => ({ section_number: n }));
+  const current = { section_number: sectionNumber, name: sectionName };
+  const startIdx = sectionHeaderIndexes(fullText, current, locators)[0];
+  if (startIdx === undefined) return "";
 
   // Find the immediately-following section header.
-  const sorted = allSectionNumbers
-    .filter((n) => n && n !== sectionNumber)
-    .sort((a, b) => {
-      const ap = a.split(".").map((p) => parseInt(p, 10) || 0);
-      const bp = b.split(".").map((p) => parseInt(p, 10) || 0);
-      for (let i = 0; i < Math.max(ap.length, bp.length); i++) {
-        const av = ap[i] ?? 0;
-        const bv = bp[i] ?? 0;
-        if (av !== bv) return av - bv;
-      }
-      return 0;
-    });
-  const curParts = sectionNumber.split(".").map((p) => parseInt(p, 10) || 0);
-  const nextSection = sorted.find((n) => {
-    const np = n.split(".").map((p) => parseInt(p, 10) || 0);
-    for (let i = 0; i < Math.max(np.length, curParts.length); i++) {
-      const a = np[i] ?? 0;
-      const b = curParts[i] ?? 0;
-      if (a !== b) return a > b;
-    }
-    return false;
-  });
-
   let endIdx = startIdx + 12_000;
-  if (nextSection) {
-    const escNext = nextSection.replace(/\./g, "\\.");
-    const endRe = new RegExp(
-      `(?:^|\\n)[ \\t]*(?:Section[ \\t]+)?${escNext}(?![0-9])[\\.\\s\\)\\:\\-]`,
-      "i",
-    );
-    const tail = fullText.slice(startIdx + 1);
-    const endMatch = endRe.exec(tail);
-    if (endMatch) endIdx = Math.min(startIdx + 1 + endMatch.index, startIdx + 12_000);
-  }
+  const nextIdx = locators
+    .filter((s) => s.section_number && sectionCompare(s.section_number, sectionNumber) > 0)
+    .flatMap((s) => sectionHeaderIndexes(fullText, s, locators))
+    .filter((idx) => idx > startIdx + 20)
+    .sort((a, b) => a - b)[0];
+  if (nextIdx !== undefined) endIdx = Math.min(nextIdx, startIdx + 12_000);
 
   const slice = fullText.slice(startIdx, endIdx).trim();
   return slice.length < 50 ? "" : slice.slice(0, 12_000);
