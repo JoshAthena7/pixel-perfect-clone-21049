@@ -80,11 +80,8 @@ export const Route = createFileRoute("/api/public/hooks/atlas-daily-moments")({
         for (const m of missions ?? []) {
           const r = { missionId: m.id, inspiration: "skip", trivia: "skip" };
 
-          const { data: oec } = await supabaseAdmin
-            .from("oracle_engagement_config")
-            .select("north_star, win_themes, central_claim")
-            .eq("mission_id", m.id).maybeSingle();
-          const winThemes = flatten(oec?.win_themes);
+
+
 
           // Pull last 60 prior moments to exclude repeats.
           const { data: priorInsp } = await supabaseAdmin
