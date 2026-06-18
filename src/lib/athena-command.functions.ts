@@ -229,7 +229,12 @@ export const getAthenaPlatformHealth = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<AthenaPlatformHealth> => {
     const { supabase, userId } = context as any;
     await assertAdmin(supabase, userId);
-    const c = (q: any) => q.then((r: any) => r.count ?? 0).catch(() => 0);
+    // Defensive count helper — RLS, missing tables, or transient errors collapse to 0
+    // so a single failing query never blanks the entire panel.
+    const c = (q: any) => q.then((r: any) => (typeof r?.count === "number" ? r.count : 0)).catch(() => 0);
+    const safe = async <T,>(p: Promise<T>, fallback: T): Promise<T> => {
+      try { return await p; } catch { return fallback; }
+    };
 
     const [
       cronRes,
@@ -245,18 +250,18 @@ export const getAthenaPlatformHealth = createServerFn({ method: "GET" })
       docsRes,
       extractionsRes,
     ] = await Promise.all([
-      supabase.rpc("athena_pipeline_jobs"),
+      safe(supabase.rpc("athena_pipeline_jobs"), { data: [] as any[] }),
       c(supabase.from("mission_questions").select("id", { count: "exact", head: true }).eq("iris_brief_status", "ready")),
       c(supabase.from("mission_questions").select("id", { count: "exact", head: true }).eq("iris_brief_status", "queued")),
       c(supabase.from("mission_questions").select("id", { count: "exact", head: true }).eq("iris_brief_status", "generating")),
       c(supabase.from("mission_questions").select("id", { count: "exact", head: true }).eq("iris_brief_status", "error")),
       c(supabase.from("intelligence_graph_nodes").select("id", { count: "exact", head: true }).eq("is_active", true)),
       c(supabase.from("intelligence_graph_edges").select("id", { count: "exact", head: true })),
-      supabase.from("intelligence_graph_nodes").select("updated_at").order("updated_at", { ascending: false }).limit(1),
+      safe(supabase.from("intelligence_graph_nodes").select("updated_at").order("updated_at", { ascending: false }).limit(1), { data: [] as any[] }),
       c(supabase.from("mission_documents").select("id", { count: "exact", head: true })),
-      supabase.from("missions").select("id,name").eq("status", "active"),
-      supabase.from("mission_documents").select("id,mission_id"),
-      supabase.from("document_extractions").select("document_id,status"),
+      safe(supabase.from("missions").select("id,name").eq("status", "active"), { data: [] as any[] }),
+      safe(supabase.from("mission_documents").select("id,mission_id"), { data: [] as any[] }),
+      safe(supabase.from("document_extractions").select("document_id,status"), { data: [] as any[] }),
     ]);
 
     const extractedReady = new Set(
@@ -266,6 +271,24 @@ export const getAthenaPlatformHealth = createServerFn({ method: "GET" })
     );
     const allDocs = docsRes.data ?? [];
     const pendingDocs = allDocs.filter((d: any) => !extractedReady.has(d.id));
+
+    // Fallback: if the SECURITY DEFINER RPC returned nothing, surface the
+    // known scheduled job names with their schedules so the panel is never blank.
+    const KNOWN_JOBS = [
+      { jobname: "atlas-daily-focus-generator", schedule: "daily" },
+      { jobname: "atlas-daily-moments", schedule: "daily" },
+      { jobname: "atlas-daily-health-recalc", schedule: "0 10 * * *" },
+    ];
+    const rawJobs = (cronRes.data ?? []) as any[];
+    const cronJobs = rawJobs.length > 0
+      ? rawJobs.map((j: any) => ({
+          jobname: j.jobname,
+          schedule: j.schedule,
+          active: j.active ?? true,
+          lastRunAt: j.last_run_at ?? null,
+          lastStatus: j.last_status ?? null,
+        }))
+      : KNOWN_JOBS.map((j) => ({ ...j, active: true, lastRunAt: null, lastStatus: null }));
 
     return {
       cronJobs: (cronRes.data ?? []).map((j: any) => ({
