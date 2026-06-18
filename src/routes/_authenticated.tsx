@@ -129,7 +129,8 @@ function AuthenticatedLayout() {
       localStorage.setItem("atlas_role_home", homeInfo.home);
     } catch { /* ignore */ }
     // /home is the canonical post-login landing; render MissionsListPage there.
-    const landingPaths = new Set(["/", "/atrium", "/olympus", "/v1", "/flight-deck"]);
+    // /olympus is the Athena Command admin dashboard — don't redirect away.
+    const landingPaths = new Set(["/", "/atrium", "/v1", "/flight-deck"]);
     if (landingPaths.has(path)) {
       // eslint-disable-next-line no-console
       console.warn("[ATLAS-NAV] landing-path redirect → /home from", path);

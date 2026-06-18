@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
-import { Route as OlympusRouteImport } from './routes/olympus'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
@@ -99,11 +98,6 @@ import { Route as AuthenticatedOlympusMissionsMissionIdWizardRouteImport } from 
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
   path: '/unsubscribe',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OlympusRoute = OlympusRouteImport.update({
-  id: '/olympus',
-  path: '/olympus',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -590,12 +584,12 @@ const AuthenticatedOlympusMissionsMissionIdWizardRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/help': typeof AuthenticatedHelpRoute
   '/home': typeof AuthenticatedHomeRoute
   '/my-work': typeof AuthenticatedMyWorkRoute
+  '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/portfolio': typeof AuthenticatedPortfolioRoute
   '/reports': typeof AuthenticatedReportsRoute
@@ -676,7 +670,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/olympus': typeof AuthenticatedOlympusIndexRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/help': typeof AuthenticatedHelpRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -709,6 +702,7 @@ export interface FileRoutesByTo {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/missions': typeof AuthenticatedMissionsIndexRoute
+  '/olympus': typeof AuthenticatedOlympusIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/admin/missions/$missionId': typeof AuthenticatedAdminMissionsMissionIdRoute
   '/admin/oracle-sources/$missionId': typeof AuthenticatedAdminOracleSourcesMissionIdRoute
@@ -761,7 +755,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
-  '/olympus': typeof OlympusRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/help': typeof AuthenticatedHelpRoute
@@ -850,12 +843,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
-    | '/olympus'
     | '/unsubscribe'
     | '/admin'
     | '/help'
     | '/home'
     | '/my-work'
+    | '/olympus'
     | '/onboarding'
     | '/portfolio'
     | '/reports'
@@ -936,7 +929,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
-    | '/olympus'
     | '/unsubscribe'
     | '/help'
     | '/home'
@@ -969,6 +961,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/admin'
     | '/missions'
+    | '/olympus'
     | '/profile'
     | '/admin/missions/$missionId'
     | '/admin/oracle-sources/$missionId'
@@ -1020,7 +1013,6 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/login'
-    | '/olympus'
     | '/unsubscribe'
     | '/_authenticated/admin'
     | '/_authenticated/help'
@@ -1109,7 +1101,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
-  OlympusRoute: typeof OlympusRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
   CheckinTokenRoute: typeof CheckinTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
@@ -1142,13 +1133,6 @@ declare module '@tanstack/react-router' {
       path: '/unsubscribe'
       fullPath: '/unsubscribe'
       preLoaderRoute: typeof UnsubscribeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/olympus': {
-      id: '/olympus'
-      path: '/olympus'
-      fullPath: '/olympus'
-      preLoaderRoute: typeof OlympusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -1944,7 +1928,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
-  OlympusRoute: OlympusRoute,
   UnsubscribeRoute: UnsubscribeRoute,
   CheckinTokenRoute: CheckinTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
