@@ -13,6 +13,7 @@ import { SubmissionChecklistTab } from "./SubmissionChecklistTab";
 import { useViewerMissionRole, type TabId } from "./MissionTabs";
 import { IrisThreadExtractionPanel } from "./IrisThreadExtractionPanel";
 import { RerunIrisCard } from "./RerunIrisCard";
+import { MapNarrativeCard } from "./MapNarrativeCard";
 
 const GOLD = "#C49A2B";
 
