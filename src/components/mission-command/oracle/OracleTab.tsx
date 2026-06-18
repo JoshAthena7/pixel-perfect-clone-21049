@@ -303,6 +303,11 @@ export function OracleTab({ missionId }: { missionId: string }) {
             <NodeDetailDrawer node={selectedEcosystemNode} onClose={() => setSelectedEcosystemNode(null)} />
           </div>
         )}
+        {canLead && visited.has("story-map") && (
+          <div style={{ display: active === "story-map" ? "block" : "none" }}>
+            <StoryMapTab missionId={missionId} />
+          </div>
+        )}
         {isAdmin && visited.has("graph-health") && (
           <div style={{ display: active === "graph-health" ? "block" : "none" }}>
             <GraphHealthTab missionId={missionId} />
