@@ -259,7 +259,9 @@ export function WriterDrawer({
         >
           <button
             onClick={() => { onClose(); setTimeout(() => onNudge(target.userId), 220); }}
-            className="flex-1 text-[11px] py-1.5 rounded border border-white/15 text-white hover:bg-white/5 inline-flex items-center justify-center gap-1.5"
+            disabled={readOnly}
+            title={readOnly ? "Mission is closed — read-only" : undefined}
+            className="flex-1 text-[11px] py-1.5 rounded border border-white/15 text-white hover:bg-white/5 inline-flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <MessageSquare className="w-3 h-3" /> Nudge {writerFirst}
           </button>
@@ -271,8 +273,9 @@ export function WriterDrawer({
           </button>
           <button
             onClick={handleFlag}
-            disabled={flagging}
-            className="flex-1 text-[11px] py-1.5 rounded border inline-flex items-center justify-center gap-1.5 disabled:opacity-50"
+            disabled={flagging || readOnly}
+            title={readOnly ? "Mission is closed — read-only" : undefined}
+            className="flex-1 text-[11px] py-1.5 rounded border inline-flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ borderColor: "rgba(245,158,11,0.5)", color: "#fbbf24", background: "rgba(245,158,11,0.05)" }}
           >
             <Flag className="w-3 h-3" /> Flag for Review
