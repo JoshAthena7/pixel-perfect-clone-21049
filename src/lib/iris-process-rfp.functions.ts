@@ -124,6 +124,50 @@ type AIQuestion = {
   response_type?: string;
 };
 
+function fallbackQuestionsFromSectionText(sectionText: string): AIQuestion[] {
+  const source = sectionText
+    .replace(/^\s*[A-Z0-9()&/,.;:'’“”\-\s]{4,80}\s*\n+/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (source.length < 50) return [];
+
+  const starts = Array.from(
+    source.matchAll(/\b(?:The\s+Bidder|Bidders?|Contractor)\s+(?:shall|should|must|is\s+required\s+to|are\s+required\s+to|may\s+be\s+required\s+to|is\s+responsible\s+for)\b/gi),
+  ).map((m) => m.index ?? 0);
+  const candidates: string[] = [];
+
+  for (let i = 0; i < starts.length; i++) {
+    const rawStart = starts[i];
+    const priorBoundary = Math.max(
+      source.lastIndexOf(". ", rawStart - 2),
+      source.lastIndexOf("; ", rawStart - 2),
+    );
+    const start = priorBoundary >= 0 && rawStart - priorBoundary < 90 ? priorBoundary + 2 : rawStart;
+    const nextStart = starts[i + 1] ?? source.length;
+    const nextBoundary = Math.max(
+      source.lastIndexOf(". ", nextStart - 2),
+      source.lastIndexOf("; ", nextStart - 2),
+    );
+    const end = nextBoundary > start && nextBoundary < nextStart ? nextBoundary + 1 : nextStart;
+    candidates.push(source.slice(start, end).trim());
+  }
+
+  return candidates
+    .map((text) => text.replace(/^[;:\-\s]+/, "").replace(/\s+/g, " ").trim())
+    .filter((text) => text.split(/\s+/).length >= 10)
+    .filter((text) => /\b(?:shall|should|must|required|provide|submit|include|describe|identify)\b/i.test(text))
+    .filter((text, idx, arr) => arr.findIndex((other) => other.toLowerCase() === text.toLowerCase()) === idx)
+    .slice(0, 12)
+    .map((question_text) => ({
+      question_text: question_text.slice(0, 4000),
+      page_limit: null,
+      word_limit: null,
+      evaluation_weight: null,
+      is_mandatory: /\b(?:shall|must|required)\b/i.test(question_text),
+      response_type: /\bplan\b/i.test(question_text) ? "plan" : /\b(?:chart|schedule|listing|table)\b/i.test(question_text) ? "table" : "narrative",
+    }));
+}
+
 function safeNum(v: unknown): number | null {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   if (typeof v === "string" && v.trim() !== "" && !Number.isNaN(Number(v))) return Number(v);
@@ -233,13 +277,31 @@ function sectionCompare(a: string, b: string): number {
   return 0;
 }
 
+function getLineAt(fullText: string, idx: number): string {
+  const start = fullText.lastIndexOf("\n", idx) + 1;
+  const end = fullText.indexOf("\n", idx);
+  return fullText.slice(start, end === -1 ? Math.min(fullText.length, idx + 400) : end);
+}
+
+function isLikelyTocLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+  const sectionTokens = trimmed.match(/\b\d+(?:\.\d+){1,4}\b/g) ?? [];
+  if (sectionTokens.length >= 3) return true;
+  if (/^\d+(?:\.\d+){1,4}\s+.+\s+\d{1,3}$/.test(trimmed)) return true;
+  if (/\t\d{1,3}\s*$/.test(trimmed) && sectionTokens.length >= 1) return true;
+  return trimmed.length > 160 && sectionTokens.length >= 2;
+}
+
 function isTocCluster(fullText: string, idx: number, allSections: SectionLocator[]): boolean {
-  if (idx > 12_000) return false;
+  if (idx > 25_000) return false;
+  const line = getLineAt(fullText, idx);
+  if (isLikelyTocLine(line)) return true;
   const window = fullText.slice(Math.max(0, idx - 120), idx + 900);
   const hits = allSections.filter((s) => {
     if (!s.section_number) return false;
     const escaped = escapeRegExp(s.section_number);
-    return new RegExp(`(?:^|\\n)[ \\t]*(?:Section[ \\t]+)?${escaped}(?![0-9])`, "i").test(window);
+    return new RegExp(`(?:^|\\n|\\t| {2,})(?:Section[ \\t]+)?${escaped}(?![0-9])`, "i").test(window);
   }).length;
   return hits >= 4;
 }
@@ -286,9 +348,17 @@ function sectionHeaderIndexes(
     .filter((idx) => !isSectionTitleList(fullText, idx, section, allSections))
     .sort((a, b) => a - b);
 
+  const exactTitleLines = filtered.filter((idx) => {
+    if (!name || !nameIndexes.has(idx)) return false;
+    const line = getLineAt(fullText, idx).trim();
+    return line === name && !isLikelyTocLine(line);
+  });
+  if (exactTitleLines.length > 0) return exactTitleLines;
+
   const uppercaseNameMatches = filtered.filter((idx) => {
     if (!nameIndexes.has(idx)) return false;
-    const line = fullText.slice(idx, fullText.indexOf("\n", idx + 1) === -1 ? idx + 200 : fullText.indexOf("\n", idx + 1));
+    const line = getLineAt(fullText, idx);
+    if (isLikelyTocLine(line)) return false;
     const letters = line.replace(/[^A-Za-z]/g, "");
     return letters.length > 3 && letters === letters.toUpperCase();
   });
@@ -589,7 +659,7 @@ export const extractQuestionsForSection = createServerFn({ method: "POST" })
       const allQs = Array.isArray(parsed?.questions) ? parsed!.questions : [];
       // Filter out wrong-prefix questions (cross-section bleed)
       const prefix = `${section.section_number}.`;
-      const qs = allQs.filter((q) => {
+      let qs = allQs.filter((q) => {
         const qn = String(q.question_number ?? "").trim();
         return qn === "" || qn.startsWith(prefix);
       });
@@ -597,6 +667,21 @@ export const extractQuestionsForSection = createServerFn({ method: "POST" })
       if (discarded > 0) {
         console.log(`[iris-pass2] Discarded ${discarded} wrong-prefix questions in section ${section.section_number}`);
       }
+      if (!isInferred && qs.length < 2) {
+        const fallbackQs = fallbackQuestionsFromSectionText(data.section_text ?? "");
+        const seen = new Set(qs.map((q) => String(q.question_text ?? "").trim().toLowerCase()));
+        const additions = fallbackQs.filter((q) => {
+          const key = String(q.question_text ?? "").trim().toLowerCase();
+          if (!key || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        if (additions.length > 0) {
+          console.log(`[iris-pass2] Added ${additions.length} regex fallback questions in section ${section.section_number}`);
+          qs = [...qs, ...additions];
+        }
+      }
+
       if (qs.length === 0) return { ok: true, inserted: 0, skipped: "no_questions", inferred: isInferred };
 
       const rows = qs
