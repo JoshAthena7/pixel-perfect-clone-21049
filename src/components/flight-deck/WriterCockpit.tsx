@@ -102,7 +102,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   const [scoreMeFor, setScoreMeFor] = useState<Q | null>(null);
   const [pulseOpen, setPulseOpen] = useState(false);
   const [checkInFor, setCheckInFor] = useState<Q | null>(null);
-  const [stuckFor, setStuckFor] = useState<Q | null>(null);
+  
   const updateStatus = useServerFn(updateProgressStatus);
 
   useEffect(() => {
