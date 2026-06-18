@@ -11,7 +11,8 @@ export type AssistEventType =
   | "check_in"
   | "mock_scored"
   | "pulse_posted"
-  | "sticky_note_posted";
+  | "sticky_note_posted"
+  | "nudge_sent";
 
 /**
  * Logs a writer/leader behavior event to mission_assist_events.
