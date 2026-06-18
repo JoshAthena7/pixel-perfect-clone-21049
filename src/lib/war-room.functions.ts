@@ -242,6 +242,8 @@ export const getWarRoomData = createServerFn({ method: "POST" })
     }
     const totalQuestions = questionsRes.data?.length ?? 0;
     const healthyCount = (questionsRes.data ?? []).filter((q: any) => q.health_status === "healthy").length;
+    const watchCount = (questionsRes.data ?? []).filter((q: any) => q.health_status === "watch").length;
+    const atRiskCount = (questionsRes.data ?? []).filter((q: any) => q.health_status === "at_risk").length;
     const writersActiveToday = writers.filter((w: any) =>
       w.hoursSinceActivity != null && w.hoursSinceActivity < 24,
     ).length;
