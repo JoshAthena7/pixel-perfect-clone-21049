@@ -1159,6 +1159,31 @@ function BriefViewerDialog({
                 )}
 
               <BriefBlock title="Competitive Intel" body={brief.competitive_intel} />
+
+              {Array.isArray(brief.risk_flags) && brief.risk_flags.length > 0 && (
+                <BriefSection title="Risk Flags">
+                  <ul className="space-y-1" style={{ paddingLeft: 16 }}>
+                    {brief.risk_flags.map((r: any, i: number) => (
+                      <li key={i} style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}>
+                        <span
+                          style={{
+                            color: r.severity === "CRITICAL" ? RED : AMBER,
+                            fontWeight: 600,
+                            marginRight: 6,
+                          }}
+                        >
+                          {r.severity ?? "WATCH"}
+                        </span>
+                        {r.flag}
+                      </li>
+                    ))}
+                  </ul>
+                </BriefSection>
+              )}
+
+              {Array.isArray(brief.oracle_sources) && brief.oracle_sources.length > 0 && (
+                <OracleSourcesFooter sources={brief.oracle_sources} />
+              )}
             </>
           )}
         </div>
@@ -1187,6 +1212,122 @@ function BriefSection({ title, children }: { title: string; children: React.Reac
     <div>
       <div style={sectionLabel}>{title}</div>
       <div className="mt-1">{children}</div>
+    </div>
+  );
+}
+
+type OracleSource = {
+  id: string;
+  title: string;
+  branch: string;
+  signal_type?: string | null;
+  scope_tier?: string | null;
+  state_code?: string | null;
+  score?: number | null;
+};
+
+function OracleSourcesFooter({ sources }: { sources: OracleSource[] }) {
+  const [open, setOpen] = useState(false);
+  const grouped = useMemo(() => {
+    const m = new Map<string, OracleSource[]>();
+    for (const s of sources) {
+      const arr = m.get(s.branch) ?? [];
+      arr.push(s);
+      m.set(s.branch, arr);
+    }
+    return Array.from(m.entries());
+  }, [sources]);
+
+  const scoreColor = (n: number | null | undefined) => {
+    if (n == null) return "rgba(255,255,255,0.4)";
+    if (n >= 80) return GREEN;
+    if (n >= 60) return GOLD;
+    if (n >= 40) return AMBER;
+    return "rgba(255,255,255,0.4)";
+  };
+
+  return (
+    <div
+      className="rounded-lg"
+      style={{ background: CARD_2, border: `1px solid ${BORDER}`, marginTop: 12 }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-3 py-2"
+        style={{
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          fontSize: 10,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: GOLD,
+          fontWeight: 600,
+        }}
+      >
+        <span>ORACLE Sources · {sources.length} node{sources.length === 1 ? "" : "s"} used</span>
+        <span style={{ color: "rgba(255,255,255,0.5)" }}>{open ? "−" : "+"}</span>
+      </button>
+      {open && (
+        <div className="px-3 pb-3 space-y-3">
+          {grouped.map(([branch, items]) => (
+            <div key={branch}>
+              <div
+                style={{
+                  fontSize: 9,
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  color: "rgba(255,255,255,0.45)",
+                  marginBottom: 4,
+                }}
+              >
+                {branch}
+              </div>
+              <ul className="space-y-1">
+                {items.map((s) => (
+                  <li
+                    key={s.id}
+                    className="flex items-center gap-2"
+                    style={{ fontSize: 11, color: "white" }}
+                  >
+                    <span
+                      className="rounded px-1.5"
+                      style={{
+                        fontSize: 9,
+                        background: `${scoreColor(s.score)}22`,
+                        color: scoreColor(s.score),
+                        fontWeight: 600,
+                      }}
+                    >
+                      {s.score ?? "—"}
+                    </span>
+                    <span style={{ flex: 1, minWidth: 0 }}>{s.title}</span>
+                    {s.signal_type && (
+                      <span
+                        className="rounded px-1.5"
+                        style={{
+                          fontSize: 9,
+                          background: "rgba(255,255,255,0.06)",
+                          color: "rgba(255,255,255,0.6)",
+                        }}
+                      >
+                        {s.signal_type}
+                      </span>
+                    )}
+                    {s.scope_tier && (
+                      <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)" }}>
+                        {s.scope_tier}
+                        {s.state_code ? `/${s.state_code}` : ""}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
