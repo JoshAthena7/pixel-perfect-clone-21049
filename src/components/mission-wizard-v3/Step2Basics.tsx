@@ -1,11 +1,11 @@
 import { WizardStepHeading, WizardFooter } from "./WizardShellV3";
 import { StepFieldList } from "./StepFieldList";
 
+// state_location is captured in the dedicated Step 2 (State) and is intentionally omitted here.
 const FIELDS = [
   { key: "client_agency", label: "Client / Agency" },
   { key: "opportunity_title", label: "Opportunity Title" },
   { key: "solicitation_number", label: "Solicitation Number" },
-  { key: "state_location", label: "State / Location" },
   { key: "program_type", label: "Program Type / Classification" },
   { key: "mission_type", label: "Mission Type", hint: "rfp · rfq · csa · sole_source · recompete" },
   { key: "prime_or_sub", label: "Prime or Sub" },
