@@ -149,6 +149,14 @@ export async function runIrisRfpExtraction(
     );
   }
 
+  if (opts.force) {
+    await supabase
+      .from("mission_questions")
+      .update({ iris_brief_status: "pending", is_withdrawn: true })
+      .eq("mission_id", missionId)
+      .eq("is_withdrawn", false);
+  }
+
   // PASS 1 — structure extraction (one short server call, idempotent).
   const pass1: ProcessResult = await processRFPDocuments({
     data: { mission_id: missionId, primary_rfp_text: primaryRfpText },
