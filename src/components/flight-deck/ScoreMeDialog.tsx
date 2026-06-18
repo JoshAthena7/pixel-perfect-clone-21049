@@ -182,7 +182,7 @@ export function ScoreMeDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-2xl p-0 gap-0 border-0 overflow-hidden"
+        className="sm:max-w-2xl p-0 gap-0 border-0 overflow-hidden [&>button]:hidden"
         style={{ background: "#0a1320", color: "rgba(255,255,255,0.9)" }}
       >
         {/* Header */}
