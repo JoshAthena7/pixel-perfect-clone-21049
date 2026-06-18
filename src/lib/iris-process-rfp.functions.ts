@@ -542,18 +542,32 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
     if ((existingSectionCount ?? 0) === 0) {
       console.log("[iris] Pass 1: extracting structure");
       const content = await callAI(apiKey, STRUCTURE_SYSTEM, data.primary_rfp_text);
-      const parsed = content ? tryParseJSON<Structure>(content) : null;
+      const deterministicSections = extractDeterministicSections(data.primary_rfp_text);
+      let parsed = content ? tryParseJSON<Structure>(content) : null;
       if (!parsed) {
-        return {
-          ok: true,
-          counts,
-          disclaimer: "IRIS could not parse the document structure. Existing data left unchanged.",
+        if (deterministicSections.length === 0) {
+          return {
+            ok: true,
+            counts,
+            disclaimer: "IRIS could not parse the document structure. Existing data left unchanged.",
+          };
+        }
+        parsed = {
+          volumes: [{
+            name: "Detected RFP Sections",
+            sections: deterministicSections.map((s) => ({
+              number: s.number,
+              name: s.name,
+              is_form_only: s.is_form_only,
+              confidence: "high" as const,
+            })),
+          }],
+          disclaimer: "IRIS used deterministic numbered-heading detection because the model structure response could not be parsed.",
         };
       }
 
       const volumes = Array.isArray(parsed.volumes) ? parsed.volumes : [];
       const seenSectionNumbers = new Set<string>();
-      const deterministicSections = extractDeterministicSections(data.primary_rfp_text);
       let fallbackVolumeId: string | null = null;
       for (let vi = 0; vi < volumes.length; vi++) {
         const v = volumes[vi] ?? {} as Volume;
