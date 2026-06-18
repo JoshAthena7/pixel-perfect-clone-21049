@@ -59,6 +59,10 @@ export function ScoreMeDialog({
       setLoading(false);
       setPosting(false);
       setContextStatus("idle");
+      setStuckMode(false);
+      setStuckPrompt("");
+      setStuckLoading(false);
+      setStuckOpener(null);
       return;
     }
     if (!missionId || !questionId) return;
