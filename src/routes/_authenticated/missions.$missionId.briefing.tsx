@@ -845,7 +845,7 @@ function IrisGuidanceCard({ mission }: { mission: any }) {
   const lines = text ? text.split(/\n+/).filter((l: string) => l.trim()) : [];
   const headline1 = lines[0] ?? `${mission?.state ?? "The state"} is not buying disruption.`;
   const headline2 = lines[1] ?? `${mission?.state ?? "The state"} is buying confidence.`;
-  const support = lines.slice(2).join(" ") || (mission?.why_win ?? "");
+  const support = lines.slice(2).join("\n\n") || (mission?.why_win ?? "");
 
   return (
     <section
@@ -889,7 +889,7 @@ function IrisGuidanceCard({ mission }: { mission: any }) {
         <span style={{ color: GOLD_SOFT }}>{headline2}</span>
       </p>
       {support && (
-        <p className="mt-5 relative" style={{ fontSize: 14, color: "rgba(255,255,255,0.65)", lineHeight: 1.6 }}>
+        <p className="mt-5 relative" style={{ fontSize: 14, color: "rgba(255,255,255,0.65)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
           {support}
         </p>
       )}
