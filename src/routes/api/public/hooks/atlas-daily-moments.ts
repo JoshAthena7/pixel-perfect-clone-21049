@@ -54,8 +54,8 @@ function flatten(v: unknown): string {
   return String(v);
 }
 
-const INSPIRATION_SYS = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Share a piece of general inspiration — a quote, idea, or short reflection on craft, focus, teamwork, public service, or doing hard things well. Voice of a trusted colleague at 7am, direct and human, never motivational-poster. It should NOT reference the specific RFP, deadline, or compliance work. Return ONLY valid JSON.`;
-const TRIVIA_SYS = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Generate one genuinely interesting FUN FACT trivia question about the U.S. state the mission is in — its history, geography, culture, food, landmarks, notable people, or quirky records. NOT about the RFP, Medicaid, procurement, or compliance. Make it the kind of thing a curious colleague would enjoy at the start of the day. Return ONLY valid JSON.`;
+const INSPIRATION_SYS = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Share ONE real quote about LEADERSHIP and KINDNESS — from a thinker, leader, writer, athlete, public servant, or teacher. The pairing of leadership AND kindness is the point. Voice of a trusted colleague at 7am, never motivational-poster. Do NOT reference any specific RFP, client, deadline, or compliance work. Return ONLY valid JSON.`;
+const TRIVIA_SYS = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Generate one genuinely interesting FUN FACT trivia question about the U.S. state given — history, geography, culture, food, landmarks, notable people, or quirky records. NOT about the RFP, Medicaid, procurement, or compliance. Return ONLY valid JSON.`;
 
 export const Route = createFileRoute("/api/public/hooks/atlas-daily-moments")({
   server: {
