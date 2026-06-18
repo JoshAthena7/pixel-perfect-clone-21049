@@ -8,6 +8,7 @@ import { Loader2, Zap } from "lucide-react";
 import { TaxonomyBrowser } from "./TaxonomyBrowser";
 import { IntelReviewQueue } from "./IntelReviewQueue";
 import { SourcesPanel } from "./SourcesPanel";
+import { HealthColumn } from "./HealthColumn";
 
 type MissionRow = { id: string; name: string; submission_deadline: string | null };
 
@@ -178,9 +179,16 @@ export function OlympusCommand() {
         <Column title="INTEL REVIEW QUEUE" borderX>
           <IntelReviewQueue missionId={missionId} taxonomyNodeId={selectedNodeId} />
         </Column>
-        <Column title="ORACLE HEALTH">
-          <PhasePlaceholder phase="C" note="Briefing coverage, pipeline health, IRIS usage, top intel." />
-        </Column>
+        <div
+          className="h-full overflow-hidden"
+          style={{ borderLeft: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          <HealthColumn
+            missionId={missionId}
+            onSwitchToReview={() => toast.info("Open Needs Review in the queue.")}
+            onSwitchToSources={() => setLeftTab("sources")}
+          />
+        </div>
       </div>
     </div>
   );
