@@ -269,11 +269,11 @@ export function Step1Fuel({
 
       // Storage layout:
       //   content_summary = first 220k chars (legacy readers already use this)
-      //   metadata.text_chunk_2..N = subsequent 220k-char chunks, up to 500k total
+      //   metadata.text_chunk_2..N = subsequent 220k-char chunks, up to 1M total
       //   metadata.full_text_length = original length (pre-truncation)
       const FIRST = 220_000;
       const CHUNK = 220_000;
-      const MAX_TOTAL = 500_000;
+      const MAX_TOTAL = 1_000_000;
       const capped = extractedText.slice(0, MAX_TOTAL);
       const head = capped.slice(0, FIRST);
       const chunkMeta: Record<string, string> = {};

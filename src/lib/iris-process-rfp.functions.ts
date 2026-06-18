@@ -16,7 +16,7 @@ import { withAICircuit } from "@/lib/ai-circuit-breaker";
 
 const Input = z.object({
   mission_id: z.string().uuid(),
-  primary_rfp_text: z.string().trim().min(50).max(800_000),
+  primary_rfp_text: z.string().trim().min(50).max(1_000_000),
 });
 
 const STRUCTURE_SYSTEM = `You are analyzing a government RFP document. Extract the proposal structure ONLY — do not extract questions in this pass. Return ONLY valid JSON, no other text. Use confidence "high" when an item is explicitly labeled, "medium" when inferred, "low" when guessed.
@@ -199,6 +199,31 @@ function tryParseJSON<T = unknown>(s: string): T | null {
   return null;
 }
 
+function normalizeForSourceMatch(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function questionTextIsSourceBacked(questionText: string, sectionText: string): boolean {
+  const question = normalizeForSourceMatch(questionText);
+  const source = normalizeForSourceMatch(sectionText);
+  if (question.length < 40 || source.length < 80) return false;
+  if (source.includes(question.slice(0, Math.min(question.length, 180)))) return true;
+
+  const words = question.split(" ").filter((word) => word.length > 2);
+  for (let windowSize = Math.min(14, words.length); windowSize >= 9; windowSize--) {
+    for (let i = 0; i <= words.length - windowSize; i++) {
+      if (source.includes(words.slice(i, i + windowSize).join(" "))) return true;
+    }
+  }
+  return false;
+}
+
 async function callAI(apiKey: string, system: string, user: string): Promise<string | null> {
   const res = await withAICircuit(async () => {
     const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -213,6 +238,8 @@ async function callAI(apiKey: string, system: string, user: string): Promise<str
           { role: "system", content: system },
           { role: "user", content: user },
         ],
+        temperature: 0,
+        max_tokens: 8192,
       }),
     });
     if (r.status >= 500) throw new Error(`AI gateway ${r.status}`);
@@ -225,7 +252,12 @@ async function callAI(apiKey: string, system: string, user: string): Promise<str
     console.error("IRIS gateway error", res.status, errBody);
     return null;
   }
-  const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+  const json = (await res.json()) as { choices?: Array<{ finish_reason?: string; message?: { content?: string } }> };
+  const finishReason = json.choices?.[0]?.finish_reason;
+  if (finishReason === "length" || finishReason === "max_tokens") {
+    console.error("IRIS gateway response truncated", finishReason);
+    return null;
+  }
   return json.choices?.[0]?.message?.content?.trim() ?? null;
 }
 
@@ -277,6 +309,50 @@ function sectionCompare(a: string, b: string): number {
   return 0;
 }
 
+type DetectedSection = { number: string; name: string; is_form_only: boolean };
+
+function cleanDetectedSectionName(raw: string): string {
+  return raw
+    .replace(/\s*\.{2,}\s*\d{1,4}\s*$/g, "")
+    .replace(/\s+\d{1,4}\s*$/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 500);
+}
+
+function extractDeterministicSections(fullText: string): DetectedSection[] {
+  const byNumber = new Map<string, { name: string; idx: number }>();
+  let offset = 0;
+  for (const rawLine of fullText.split(/\r?\n/)) {
+    const line = rawLine.replace(/\u00a0/g, " ").trim();
+    const idx = offset;
+    offset += rawLine.length + 1;
+    if (line.length < 6 || line.length > 220) continue;
+    const sectionTokens = line.match(/\b\d+(?:\.\d+){1,4}\b/g) ?? [];
+    if (sectionTokens.length > 1) continue;
+
+    const match = line.match(/^(?:Section\s+)?(\d+(?:\.\d+){1,4})[\t .:)\-]+(.{3,180})$/i);
+    if (!match) continue;
+    const number = match[1];
+    const name = cleanDetectedSectionName(match[2] ?? "");
+    if (name.length < 3) continue;
+    if (/^(?:page|section|bid solicitation|rfp)$/i.test(name)) continue;
+    if (/^\d+(?:\.\d+)*$/.test(name)) continue;
+    if (!/[A-Za-z]/.test(name)) continue;
+
+    const existing = byNumber.get(number);
+    if (!existing || name.length > existing.name.length) byNumber.set(number, { name, idx });
+  }
+
+  return Array.from(byNumber.entries())
+    .sort(([aNum, a], [bNum, b]) => sectionCompare(aNum, bNum) || a.idx - b.idx)
+    .map(([number, value]) => ({
+      number,
+      name: value.name,
+      is_form_only: classifySectionFormOnly(value.name, null),
+    }));
+}
+
 function getLineAt(fullText: string, idx: number): string {
   const start = fullText.lastIndexOf("\n", idx) + 1;
   const end = fullText.indexOf("\n", idx);
@@ -294,7 +370,7 @@ function isLikelyTocLine(line: string): boolean {
 }
 
 function isTocCluster(fullText: string, idx: number, allSections: SectionLocator[]): boolean {
-  if (idx > 25_000) return false;
+  if (idx > Math.min(fullText.length * 0.15, 60_000)) return false;
   const line = getLineAt(fullText, idx);
   if (isLikelyTocLine(line)) return true;
   const window = fullText.slice(Math.max(0, idx - 120), idx + 900);
@@ -386,16 +462,17 @@ function sliceSectionText(
   if (startIdx === undefined) return "";
 
   // Find the immediately-following section header.
-  let endIdx = startIdx + 12_000;
+  const sectionCap = 20_000;
+  let endIdx = startIdx + sectionCap;
   const nextIdx = locators
     .filter((s) => s.section_number && sectionCompare(s.section_number, sectionNumber) > 0)
     .flatMap((s) => sectionHeaderIndexes(fullText, s, locators))
     .filter((idx) => idx > startIdx + 20)
     .sort((a, b) => a - b)[0];
-  if (nextIdx !== undefined) endIdx = Math.min(nextIdx, startIdx + 12_000);
+  if (nextIdx !== undefined) endIdx = Math.min(nextIdx, startIdx + sectionCap);
 
   const slice = fullText.slice(startIdx, endIdx).trim();
-  return slice.length < 50 ? "" : slice.slice(0, 12_000);
+  return slice.length < 50 ? "" : slice.slice(0, sectionCap);
 }
 
 async function runWithConcurrency<T>(
@@ -475,6 +552,9 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
       }
 
       const volumes = Array.isArray(parsed.volumes) ? parsed.volumes : [];
+      const seenSectionNumbers = new Set<string>();
+      const deterministicSections = extractDeterministicSections(data.primary_rfp_text);
+      let fallbackVolumeId: string | null = null;
       for (let vi = 0; vi < volumes.length; vi++) {
         const v = volumes[vi] ?? {} as Volume;
         const { data: vRow, error: vErr } = await supabase
@@ -487,6 +567,7 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
           .select("id")
           .single();
         if (vErr || !vRow) continue;
+        fallbackVolumeId ??= vRow.id;
         counts.volumes++;
 
         const sections = Array.isArray(v.sections) ? v.sections : [];
@@ -510,6 +591,7 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
             .select("id")
             .single();
           if (sErr || !sRow) continue;
+          if (s.number) seenSectionNumbers.add(String(s.number));
           counts.sections++;
 
           const subs = Array.isArray(s.sub_sections) ? s.sub_sections : [];
@@ -528,8 +610,45 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
               is_form_only: classifySectionFormOnly(String(ss.name ?? ""), ss.description ?? null),
               order_index: ssi,
             });
-            if (!ssErr) counts.sub_sections++;
+            if (!ssErr) {
+              if (ss.number) seenSectionNumbers.add(String(ss.number));
+              counts.sub_sections++;
+            }
           }
+        }
+      }
+
+      const missingDetectedSections = deterministicSections.filter((s) => !seenSectionNumbers.has(s.number));
+      if (missingDetectedSections.length > 0) {
+        if (!fallbackVolumeId) {
+          const { data: detectedVolume } = await supabase
+            .from("mission_volumes")
+            .insert({ mission_id: data.mission_id, name: "Detected RFP Sections", order_index: counts.volumes })
+            .select("id")
+            .single();
+          if (detectedVolume?.id) {
+            fallbackVolumeId = detectedVolume.id;
+            counts.volumes++;
+          }
+        }
+
+        if (fallbackVolumeId) {
+          const { error: detectedErr } = await supabase.from("mission_sections").insert(
+            missingDetectedSections.map((s, i) => ({
+              mission_id: data.mission_id,
+              volume_id: fallbackVolumeId,
+              parent_section_id: null,
+              section_number: s.number,
+              name: s.name,
+              page_limit: null,
+              evaluation_weight: null,
+              description: null,
+              iris_confidence: "high",
+              is_form_only: s.is_form_only,
+              order_index: counts.sections + i,
+            })),
+          );
+          if (!detectedErr) counts.sections += missingDetectedSections.length;
         }
       }
 
@@ -667,7 +786,18 @@ export const extractQuestionsForSection = createServerFn({ method: "POST" })
       if (discarded > 0) {
         console.log(`[iris-pass2] Discarded ${discarded} wrong-prefix questions in section ${section.section_number}`);
       }
-      if (!isInferred && qs.length < 2) {
+      let sourceBackedDiscarded = 0;
+      if (!isInferred) {
+        const beforeSourceValidation = qs.length;
+        qs = qs.filter((q) => questionTextIsSourceBacked(String(q.question_text ?? ""), data.section_text ?? ""));
+        sourceBackedDiscarded = beforeSourceValidation - qs.length;
+        if (beforeSourceValidation > qs.length) {
+          console.log(
+            `[iris-pass2] Discarded ${beforeSourceValidation - qs.length} non-verbatim questions in section ${section.section_number}`,
+          );
+        }
+      }
+      if (!isInferred && (qs.length < 2 || sourceBackedDiscarded > 0)) {
         const fallbackQs = fallbackQuestionsFromSectionText(data.section_text ?? "");
         const seen = new Set(qs.map((q) => String(q.question_text ?? "").trim().toLowerCase()));
         const additions = fallbackQs.filter((q) => {

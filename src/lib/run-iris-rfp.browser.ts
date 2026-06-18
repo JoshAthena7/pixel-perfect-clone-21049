@@ -43,6 +43,18 @@ async function extractTextFromBlob(blob: Blob, fileName: string): Promise<string
   return extractRFPText(file);
 }
 
+function buildPersistedTextParts(extractedText: string): { head: string; chunkMeta: Record<string, string>; persistedLength: number } {
+  const FIRST = 220_000;
+  const CHUNK = 220_000;
+  const MAX_TOTAL = 1_000_000;
+  const capped = extractedText.slice(0, MAX_TOTAL);
+  const chunkMeta: Record<string, string> = {};
+  for (let i = FIRST, n = 2; i < capped.length; i += CHUNK, n++) {
+    chunkMeta[`text_chunk_${n}`] = capped.slice(i, i + CHUNK);
+  }
+  return { head: capped.slice(0, FIRST), chunkMeta, persistedLength: capped.length };
+}
+
 async function runWithConcurrency<T>(
   items: T[],
   limit: number,
@@ -132,9 +144,20 @@ export async function runIrisRfpExtraction(
       const extracted = (await extractTextFromBlob(blob, fileName)).trim();
       if (extracted.length > 50) {
         textParts.push(`# ${title}\n\n${extracted}`);
+        const { head, chunkMeta, persistedLength } = buildPersistedTextParts(extracted);
         await supabase
           .from("mission_documents")
-          .update({ content_summary: extracted.slice(0, 220_000) })
+          .update({
+            content_summary: head || null,
+            metadata: {
+              ...meta,
+              ...chunkMeta,
+              full_text_length: extracted.length,
+              persisted_text_length: persistedLength,
+              extraction_method: "browser_pdf_parse",
+              text_extraction_ok: extracted.length > 500,
+            },
+          })
           .eq("id", doc.id);
       }
     } catch (e) {
@@ -142,7 +165,7 @@ export async function runIrisRfpExtraction(
     }
   }
 
-  const primaryRfpText = textParts.join("\n\n---\n\n").slice(0, 700_000);
+  const primaryRfpText = textParts.join("\n\n---\n\n").slice(0, 950_000);
   if (primaryRfpText.trim().length < 500) {
     throw new Error(
       "RFP text not available. The uploaded documents have no extractable text — re-upload the primary RFP through Step 1 (Fuel IRIS) before running extraction.",
@@ -156,6 +179,20 @@ export async function runIrisRfpExtraction(
       .eq("mission_id", missionId)
       .eq("is_withdrawn", false);
     if (withdrawError) throw withdrawError;
+
+    // Force means rebuild the extraction map too. Otherwise a prior incomplete
+    // structure pass can permanently limit Pass 2 to only the old section range.
+    const { error: sectionsDeleteError } = await supabase
+      .from("mission_sections")
+      .delete()
+      .eq("mission_id", missionId);
+    if (sectionsDeleteError) throw sectionsDeleteError;
+
+    const { error: volumesDeleteError } = await supabase
+      .from("mission_volumes")
+      .delete()
+      .eq("mission_id", missionId);
+    if (volumesDeleteError) throw volumesDeleteError;
   }
 
   // PASS 1 — structure extraction (one short server call, idempotent).
