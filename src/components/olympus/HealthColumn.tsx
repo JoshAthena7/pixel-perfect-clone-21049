@@ -269,7 +269,6 @@ function CoverageList({
             navigate({
               to: "/missions/$missionId/flight-deck",
               params: { missionId },
-              search: { question: q.id },
             })
           }
           className="w-full flex items-center hover:bg-white/[0.03] text-left"
