@@ -14,6 +14,8 @@ type Props = {
   questionId: string | null;
   questionNumber: string | null;
   progressId: string | null;
+  statusOptions?: string[];
+  onStatusChange?: (status: string) => Promise<void> | void;
   onSubmitted?: () => void;
 };
 
@@ -28,14 +30,15 @@ const OPTIONS: { id: Status; label: string; color: string; Icon: any; sub: strin
   { id: "need_sme", label: "Need SME",    color: AMBER, Icon: LifeBuoy,     sub: "Need expert input to proceed" },
 ];
 
-export function CheckInDialog({ open, onOpenChange, missionId, questionId, questionNumber, progressId, onSubmitted }: Props) {
+export function CheckInDialog({ open, onOpenChange, missionId, questionId, questionNumber, progressId, statusOptions, onStatusChange, onSubmitted }: Props) {
   const [status, setStatus] = useState<Status>("on_track");
   const [note, setNote] = useState("");
   const [confidence, setConfidence] = useState<"high" | "medium" | "low">("medium");
+  const [nextStatus, setNextStatus] = useState<string>("");
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    if (!open) { setStatus("on_track"); setNote(""); setConfidence("medium"); setSending(false); }
+    if (!open) { setStatus("on_track"); setNote(""); setConfidence("medium"); setNextStatus(""); setSending(false); }
   }, [open]);
 
   async function submit() {
