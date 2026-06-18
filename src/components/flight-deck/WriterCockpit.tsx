@@ -545,6 +545,15 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
         missionId={missionId}
       />
 
+      <StickyNotesPanel
+        open={!!stickyNotesFor}
+        onClose={() => setStickyNotesFor(null)}
+        missionId={missionId}
+        questionId={stickyNotesFor?.id ?? null}
+        questionNumber={stickyNotesFor?.question_number ?? null}
+        questionText={stickyNotesFor?.question_text ?? null}
+      />
+
       <CheckInDialog
         open={!!checkInFor}
         onOpenChange={(v) => { if (!v) setCheckInFor(null); }}
