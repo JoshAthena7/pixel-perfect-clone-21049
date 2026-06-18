@@ -634,6 +634,8 @@ function PlatformHealthPanel() {
 }
 
 function Stat({ label, value, danger }: { label: string; value: number | undefined; danger?: boolean }) {
+  // Always render a number — undefined/null collapse to 0 so the panel never shows "—".
+  const display = typeof value === "number" ? value : 0;
   return (
     <div className={cn(
       "rounded border px-2.5 py-2",
@@ -641,7 +643,7 @@ function Stat({ label, value, danger }: { label: string; value: number | undefin
     )}>
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className={cn("text-lg font-bold tabular-nums", danger && "text-red-400")}>
-        {value ?? "—"}
+        {display}
       </div>
     </div>
   );
