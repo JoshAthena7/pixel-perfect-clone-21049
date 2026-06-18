@@ -443,6 +443,16 @@ export const mapNarrativeStructure = createServerFn({ method: "POST" })
       }
     }
 
+    // Fire-and-forget pre-generation of narrative briefs for mapped questions.
+    try {
+      const { pregenerateNarrativeBriefs } = await import(
+        "./generate-narrative-brief.functions"
+      );
+      await pregenerateNarrativeBriefs({ data: { missionId: data.missionId } } as any);
+    } catch (e) {
+      console.warn("[map-narrative] pre-generation failed", e);
+    }
+
     return {
       ok: true,
       mapped: results.length,
