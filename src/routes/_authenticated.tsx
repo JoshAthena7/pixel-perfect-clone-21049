@@ -6,7 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { IrisProvider } from "@/components/iris/IrisContext";
 import { AskIrisPanel } from "@/components/iris/AskIrisPanel";
-import { IrisExplainThisPage } from "@/components/iris/IrisExplainThisPage";
+
 import { GlobalCommandBar } from "@/components/nav/GlobalCommandBar";
 import { AppSidebar } from "@/components/nav/AppSidebar";
 
@@ -212,7 +212,6 @@ function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolea
       {!hideSidebar && <AppSidebar userName={userName} userRole={userRole} />}
 
       <main style={{ marginLeft: sidebarWidth, paddingTop: 0, position: "relative" }}>
-        <IrisExplainThisPage />
         <Outlet />
       </main>
       <AskIrisPanel />
