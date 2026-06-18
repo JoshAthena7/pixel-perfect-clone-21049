@@ -52,10 +52,13 @@ export function CheckInDialog({ open, onOpenChange, missionId, questionId, quest
         } as never).eq("id", progressId);
       }
       await fireAssistEvent(missionId, questionId, null, "check_in", {
-        status, confidence, note: note.slice(0, 500),
+        status, confidence, note: note.slice(0, 500), next_status: nextStatus || null,
       });
       if (status !== "on_track") {
         await fireAssistEvent(missionId, questionId, null, "sos_raised", { source: "check_in", reason: status });
+      }
+      if (nextStatus && onStatusChange) {
+        await onStatusChange(nextStatus);
       }
       toast.success("Check-in recorded");
       onSubmitted?.();
