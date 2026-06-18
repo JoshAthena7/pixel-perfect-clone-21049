@@ -17,6 +17,7 @@ import { CheckInDialog } from "@/components/flight-deck/CheckInDialog";
 import { AtlasAssistBar } from "@/components/atlas/AtlasAssistBar";
 import { WritersBlockDialog } from "@/components/atlas/WritersBlockDialog";
 import { TeamPulseCard } from "@/components/atlas/TeamPulseCard";
+import { NarrativeBriefSection } from "@/components/flight-deck/NarrativeBriefSection";
 
 const BG = "#060f1a";
 const CARD = "#0a1828";
@@ -89,6 +90,7 @@ type Q = {
   brief_exported_at: string | null;
   last_activity_at: string | null;
   sme_assigned: boolean | null;
+  primary_win_theme: string | null;
 };
 
 export function WriterCockpit({ missionId, missionName }: { missionId: string; missionName: string }) {
@@ -178,6 +180,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
             brief_exported_at: qp.brief_exported_at,
             last_activity_at: qp.last_activity_at,
             sme_assigned: qp.sme_assigned,
+            primary_win_theme: q.primary_win_theme ?? null,
           };
         });
 
@@ -560,7 +563,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
     const nextOptions = nextStatuses(q.progress_status, !!cockpit?.pensDown);
 
     return (
-      <div key={q.id} style={{
+      <div key={q.id} id={`q-card-${q.id}`} style={{
         background: CARD, borderRadius: 10, marginBottom: 10, overflow: "hidden",
         borderLeft: `3px solid ${healthColor(q.health_status)}`,
         border: `1px solid rgba(255,255,255,0.05)`,
@@ -747,6 +750,23 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontStyle: "italic" }}>
                     IRIS has not decoded the intent yet.
                   </div>
+                )}
+
+                {/* Your Place in the Story — narrative brief */}
+                {q.primary_win_theme && (
+                  <NarrativeBriefSection
+                    missionId={missionId}
+                    questionId={q.id}
+                    onJumpToQuestion={(qid) => {
+                      setExpanded(qid);
+                      requestAnimationFrame(() => {
+                        document.getElementById(`q-card-${qid}`)?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "start",
+                        });
+                      });
+                    }}
+                  />
                 )}
 
                 {/* IRIS coaching — single source */}

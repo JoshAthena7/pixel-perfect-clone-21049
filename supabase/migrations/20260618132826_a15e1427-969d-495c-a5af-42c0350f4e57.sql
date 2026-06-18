@@ -1,0 +1,3 @@
+ALTER TABLE public.iris_answers DROP CONSTRAINT IF EXISTS iris_answers_prompt_type_check;
+ALTER TABLE public.iris_answers ADD CONSTRAINT iris_answers_prompt_type_check
+  CHECK (prompt_type = ANY (ARRAY['decode'::text, 'win_angle'::text, 'evidence'::text, 'watch_out'::text, 'writers_block'::text, 'brief'::text, 'daily_focus'::text, 'inspiration'::text, 'score_guidance'::text, 'narrative_brief'::text]));
