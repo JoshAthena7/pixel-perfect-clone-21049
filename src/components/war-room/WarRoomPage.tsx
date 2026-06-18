@@ -92,8 +92,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
 
   const [filterWriterId, setFilterWriterId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
-  const [nudgeTarget, setNudgeTarget] = useState<{ id: string; name: string } | null>(null);
-  const [nudgeMsg, setNudgeMsg] = useState("");
+  const [nudgeTarget, setNudgeTarget] = useState<NudgeTarget | null>(null);
   const [reassignFor, setReassignFor] = useState<string | null>(null);
   const [highlightedWriterId, setHighlightedWriterId] = useState<string | null>(null);
 
