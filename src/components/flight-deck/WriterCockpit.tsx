@@ -15,7 +15,7 @@ import { ScoreMeDialog } from "@/components/flight-deck/ScoreMeDialog";
 import { MissionPulsePanel } from "@/components/flight-deck/MissionPulsePanel";
 import { CheckInDialog } from "@/components/flight-deck/CheckInDialog";
 import { AtlasAssistBar } from "@/components/atlas/AtlasAssistBar";
-import { WritersBlockDialog } from "@/components/atlas/WritersBlockDialog";
+
 import { TeamPulseCard } from "@/components/atlas/TeamPulseCard";
 import { NarrativeBriefSection } from "@/components/flight-deck/NarrativeBriefSection";
 
@@ -102,7 +102,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   const [scoreMeFor, setScoreMeFor] = useState<Q | null>(null);
   const [pulseOpen, setPulseOpen] = useState(false);
   const [checkInFor, setCheckInFor] = useState<Q | null>(null);
-  const [stuckFor, setStuckFor] = useState<Q | null>(null);
+  
   const updateStatus = useServerFn(updateProgressStatus);
 
   useEffect(() => {
@@ -539,19 +539,17 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
         questionId={checkInFor?.id ?? null}
         questionNumber={checkInFor?.question_number ?? null}
         progressId={checkInFor?.progress_id ?? null}
+        statusOptions={
+          checkInFor
+            ? nextStatuses(checkInFor.progress_status, !!cockpit?.pensDown)
+            : []
+        }
+        onStatusChange={async (s) => {
+          if (checkInFor) await handleStatusChange(checkInFor, s as ProgressStatus);
+        }}
         onSubmitted={() => qc.invalidateQueries({ queryKey: refreshKey })}
       />
 
-      <WritersBlockDialog
-        open={!!stuckFor}
-        onOpenChange={(v) => { if (!v) setStuckFor(null); }}
-        missionId={missionId}
-        questionId={stuckFor?.id ?? null}
-        questionNumber={stuckFor?.question_number ?? null}
-        questionText={stuckFor?.question_text ?? null}
-        dueDate={stuckFor?.due_date ?? null}
-        status={stuckFor?.progress_status ?? null}
-      />
     </div>
   );
 
@@ -560,7 +558,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
     const dRem = daysBetween(q.due_date);
     const fbList = fbByQid.get(q.id) ?? [];
     const briefAge = q.iris_brief_generated_at ? daysBetween(q.iris_brief_generated_at) : null;
-    const nextOptions = nextStatuses(q.progress_status, !!cockpit?.pensDown);
+    
 
     return (
       <div key={q.id} id={`q-card-${q.id}`} style={{
@@ -689,40 +687,56 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                   <SignalRow label="Weight / Pages" value={`${q.evaluation_weight ?? "—"}% · ${q.page_limit ?? "—"}p`} />
                 </div>
 
-                {/* Status-action buttons live with the status info */}
-                <div style={{ marginTop: "auto", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-                  <button onClick={() => setCheckInFor(q)} style={btn("#3b82f6")}><Activity size={12}/> Check-In</button>
-                  <button onClick={() => setScoreMeFor(q)} style={btn("#a78bfa")}><Gauge size={12}/> Score Me</button>
-                  <button
-                    onClick={() => setStuckFor(q)}
-                    style={{
-                      background: "transparent", color: GOLD, border: `1px solid ${GOLD}`,
-                      borderRadius: 6, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer",
-                    }}
-                  >
-                    🧱 Stuck?
-                  </button>
-                  <button onClick={() => setPulseOpen(true)} style={btn("#0ea5e9")}><Radio size={12}/> Pulse</button>
-
-                  {q.acceptance_status === "pending" && (
-                    <>
-                      <button onClick={() => handleAcceptAssignment(q)} style={btn(GREEN)}>Accept</button>
-                      <button onClick={() => handleNeedHelp(q)} style={btn(RED)}><LifeBuoy size={12}/> Need Help</button>
-                    </>
-                  )}
-
-                  <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Next:</span>
-                    <select
-                      value=""
-                      onChange={(e) => e.target.value && handleStatusChange(q, e.target.value as ProgressStatus)}
-                      style={{ background: "#1a2433", color: "white", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, padding: "5px 8px", fontSize: 11 }}
-                    >
-                      <option value="">→ status…</option>
-                      {nextOptions.map(s => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
-                    </select>
-                  </div>
+                {/* 3-button assist bar — Check-In / Score Me / Mission Pulse */}
+                <div
+                  style={{
+                    marginTop: "auto",
+                    paddingTop: 10,
+                    borderTop: "1px solid rgba(255,255,255,0.05)",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gap: 8,
+                  }}
+                >
+                  <AssistButton
+                    Icon={Activity}
+                    label="Check-In"
+                    sub="Report your status"
+                    tooltip="Thirty seconds. Tell the mission where you stand."
+                    bg="rgba(255,255,255,0.05)"
+                    border="rgba(255,255,255,0.12)"
+                    color="rgba(255,255,255,0.65)"
+                    onClick={() => setCheckInFor(q)}
+                  />
+                  <AssistButton
+                    Icon={Gauge}
+                    label="Score Me"
+                    sub="Improve the answer"
+                    tooltip="Paste your draft from Word, SharePoint, or Loopio. I will tell you what lands and what does not."
+                    bg="rgba(196,154,43,0.12)"
+                    border="rgba(196,154,43,0.35)"
+                    color="#C49A2B"
+                    onClick={() => setScoreMeFor(q)}
+                  />
+                  <AssistButton
+                    Icon={Radio}
+                    label="Mission Pulse"
+                    sub="Send a signal"
+                    tooltip="The mission heartbeat. See what IRIS surfaced. Send what you learned."
+                    bg="rgba(127,119,221,0.10)"
+                    border="rgba(127,119,221,0.30)"
+                    color="rgba(200,195,255,0.85)"
+                    onClick={() => setPulseOpen(true)}
+                  />
                 </div>
+
+                {q.acceptance_status === "pending" && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginTop: 8 }}>
+                    <button onClick={() => handleAcceptAssignment(q)} style={btn(GREEN)}>Accept</button>
+                    <button onClick={() => handleNeedHelp(q)} style={btn(RED)}><LifeBuoy size={12}/> Need Help</button>
+                  </div>
+                )}
+
               </div>
 
               {/* RIGHT PILLAR — BRIEF */}
@@ -986,6 +1000,45 @@ function WinThemesStrip({ themes }: { themes: any[] }) {
         );
       })}
     </div>
+  );
+}
+
+function AssistButton({
+  Icon, label, sub, tooltip, bg, border, color, onClick,
+}: {
+  Icon: any;
+  label: string;
+  sub: string;
+  tooltip: string;
+  bg: string;
+  border: string;
+  color: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={tooltip}
+      style={{
+        height: 56,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 2,
+        background: bg,
+        border: `0.5px solid ${border}`,
+        color,
+        borderRadius: 6,
+        cursor: "pointer",
+        padding: "4px 8px",
+        lineHeight: 1.1,
+      }}
+    >
+      <Icon size={16} />
+      <span style={{ fontSize: 10, fontWeight: 600 }}>{label}</span>
+      <span style={{ fontSize: 8, color: "rgba(255,255,255,0.45)" }}>{sub}</span>
+    </button>
   );
 }
 

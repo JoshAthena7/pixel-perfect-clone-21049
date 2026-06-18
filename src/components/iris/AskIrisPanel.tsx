@@ -19,11 +19,9 @@ import {
   ChevronRight,
   X,
   Send,
-  Pencil,
   Users,
   FileText,
-  Edit3,
-  HelpCircle,
+  
   AlertTriangle,
   Copy,
   ExternalLink,
@@ -738,12 +736,9 @@ function HomeState(props: {
 
       <div>
         <div className="text-[11px] uppercase tracking-widest text-white/45 mb-2">What do you need?</div>
-        <div className="grid grid-cols-2 gap-2">
-          <ActionCard icon={<Pencil className="h-3.5 w-3.5" />} label="Update Reality" sub="Use when mission strategy needs to change" onClick={props.onPostUpdate} />
-          <ActionCard icon={<Users className="h-3.5 w-3.5" />} label="Find an SME" sub="Get expert help fast" onClick={props.onFindSme} />
+        <div className="flex flex-col gap-2">
           <ActionCard icon={<FileText className="h-3.5 w-3.5" />} label="Brief me" sub="Today's intel summary" onClick={props.onBriefMe} />
-          
-          <ActionCard icon={<HelpCircle className="h-3.5 w-3.5" />} label="I'm stuck" sub="Get unstuck fast" onClick={props.onGetHelp} />
+          <ActionCard icon={<Users className="h-3.5 w-3.5" />} label="Find an SME" sub="Get expert help fast" onClick={props.onFindSme} />
           <ActionCard icon={<AlertTriangle className="h-3.5 w-3.5" />} label="SOS" sub="Critically blocked" onClick={props.onSos} danger />
         </div>
       </div>

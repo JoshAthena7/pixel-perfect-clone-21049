@@ -14,6 +14,8 @@ type Props = {
   questionId: string | null;
   questionNumber: string | null;
   progressId: string | null;
+  statusOptions?: string[];
+  onStatusChange?: (status: string) => Promise<void> | void;
   onSubmitted?: () => void;
 };
 
@@ -28,14 +30,15 @@ const OPTIONS: { id: Status; label: string; color: string; Icon: any; sub: strin
   { id: "need_sme", label: "Need SME",    color: AMBER, Icon: LifeBuoy,     sub: "Need expert input to proceed" },
 ];
 
-export function CheckInDialog({ open, onOpenChange, missionId, questionId, questionNumber, progressId, onSubmitted }: Props) {
+export function CheckInDialog({ open, onOpenChange, missionId, questionId, questionNumber, progressId, statusOptions, onStatusChange, onSubmitted }: Props) {
   const [status, setStatus] = useState<Status>("on_track");
   const [note, setNote] = useState("");
   const [confidence, setConfidence] = useState<"high" | "medium" | "low">("medium");
+  const [nextStatus, setNextStatus] = useState<string>("");
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    if (!open) { setStatus("on_track"); setNote(""); setConfidence("medium"); setSending(false); }
+    if (!open) { setStatus("on_track"); setNote(""); setConfidence("medium"); setNextStatus(""); setSending(false); }
   }, [open]);
 
   async function submit() {
@@ -49,10 +52,13 @@ export function CheckInDialog({ open, onOpenChange, missionId, questionId, quest
         } as never).eq("id", progressId);
       }
       await fireAssistEvent(missionId, questionId, null, "check_in", {
-        status, confidence, note: note.slice(0, 500),
+        status, confidence, note: note.slice(0, 500), next_status: nextStatus || null,
       });
       if (status !== "on_track") {
         await fireAssistEvent(missionId, questionId, null, "sos_raised", { source: "check_in", reason: status });
+      }
+      if (nextStatus && onStatusChange) {
+        await onStatusChange(nextStatus);
       }
       toast.success("Check-in recorded");
       onSubmitted?.();
@@ -129,6 +135,26 @@ export function CheckInDialog({ open, onOpenChange, missionId, questionId, quest
                 }}
               />
             </div>
+
+            {statusOptions && statusOptions.length > 0 && (
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,0.55)", marginBottom: 6 }}>UPDATE QUESTION STATUS</div>
+                <select
+                  value={nextStatus}
+                  onChange={(e) => setNextStatus(e.target.value)}
+                  style={{
+                    width: "100%", background: "#06111e", color: "white",
+                    border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6,
+                    padding: "8px 10px", fontSize: 12,
+                  }}
+                >
+                  <option value="">Keep current status</option>
+                  {statusOptions.map((s) => (
+                    <option key={s} value={s}>→ {s.replace(/_/g, " ")}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <button onClick={submit} disabled={sending} style={{
               padding: "10px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: sending ? "wait" : "pointer",
