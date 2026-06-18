@@ -332,11 +332,22 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                               <span className="text-red-400">{atRiskQ}⚠</span>
                             </div>
                           )}
+                          {(() => {
+                            const nudgedAt = recentNudgesQ.data?.[w.userId]?.sent_at;
+                            return nudgedAt ? (
+                              <div className="text-[10px] italic text-white/40 mt-1">
+                                Nudged {relTime(nudgedAt)}
+                              </div>
+                            ) : null;
+                          })()}
                           <div className="flex items-center gap-2 mt-2">
                             <span className="text-[11px]" style={{ color: liveColor }}>{liveLabel}</span>
                             <div className="flex gap-1 ml-auto">
                               <button
-                                onClick={() => { setNudgeTarget({ id: w.userId, name: w.name }); setNudgeMsg(`Hey ${w.name.split(" ")[0]} — checking in on your questions. Anything you need from me?`); }}
+                                onClick={() => setNudgeTarget({
+                                  userId: w.userId, name: w.name, role: w.role,
+                                  questionCount: total, liveLabel, liveColor,
+                                })}
                                 className="text-[10px] px-2 py-1 rounded bg-white/5 hover:bg-white/10 inline-flex items-center gap-1"
                               ><MessageSquare className="w-3 h-3" /> Nudge</button>
                               <button
