@@ -139,6 +139,15 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   const [intelTab, setIntelTab] = useState<"iris" | "live" | "sticky">("iris");
   const [mobileTab, setMobileTab] = useState<"team" | "radar" | "alerts">("radar");
   const [alertCount, setAlertCount] = useState(0);
+  const [drawerTarget, setDrawerTarget] = useState<WriterDrawerTarget | null>(null);
+
+  const openWriterDrawer = (w: any) => setDrawerTarget({
+    userId: w.userId,
+    name: w.name,
+    role: w.role,
+    hoursSinceActivity: w.hoursSinceActivity ?? null,
+    lastActivity: w.lastActivity ?? null,
+  });
 
   useEffect(() => {
     const handler = (e: Event) => {
