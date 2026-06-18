@@ -19,11 +19,9 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "all", label: "All" },
   { key: "check_in", label: "Check-Ins" },
   { key: "sticky_note", label: "Notes" },
-  { key: "score_me", label: "Score Me" },
-  { key: "mission_pulse", label: "Pulse" },
+  { key: "score_me", label: "Scores" },
   { key: "sos", label: "SOS" },
   { key: "brief_exported", label: "Briefs" },
-  { key: "nudge", label: "Nudges" },
 ];
 
 const ICON: Record<ActivityStream, { glyph: string; color: string }> = {
@@ -39,7 +37,7 @@ const ICON: Record<ActivityStream, { glyph: string; color: string }> = {
   nudge:          { glyph: "👋", color: "#c9a84c" },
 };
 
-export function MissionRadar({ missionId }: { missionId: string }) {
+export function MissionRadar({ missionId, bare = false }: { missionId: string; bare?: boolean }) {
   const navigate = useNavigate();
   const fetchActivity = useServerFn(getMissionActivity);
   const [filter, setFilter] = useState<FilterKey>("all");
@@ -56,6 +54,83 @@ export function MissionRadar({ missionId }: { missionId: string }) {
     return items.filter((i) => i.stream === filter);
   }, [items, filter]);
 
+  const filterPills = (
+    <div className="flex flex-wrap gap-1 justify-end">
+      {FILTERS.map((f) => {
+        const active = filter === f.key;
+        return (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`text-[9px] px-1.5 py-0.5 rounded-full border transition ${
+              active
+                ? "bg-amber-500/20 border-amber-400/40 text-amber-100"
+                : "bg-white/[0.03] border-white/10 text-white/55 hover:bg-white/10"
+            }`}
+          >
+            {f.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const list = (
+    <>
+      {q.isLoading ? (
+        <div className="text-xs text-white/40 py-6 text-center">Scanning the airspace…</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-xs text-white/40 py-10 text-center px-4 leading-relaxed">
+          <div className="text-2xl mb-2 opacity-50">📡</div>
+          Radar is clear. Activity appears here the moment it happens.
+        </div>
+      ) : (
+        <ul className="divide-y divide-white/[0.04]">
+          {filtered.map((it) => {
+            const icon = ICON[it.stream] ?? { glyph: "•", color: "#94a3b8" };
+            return (
+              <li
+                key={it.id}
+                className="group flex items-center gap-2.5 px-3 py-2 hover:bg-white/[0.03] cursor-pointer animate-in fade-in"
+                style={{ minHeight: 44 }}
+                onClick={() => {
+                  if (!it.question_id) return;
+                  navigate({ to: "/missions/$missionId/flight-deck", params: { missionId }, hash: it.question_id });
+                }}
+              >
+                <span className="shrink-0 w-4 text-center text-[12px]" style={{ color: icon.color }}>
+                  {icon.glyph}
+                </span>
+                <div className="flex-1 min-w-0 text-[12px] text-white/85 leading-snug truncate">
+                  {it.question_number ? (
+                    <span style={{ color: GOLD }} className="font-mono mr-1">Q{it.question_number}</span>
+                  ) : null}
+                  {it.summary}
+                </div>
+                <span
+                  className="shrink-0 text-[10px] text-white/40 group-hover:hidden"
+                  style={{ fontFamily: "'Courier New', monospace" }}
+                >
+                  {relTime(it.created_at)}
+                </span>
+                <span className="shrink-0 text-[10px] text-amber-300 hidden group-hover:inline">→ View</span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </>
+  );
+
+  if (bare) {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="px-3 py-1.5 border-b border-white/[0.04] bg-[#050d18] sticky top-0 z-[1]">{filterPills}</div>
+        <div className="flex-1 overflow-y-auto">{list}</div>
+      </div>
+    );
+  }
+
   return (
     <section className="rounded-lg border border-white/10 bg-white/[0.015] p-4">
       <header className="flex items-start justify-between gap-3 mb-2">
@@ -67,62 +142,8 @@ export function MissionRadar({ missionId }: { missionId: string }) {
           <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> Live
         </span>
       </header>
-
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {FILTERS.map((f) => {
-          const active = filter === f.key;
-          return (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              className={`text-[10px] px-2 py-1 rounded-full border transition ${
-                active
-                  ? "bg-amber-500/20 border-amber-400/40 text-amber-100"
-                  : "bg-white/[0.03] border-white/10 text-white/60 hover:bg-white/10"
-              }`}
-            >
-              {f.label}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="overflow-y-auto pr-1" style={{ height: 300 }}>
-        {q.isLoading ? (
-          <div className="text-xs text-white/40 py-6 text-center">Scanning the airspace…</div>
-        ) : filtered.length === 0 ? (
-          <div className="text-xs text-white/40 py-6 text-center px-4 leading-relaxed">
-            No activity yet. When writers check in, post notes, or run assists — it appears here.
-          </div>
-        ) : (
-          <ul className="space-y-1.5">
-            {filtered.map((it) => {
-              const icon = ICON[it.stream] ?? { glyph: "•", color: "#94a3b8" };
-              return (
-                <li
-                  key={it.id}
-                  className="flex items-start gap-2.5 px-2 py-1.5 rounded hover:bg-white/[0.03] cursor-pointer animate-in fade-in"
-                  onClick={() => {
-                    if (!it.question_id) return;
-                    navigate({ to: "/missions/$missionId/flight-deck", params: { missionId }, hash: it.question_id });
-                  }}
-                >
-                  <span className="shrink-0 w-4 text-center text-[12px]" style={{ color: icon.color }}>
-                    {icon.glyph}
-                  </span>
-                  <div className="flex-1 min-w-0 text-[12px] text-white/85 leading-snug">
-                    {it.question_number ? (
-                      <span style={{ color: GOLD }} className="font-mono mr-1">Q{it.question_number}</span>
-                    ) : null}
-                    {it.summary}
-                  </div>
-                  <span className="shrink-0 text-[10px] text-white/35">{relTime(it.created_at)}</span>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+      <div className="mb-3">{filterPills}</div>
+      <div className="overflow-y-auto pr-1" style={{ height: 300 }}>{list}</div>
     </section>
   );
 }
