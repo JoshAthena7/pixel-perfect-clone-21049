@@ -242,7 +242,25 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   }, [d, filterWriterId, filterStatus]);
 
   if (dataQ.isLoading || !d) {
-    return <div className="p-6 text-white/55 text-sm">Loading Air Traffic Control…</div>;
+    return (
+      <div className="flex flex-col h-screen text-white" style={{ background: "#070f1c", ...SCANLINE_BG }}>
+        <div className="shrink-0 h-12 border-b border-white/[0.08] bg-[#050d18]" />
+        <div className="flex-1 min-h-0 flex">
+          <div className="h-full overflow-hidden border-r border-white/[0.06]" style={{ width: "26%" }}>
+            <div className="h-9 border-b border-white/[0.06] bg-[#050d18]" />
+            <TeamPulseSkeleton count={5} />
+          </div>
+          <div className="h-full overflow-hidden border-r border-white/[0.06]" style={{ width: "44%" }}>
+            <div className="h-9 border-b border-white/[0.06] bg-[#050d18]" />
+            <div className="p-2"><RadarSkeletonInline /></div>
+          </div>
+          <div className="h-full overflow-hidden" style={{ width: "30%" }}>
+            <div className="h-9 border-b border-white/[0.06] bg-[#050d18]" />
+            <div className="p-2"><AlertsSkeletonInline /></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const healthState =
