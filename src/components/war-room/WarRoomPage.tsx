@@ -277,6 +277,14 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   const sosCount = sosActiveQ.data?.length ?? 0;
   const missionName = (d.mission?.name ?? "Mission").slice(0, 40);
 
+  const missionStatus = String(d.mission?.status ?? "").toLowerCase();
+  const deadlinePassed = deadline ? new Date(deadline).getTime() < Date.now() : false;
+  const readOnly = missionStatus === "closed" || deadlinePassed;
+
+  const totalQuestions = d.stats.totalQuestions ?? 0;
+  const allWritersUnassigned = d.writers.length > 0 && d.writers.every((w: any) => (w.questionCount ?? 0) === 0);
+  const missionTooNew = d.writers.length === 0 && totalQuestions === 0;
+
   // ---------------- Status pill helpers ----------------
   const StatPill = ({ icon, value, label, danger = false }: { icon: string; value: number | string; label: string; danger?: boolean }) => (
     <span
