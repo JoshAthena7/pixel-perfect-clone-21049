@@ -112,6 +112,7 @@ export const getWarRoomData = createServerFn({ method: "POST" })
     // Map: questionId -> latest progress activity per assignee
     const lastByAssignee: Record<string, string> = {};
     const questionsByAssignee: Record<string, Set<string>> = {};
+    const progressStatusByAssignee: Record<string, Record<string, string>> = {};
     for (const p of progressRes.data ?? []) {
       if (!p.assignee_id) continue;
       const t = p.last_activity_at || p.updated_at;
@@ -119,6 +120,7 @@ export const getWarRoomData = createServerFn({ method: "POST" })
         lastByAssignee[p.assignee_id] = t;
       }
       (questionsByAssignee[p.assignee_id] ??= new Set()).add(p.question_id);
+      (progressStatusByAssignee[p.assignee_id] ??= {})[p.question_id] = p.status ?? "not_started";
     }
     // Also include assignments (writer might not have progress row yet)
     for (const a of assignRes.data ?? []) {
@@ -130,11 +132,19 @@ export const getWarRoomData = createServerFn({ method: "POST" })
     const qHealth: Record<string, string> = {};
     for (const q of questionsRes.data ?? []) qHealth[q.id] = q.health_status ?? "unknown";
 
+    const ACTIVE_STATUSES = new Set([
+      "briefed", "in_progress", "internal_review", "red_team", "gold_team", "mock_scored", "revising",
+    ]);
+
     const writers = memberRows.map((m: any) => {
       const qIds = Array.from(questionsByAssignee[m.member_id] ?? []);
       const healthy = qIds.filter((id) => qHealth[id] === "healthy").length;
       const watch = qIds.filter((id) => qHealth[id] === "watch").length;
       const atRisk = qIds.filter((id) => qHealth[id] === "at_risk").length;
+      const statusMap = progressStatusByAssignee[m.member_id] ?? {};
+      const finalized = qIds.filter((id) => statusMap[id] === "finalized").length;
+      const activeCount = qIds.filter((id) => ACTIVE_STATUSES.has(statusMap[id] ?? "")).length;
+      const notStarted = qIds.filter((id) => !statusMap[id] || statusMap[id] === "not_started").length;
       const last = lastByAssignee[m.member_id] ?? null;
       const hoursAgo = last ? (now - new Date(last).getTime()) / 3600_000 : null;
       let status: "active" | "away" | "quiet" | "silent" | "not_started" = "not_started";
@@ -157,6 +167,7 @@ export const getWarRoomData = createServerFn({ method: "POST" })
         role: m.mission_role,
         questionCount: qIds.length,
         healthy, watch, atRisk,
+        finalized, activeCount, notStarted,
         lastActivity: last,
         hoursSinceActivity: hoursAgo,
         status,
