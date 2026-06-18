@@ -8,6 +8,7 @@ import { Loader2, Zap } from "lucide-react";
 import { TaxonomyBrowser } from "./TaxonomyBrowser";
 import { IntelReviewQueue } from "./IntelReviewQueue";
 import { SourcesPanel } from "./SourcesPanel";
+import { HealthColumn } from "./HealthColumn";
 
 type MissionRow = { id: string; name: string; submission_deadline: string | null };
 
