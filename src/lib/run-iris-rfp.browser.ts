@@ -18,6 +18,7 @@ import {
   processRFPDocuments,
   extractQuestionsForSection,
   sliceSectionTextWithFallbacks,
+  type SectionLocator,
   type ProcessResult,
 } from "@/lib/iris-process-rfp.functions";
 import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
@@ -171,6 +172,10 @@ export async function runIrisRfpExtraction(
   const allSectionNumbers = (sectionRows ?? [])
     .map((s) => s.section_number)
     .filter((n): n is string => !!n);
+  const allSectionLocators: SectionLocator[] = (sectionRows ?? []).map((s) => ({
+    section_number: s.section_number,
+    name: s.name,
+  }));
 
   let questionsInserted = 0;
   let sectionsProcessed = 0;
@@ -188,6 +193,8 @@ export async function runIrisRfpExtraction(
       idx,
       targets.length,
       allSectionNumbers,
+      section.name,
+      allSectionLocators,
     );
 
     const useInferred = slice.length < MIN_TEXT_CHARS;

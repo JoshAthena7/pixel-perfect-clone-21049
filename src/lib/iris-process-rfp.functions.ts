@@ -634,8 +634,10 @@ export function sliceSectionTextForClient(
   fullText: string,
   sectionNumber: string | null,
   allSectionNumbers: string[] = [],
+  sectionName?: string | null,
+  allSectionLocators: SectionLocator[] = [],
 ): string {
-  return sliceSectionText(fullText, sectionNumber, allSectionNumbers);
+  return sliceSectionText(fullText, sectionNumber, allSectionNumbers, sectionName, allSectionLocators);
 }
 
 /**
@@ -651,20 +653,32 @@ export function sliceSectionTextWithFallbacks(
   sectionIndex: number,
   totalSections: number,
   allSectionNumbers: string[] = [],
+  sectionName?: string | null,
+  allSectionLocators: SectionLocator[] = [],
 ): { text: string; attempt: 1 | 2 | 3 | 0 } {
   if (!sectionNumber) return { text: "", attempt: 0 };
 
   // Attempt 1 — strict line-anchored regex, bounded by next section
-  const attempt1 = sliceSectionText(fullText, sectionNumber, allSectionNumbers);
+  const attempt1 = sliceSectionText(
+    fullText,
+    sectionNumber,
+    allSectionNumbers,
+    sectionName,
+    allSectionLocators,
+  );
   if (attempt1.length >= 50) return { text: attempt1, attempt: 1 };
 
-  // Attempt 2 — inline regex (section number anywhere)
+  // Attempt 2 — inline regex (section number anywhere), but still skip TOC clusters.
   try {
-    const escaped = sectionNumber.replace(/\./g, "\\.");
-    const inline = new RegExp(`${escaped}(?![0-9])[\\.\\s\\)\\:\\-]`, "i");
-    const m = inline.exec(fullText);
-    if (m) {
-      const slice = fullText.slice(m.index, m.index + 12_000);
+    const locators = allSectionLocators.length > 0
+      ? allSectionLocators
+      : allSectionNumbers.map((n) => ({ section_number: n }));
+    const escaped = escapeRegExp(sectionNumber);
+    const inline = new RegExp(`${escaped}(?![0-9])[\\.\\s\\)\\:\\-]`, "gi");
+    for (const m of fullText.matchAll(inline)) {
+      const idx = m.index ?? 0;
+      if (isTocCluster(fullText, idx, locators)) continue;
+      const slice = fullText.slice(idx, idx + 12_000);
       if (slice.length >= 50) return { text: slice, attempt: 2 };
     }
   } catch {
