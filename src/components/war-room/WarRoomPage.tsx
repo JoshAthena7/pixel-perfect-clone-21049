@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
 import {
   getWarRoomData, getWarRoomHealthTrend, sendNudge, flagQuestion,
   reassignQuestion, bulkResetBriefErrors,
@@ -58,6 +59,22 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   const trendQ = useQuery({
     queryKey: ["war-room-trend", missionId],
     queryFn: () => fetchTrend({ data: { missionId } }),
+  });
+
+  const stickyActivityQ = useQuery({
+    queryKey: ["war-room-sticky-activity", missionId],
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("mission_assist_events")
+        .select("id, created_at, metadata, question_id, user_id")
+        .eq("mission_id", missionId)
+        .eq("event_type", "sticky_note_posted")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 
   const [filterWriterId, setFilterWriterId] = useState<string | null>(null);
@@ -372,6 +389,31 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                     </div>
                   </li>
                 ))}
+              </ul>
+            )}
+          </Widget>
+
+          <Widget
+            title="📌 Sticky Notes"
+            sub="Pinned to questions"
+            stamp={stickyActivityQ.data?.[0]?.created_at ?? undefined}
+          >
+            {(stickyActivityQ.data ?? []).length === 0 ? (
+              <Empty muted>No sticky notes pinned yet.</Empty>
+            ) : (
+              <ul className="space-y-2">
+                {(stickyActivityQ.data ?? []).map((e: any) => {
+                  const summary = (e.metadata?.summary as string) ?? "Pinned a sticky note";
+                  return (
+                    <li key={e.id} className="text-xs flex items-start gap-2">
+                      <span className="shrink-0" style={{ color: "#C49A2B" }}>📌</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white/90" style={{ color: "#E6C97A" }}>{summary}</div>
+                        <div className="text-[10px] text-white/40 mt-0.5">{relTime(e.created_at)}</div>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </Widget>

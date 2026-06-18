@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { X, Pin, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fireAssistEvent } from "@/lib/fireAssistEvent";
 import { toast } from "sonner";
 
 type Props = {
@@ -118,8 +119,20 @@ export function StickyNotesPanel({
       setFadeIds((s) => new Set(s).add(row.id));
       setText("");
 
+      // War Room timeline: log the activity so it appears alongside other mission events.
+      const fname = firstNameOf(row);
+      const snippet = body.length > 80 ? body.slice(0, 80) + "…" : body;
+      const summary = `${fname} pinned a note to Q${questionNumber ?? "?"} — ${snippet}`;
+      fireAssistEvent(missionId, questionId, uid, "sticky_note_posted", {
+        summary,
+        note_id: row.id,
+        question_number: questionNumber,
+        pinned_to_slack: pinSlack,
+      }).catch((err) => console.warn("[sticky-notes] activity log failed", err));
+      qc.invalidateQueries({ queryKey: ["war-room-sticky-activity", missionId] });
+
       if (pinSlack) {
-        notifySlack(questionNumber, firstNameOf(row), body);
+        notifySlack(questionNumber, fname, body);
       }
     } catch (e) {
       toast.error((e as Error).message);
