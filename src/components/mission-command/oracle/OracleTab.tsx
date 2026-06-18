@@ -17,6 +17,7 @@ import { NodeDetailDrawer } from "@/components/intelligence/NodeDetailDrawer";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 import { WriterIntelView } from "@/components/oracle/WriterIntelView";
 import { GraphHealthTab } from "./GraphHealthTab";
+import { StoryMapTab } from "./StoryMapTab";
 
 const GOLD = "#C49A2B";
 
