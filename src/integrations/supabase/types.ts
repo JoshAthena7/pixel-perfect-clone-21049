@@ -13360,6 +13360,7 @@ export type Database = {
         | "classified"
         | "dismissed"
         | "error"
+        | "promoted"
       oracle_source_status: "active" | "paused" | "error" | "deprecated"
       oracle_source_type: "rss_feed" | "html_scrape" | "api" | "manual_only"
       oracle_subcategory:
@@ -13622,6 +13623,7 @@ export const Constants = {
         "classified",
         "dismissed",
         "error",
+        "promoted",
       ],
       oracle_source_status: ["active", "paused", "error", "deprecated"],
       oracle_source_type: ["rss_feed", "html_scrape", "api", "manual_only"],
