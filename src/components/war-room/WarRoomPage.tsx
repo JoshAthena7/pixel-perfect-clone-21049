@@ -357,6 +357,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
 
         {/* CENTER */}
         <div className="space-y-4 lg:col-span-1">
+          <MissionRadar missionId={missionId} />
           <Widget title="Health Over Time" sub="Last 14 days" stamp={d.generatedAt}>
             {!trendQ.data || !trendQ.data.hasHistory ? (
               <div className="py-6 text-center text-xs text-white/50">
