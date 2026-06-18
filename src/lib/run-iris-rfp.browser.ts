@@ -87,15 +87,31 @@ export async function runIrisRfpExtraction(
 
   const { data: docs, error: docsError } = await supabase
     .from("mission_documents")
-    .select("id, title, file_url, content_summary")
+    .select("id, title, file_url, content_summary, metadata")
     .eq("mission_id", missionId)
     .order("created_at", { ascending: true });
   if (docsError) throw docsError;
 
+  if (!docs || docs.length === 0) {
+    throw new Error(
+      "RFP text not available. No documents are attached to this mission — upload your RFP in Step 1 (Fuel IRIS) before running extraction.",
+    );
+  }
+
   const textParts: string[] = [];
-  for (const doc of docs ?? []) {
+  for (const doc of docs) {
     const title = doc.title ?? "Document";
-    const cachedText = (doc.content_summary ?? "").trim();
+    // Reassemble full text: content_summary (first 220k) + any text_chunk_N in metadata.
+    const meta = (doc.metadata ?? {}) as Record<string, unknown>;
+    const head = (doc.content_summary ?? "").trim();
+    const chunkPieces: string[] = [];
+    for (let n = 2; n <= 10; n++) {
+      const c = meta[`text_chunk_${n}`];
+      if (typeof c === "string" && c.length > 0) chunkPieces.push(c);
+      else break;
+    }
+    let cachedText = head;
+    if (chunkPieces.length > 0) cachedText = head + chunkPieces.join("");
     if (cachedText.length > 50) {
       textParts.push(`# ${title}\n\n${cachedText}`);
       continue;
@@ -121,8 +137,10 @@ export async function runIrisRfpExtraction(
   }
 
   const primaryRfpText = textParts.join("\n\n---\n\n").slice(0, 700_000);
-  if (primaryRfpText.trim().length < 50) {
-    throw new Error("IRIS could not read text from the uploaded RFP documents.");
+  if (primaryRfpText.trim().length < 500) {
+    throw new Error(
+      "RFP text not available. The uploaded documents have no extractable text — re-upload the primary RFP through Step 1 (Fuel IRIS) before running extraction.",
+    );
   }
 
   // PASS 1 — structure extraction (one short server call, idempotent).
