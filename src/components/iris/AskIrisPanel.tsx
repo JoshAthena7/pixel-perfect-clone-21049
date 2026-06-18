@@ -681,6 +681,18 @@ export function AskIrisPanel() {
                 : "Shift+Enter for newline · ` to toggle"}
             </div>
           </div>
+          {iris.current_mission_id && (
+            <div className="mt-1.5 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setOracleIntakeOpen(true)}
+                className="inline-flex items-center gap-1 text-[10px] text-white/40 hover:text-white/80 transition"
+                title="Capture field intel from this question and add it to ORACLE"
+              >
+                <Plus className="h-2.5 w-2.5" /> Add intel to ORACLE
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
