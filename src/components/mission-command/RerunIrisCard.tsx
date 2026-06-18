@@ -53,11 +53,12 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
         supabase
           .from("mission_questions")
           .select("id", { count: "exact", head: true })
-          .eq("mission_id", missionId),
+          .eq("mission_id", missionId)
+          .eq("is_withdrawn", false),
       ]);
       const isAdmin = (roles?.length ?? 0) > 0;
       const isActive = mission?.status === "active";
-      const needsRun = (nodeCount ?? 0) === 0 || (qCount ?? 0) === 0;
+      const needsRun = (nodeCount ?? 0) === 0 || (qCount ?? 0) < 20;
       return { show: isAdmin && isActive && needsRun };
     },
   });
