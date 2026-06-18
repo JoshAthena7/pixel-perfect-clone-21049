@@ -218,7 +218,9 @@ function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolea
   const inMission = /^\/(?:olympus\/)?missions\/[^/]+/.test(pathname);
   const inAdmin = pathname.startsWith("/admin");
   const hideSidebar = onDesk || inMission || inAdmin;
-  const sidebarWidth = hideSidebar ? 0 : (isMobile ? 48 : 200);
+  // AppSidebar is positioned at left: 48px, so desktop content must clear
+  // both the 48px command rail and the 200px sidebar or the left edge clips.
+  const sidebarWidth = hideSidebar ? 0 : (isMobile ? 96 : 248);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
