@@ -21,6 +21,7 @@ import {
   seedTerritoryIntelligence,
 } from "@/lib/iris-territory.functions";
 import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
+import { mapNarrativeStructure } from "@/lib/oracle/map-narrative-structure.functions";
 
 const GOLD = "#C9972B";
 const NAVY = "#0B4F8A";

@@ -21,6 +21,7 @@ import {
   type ProcessResult,
 } from "@/lib/iris-process-rfp.functions";
 import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
+import { mapNarrativeStructure } from "@/lib/oracle/map-narrative-structure.functions";
 
 const BUCKET = "atlas-rfp-documents";
 const PASS2_CONCURRENCY = 3;
@@ -245,6 +246,15 @@ export async function runIrisRfpExtraction(
           );
         }
         console.log(`[iris-briefs] Complete for mission ${missionId}`);
+
+        // After briefs queue is dispatched, run narrative mapping so every
+        // question gets a primary/secondary win theme + evaluator fear.
+        try {
+          const m = await mapNarrativeStructure({ data: { missionId, force: false } });
+          console.log(`[iris-narrative] mapped=${m.mapped} edges=${m.edgesCreated} failed=${m.failed}`);
+        } catch (e) {
+          console.warn("[iris-narrative] auto-map failed", e);
+        }
       })();
     }
   }

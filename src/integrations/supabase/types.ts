@@ -7239,6 +7239,7 @@ export type Database = {
           due_date: string | null
           evaluation_criteria: string | null
           evaluation_weight: number | null
+          evaluator_fear: string | null
           exhibit_description: string | null
           health_calculated_at: string | null
           health_status: string
@@ -7255,15 +7256,19 @@ export type Database = {
           is_inferred: boolean
           is_withdrawn: boolean
           mission_id: string
+          narrative_role: string | null
           page_limit: number | null
           point_value: number | null
+          primary_win_theme: string | null
           question_number: string | null
           question_text: string | null
           relevant_feed_item_ids: Json
           requires_exhibit: boolean
           reviewed_by_admin: boolean
+          secondary_win_theme: string | null
           section_id: string | null
           status: string
+          story_mapped_at: string | null
           updated_at: string
           word_limit: number | null
         }
@@ -7273,6 +7278,7 @@ export type Database = {
           due_date?: string | null
           evaluation_criteria?: string | null
           evaluation_weight?: number | null
+          evaluator_fear?: string | null
           exhibit_description?: string | null
           health_calculated_at?: string | null
           health_status?: string
@@ -7289,15 +7295,19 @@ export type Database = {
           is_inferred?: boolean
           is_withdrawn?: boolean
           mission_id: string
+          narrative_role?: string | null
           page_limit?: number | null
           point_value?: number | null
+          primary_win_theme?: string | null
           question_number?: string | null
           question_text?: string | null
           relevant_feed_item_ids?: Json
           requires_exhibit?: boolean
           reviewed_by_admin?: boolean
+          secondary_win_theme?: string | null
           section_id?: string | null
           status?: string
+          story_mapped_at?: string | null
           updated_at?: string
           word_limit?: number | null
         }
@@ -7307,6 +7317,7 @@ export type Database = {
           due_date?: string | null
           evaluation_criteria?: string | null
           evaluation_weight?: number | null
+          evaluator_fear?: string | null
           exhibit_description?: string | null
           health_calculated_at?: string | null
           health_status?: string
@@ -7323,15 +7334,19 @@ export type Database = {
           is_inferred?: boolean
           is_withdrawn?: boolean
           mission_id?: string
+          narrative_role?: string | null
           page_limit?: number | null
           point_value?: number | null
+          primary_win_theme?: string | null
           question_number?: string | null
           question_text?: string | null
           relevant_feed_item_ids?: Json
           requires_exhibit?: boolean
           reviewed_by_admin?: boolean
+          secondary_win_theme?: string | null
           section_id?: string | null
           status?: string
+          story_mapped_at?: string | null
           updated_at?: string
           word_limit?: number | null
         }

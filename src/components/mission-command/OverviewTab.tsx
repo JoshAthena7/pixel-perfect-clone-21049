@@ -13,6 +13,7 @@ import { SubmissionChecklistTab } from "./SubmissionChecklistTab";
 import { useViewerMissionRole, type TabId } from "./MissionTabs";
 import { IrisThreadExtractionPanel } from "./IrisThreadExtractionPanel";
 import { RerunIrisCard } from "./RerunIrisCard";
+import { MapNarrativeCard } from "./MapNarrativeCard";
 
 const GOLD = "#C49A2B";
 
@@ -59,6 +60,7 @@ export function OverviewTab({
   return (
     <div className="mx-auto w-full" style={{ maxWidth: 860 }}>
       {isAdminish && <RerunIrisCard missionId={missionId} />}
+      {isAdminish && <MapNarrativeCard missionId={missionId} />}
       <MissionHealthBar missionId={missionId} deadline={mission?.submission_deadline ?? null} />
 
       <CollapsibleSection id="win-strategy" title="Win Strategy" missionId={missionId}>
