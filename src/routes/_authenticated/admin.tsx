@@ -48,10 +48,28 @@ function AdminLayout() {
         <span className="mr-3" style={{ color: "rgba(255,255,255,0.2)", fontSize: 12 }}>·</span>
         {TABS.map((t) => {
           const active = t.match(pathname);
+          if (t.highlight) {
+            return (
+              <Link
+                key={t.id}
+                to={t.to as any}
+                className="px-3 py-1.5 rounded-md mr-2 transition-colors"
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: active ? "#070f1c" : "#c9a84c",
+                  background: active ? "#c9a84c" : "rgba(201,168,76,0.12)",
+                  border: "1px solid #c9a84c",
+                }}
+              >
+                {t.label}
+              </Link>
+            );
+          }
           return (
             <Link
               key={t.id}
-              to={t.to}
+              to={t.to as any}
               className="px-3 py-1.5 rounded-md transition-colors hover:bg-white/[0.05]"
               style={{
                 fontSize: 12,
