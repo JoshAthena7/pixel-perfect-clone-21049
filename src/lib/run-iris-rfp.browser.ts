@@ -168,6 +168,10 @@ export async function runIrisRfpExtraction(
     `[iris/browser] Pass 2 dispatch — ${targets.length} sections, concurrency ${PASS2_CONCURRENCY}`,
   );
 
+  const allSectionNumbers = (sectionRows ?? [])
+    .map((s) => s.section_number)
+    .filter((n): n is string => !!n);
+
   let questionsInserted = 0;
   let sectionsProcessed = 0;
   let sectionsFailed = 0;
@@ -175,13 +179,15 @@ export async function runIrisRfpExtraction(
   let sectionsInferred = 0;
 
   await runWithConcurrency(targets, PASS2_CONCURRENCY, async (section, idx) => {
-    // Fallback chain: regex → inline → proportional. If all return <50 chars,
-    // fall through to inferred (attempt 4) which calls AI with section name only.
+    // Fallback chain: regex (next-section bounded) → inline → proportional.
+    // If all return <50 chars, fall through to inferred (attempt 4) which
+    // calls AI with section name only.
     const { text: slice, attempt } = sliceSectionTextWithFallbacks(
       primaryRfpText,
       section.section_number,
       idx,
       targets.length,
+      allSectionNumbers,
     );
 
     const useInferred = slice.length < MIN_TEXT_CHARS;
