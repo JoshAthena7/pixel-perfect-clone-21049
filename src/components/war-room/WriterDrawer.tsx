@@ -223,9 +223,7 @@ export function WriterDrawer({
             {drillQ.isLoading ? (
               <div className="p-6 text-center text-xs text-white/40">Loading questions…</div>
             ) : drillQ.data && drillQ.data.questions.length === 0 ? (
-              <div className="p-6 text-center text-xs text-white/40">
-                No questions assigned to {writerFirst}.
-              </div>
+              <WriterDrawerNoQuestions firstName={writerFirst} />
             ) : (
               <ul>
                 {(drillQ.data?.questions ?? []).map((q) => (
