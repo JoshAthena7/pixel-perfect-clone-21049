@@ -114,10 +114,28 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
 
   const d = dataQ.data;
 
-  const nudgeMut = useMutation({
-    mutationFn: () => nudgeFn({ data: { missionId, toUserId: nudgeTarget!.id, message: nudgeMsg } }),
-    onSuccess: () => { toast.success("Nudge sent"); setNudgeTarget(null); setNudgeMsg(""); },
-    onError: (e: any) => toast.error(e.message),
+  // Recent nudges (last 24h) per recipient — drives "Nudged Xago" indicator on writer rows.
+  const recentNudgesQ = useQuery({
+    queryKey: ["nudge-recent", missionId],
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const sinceIso = new Date(Date.now() - 24 * 3600_000).toISOString();
+      const { data, error } = await supabase
+        .from("mission_nudges")
+        .select("recipient_id,sent_at,channel,status")
+        .eq("mission_id", missionId)
+        .eq("status", "sent")
+        .gte("sent_at", sinceIso)
+        .order("sent_at", { ascending: false });
+      if (error) throw error;
+      const byUser: Record<string, { sent_at: string; channel: string }> = {};
+      for (const row of (data ?? []) as any[]) {
+        if (!byUser[row.recipient_id]) {
+          byUser[row.recipient_id] = { sent_at: row.sent_at, channel: row.channel };
+        }
+      }
+      return byUser;
+    },
   });
   const flagMut = useMutation({
     mutationFn: ({ qid, reason }: { qid: string; reason: string }) =>
