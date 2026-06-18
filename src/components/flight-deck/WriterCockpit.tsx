@@ -700,14 +700,14 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                   <SignalRow label="Weight / Pages" value={`${q.evaluation_weight ?? "—"}% · ${q.page_limit ?? "—"}p`} />
                 </div>
 
-                {/* 3-button assist bar — Check-In / Score Me / Mission Pulse */}
+                {/* 4-button assist bar — Check-In / Score Me / Sticky Notes / Mission Pulse */}
                 <div
                   style={{
                     marginTop: "auto",
                     paddingTop: 10,
                     borderTop: "1px solid rgba(255,255,255,0.05)",
                     display: "grid",
-                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gridTemplateColumns: "repeat(4, 1fr)",
                     gap: 8,
                   }}
                 >
@@ -730,6 +730,16 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                     border="rgba(196,154,43,0.35)"
                     color="#C49A2B"
                     onClick={() => setScoreMeFor(q)}
+                  />
+                  <AssistButton
+                    Icon={Pin}
+                    label="Sticky Notes"
+                    sub="Pin it here"
+                    tooltip="Decisions. Warnings. References. Stick them here so the team never loses them."
+                    bg="rgba(255,255,255,0.05)"
+                    border="rgba(255,255,255,0.12)"
+                    color="rgba(255,255,255,0.65)"
+                    onClick={() => setStickyNotesFor(q)}
                   />
                   <AssistButton
                     Icon={Radio}
