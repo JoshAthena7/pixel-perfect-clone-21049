@@ -141,8 +141,8 @@ export function IrisAlertsPanel({ missionId, bare = false, onCountChange }: { mi
 
 
 function AlertCard({
-  alert, onAction, generatedAt,
-}: { alert: IrisAlert; onAction: () => void; generatedAt?: string }) {
+  alert, onAction, generatedAt, bare = false,
+}: { alert: IrisAlert; onAction: () => void; generatedAt?: string; bare?: boolean }) {
   const urg = alert.urgency;
   const color =
     urg === "critical" ? "#ef4444" :
@@ -153,7 +153,7 @@ function AlertCard({
 
   return (
     <li
-      className="rounded border border-white/10 bg-white/[0.02] p-3 pl-3"
+      className={bare ? "py-2.5 px-3 hover:bg-white/[0.02]" : "rounded border border-white/10 bg-white/[0.02] p-3 pl-3"}
       style={{ borderLeft: `3px solid ${color}` }}
     >
       <div className="flex items-start gap-2">
