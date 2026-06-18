@@ -301,7 +301,7 @@ export async function runIrisRfpExtraction(
     `[iris-pass2] Complete: ${questionsInserted} questions from ${sectionsProcessed} sections (${sectionsSkipped} skipped, ${sectionsInferred} inferred, ${sectionsFailed} failed)`,
   );
 
-  if (opts.force || questionsInserted < 50) {
+  if (!skipAiPass2 && questionsInserted < 50) {
     try {
       const rebuilt = await rebuildQuestionsDeterministically({
         data: { mission_id: missionId, primary_rfp_text: primaryRfpText },
