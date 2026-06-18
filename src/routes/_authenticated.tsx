@@ -218,7 +218,8 @@ function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolea
   const onDesk = pathname.startsWith("/olympus/flight-deck");
   const inMission = /^\/(?:olympus\/)?missions\/[^/]+/.test(pathname);
   const inAdmin = pathname.startsWith("/admin");
-  const hideSidebar = onDesk || inMission || inAdmin;
+  const onAthenaCommand = pathname === "/olympus";
+  const hideSidebar = onDesk || inMission || inAdmin || onAthenaCommand;
   // AppSidebar is positioned at left: 48px, so desktop content must clear
   // both the 48px command rail and the 200px sidebar or the left edge clips.
   const sidebarWidth = hideSidebar ? 0 : (isMobile ? 96 : 248);
