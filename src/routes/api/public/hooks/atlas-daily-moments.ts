@@ -54,8 +54,8 @@ function flatten(v: unknown): string {
   return String(v);
 }
 
-const INSPIRATION_SYS = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Speak in the voice of a trusted colleague at 7am on a deadline week — direct, specific, human. Never motivational-poster. Specific to the mission and what's actually at stake for the people the program serves. Return ONLY valid JSON.`;
-const TRIVIA_SYS = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Generate one genuinely interesting trivia question that makes a proposal writer smarter about THIS specific program. Not a compliance fact. Return ONLY valid JSON.`;
+const INSPIRATION_SYS = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Share a piece of general inspiration — a quote, idea, or short reflection on craft, focus, teamwork, public service, or doing hard things well. Voice of a trusted colleague at 7am, direct and human, never motivational-poster. It should NOT reference the specific RFP, deadline, or compliance work. Return ONLY valid JSON.`;
+const TRIVIA_SYS = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Generate one genuinely interesting FUN FACT trivia question about the U.S. state the mission is in — its history, geography, culture, food, landmarks, notable people, or quirky records. NOT about the RFP, Medicaid, procurement, or compliance. Make it the kind of thing a curious colleague would enjoy at the start of the day. Return ONLY valid JSON.`;
 
 export const Route = createFileRoute("/api/public/hooks/atlas-daily-moments")({
   server: {
@@ -92,12 +92,9 @@ export const Route = createFileRoute("/api/public/hooks/atlas-daily-moments")({
               .from("atlas_mission_moments")
               .select("id").eq("mission_id", m.id).eq("moment_type", "inspiration").eq("active_date", today).maybeSingle();
             if (!have) {
-              const userMsg = `Mission: ${m.name} (${m.client_name ?? "—"})
-State: ${m.state ?? "—"} | Program: ${m.program_type ?? "—"}
-Win themes: ${winThemes || "(none)"}
-North star: ${oec?.north_star ?? "(none)"}
+              const userMsg = `Generate one piece of GENERAL inspiration — a quote or short reflection on craft, focus, teamwork, public service, or doing hard things well. Do NOT reference any specific RFP, client, deadline, or procurement. Keep it universal.
 
-Return JSON: { "quote": "max 180 chars", "attribution": "who from", "context": "max 100 chars" }`;
+Return JSON: { "quote": "max 180 chars", "attribution": "who from — real author/source, or 'IRIS' if original", "context": "max 100 chars — why this idea is worth sitting with today" }`;
               const raw = await callIris(lovableKey, INSPIRATION_SYS, userMsg);
               const content = parseJson(raw);
               if (content) {
@@ -119,10 +116,11 @@ Return JSON: { "quote": "max 180 chars", "attribution": "who from", "context": "
               .from("atlas_mission_moments")
               .select("id").eq("mission_id", m.id).eq("moment_type", "trivia").eq("active_date", today).maybeSingle();
             if (!have) {
-              const userMsg = `Mission: ${m.name}
-State: ${m.state ?? "—"} | Program: ${m.program_type ?? "—"}
+              const userMsg = `State: ${m.state ?? "—"}
 
-Return JSON: { "question": "...", "options": ["A","B","C","D"], "correct_index": 0, "explanation": "max 250 chars", "relevant_questions": [] }`;
+Generate one FUN FACT trivia question about this U.S. state — history, geography, culture, food, landmarks, notable people, weird records, etc. NOT about the RFP, Medicaid, procurement, or compliance. Make it genuinely fun and a little surprising.
+
+Return JSON: { "question": "the trivia question", "options": ["A","B","C","D"], "correct_index": 0, "explanation": "max 250 chars — the interesting story behind the answer", "relevant_questions": [] }`;
               const raw = await callIris(lovableKey, TRIVIA_SYS, userMsg);
               const content = parseJson(raw);
               if (content) {
