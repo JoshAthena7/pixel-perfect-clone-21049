@@ -707,6 +707,29 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
       }
 
       const volumes = Array.isArray(parsed.volumes) ? parsed.volumes : [];
+      if (deterministicSections.length > 0) {
+        const aiNumbers = new Set<string>();
+        for (const v of volumes) {
+          for (const s of Array.isArray(v.sections) ? v.sections : []) {
+            if (s.number) aiNumbers.add(String(s.number));
+            for (const ss of Array.isArray(s.sub_sections) ? s.sub_sections : []) {
+              if (ss.number) aiNumbers.add(String(ss.number));
+            }
+          }
+        }
+        const aiMissed = deterministicSections.filter((s) => !aiNumbers.has(s.number));
+        if (aiMissed.length > 0) {
+          volumes.push({
+            name: "Detected RFP Sections",
+            sections: aiMissed.map((s) => ({
+              number: s.number,
+              name: s.name,
+              is_form_only: s.is_form_only,
+              confidence: "high" as const,
+            })),
+          });
+        }
+      }
       const seenSectionNumbers = new Set<string>();
       let fallbackVolumeId: string | null = null;
       for (let vi = 0; vi < volumes.length; vi++) {
