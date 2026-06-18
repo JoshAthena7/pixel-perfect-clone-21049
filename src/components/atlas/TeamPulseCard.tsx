@@ -113,19 +113,35 @@ function InspirationTab({ missionId }: { missionId: string }) {
 /* -------------------- Trivia -------------------- */
 function TriviaTab({ missionId }: { missionId: string }) {
   const ensure = useServerFn(ensureMissionMoment);
+  const today = new Date().toISOString().slice(0, 10);
+  const storageKey = `atlas-trivia-pick:${missionId}:${today}`;
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["atlas-moment", "trivia", missionId, new Date().toISOString().slice(0, 10)],
+    queryKey: ["atlas-moment", "trivia", missionId, today],
     queryFn: () => ensure({ data: { missionId, momentType: "trivia" } }),
     retry: false,
   });
-  const [picked, setPicked] = useState<number | null>(null);
-  const [rolledUp, setRolledUp] = useState(false);
+  const [picked, setPicked] = useState<number | null>(() => {
+    if (typeof window === "undefined") return null;
+    const v = window.localStorage.getItem(storageKey);
+    return v === null ? null : Number(v);
+  });
+  const [rolledUp, setRolledUp] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem(storageKey) !== null;
+  });
+
+  function handlePick(i: number) {
+    if (picked !== null) return;
+    setPicked(i);
+    try { window.localStorage.setItem(storageKey, String(i)); } catch { /* ignore */ }
+  }
 
   useEffect(() => {
-    if (picked === null) return;
+    if (picked === null || rolledUp) return;
     const t = setTimeout(() => setRolledUp(true), 4000);
     return () => clearTimeout(t);
-  }, [picked]);
+  }, [picked, rolledUp]);
+
 
   if (isLoading) return <Loading text="IRIS is drafting today's trivia…" />;
   if (error) return <ErrorBlock message={String((error as Error).message)} onRetry={() => refetch()} />;
@@ -177,7 +193,7 @@ function TriviaTab({ missionId }: { missionId: string }) {
             <button
               key={i}
               disabled={picked !== null}
-              onClick={() => setPicked(i)}
+              onClick={() => handlePick(i)}
               className="text-left rounded-md px-3 py-2 text-[12px] transition-colors disabled:cursor-default"
               style={{ background: bg, border: `1px solid ${border}`, color }}
             >
