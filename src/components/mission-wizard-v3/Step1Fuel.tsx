@@ -244,6 +244,35 @@ export function Step1Fuel({
         .from(BUCKET)
         .upload(path, file, { upsert: false });
       if (upErr) throw upErr;
+
+      // CRITICAL: extract raw text from the file in-browser and persist it on
+      // the mission_documents row BEFORE the LLM ever sees it. Previously the
+      // raw text was thrown away after extraction, leaving downstream IRIS
+      // features with no source to work from. See audit on mission CSOC 2026.
+      setRows((cur) =>
+        cur.map((r) => (r.uid === initial.uid ? { ...r, progress: 40 } : r)),
+      );
+      let extractedText = "";
+      try {
+        extractedText = (await extractTextFromBlob(file, file.name)).trim();
+      } catch (extractErr) {
+        console.warn("[Step1Fuel] text extraction failed", file.name, extractErr);
+      }
+
+      // Storage layout:
+      //   content_summary = first 220k chars (legacy readers already use this)
+      //   metadata.text_chunk_2..N = subsequent 220k-char chunks, up to 500k total
+      //   metadata.full_text_length = original length (pre-truncation)
+      const FIRST = 220_000;
+      const CHUNK = 220_000;
+      const MAX_TOTAL = 500_000;
+      const capped = extractedText.slice(0, MAX_TOTAL);
+      const head = capped.slice(0, FIRST);
+      const chunkMeta: Record<string, string> = {};
+      for (let i = FIRST, n = 2; i < capped.length; i += CHUNK, n++) {
+        chunkMeta[`text_chunk_${n}`] = capped.slice(i, i + CHUNK);
+      }
+
       const { data: userData } = await supabase.auth.getUser();
       const guessedPurpose = guessPurpose(file.name);
       const { data: doc, error: insErr } = await supabase
@@ -258,6 +287,16 @@ export function Step1Fuel({
           title: file.name.replace(/\.[^.]+$/, "").slice(0, 200),
           file_url: path,
           uploaded_by: userData.user?.id ?? null,
+          content_summary: head || null,
+          metadata: {
+            full_text_length: extractedText.length,
+            persisted_text_length: capped.length,
+            intelligence_tier: 1,
+            upload_timestamp: new Date().toISOString(),
+            extraction_method: "browser_pdf_parse",
+            text_extraction_ok: extractedText.length > 500,
+            ...chunkMeta,
+          },
         })
         .select("id")
         .single();
