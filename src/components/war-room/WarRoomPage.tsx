@@ -10,6 +10,7 @@ import {
 import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
 import { MissionRadar } from "./MissionRadar";
 import { IrisAlertsPanel } from "./IrisAlertsPanel";
+import { NudgeModal, type NudgeTarget } from "./NudgeModal";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
