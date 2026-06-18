@@ -457,6 +457,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
 
         {/* RIGHT */}
         <div className="space-y-4 lg:col-span-1">
+          <IrisAlertsPanel missionId={missionId} />
           <Widget title="⚡ What IRIS Found" sub="Since your last visit" stamp={d.generatedAt}>
             {d.digest.length === 0 ? (
               <Empty muted>IRIS has been quiet. Everything looks stable.</Empty>
