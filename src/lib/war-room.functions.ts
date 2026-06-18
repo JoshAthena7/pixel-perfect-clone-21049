@@ -153,7 +153,7 @@ export const getWarRoomData = createServerFn({ method: "POST" })
     // Build SOS queue
     const stuckByQ: Record<string, any> = {};
     for (const s of stuckRes.data ?? []) {
-      if (s.was_helpful === false || s.was_helpful == null) stuckByQ[s.question_id] = s;
+      if (s.question_id && (s.was_helpful === false || s.was_helpful == null)) stuckByQ[s.question_id] = s;
     }
     const lastActByQ: Record<string, string> = {};
     const progressByQ: Record<string, any> = {};
