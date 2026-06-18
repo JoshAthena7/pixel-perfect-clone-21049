@@ -12403,6 +12403,17 @@ export type Database = {
     }
     Functions: {
       archive_old_signals: { Args: never; Returns: number }
+      athena_pipeline_jobs: {
+        Args: never
+        Returns: {
+          active: boolean
+          jobid: number
+          jobname: string
+          last_run_at: string
+          last_status: string
+          schedule: string
+        }[]
+      }
       calc_atlas_profile_completeness: {
         Args: {
           p_atlas_invite_status: string
