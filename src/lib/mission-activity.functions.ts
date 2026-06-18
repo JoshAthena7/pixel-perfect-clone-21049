@@ -157,7 +157,7 @@ export const getMissionActivity = createServerFn({ method: "POST" })
           .limit(200),
       ),
     ]);
-    const assistRes = (arguments as any) ? undefined : undefined; // placeholder for TS
+    
 
     // Resolve requester display names for expert_consults
     const requesterIds = Array.from(
