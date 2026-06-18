@@ -715,6 +715,18 @@ export function AskIrisPanel() {
           setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", at: Date.now(), text: "Your engagement lead and mission admins have been notified immediately." }]);
         }}
       />
+      {iris.current_mission_id && (
+        <OracleIntakeModal
+          open={oracleIntakeOpen}
+          onOpenChange={setOracleIntakeOpen}
+          missionId={iris.current_mission_id}
+          initialTier="mission"
+          initialTopicTags={
+            iris.current_question_number ? [`q-${String(iris.current_question_number).toLowerCase()}`] : []
+          }
+          initialCategory="field"
+        />
+      )}
     </>
   );
 }
