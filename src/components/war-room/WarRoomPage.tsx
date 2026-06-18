@@ -4,12 +4,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  getWarRoomData, getWarRoomHealthTrend, sendNudge, flagQuestion,
+  getWarRoomData, getWarRoomHealthTrend, flagQuestion,
   reassignQuestion, bulkResetBriefErrors,
 } from "@/lib/war-room.functions";
 import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
 import { MissionRadar } from "./MissionRadar";
 import { IrisAlertsPanel } from "./IrisAlertsPanel";
+import { NudgeModal, type NudgeTarget } from "./NudgeModal";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -40,7 +41,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   const navigate = useNavigate();
   const fetchData = useServerFn(getWarRoomData);
   const fetchTrend = useServerFn(getWarRoomHealthTrend);
-  const nudgeFn = useServerFn(sendNudge);
+  
   const flagFn = useServerFn(flagQuestion);
   const reassignFn = useServerFn(reassignQuestion);
   const bulkResetFn = useServerFn(bulkResetBriefErrors);
@@ -91,8 +92,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
 
   const [filterWriterId, setFilterWriterId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
-  const [nudgeTarget, setNudgeTarget] = useState<{ id: string; name: string } | null>(null);
-  const [nudgeMsg, setNudgeMsg] = useState("");
+  const [nudgeTarget, setNudgeTarget] = useState<NudgeTarget | null>(null);
   const [reassignFor, setReassignFor] = useState<string | null>(null);
   const [highlightedWriterId, setHighlightedWriterId] = useState<string | null>(null);
 
@@ -112,12 +112,41 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
     return () => window.removeEventListener("atc:highlight-writer", handler as EventListener);
   }, []);
 
+  const meQ = useQuery({
+    queryKey: ["me-profile"],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return null;
+      const { data: p } = await supabase.from("profiles").select("display_name,email").eq("id", u.user.id).maybeSingle();
+      return p ?? { display_name: u.user.email ?? "Lead", email: u.user.email };
+    },
+  });
+
   const d = dataQ.data;
 
-  const nudgeMut = useMutation({
-    mutationFn: () => nudgeFn({ data: { missionId, toUserId: nudgeTarget!.id, message: nudgeMsg } }),
-    onSuccess: () => { toast.success("Nudge sent"); setNudgeTarget(null); setNudgeMsg(""); },
-    onError: (e: any) => toast.error(e.message),
+  // Recent nudges (last 24h) per recipient — drives "Nudged Xago" indicator on writer rows.
+  const recentNudgesQ = useQuery({
+    queryKey: ["nudge-recent", missionId],
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const sinceIso = new Date(Date.now() - 24 * 3600_000).toISOString();
+      const { data, error } = await supabase
+        .from("mission_nudges")
+        .select("recipient_id,sent_at,channel,status")
+        .eq("mission_id", missionId)
+        .eq("status", "sent")
+        .gte("sent_at", sinceIso)
+        .order("sent_at", { ascending: false });
+      if (error) throw error;
+      const byUser: Record<string, { sent_at: string; channel: string }> = {};
+      for (const row of (data ?? []) as any[]) {
+        if (!byUser[row.recipient_id]) {
+          byUser[row.recipient_id] = { sent_at: row.sent_at, channel: row.channel };
+        }
+      }
+      return byUser;
+    },
   });
   const flagMut = useMutation({
     mutationFn: ({ qid, reason }: { qid: string; reason: string }) =>
@@ -314,11 +343,22 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                               <span className="text-red-400">{atRiskQ}⚠</span>
                             </div>
                           )}
+                          {(() => {
+                            const nudgedAt = recentNudgesQ.data?.[w.userId]?.sent_at;
+                            return nudgedAt ? (
+                              <div className="text-[10px] italic text-white/40 mt-1">
+                                Nudged {relTime(nudgedAt)}
+                              </div>
+                            ) : null;
+                          })()}
                           <div className="flex items-center gap-2 mt-2">
                             <span className="text-[11px]" style={{ color: liveColor }}>{liveLabel}</span>
                             <div className="flex gap-1 ml-auto">
                               <button
-                                onClick={() => { setNudgeTarget({ id: w.userId, name: w.name }); setNudgeMsg(`Hey ${w.name.split(" ")[0]} — checking in on your questions. Anything you need from me?`); }}
+                                onClick={() => setNudgeTarget({
+                                  userId: w.userId, name: w.name, role: w.role,
+                                  questionCount: total, liveLabel, liveColor,
+                                })}
                                 className="text-[10px] px-2 py-1 rounded bg-white/5 hover:bg-white/10 inline-flex items-center gap-1"
                               ><MessageSquare className="w-3 h-3" /> Nudge</button>
                               <button
@@ -531,21 +571,15 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         </div>
       </div>
 
-      {/* Nudge dialog */}
-      <Dialog open={!!nudgeTarget} onOpenChange={(o) => { if (!o) setNudgeTarget(null); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Send a nudge to {nudgeTarget?.name}</DialogTitle>
-          </DialogHeader>
-          <Textarea value={nudgeMsg} onChange={(e) => setNudgeMsg(e.target.value)} rows={4} className="text-sm" />
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setNudgeTarget(null)}>Cancel</Button>
-            <Button onClick={() => nudgeMut.mutate()} disabled={!nudgeMsg.trim() || nudgeMut.isPending}>
-              {nudgeMut.isPending ? "Sending…" : "Send"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Nudge modal — Slack/Teams DM */}
+      <NudgeModal
+        open={!!nudgeTarget}
+        onOpenChange={(o) => { if (!o) setNudgeTarget(null); }}
+        target={nudgeTarget}
+        missionId={missionId}
+        missionName={d.mission?.name ?? "this mission"}
+        senderFirstName={((meQ.data as any)?.display_name ?? (meQ.data as any)?.email ?? "Lead").split(/[\s@]/)[0] || "Lead"}
+      />
     </div>
   );
 }

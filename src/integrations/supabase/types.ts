@@ -6951,6 +6951,53 @@ export type Database = {
           },
         ]
       }
+      mission_nudges: {
+        Row: {
+          channel: string
+          created_at: string
+          error_message: string | null
+          id: string
+          message: string
+          mission_id: string
+          recipient_id: string
+          sender_id: string
+          sent_at: string
+          status: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message: string
+          mission_id: string
+          recipient_id: string
+          sender_id: string
+          sent_at?: string
+          status?: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message?: string
+          mission_id?: string
+          recipient_id?: string
+          sender_id?: string
+          sent_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_nudges_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_outcomes: {
         Row: {
           award_date: string | null
@@ -8468,6 +8515,7 @@ export type Database = {
           procurement_type: string | null
           program_type: string | null
           reinforce: string[] | null
+          slack_webhook_url: string | null
           stakeholder_intelligence: Json | null
           state: string | null
           state_code: string | null
@@ -8475,6 +8523,7 @@ export type Database = {
           status: string
           submission_deadline: string
           team_readiness_score: number | null
+          teams_webhook_url: string | null
           today_focus: string | null
           updated_at: string
           watch_items: string | null
@@ -8524,6 +8573,7 @@ export type Database = {
           procurement_type?: string | null
           program_type?: string | null
           reinforce?: string[] | null
+          slack_webhook_url?: string | null
           stakeholder_intelligence?: Json | null
           state?: string | null
           state_code?: string | null
@@ -8531,6 +8581,7 @@ export type Database = {
           status?: string
           submission_deadline: string
           team_readiness_score?: number | null
+          teams_webhook_url?: string | null
           today_focus?: string | null
           updated_at?: string
           watch_items?: string | null
@@ -8580,6 +8631,7 @@ export type Database = {
           procurement_type?: string | null
           program_type?: string | null
           reinforce?: string[] | null
+          slack_webhook_url?: string | null
           stakeholder_intelligence?: Json | null
           state?: string | null
           state_code?: string | null
@@ -8587,6 +8639,7 @@ export type Database = {
           status?: string
           submission_deadline?: string
           team_readiness_score?: number | null
+          teams_webhook_url?: string | null
           today_focus?: string | null
           updated_at?: string
           watch_items?: string | null
@@ -9868,6 +9921,7 @@ export type Database = {
           pulse_acknowledged_at: string | null
           question_types: string[]
           score_me_disclosure_acknowledged_at: string | null
+          slack_user_id: string | null
           states_experience: string[]
           timezone: string | null
           writing_voice_sample: string | null
@@ -9907,6 +9961,7 @@ export type Database = {
           pulse_acknowledged_at?: string | null
           question_types?: string[]
           score_me_disclosure_acknowledged_at?: string | null
+          slack_user_id?: string | null
           states_experience?: string[]
           timezone?: string | null
           writing_voice_sample?: string | null
@@ -9946,6 +10001,7 @@ export type Database = {
           pulse_acknowledged_at?: string | null
           question_types?: string[]
           score_me_disclosure_acknowledged_at?: string | null
+          slack_user_id?: string | null
           states_experience?: string[]
           timezone?: string | null
           writing_voice_sample?: string | null

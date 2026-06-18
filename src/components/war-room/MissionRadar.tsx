@@ -13,7 +13,7 @@ function relTime(iso: string) {
   return `${Math.round(h / 24)}d ago`;
 }
 
-type FilterKey = "all" | "check_in" | "sticky_note" | "score_me" | "mission_pulse" | "sos" | "brief_exported";
+type FilterKey = "all" | "check_in" | "sticky_note" | "score_me" | "mission_pulse" | "sos" | "brief_exported" | "nudge";
 
 const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "all", label: "All" },
@@ -23,6 +23,7 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "mission_pulse", label: "Pulse" },
   { key: "sos", label: "SOS" },
   { key: "brief_exported", label: "Briefs" },
+  { key: "nudge", label: "Nudges" },
 ];
 
 const ICON: Record<ActivityStream, { glyph: string; color: string }> = {
@@ -35,6 +36,7 @@ const ICON: Record<ActivityStream, { glyph: string; color: string }> = {
   thread:         { glyph: "💬", color: "#60a5fa" },
   phone_a_friend: { glyph: "☎",  color: "#fbbf24" },
   conflict:       { glyph: "⚡", color: "#f97316" },
+  nudge:          { glyph: "👋", color: "#c9a84c" },
 };
 
 export function MissionRadar({ missionId }: { missionId: string }) {

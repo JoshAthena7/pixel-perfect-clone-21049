@@ -19,7 +19,8 @@ export type ActivityStream =
   | "conflict"
   | "check_in"
   | "sticky_note"
-  | "brief_exported";
+  | "brief_exported"
+  | "nudge";
 
 export type ActivityItem = {
   id: string;
@@ -152,7 +153,7 @@ export const getMissionActivity = createServerFn({ method: "POST" })
           .from("mission_assist_events")
           .select("id,question_id,user_id,event_type,metadata,created_at")
           .eq("mission_id", data.missionId)
-          .in("event_type", ["check_in", "sticky_note_posted", "brief_exported"])
+          .in("event_type", ["check_in", "sticky_note_posted", "brief_exported", "nudge_sent"])
           .order("created_at", { ascending: false })
           .limit(200),
       ),
@@ -360,6 +361,17 @@ export const getMissionActivity = createServerFn({ method: "POST" })
           question_number: q?.question_number ?? null, question_text: q?.question_text ?? null,
           summary: `${firstName} exported the brief for ${qLabel}`,
           detail: "",
+        });
+      } else if (r.event_type === "nudge_sent") {
+        const recipientName = (meta.recipient_name ?? "a writer").toString();
+        const channel = (meta.channel ?? "").toString();
+        const channelLabel = channel ? ` via ${channel.charAt(0).toUpperCase() + channel.slice(1)}` : "";
+        items.push({
+          id: `nudge:${r.id}`, stream: "nudge", created_at: r.created_at,
+          actor: actorFull, question_id: r.question_id,
+          question_number: q?.question_number ?? null, question_text: q?.question_text ?? null,
+          summary: `${firstName} nudged ${recipientName.split(/[\s@]/)[0] || recipientName}${channelLabel}`,
+          detail: (meta.message ?? "").toString().slice(0, 240),
         });
       }
     });
