@@ -57,28 +57,42 @@ Set is_form_only=true for sections that are signature forms, certifications, aff
   "disclaimer": "string or null"
 }`;
 
-const QUESTIONS_SYSTEM = `You are IRIS, extracting proposal questions from one RFP section for a Medicaid procurement response team. Return ONLY valid JSON, no preamble.
+const QUESTIONS_SYSTEM = `You are extracting proposal requirements from a government RFP section for a Medicaid procurement response team. Return ONLY valid JSON, no preamble.
 
 {
   "questions": [
     {
       "question_number": "string",
-      "question_text": "string",
+      "question_text": "string — the actual requirement language from the RFP, full sentence(s), minimum 20 words",
       "page_limit": null,
       "word_limit": null,
       "evaluation_weight": null,
       "is_mandatory": true,
-      "response_type": "narrative|form|table|attachment"
+      "response_type": "narrative|plan|table|form|attachment"
     }
   ]
 }
 
-Rules:
-- Extract every discrete question or requirement the section asks the bidder to address.
-- If the section has no discrete questions, return {"questions": []}.
-- Do NOT invent questions — only what is explicitly asked.
-- question_number format: "[section_number].[sequence]" e.g. "3.14.1", "3.14.2".
-- Extract page/word limits and evaluation weight when stated.`;
+Extract every SPECIFIC REQUIREMENT or PROMPT that asks the bidder to DO something:
+- Write a narrative
+- Describe an approach
+- Provide a plan
+- Submit documentation
+- Demonstrate capability
+- Explain a process
+
+DO NOT extract:
+- Section titles or headers (ALL CAPS lines with no verb, e.g. "TECHNICAL QUOTE", "OFFER AND ACCEPTANCE PAGE")
+- Form instructions (signature blocks, date fields, checkbox instructions)
+- Page formatting or font-size instructions
+- Table of contents entries
+- Cross-references like "see Section 3.14"
+
+For each real requirement found, question_text MUST be the actual RFP language verbatim — not a summary, not a rephrasing, not the section title — and MUST be at least 20 words.
+
+If this section contains NO substantive requirements (it is a form, certification, signature page, or purely administrative): return {"questions": []}.
+
+question_number format: "[section_number].[sequence]" e.g. "3.14.1", "3.14.2". Extract page/word limits and evaluation weight when stated.`;
 
 type Conf = "high" | "medium" | "low";
 type SubSection = {
