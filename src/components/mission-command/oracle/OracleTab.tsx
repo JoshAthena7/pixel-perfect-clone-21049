@@ -41,6 +41,9 @@ export function OracleTab({ missionId }: { missionId: string }) {
   const [previewWriter, setPreviewWriter] = useState(false);
 
   const showWriter = !isAdmin || previewWriter;
+  const TABS = isAdmin ? [...BASE_TABS, ...ADMIN_TABS] : BASE_TABS;
+
+
 
 
   useEffect(() => {
