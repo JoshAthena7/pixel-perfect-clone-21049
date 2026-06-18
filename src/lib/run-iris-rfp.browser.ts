@@ -17,6 +17,7 @@ import { extractRFPText } from "@/lib/extract-rfp-text.browser";
 import {
   processRFPDocuments,
   extractQuestionsForSection,
+  rebuildQuestionsDeterministically,
   sliceSectionTextWithFallbacks,
   type SectionLocator,
   type ProcessResult,
@@ -233,8 +234,23 @@ export async function runIrisRfpExtraction(
   let sectionsFailed = 0;
   let sectionsSkipped = 0;
   let sectionsInferred = 0;
+  let skipAiPass2 = false;
 
-  await runWithConcurrency(targets, PASS2_CONCURRENCY, async (section, idx) => {
+  if (opts.force) {
+    try {
+      const rebuilt = await rebuildQuestionsDeterministically({
+        data: { mission_id: missionId, primary_rfp_text: primaryRfpText },
+      });
+      questionsInserted = rebuilt.inserted;
+      sectionsProcessed = rebuilt.sections;
+      skipAiPass2 = rebuilt.inserted > 0;
+      console.log(`[iris-deterministic] Force rebuild wrote ${rebuilt.inserted} source-backed questions across ${rebuilt.sections} sections`);
+    } catch (e) {
+      console.warn("[iris-deterministic] force rebuild failed; falling back to AI Pass 2", e);
+    }
+  }
+
+  if (!skipAiPass2) await runWithConcurrency(targets, PASS2_CONCURRENCY, async (section, idx) => {
     // Fallback chain: regex (next-section bounded) → inline → proportional.
     // If all return <50 chars, fall through to inferred (attempt 4) which
     // calls AI with section name only.

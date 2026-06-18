@@ -475,6 +475,146 @@ function sliceSectionText(
   return slice.length < 50 ? "" : slice.slice(0, sectionCap);
 }
 
+type QuestionSectionRow = {
+  id: string;
+  section_number: string | null;
+  name: string | null;
+  is_form_only: boolean | null;
+};
+type DeterministicQuestionInsert = {
+  mission_id: string;
+  section_id: string;
+  question_number: string;
+  question_text: string;
+  page_limit: number | null;
+  word_limit: number | null;
+  evaluation_weight: number | null;
+  status: string;
+  health_status: string;
+  iris_brief_status: string;
+  iris_extracted: boolean;
+  iris_extracted_at: string;
+  is_inferred: boolean;
+};
+
+function cleanRequirementText(raw: string): string {
+  return raw
+    .replace(/\u00a0/g, " ")
+    .replace(/^\s*(?:[-•*]|\(?[a-z]\)|\d+\))\s+/i, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s+([,.;:])/g, "$1")
+    .trim()
+    .slice(0, 4000);
+}
+
+function deterministicResponseType(text: string): string {
+  if (/\b(?:plan|strategy|schedule|roadmap)\b/i.test(text)) return "plan";
+  if (/\b(?:table|matrix|chart|listing|spreadsheet|price sheet)\b/i.test(text)) return "table";
+  if (/\b(?:form|certification|attachment|annual report|financial statement|resume)\b/i.test(text)) return "attachment";
+  return "narrative";
+}
+
+function isSubstantiveRequirement(text: string): boolean {
+  const words = text.split(/\s+/).filter(Boolean).length;
+  if (words < 8 || text.length < 45) return false;
+  if (/^\d+(?:\.\d+){1,4}\s+[A-Z0-9 &'’/(),-]+\s*\d{1,3}$/i.test(text)) return false;
+  if (/^(?:section|page|table of contents|bid solicitation)\b/i.test(text)) return false;
+  return /\b(?:shall|should|must|required|responsible for|provide|submit|include|describe|identify|demonstrate|maintain|ensure)\b/i.test(text);
+}
+
+function extractDeterministicRequirements(sectionText: string): AIQuestion[] {
+  const source = sectionText
+    .replace(/\u00a0/g, " ")
+    .replace(/\r/g, "")
+    .replace(/[ \t]+/g, " ")
+    .trim();
+  if (source.length < 50) return [];
+
+  const flat = source.replace(/\n{2,}/g, "\n\n").replace(/(?<![.;:])\n(?!\n)/g, " ");
+  const starts = Array.from(
+    flat.matchAll(
+      /\b(?:The\s+)?(?:Bidder|Bidders|Contractor|Vendor|CSA|System|MIS|database|plan|schedule|response|resumes?|provider(?:s)?)\s+(?:shall|should|must|is\s+required\s+to|are\s+required\s+to|will\s+be\s+required\s+to|is\s+responsible\s+for|are\s+responsible\s+for|shall\s+be\s+responsible\s+for|must\s+provide|should\s+provide|must\s+submit|should\s+include|shall\s+include|must\s+include)\b/gi,
+    ),
+  ).map((m) => m.index ?? 0);
+
+  const candidates: string[] = [];
+  for (let i = 0; i < starts.length; i++) {
+    const rawStart = starts[i];
+    const prior = Math.max(flat.lastIndexOf(". ", rawStart - 2), flat.lastIndexOf("\n", rawStart - 2));
+    const start = prior >= 0 && rawStart - prior < 140 ? prior + 1 : rawStart;
+    const nextStart = starts[i + 1] ?? flat.length;
+    const after = flat.slice(start);
+    const nextSectionMatch = after.match(/\n\s*\d+(?:\.\d+){1,4}\s+[A-Z]/);
+    const naturalEnd = nextSectionMatch?.index !== undefined ? start + nextSectionMatch.index : flat.length;
+    const capEnd = Math.min(nextStart, start + 1800, naturalEnd);
+    const sentenceEnd = flat.slice(start, capEnd).search(/[.!?](?:\s|$)/);
+    const end = sentenceEnd >= 80 && sentenceEnd < 900 ? start + sentenceEnd + 1 : capEnd;
+    candidates.push(flat.slice(start, end));
+  }
+
+  for (const para of source.split(/\n{2,}|\n(?=\s*(?:[-•*]|\(?[a-z]\)|\d+\))\s+)/)) {
+    if (/\b(?:required|shall|must|should|provide|submit|include|describe|identify|demonstrate)\b/i.test(para)) {
+      candidates.push(para);
+    }
+  }
+
+  const seen = new Set<string>();
+  return candidates
+    .map(cleanRequirementText)
+    .filter(isSubstantiveRequirement)
+    .filter((text) => {
+      const key = normalizeForSourceMatch(text).slice(0, 240);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 25)
+    .map((question_text) => ({
+      question_text,
+      page_limit: null,
+      word_limit: null,
+      evaluation_weight: null,
+      is_mandatory: /\b(?:shall|must|required)\b/i.test(question_text),
+      response_type: deterministicResponseType(question_text),
+    }));
+}
+
+function buildDeterministicQuestionRows(missionId: string, fullText: string, sections: QuestionSectionRow[]): DeterministicQuestionInsert[] {
+  const locators: SectionLocator[] = sections.map((s) => ({ section_number: s.section_number, name: s.name }));
+  const allSectionNumbers = sections.map((s) => s.section_number).filter((n): n is string => !!n);
+  const rows: DeterministicQuestionInsert[] = [];
+
+  for (const section of sections) {
+    if (!section.section_number || section.is_form_only === true) continue;
+    const text = sliceSectionText(fullText, section.section_number, allSectionNumbers, section.name, locators);
+    if (text.length < 50) continue;
+    const requirements = extractDeterministicRequirements(text);
+    requirements.forEach((q, i) => {
+      const questionText = String(q.question_text ?? "").trim();
+      if (!questionText) return;
+      rows.push({
+        mission_id: missionId,
+        section_id: section.id,
+        question_number: `${section.section_number}.${i + 1}`.slice(0, 50),
+        question_text: questionText.slice(0, 4000),
+        page_limit: safeNum(q.page_limit),
+        word_limit: safeNum(q.word_limit),
+        evaluation_weight: safeNum(q.evaluation_weight),
+        status: "not_started",
+        health_status: "healthy",
+        iris_brief_status: "pending",
+        iris_extracted: true,
+        iris_extracted_at: new Date().toISOString(),
+        is_inferred: false,
+      });
+    });
+  }
+
+  const byNumber = new Map<string, (typeof rows)[number]>();
+  for (const row of rows) byNumber.set(row.question_number, row);
+  return Array.from(byNumber.values());
+}
+
 async function runWithConcurrency<T>(
   items: T[],
   limit: number,
@@ -567,6 +707,29 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
       }
 
       const volumes = Array.isArray(parsed.volumes) ? parsed.volumes : [];
+      if (deterministicSections.length > 0) {
+        const aiNumbers = new Set<string>();
+        for (const v of volumes) {
+          for (const s of Array.isArray(v.sections) ? v.sections : []) {
+            if (s.number) aiNumbers.add(String(s.number));
+            for (const ss of Array.isArray(s.sub_sections) ? s.sub_sections : []) {
+              if (ss.number) aiNumbers.add(String(ss.number));
+            }
+          }
+        }
+        const aiMissed = deterministicSections.filter((s) => !aiNumbers.has(s.number));
+        if (aiMissed.length > 0) {
+          volumes.push({
+            name: "Detected RFP Sections",
+            sections: aiMissed.map((s) => ({
+              number: s.number,
+              name: s.name,
+              is_form_only: s.is_form_only,
+              confidence: "high" as const,
+            })),
+          });
+        }
+      }
       const seenSectionNumbers = new Set<string>();
       let fallbackVolumeId: string | null = null;
       for (let vi = 0; vi < volumes.length; vi++) {
@@ -647,8 +810,10 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
         }
 
         if (fallbackVolumeId) {
-          const { error: detectedErr } = await supabase.from("mission_sections").insert(
-            missingDetectedSections.map((s, i) => ({
+          let insertedDetected = 0;
+          for (let i = 0; i < missingDetectedSections.length; i++) {
+            const s = missingDetectedSections[i];
+            const { error: detectedErr } = await supabase.from("mission_sections").insert({
               mission_id: data.mission_id,
               volume_id: fallbackVolumeId,
               parent_section_id: null,
@@ -660,9 +825,10 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
               iris_confidence: "high",
               is_form_only: s.is_form_only,
               order_index: counts.sections + i,
-            })),
-          );
-          if (!detectedErr) counts.sections += missingDetectedSections.length;
+            });
+            if (!detectedErr) insertedDetected++;
+          }
+          counts.sections += insertedDetected;
         }
       }
 
@@ -737,6 +903,11 @@ const SectionInput = z.object({
   // when invoking the inferred fallback path.
   section_text: z.string().max(20_000).default(""),
   is_inferred: z.boolean().optional().default(false),
+});
+
+const FullTextInput = z.object({
+  mission_id: z.string().uuid(),
+  primary_rfp_text: z.string().trim().min(50).max(1_000_000),
 });
 
 const INFERRED_SYSTEM = `You are IRIS, generating LIKELY proposal questions for one RFP section when the actual section text could not be extracted. Return ONLY valid JSON, no preamble.
@@ -880,6 +1051,55 @@ export const extractQuestionsForSection = createServerFn({ method: "POST" })
       return { ok: true, inserted: inserted?.length ?? 0, inferred: isInferred };
     },
   );
+
+export const rebuildQuestionsDeterministically = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => FullTextInput.parse(d))
+  .handler(async ({ data, context }): Promise<{ ok: boolean; inserted: number; sections: number }> => {
+    const { supabase } = context;
+    const { data: mission, error: mErr } = await supabase
+      .from("missions")
+      .select("id")
+      .eq("id", data.mission_id)
+      .single();
+    if (mErr || !mission) throw new Error("Mission not found or access denied.");
+
+    const { data: sectionRows, error: sErr } = await supabase
+      .from("mission_sections")
+      .select("id, section_number, name, is_form_only")
+      .eq("mission_id", data.mission_id)
+      .order("section_number", { ascending: true });
+    if (sErr) throw sErr;
+
+    const rows = buildDeterministicQuestionRows(
+      data.mission_id,
+      data.primary_rfp_text,
+      (sectionRows ?? []) as QuestionSectionRow[],
+    );
+    if (rows.length === 0) return { ok: true, inserted: 0, sections: sectionRows?.length ?? 0 };
+
+    const { data: activeRows } = await supabase
+      .from("mission_questions")
+      .select("id")
+      .eq("mission_id", data.mission_id)
+      .eq("is_withdrawn", false);
+    const activeIds = (activeRows ?? []).map((row) => row.id);
+    if (activeIds.length > 0) {
+      const { error: withdrawErr } = await supabase
+        .from("mission_questions")
+        .update({ iris_brief_status: "pending", is_withdrawn: true })
+        .in("id", activeIds);
+      if (withdrawErr) throw withdrawErr;
+    }
+
+    const { data: inserted, error: insertErr } = await supabase
+      .from("mission_questions")
+      .insert(rows)
+      .select("id");
+    if (insertErr) throw insertErr;
+
+    return { ok: true, inserted: inserted?.length ?? 0, sections: sectionRows?.length ?? 0 };
+  });
 
 // Exported so the browser orchestrator can slice text the same way.
 export function sliceSectionTextForClient(
