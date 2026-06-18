@@ -250,7 +250,9 @@ function isLikelyTocLine(line: string): boolean {
 }
 
 function isTocCluster(fullText: string, idx: number, allSections: SectionLocator[]): boolean {
-  if (idx > 12_000) return false;
+  if (idx > 25_000) return false;
+  const line = getLineAt(fullText, idx);
+  if (isLikelyTocLine(line)) return true;
   const window = fullText.slice(Math.max(0, idx - 120), idx + 900);
   const hits = allSections.filter((s) => {
     if (!s.section_number) return false;
