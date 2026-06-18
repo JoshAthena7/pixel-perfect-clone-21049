@@ -17,9 +17,10 @@ function HomeRoute() {
 
   if (data?.isAdmin) {
     // eslint-disable-next-line no-console
-    console.warn("[ATLAS-NAV] /home → /admin (isAdmin)");
+    console.warn("[ATLAS-NAV] /home → /admin (isAdmin=true). Stack:", new Error().stack);
     return <Navigate to="/admin" replace />;
   }
+
 
   if (data && !data.usedFallback && data.assignedCount === 1 && data.missions[0]) {
     // eslint-disable-next-line no-console

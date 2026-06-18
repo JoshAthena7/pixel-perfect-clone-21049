@@ -109,45 +109,30 @@ function isAllowedForNonAdmin(path: string): boolean {
 function AuthenticatedLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { isAdmin } = Route.useRouteContext();
-  const navigate = useNavigate();
 
   const [email, setEmail] = useState<string | null>(null);
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
   }, []);
 
-  // Role-based home: resolve once per session, redirect on canonical landing paths.
+  // Resolve role home for downstream UI only — DO NOT navigate from here.
+  // The previous effect (and its earlier variants) re-fired on every refetch
+  // of the my-home query (tab focus, token refresh, SIGNED_IN replay) and
+  // randomly bounced users out of Flight Deck back to /admin.
+  // Page-level gates own redirects now.
   const homeFn = useServerFn(getMyHome);
   const { data: homeInfo } = useQuery({
     queryKey: ["my-home"],
     queryFn: () => homeFn(),
     staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
   useEffect(() => {
     if (!homeInfo) return;
-    try {
-      localStorage.setItem("atlas_role_home", homeInfo.home);
-    } catch { /* ignore */ }
-    // NOTE: "/" is already redirected to /home by src/routes/index.tsx's
-    // beforeLoad. /atrium, /v1, /flight-deck no longer exist as routes.
-    // The previous landing-path effect here re-fired whenever the my-home
-    // query refetched (tab focus, token refresh, auth event), randomly
-    // bouncing admins from their current page to /admin via /home. Removed.
+    try { localStorage.setItem("atlas_role_home", homeInfo.home); } catch { /* ignore */ }
+  }, [homeInfo]);
 
-    if (path.startsWith("/portfolio") && homeInfo.home !== "portfolio" && !isAdmin) {
-      // eslint-disable-next-line no-console
-      console.warn("[ATLAS-NAV] portfolio gate → /my-work from", path);
-      toast.info("That page is for executives.");
-      navigate({ to: "/my-work", replace: true });
-      return;
-    }
-    if (path.startsWith("/my-work") && homeInfo.home === "portfolio") {
-      // eslint-disable-next-line no-console
-      console.warn("[ATLAS-NAV] my-work gate → /portfolio from", path);
-      toast.info("Writers use that page.");
-      navigate({ to: "/portfolio", replace: true });
-    }
-  }, [homeInfo, path, navigate, isAdmin]);
 
   // Mission setup wizard is a full-page experience — no nav chrome.
   const isWizard =

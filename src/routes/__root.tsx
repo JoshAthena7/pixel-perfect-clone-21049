@@ -100,15 +100,22 @@ function AuthSync() {
   const qc = useQueryClient();
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      // CRITICAL: do NOT call router.invalidate() on SIGNED_IN.
+      // Supabase fires SIGNED_IN on initial session restore AND on every token
+      // refresh (~1h), and invalidate() re-runs every matched route's
+      // beforeLoad/loader. That re-evaluation randomly bounced users out of
+      // pages like Flight Deck. Sign-in flows already navigate explicitly.
       if (event === "SIGNED_OUT") {
         qc.cancelQueries();
         qc.clear();
+        router.invalidate();
+        return;
       }
-      router.invalidate();
-      if (event !== "SIGNED_OUT") qc.invalidateQueries();
+      // USER_UPDATED is fine to leave as a no-op; consumers that care about
+      // profile changes refetch their own queries.
     });
     return () => subscription.unsubscribe();
   }, [router, qc]);
   return null;
 }
+
