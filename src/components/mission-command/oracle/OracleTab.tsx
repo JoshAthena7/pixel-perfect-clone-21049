@@ -16,17 +16,21 @@ import { SignalFeed } from "@/components/intelligence/SignalFeed";
 import { NodeDetailDrawer } from "@/components/intelligence/NodeDetailDrawer";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 import { WriterIntelView } from "@/components/oracle/WriterIntelView";
+import { GraphHealthTab } from "./GraphHealthTab";
 
 const GOLD = "#C49A2B";
 
-type TabId = "feed" | "people" | "organizations" | "sources" | "graph";
+type TabId = "feed" | "people" | "organizations" | "sources" | "graph" | "graph-health";
 
-const TABS: { id: TabId; label: string }[] = [
+const BASE_TABS: { id: TabId; label: string }[] = [
   { id: "feed", label: "Feed" },
   { id: "people", label: "People" },
   { id: "organizations", label: "Organizations" },
   { id: "sources", label: "Sources" },
   { id: "graph", label: "Graph" },
+];
+const ADMIN_TABS: { id: TabId; label: string }[] = [
+  { id: "graph-health", label: "Graph Health" },
 ];
 
 export function OracleTab({ missionId }: { missionId: string }) {
@@ -37,6 +41,9 @@ export function OracleTab({ missionId }: { missionId: string }) {
   const [previewWriter, setPreviewWriter] = useState(false);
 
   const showWriter = !isAdmin || previewWriter;
+  const TABS = isAdmin ? [...BASE_TABS, ...ADMIN_TABS] : BASE_TABS;
+
+
 
 
   useEffect(() => {
@@ -284,6 +291,11 @@ export function OracleTab({ missionId }: { missionId: string }) {
             </div>
 
             <NodeDetailDrawer node={selectedEcosystemNode} onClose={() => setSelectedEcosystemNode(null)} />
+          </div>
+        )}
+        {isAdmin && visited.has("graph-health") && (
+          <div style={{ display: active === "graph-health" ? "block" : "none" }}>
+            <GraphHealthTab missionId={missionId} />
           </div>
         )}
       </div>
