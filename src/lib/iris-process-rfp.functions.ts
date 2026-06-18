@@ -233,6 +233,22 @@ function sectionCompare(a: string, b: string): number {
   return 0;
 }
 
+function getLineAt(fullText: string, idx: number): string {
+  const start = fullText.lastIndexOf("\n", idx) + 1;
+  const end = fullText.indexOf("\n", idx);
+  return fullText.slice(start, end === -1 ? Math.min(fullText.length, idx + 400) : end);
+}
+
+function isLikelyTocLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+  const sectionTokens = trimmed.match(/\b\d+(?:\.\d+){1,4}\b/g) ?? [];
+  if (sectionTokens.length >= 3) return true;
+  if (/^\d+(?:\.\d+){1,4}\s+.+\s+\d{1,3}$/.test(trimmed)) return true;
+  if (/\t\d{1,3}\s*$/.test(trimmed) && sectionTokens.length >= 1) return true;
+  return trimmed.length > 160 && sectionTokens.length >= 2;
+}
+
 function isTocCluster(fullText: string, idx: number, allSections: SectionLocator[]): boolean {
   if (idx > 12_000) return false;
   const window = fullText.slice(Math.max(0, idx - 120), idx + 900);
