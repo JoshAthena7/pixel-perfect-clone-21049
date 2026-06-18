@@ -244,7 +244,7 @@ export function ScoreMeDialog({
             Paste it in.
           </div>
 
-          {!result && (
+          {!result && !stuckMode && (
             <>
               <div className="relative">
                 <textarea
@@ -267,6 +267,26 @@ export function ScoreMeDialog({
                 </div>
               </div>
 
+              <div className="text-center" style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
+                Not sure where to start?{" "}
+                <button
+                  type="button"
+                  onClick={() => setStuckMode(true)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: IRIS_PURPLE,
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    fontSize: 12,
+                    padding: 0,
+                    textDecoration: "underline",
+                  }}
+                >
+                  Let IRIS give you a first sentence →
+                </button>
+              </div>
+
               <button
                 onClick={handleScore}
                 disabled={!canScore}
@@ -284,6 +304,107 @@ export function ScoreMeDialog({
               </button>
             </>
           )}
+
+          {!result && stuckMode && (
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => { setStuckMode(false); setStuckOpener(null); }}
+                style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  color: "rgba(255,255,255,0.55)", fontSize: 11,
+                  display: "inline-flex", alignItems: "center", gap: 4, padding: 0,
+                }}
+              >
+                <ArrowLeft size={12} /> Back to paste your draft
+              </button>
+
+              <div
+                className="rounded-lg px-3 py-2"
+                style={{
+                  background: "rgba(127,119,221,0.10)",
+                  border: "1px solid rgba(127,119,221,0.25)",
+                  color: "rgba(210,205,255,0.92)",
+                  fontSize: 12,
+                  lineHeight: 1.55,
+                }}
+              >
+                <span style={{ color: IRIS_PURPLE, fontWeight: 600 }}>IRIS · </span>
+                Tell me what this question is asking you to prove. IRIS will give you an opening.
+              </div>
+
+              <textarea
+                value={stuckPrompt}
+                onChange={(e) => setStuckPrompt(e.target.value)}
+                placeholder="In your own words: what is this question really asking?"
+                disabled={stuckLoading}
+                className="w-full rounded-lg p-3 text-white text-[13px] resize-y outline-none"
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  minHeight: 100,
+                }}
+              />
+
+              <button
+                onClick={handleGetOpening}
+                disabled={stuckLoading}
+                className="w-full rounded-lg transition-opacity disabled:opacity-40"
+                style={{
+                  background: IRIS_PURPLE,
+                  color: "#0a1320",
+                  height: 40,
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+              >
+                <Sparkles size={14} style={{ display: "inline", marginRight: 6, marginTop: -2 }} />
+                {stuckLoading ? "IRIS is thinking…" : "Get my opening"}
+              </button>
+
+              {stuckOpener && (
+                <div
+                  className="rounded-lg px-3 py-3"
+                  style={{
+                    background: "rgba(196,154,43,0.08)",
+                    border: `1px solid ${GOLD}`,
+                  }}
+                >
+                  <div style={{ fontSize: 9, color: GOLD, textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 700, marginBottom: 6 }}>
+                    IRIS · YOUR OPENING
+                  </div>
+                  <div className="whitespace-pre-wrap text-white" style={{ fontSize: 13, lineHeight: 1.6 }}>
+                    {stuckOpener}
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        navigator.clipboard.writeText(stuckOpener).catch(() => {});
+                        toast.success("Copied to clipboard");
+                      }}
+                      style={{ height: 28, fontSize: 11 }}
+                    >
+                      Copy
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setDraft((d) => (d ? `${stuckOpener}\n\n${d}` : stuckOpener));
+                        setStuckMode(false);
+                      }}
+                      style={{ height: 28, fontSize: 11 }}
+                    >
+                      Use as my draft start
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
 
           {result && (
             <div className="space-y-3">
