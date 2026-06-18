@@ -9,6 +9,7 @@ import {
 } from "@/lib/war-room.functions";
 import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
 import { MissionRadar } from "./MissionRadar";
+import { IrisAlertsPanel } from "./IrisAlertsPanel";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
