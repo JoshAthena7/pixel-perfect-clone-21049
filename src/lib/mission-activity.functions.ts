@@ -166,7 +166,10 @@ export const getMissionActivity = createServerFn({ method: "POST" })
     const scorerIds = Array.from(
       new Set((scoreRes.data ?? []).map((r: any) => r.scored_by).filter(Boolean)),
     ) as string[];
-    const ids = Array.from(new Set([...requesterIds, ...scorerIds]));
+    const assistActorIds = Array.from(
+      new Set(((assistRes?.data as any[]) ?? []).map((r: any) => r.user_id).filter(Boolean)),
+    ) as string[];
+    const ids = Array.from(new Set([...requesterIds, ...scorerIds, ...assistActorIds]));
     const profileMap = new Map<string, string>();
     if (ids.length) {
       const { data: profs } = await supabaseAdmin
