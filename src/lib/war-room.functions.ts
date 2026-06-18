@@ -87,10 +87,12 @@ export const getWarRoomData = createServerFn({ method: "POST" })
     const memberIds = memberRows.map((r: any) => r.member_id);
 
     // mission_team_members.member_id references atlas_team_members.id.
-    // Resolve display name from atlas (first_name + last_name), fall back to
-    // email local-part, and only then to "Unknown".
+    // atlas_team_members has first_name/last_name, not full_name. This server
+    // function is already role-gated above, so use the backend client for this
+    // authorized roster lookup when member-table RLS would otherwise hide names.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: atlasRows } = memberIds.length
-      ? await supabase
+      ? await supabaseAdmin
           .from("atlas_team_members")
           .select("id,first_name,last_name,email,avatar_url")
           .in("id", memberIds)
@@ -99,10 +101,9 @@ export const getWarRoomData = createServerFn({ method: "POST" })
     const profileById: Record<string, any> = {};
     for (const a of atlasRows ?? []) {
       const fullName = [a.first_name, a.last_name].filter(Boolean).join(" ").trim();
-      const emailPrefix = typeof a.email === "string" ? a.email.split("@")[0] : "";
       profileById[a.id] = {
         id: a.id,
-        full_name: fullName || emailPrefix || null,
+        full_name: fullName || null,
         email: a.email ?? null,
         avatar_url: a.avatar_url ?? null,
       };
@@ -143,10 +144,14 @@ export const getWarRoomData = createServerFn({ method: "POST" })
       else if (hoursAgo < 48) status = "quiet";
       else status = "silent";
       const prof = profileById[m.member_id] ?? {};
-      const name = prof.full_name || prof.email || "Unknown";
+      const member = { full_name: prof.full_name ?? null, email: prof.email ?? null };
+      const displayName =
+        member.full_name ||
+        member.email?.split("@")[0] ||
+        "Team Member";
       return {
         userId: m.member_id,
-        name,
+        name: displayName,
         email: prof.email ?? null,
         avatarUrl: prof.avatar_url ?? null,
         role: m.mission_role,
