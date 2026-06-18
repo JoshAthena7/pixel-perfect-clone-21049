@@ -68,6 +68,8 @@ function formatRelative(iso: string | null | undefined): string {
 export function OlympusCommand() {
   const missionsQ = useMissions();
   const [missionId, setMissionId] = useState<string | null>(null);
+  const [leftTab, setLeftTab] = useState<"taxonomy" | "sources">("taxonomy");
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const lastRunQ = useLastPipelineRun();
   const runStage = useServerFn(runOracleStage);
 
