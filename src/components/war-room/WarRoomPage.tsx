@@ -288,7 +288,8 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                   return (
                     <li
                       key={w.userId}
-                      className="py-3 first:pt-0 last:pb-0 pl-3"
+                      data-writer-row={w.userId}
+                      className={`py-3 first:pt-0 last:pb-0 pl-3 transition-colors ${highlightedWriterId === w.userId ? "bg-amber-400/20" : ""}`}
                       style={{ borderLeft: `4px solid ${liveColor}` }}
                     >
                       <div className="flex items-start gap-3">
