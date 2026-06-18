@@ -11,6 +11,7 @@ import { fireAssistEvent } from "@/lib/fireAssistEvent";
 import {
   updateProgressStatus, nextStatuses, type ProgressStatus,
 } from "@/lib/writer-cockpit.functions";
+import { buildLineOfSight } from "@/lib/iris-line-of-sight.functions";
 import { ScoreMeDialog } from "@/components/flight-deck/ScoreMeDialog";
 import { MissionPulsePanel } from "@/components/flight-deck/MissionPulsePanel";
 import { CheckInDialog } from "@/components/flight-deck/CheckInDialog";
@@ -104,6 +105,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   const [checkInFor, setCheckInFor] = useState<Q | null>(null);
   
   const updateStatus = useServerFn(updateProgressStatus);
+  const triggerLineOfSight = useServerFn(buildLineOfSight);
 
   useEffect(() => {
     (async () => {
@@ -116,6 +118,15 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
       setFirstName((p?.display_name ?? u.email ?? "").split(" ")[0].split("@")[0]);
     })();
   }, []);
+
+  // Fire-and-forget: ensure Line of Sight has been built for this mission.
+  // The server fn has its own 5-minute throttle, so this is safe to call on mount.
+  useEffect(() => {
+    if (!missionId || !userId) return;
+    triggerLineOfSight({ data: { missionId } })
+      .then(() => qc.invalidateQueries({ queryKey: ["writer-cockpit", missionId, userId] }))
+      .catch((e) => console.log("[WriterCockpit] buildLineOfSight failed", e));
+  }, [missionId, userId, triggerLineOfSight, qc]);
 
   const refreshKey = ["writer-cockpit", missionId, userId];
   const { data: cockpit, isLoading } = useQuery({
