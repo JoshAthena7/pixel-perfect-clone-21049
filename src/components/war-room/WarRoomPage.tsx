@@ -11,6 +11,7 @@ import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
 import { MissionRadar } from "./MissionRadar";
 import { IrisAlertsPanel } from "./IrisAlertsPanel";
 import { NudgeModal, type NudgeTarget } from "./NudgeModal";
+import { WriterDrawer, type WriterDrawerTarget } from "./WriterDrawer";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -138,6 +139,15 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   const [intelTab, setIntelTab] = useState<"iris" | "live" | "sticky">("iris");
   const [mobileTab, setMobileTab] = useState<"team" | "radar" | "alerts">("radar");
   const [alertCount, setAlertCount] = useState(0);
+  const [drawerTarget, setDrawerTarget] = useState<WriterDrawerTarget | null>(null);
+
+  const openWriterDrawer = (w: any) => setDrawerTarget({
+    userId: w.userId,
+    name: w.name,
+    role: w.role,
+    hoursSinceActivity: w.hoursSinceActivity ?? null,
+    lastActivity: w.lastActivity ?? null,
+  });
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -283,7 +293,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                     questionCount: w.questionCount ?? 0,
                     liveLabel: deriveLive(w).label, liveColor: deriveLive(w).color,
                   })}
-                  onFilter={() => setFilterWriterId(filterWriterId === w.userId ? null : w.userId)}
+                  onFilter={() => openWriterDrawer(w)}
                 />)}
               </div>
             );
@@ -302,7 +312,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                   questionCount: w.questionCount ?? 0,
                   liveLabel: deriveLive(w).label, liveColor: deriveLive(w).color,
                 })}
-                onFilter={() => setFilterWriterId(filterWriterId === w.userId ? null : w.userId)}
+                onFilter={() => openWriterDrawer(w)}
               />)}
             </div>
           )}
@@ -664,6 +674,33 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         missionId={missionId}
         missionName={d.mission?.name ?? "this mission"}
         senderFirstName={((meQ.data as any)?.display_name ?? (meQ.data as any)?.email ?? "Lead").split(/[\s@]/)[0] || "Lead"}
+      />
+
+      <WriterDrawer
+        open={!!drawerTarget}
+        onClose={() => setDrawerTarget(null)}
+        target={drawerTarget}
+        missionId={missionId}
+        missionName={d.mission?.name ?? "this mission"}
+        daysToDeadline={daysToDeadline}
+        senderFirstName={((meQ.data as any)?.display_name ?? (meQ.data as any)?.email ?? "Lead").split(/[\s@]/)[0] || "Lead"}
+        onNudge={(writerId) => {
+          const w = d.writers.find((x: any) => x.userId === writerId);
+          if (!w) return;
+          setNudgeTarget({
+            userId: w.userId, name: w.name, role: w.role,
+            questionCount: w.questionCount ?? 0,
+            liveLabel: "—", liveColor: "#94a3b8",
+          });
+        }}
+        onOpenFlightDeck={(writerId, questionId) => {
+          // TODO: Flight Deck doesn't yet support a writer filter — open the deck
+          // and (when given) scroll to the specific question.
+          const url = questionId
+            ? `/missions/${missionId}/flight-deck#${questionId}`
+            : `/missions/${missionId}/flight-deck`;
+          window.open(url, "_blank", "noopener");
+        }}
       />
     </div>
   );

@@ -35,6 +35,8 @@ const ICON: Record<ActivityStream, { glyph: string; color: string }> = {
   phone_a_friend: { glyph: "☎",  color: "#fbbf24" },
   conflict:       { glyph: "⚡", color: "#f97316" },
   nudge:          { glyph: "👋", color: "#c9a84c" },
+  writer_reviewed:{ glyph: "👁", color: "#94a3b8" },
+  writer_flagged: { glyph: "🚩", color: "#f59e0b" },
 };
 
 export function MissionRadar({ missionId, bare = false }: { missionId: string; bare?: boolean }) {
