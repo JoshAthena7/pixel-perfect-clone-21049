@@ -21,7 +21,7 @@ import {
   Send,
   Users,
   FileText,
-  Edit3,
+  
   AlertTriangle,
   Copy,
   ExternalLink,
