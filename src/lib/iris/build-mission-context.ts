@@ -262,6 +262,24 @@ export async function buildMissionContext(
     })).filter((d) => d.excerpt);
   }
 
+  // State Intelligence Pack — fetched after mission state is known.
+  // One row per (state, category, current) — admin-curated reference library
+  // that auto-attaches to every mission in that state.
+  if (ctx.mission.state) {
+    const siRes = await safe("state_intel_documents", errors, supabase.from("state_intel_documents")
+      .select("category, title, description, effective_date")
+      .eq("state_code", ctx.mission.state)
+      .eq("is_current", true)
+      .order("effective_date", { ascending: false, nullsFirst: false })
+      .limit(60), emptyList);
+    ctx.stateIntel = (siRes.data ?? []).map((r: any) => ({
+      category: s(r.category),
+      title: s(r.title),
+      description: s(r.description),
+      effectiveDate: r.effective_date ?? null,
+    })).filter((d) => d.title);
+  }
+
   ctx._buildMs = Date.now() - t0;
   CACHE.set(key, { at: Date.now(), value: ctx });
   return ctx;
