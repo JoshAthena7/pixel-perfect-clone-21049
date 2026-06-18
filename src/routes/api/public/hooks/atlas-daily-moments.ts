@@ -43,16 +43,6 @@ function parseJson<T = unknown>(s: string): T | null {
   try { return JSON.parse(cleaned.slice(a, b + 1)) as T; } catch { return null; }
 }
 
-function flatten(v: unknown): string {
-  if (v == null) return "";
-  if (typeof v === "string") return v;
-  if (Array.isArray(v)) return v.map(flatten).filter(Boolean).join(" | ");
-  if (typeof v === "object") {
-    const o = v as Record<string, unknown>;
-    return o.title || o.theme || o.text ? String(o.title ?? o.theme ?? o.text) : JSON.stringify(v);
-  }
-  return String(v);
-}
 
 const INSPIRATION_SYS = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Share ONE real quote about LEADERSHIP and KINDNESS — from a thinker, leader, writer, athlete, public servant, or teacher. The pairing of leadership AND kindness is the point. Voice of a trusted colleague at 7am, never motivational-poster. Do NOT reference any specific RFP, client, deadline, or compliance work. Return ONLY valid JSON.`;
 const TRIVIA_SYS = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Generate one genuinely interesting FUN FACT trivia question about the U.S. state given — history, geography, culture, food, landmarks, notable people, or quirky records. NOT about the RFP, Medicaid, procurement, or compliance. Return ONLY valid JSON.`;
