@@ -245,6 +245,16 @@ function isTocCluster(fullText: string, idx: number, allSections: SectionLocator
   return hits >= 4;
 }
 
+function isSectionTitleList(fullText: string, idx: number, section: SectionLocator, allSections: SectionLocator[]): boolean {
+  const after = fullText.slice(idx + 1, idx + 260);
+  return allSections.some((candidate) => {
+    const candidateName = candidate.name?.trim();
+    if (!candidateName || candidateName === section.name?.trim()) return false;
+    const namePattern = escapeRegExp(candidateName).replace(/\s+/g, "\\s+");
+    return new RegExp(`(?:^|\\n)[ \\t]*${namePattern}[ \\t]*(?:\\n|$)`, "i").test(after);
+  });
+}
+
 function sectionHeaderIndexes(
   fullText: string,
   section: SectionLocator,
@@ -269,6 +279,7 @@ function sectionHeaderIndexes(
 
   return Array.from(indexes)
     .filter((idx) => !isTocCluster(fullText, idx, allSections))
+    .filter((idx) => !isSectionTitleList(fullText, idx, section, allSections))
     .sort((a, b) => a - b);
 }
 
