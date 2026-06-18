@@ -349,6 +349,7 @@ export function IntelFeed({ missionId }: { missionId: string }) {
 function EventCard({ event }: { event: any }) {
   const color = TYPE_COLORS[event.event_type] || "#64748b";
   const isAtrium = event.source_type === "atrium";
+  const isOracle = event.source_type === "oracle" || event.__oracle === true;
   return (
     <div
       className="rounded-lg p-3"
