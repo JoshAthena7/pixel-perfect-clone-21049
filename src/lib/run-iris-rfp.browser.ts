@@ -150,11 +150,12 @@ export async function runIrisRfpExtraction(
   }
 
   if (opts.force) {
-    await supabase
+    const { error: withdrawError } = await supabase
       .from("mission_questions")
       .update({ iris_brief_status: "pending", is_withdrawn: true })
       .eq("mission_id", missionId)
       .eq("is_withdrawn", false);
+    if (withdrawError) throw withdrawError;
   }
 
   // PASS 1 — structure extraction (one short server call, idempotent).
