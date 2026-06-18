@@ -974,7 +974,10 @@ function WinThemesStrip({ themes }: { themes: any[] }) {
     <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
       <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,0.55)", marginBottom: 8 }}>YOUR WIN THEMES</div>
       {themes.slice(0, 6).map((t: any, i: number) => {
-        const label = typeof t === "string" ? t : t.name ?? t.theme ?? t.title ?? "Theme";
+        const label =
+          typeof t === "string"
+            ? t
+            : t.title ?? t.name ?? t.theme ?? t.label ?? t.text ?? "Theme";
         return (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10.5, padding: "3px 0", color: "rgba(255,255,255,0.8)" }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: GOLD }} />
