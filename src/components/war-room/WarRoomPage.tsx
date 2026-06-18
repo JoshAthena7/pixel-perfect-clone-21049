@@ -560,21 +560,15 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         </div>
       </div>
 
-      {/* Nudge dialog */}
-      <Dialog open={!!nudgeTarget} onOpenChange={(o) => { if (!o) setNudgeTarget(null); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Send a nudge to {nudgeTarget?.name}</DialogTitle>
-          </DialogHeader>
-          <Textarea value={nudgeMsg} onChange={(e) => setNudgeMsg(e.target.value)} rows={4} className="text-sm" />
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setNudgeTarget(null)}>Cancel</Button>
-            <Button onClick={() => nudgeMut.mutate()} disabled={!nudgeMsg.trim() || nudgeMut.isPending}>
-              {nudgeMut.isPending ? "Sending…" : "Send"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Nudge modal — Slack/Teams DM */}
+      <NudgeModal
+        open={!!nudgeTarget}
+        onOpenChange={(o) => { if (!o) setNudgeTarget(null); }}
+        target={nudgeTarget}
+        missionId={missionId}
+        missionName={d.mission?.name ?? "this mission"}
+        senderFirstName={(d.writers.find((w: any) => w.userId)?.name?.split(/\s+/)[0]) ?? "Lead"}
+      />
     </div>
   );
 }
