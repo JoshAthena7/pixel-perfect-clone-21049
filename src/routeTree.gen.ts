@@ -50,6 +50,7 @@ import { Route as AuthenticatedAdminInsightsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminActivityRouteImport } from './routes/_authenticated/admin.activity'
 import { Route as AuthenticatedOlympusMissionsIndexRouteImport } from './routes/_authenticated/olympus.missions.index'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions.$missionId.index'
+import { Route as AuthenticatedAdminStateIntelIndexRouteImport } from './routes/_authenticated/admin.state-intel.index'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -86,6 +87,7 @@ import { Route as AuthenticatedMissionsMissionIdComplianceRouteImport } from './
 import { Route as AuthenticatedMissionsMissionIdBriefingRouteImport } from './routes/_authenticated/missions.$missionId.briefing'
 import { Route as AuthenticatedMissionsMissionIdActivityRouteImport } from './routes/_authenticated/missions.$missionId.activity'
 import { Route as AuthenticatedAdminTeamMemberIdRouteImport } from './routes/_authenticated/admin.team.$memberId'
+import { Route as AuthenticatedAdminStateIntelStateCodeRouteImport } from './routes/_authenticated/admin.state-intel.$stateCode'
 import { Route as AuthenticatedAdminOracleSourcesMissionIdRouteImport } from './routes/_authenticated/admin.oracle-sources.$missionId'
 import { Route as AuthenticatedAdminMissionsMissionIdRouteImport } from './routes/_authenticated/admin.missions.$missionId'
 import { Route as AuthenticatedOlympusMissionsMissionIdIndexRouteImport } from './routes/_authenticated/olympus.missions.$missionId.index'
@@ -314,6 +316,12 @@ const AuthenticatedMissionsMissionIdIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedAdminStateIntelIndexRoute =
+  AuthenticatedAdminStateIntelIndexRouteImport.update({
+    id: '/state-intel/',
+    path: '/state-intel/',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
     id: '/lovable/email/transactional/send',
@@ -528,6 +536,12 @@ const AuthenticatedAdminTeamMemberIdRoute =
     path: '/$memberId',
     getParentRoute: () => AuthenticatedAdminTeamRoute,
   } as any)
+const AuthenticatedAdminStateIntelStateCodeRoute =
+  AuthenticatedAdminStateIntelStateCodeRouteImport.update({
+    id: '/state-intel/$stateCode',
+    path: '/state-intel/$stateCode',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminOracleSourcesMissionIdRoute =
   AuthenticatedAdminOracleSourcesMissionIdRouteImport.update({
     id: '/oracle-sources/$missionId',
@@ -594,6 +608,7 @@ export interface FileRoutesByFullPath {
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/admin/missions/$missionId': typeof AuthenticatedAdminMissionsMissionIdRoute
   '/admin/oracle-sources/$missionId': typeof AuthenticatedAdminOracleSourcesMissionIdRoute
+  '/admin/state-intel/$stateCode': typeof AuthenticatedAdminStateIntelStateCodeRoute
   '/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -630,6 +645,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/admin/state-intel/': typeof AuthenticatedAdminStateIntelIndexRoute
   '/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/olympus/missions/': typeof AuthenticatedOlympusMissionsIndexRoute
   '/olympus/missions/$missionId/wizard': typeof AuthenticatedOlympusMissionsMissionIdWizardRoute
@@ -674,6 +690,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/admin/missions/$missionId': typeof AuthenticatedAdminMissionsMissionIdRoute
   '/admin/oracle-sources/$missionId': typeof AuthenticatedAdminOracleSourcesMissionIdRoute
+  '/admin/state-intel/$stateCode': typeof AuthenticatedAdminStateIntelStateCodeRoute
   '/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
   '/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -710,6 +727,7 @@ export interface FileRoutesByTo {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/admin/state-intel': typeof AuthenticatedAdminStateIntelIndexRoute
   '/missions/$missionId': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/olympus/missions': typeof AuthenticatedOlympusMissionsIndexRoute
   '/olympus/missions/$missionId/wizard': typeof AuthenticatedOlympusMissionsMissionIdWizardRoute
@@ -758,6 +776,7 @@ export interface FileRoutesById {
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/admin/missions/$missionId': typeof AuthenticatedAdminMissionsMissionIdRoute
   '/_authenticated/admin/oracle-sources/$missionId': typeof AuthenticatedAdminOracleSourcesMissionIdRoute
+  '/_authenticated/admin/state-intel/$stateCode': typeof AuthenticatedAdminStateIntelStateCodeRoute
   '/_authenticated/admin/team/$memberId': typeof AuthenticatedAdminTeamMemberIdRoute
   '/_authenticated/missions/$missionId/activity': typeof AuthenticatedMissionsMissionIdActivityRoute
   '/_authenticated/missions/$missionId/briefing': typeof AuthenticatedMissionsMissionIdBriefingRoute
@@ -794,6 +813,7 @@ export interface FileRoutesById {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/_authenticated/admin/state-intel/': typeof AuthenticatedAdminStateIntelIndexRoute
   '/_authenticated/missions/$missionId/': typeof AuthenticatedMissionsMissionIdIndexRoute
   '/_authenticated/olympus/missions/': typeof AuthenticatedOlympusMissionsIndexRoute
   '/_authenticated/olympus/missions/$missionId/wizard': typeof AuthenticatedOlympusMissionsMissionIdWizardRoute
@@ -842,6 +862,7 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/admin/missions/$missionId'
     | '/admin/oracle-sources/$missionId'
+    | '/admin/state-intel/$stateCode'
     | '/admin/team/$memberId'
     | '/missions/$missionId/activity'
     | '/missions/$missionId/briefing'
@@ -878,6 +899,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/admin/state-intel/'
     | '/missions/$missionId/'
     | '/olympus/missions/'
     | '/olympus/missions/$missionId/wizard'
@@ -922,6 +944,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/admin/missions/$missionId'
     | '/admin/oracle-sources/$missionId'
+    | '/admin/state-intel/$stateCode'
     | '/admin/team/$memberId'
     | '/missions/$missionId/activity'
     | '/missions/$missionId/briefing'
@@ -958,6 +981,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/admin/state-intel'
     | '/missions/$missionId'
     | '/olympus/missions'
     | '/olympus/missions/$missionId/wizard'
@@ -1005,6 +1029,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile/'
     | '/_authenticated/admin/missions/$missionId'
     | '/_authenticated/admin/oracle-sources/$missionId'
+    | '/_authenticated/admin/state-intel/$stateCode'
     | '/_authenticated/admin/team/$memberId'
     | '/_authenticated/missions/$missionId/activity'
     | '/_authenticated/missions/$missionId/briefing'
@@ -1041,6 +1066,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/_authenticated/admin/state-intel/'
     | '/_authenticated/missions/$missionId/'
     | '/_authenticated/olympus/missions/'
     | '/_authenticated/olympus/missions/$missionId/wizard'
@@ -1366,6 +1392,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdIndexRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/admin/state-intel/': {
+      id: '/_authenticated/admin/state-intel/'
+      path: '/state-intel'
+      fullPath: '/admin/state-intel/'
+      preLoaderRoute: typeof AuthenticatedAdminStateIntelIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
       path: '/lovable/email/transactional/send'
@@ -1618,6 +1651,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTeamMemberIdRouteImport
       parentRoute: typeof AuthenticatedAdminTeamRoute
     }
+    '/_authenticated/admin/state-intel/$stateCode': {
+      id: '/_authenticated/admin/state-intel/$stateCode'
+      path: '/state-intel/$stateCode'
+      fullPath: '/admin/state-intel/$stateCode'
+      preLoaderRoute: typeof AuthenticatedAdminStateIntelStateCodeRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/oracle-sources/$missionId': {
       id: '/_authenticated/admin/oracle-sources/$missionId'
       path: '/oracle-sources/$missionId'
@@ -1677,6 +1717,8 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminMissionsMissionIdRoute: typeof AuthenticatedAdminMissionsMissionIdRoute
   AuthenticatedAdminOracleSourcesMissionIdRoute: typeof AuthenticatedAdminOracleSourcesMissionIdRoute
+  AuthenticatedAdminStateIntelStateCodeRoute: typeof AuthenticatedAdminStateIntelStateCodeRoute
+  AuthenticatedAdminStateIntelIndexRoute: typeof AuthenticatedAdminStateIntelIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
@@ -1696,6 +1738,10 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
     AuthenticatedAdminMissionsMissionIdRoute,
   AuthenticatedAdminOracleSourcesMissionIdRoute:
     AuthenticatedAdminOracleSourcesMissionIdRoute,
+  AuthenticatedAdminStateIntelStateCodeRoute:
+    AuthenticatedAdminStateIntelStateCodeRoute,
+  AuthenticatedAdminStateIntelIndexRoute:
+    AuthenticatedAdminStateIntelIndexRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
@@ -1862,13 +1908,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
