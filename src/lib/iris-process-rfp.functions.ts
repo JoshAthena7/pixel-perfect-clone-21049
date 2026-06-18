@@ -257,7 +257,7 @@ function isTocCluster(fullText: string, idx: number, allSections: SectionLocator
   const hits = allSections.filter((s) => {
     if (!s.section_number) return false;
     const escaped = escapeRegExp(s.section_number);
-    return new RegExp(`(?:^|\\n)[ \\t]*(?:Section[ \\t]+)?${escaped}(?![0-9])`, "i").test(window);
+    return new RegExp(`(?:^|\\n|\\t| {2,})(?:Section[ \\t]+)?${escaped}(?![0-9])`, "i").test(window);
   }).length;
   return hits >= 4;
 }
