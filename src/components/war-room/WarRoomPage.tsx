@@ -112,6 +112,17 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
     return () => window.removeEventListener("atc:highlight-writer", handler as EventListener);
   }, []);
 
+  const meQ = useQuery({
+    queryKey: ["me-profile"],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return null;
+      const { data: p } = await supabase.from("profiles").select("display_name,email").eq("id", u.user.id).maybeSingle();
+      return p ?? { display_name: u.user.email ?? "Lead", email: u.user.email };
+    },
+  });
+
   const d = dataQ.data;
 
   // Recent nudges (last 24h) per recipient — drives "Nudged Xago" indicator on writer rows.
