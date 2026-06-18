@@ -363,6 +363,31 @@ export function serializeContextForPrompt(ctx: MissionContext, focus: Focus): st
     });
   }
 
+  // State Intelligence Pack — admin-curated, auto-attached for every focus
+  // when the mission has a state. Grouped by category so the AI sees what
+  // authoritative reference material is on file for this state.
+  if (ctx.stateIntel.length && ctx.mission.state) {
+    const byCat: Record<string, typeof ctx.stateIntel> = {};
+    for (const d of ctx.stateIntel) {
+      (byCat[d.category] ??= []).push(d);
+    }
+    const lines = Object.entries(byCat).map(([cat, docs]) => {
+      const label = STATE_INTEL_LABEL[cat] ?? cat;
+      const items = docs.slice(0, 4).map((d) =>
+        `  • ${d.title}${d.effectiveDate ? ` (${d.effectiveDate})` : ""}${d.description ? ` — ${d.description.slice(0, 140)}` : ""}`
+      ).join("\n");
+      const more = docs.length > 4 ? `\n  + ${docs.length - 4} more` : "";
+      return `${label}:\n${items}${more}`;
+    }).join("\n\n");
+    blocks.push({
+      name: "state_intel",
+      priority: 2,
+      body: section(`STATE INTELLIGENCE PACK (${ctx.mission.state})`,
+        `Authoritative reference library for ${ctx.mission.state} — use these documents as ground truth for state policy, waivers, managed care, and quality landscape.\n\n${lines}`),
+    });
+  }
+
+
   if (focus === "question" || focus === "strategic" || focus === "full") {
     if (ctx.discriminators.length) blocks.push({ name: "discriminators", priority: 2, body: section("DISCRIMINATORS", list(ctx.discriminators)) });
     if (ctx.proofPoints.length) blocks.push({ name: "proof_points", priority: 2, body: section("PROOF POINTS", list(ctx.proofPoints)) });
