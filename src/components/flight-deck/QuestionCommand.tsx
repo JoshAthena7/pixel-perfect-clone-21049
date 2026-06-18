@@ -1159,6 +1159,31 @@ function BriefViewerDialog({
                 )}
 
               <BriefBlock title="Competitive Intel" body={brief.competitive_intel} />
+
+              {Array.isArray(brief.risk_flags) && brief.risk_flags.length > 0 && (
+                <BriefSection title="Risk Flags">
+                  <ul className="space-y-1" style={{ paddingLeft: 16 }}>
+                    {brief.risk_flags.map((r: any, i: number) => (
+                      <li key={i} style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)" }}>
+                        <span
+                          style={{
+                            color: r.severity === "CRITICAL" ? RED : AMBER,
+                            fontWeight: 600,
+                            marginRight: 6,
+                          }}
+                        >
+                          {r.severity ?? "WATCH"}
+                        </span>
+                        {r.flag}
+                      </li>
+                    ))}
+                  </ul>
+                </BriefSection>
+              )}
+
+              {Array.isArray(brief.oracle_sources) && brief.oracle_sources.length > 0 && (
+                <OracleSourcesFooter sources={brief.oracle_sources} />
+              )}
             </>
           )}
         </div>
