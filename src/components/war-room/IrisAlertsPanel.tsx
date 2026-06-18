@@ -14,7 +14,7 @@ function relTime(iso: string | null | undefined) {
 
 const GOLD = "#c9a84c";
 
-export function IrisAlertsPanel({ missionId }: { missionId: string }) {
+export function IrisAlertsPanel({ missionId, bare = false, onCountChange }: { missionId: string; bare?: boolean; onCountChange?: (n: number) => void }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const fn = useServerFn(generateIrisAlerts);
@@ -50,6 +50,66 @@ export function IrisAlertsPanel({ missionId }: { missionId: string }) {
   const alerts = q.data?.alerts ?? [];
   const errMsg = q.data?.error ?? (q.error ? (q.error as Error).message : null);
 
+  if (onCountChange) {
+    // best-effort: notify parent of alert count for header chip
+    queueMicrotask(() => onCountChange(alerts.length));
+  }
+
+  const body = (
+    <>
+      {q.isLoading ? (
+        <ul className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <li key={i} className="h-14 rounded bg-white/[0.02] animate-pulse" />
+          ))}
+        </ul>
+      ) : errMsg && alerts.length === 0 ? (
+        <div className="rounded bg-white/[0.02] p-3 text-xs text-white/55 flex items-start gap-2">
+          <Info className="w-3.5 h-3.5 text-sky-400 mt-0.5 shrink-0" />
+          <span>IRIS could not generate alerts right now. Check back shortly.</span>
+        </div>
+      ) : alerts.length === 0 ? (
+        <div className="rounded border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300 flex items-start gap-2">
+          <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
+          <span>No flags. The mission looks healthy from here.</span>
+        </div>
+      ) : (
+        <ul className="space-y-1.5">
+          {alerts.map((a: IrisAlert, i: number) => (
+            <AlertCard
+              key={i}
+              alert={a}
+              onAction={() => handleAction(a.action_target)}
+              generatedAt={q.data?.generatedAt}
+              bare={bare}
+            />
+          ))}
+        </ul>
+      )}
+    </>
+  );
+
+  if (bare) {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-white/[0.04] bg-[#050d18] sticky top-0 z-[1]">
+          <span className="text-[10px] text-white/35">
+            {q.data?.generatedAt ? `Updated ${relTime(q.data.generatedAt)}` : "—"}
+          </span>
+          <button
+            onClick={() => qc.invalidateQueries({ queryKey: ["iris-alerts", missionId] })}
+            disabled={isRefreshing}
+            className="p-1 rounded hover:bg-white/5 disabled:opacity-40"
+            title="Refresh alerts"
+          >
+            <RefreshCw className={`w-3 h-3 text-white/55 ${isRefreshing ? "animate-spin" : ""}`} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-2">{body}</div>
+      </div>
+    );
+  }
+
   return (
     <section className="rounded-lg border border-white/10 bg-white/[0.015] p-4">
       <header className="flex items-start justify-between gap-3 mb-3">
@@ -74,42 +134,15 @@ export function IrisAlertsPanel({ missionId }: { missionId: string }) {
           </button>
         </div>
       </header>
-
-      {q.isLoading ? (
-        <ul className="space-y-2">
-          {[0, 1, 2].map((i) => (
-            <li key={i} className="h-14 rounded border border-white/5 bg-white/[0.02] animate-pulse" />
-          ))}
-        </ul>
-      ) : errMsg && alerts.length === 0 ? (
-        <div className="rounded border border-white/10 bg-white/[0.02] p-3 text-xs text-white/55 flex items-start gap-2">
-          <Info className="w-3.5 h-3.5 text-sky-400 mt-0.5 shrink-0" />
-          <span>IRIS could not generate alerts right now. Check back shortly.</span>
-        </div>
-      ) : alerts.length === 0 ? (
-        <div className="rounded border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300 flex items-start gap-2">
-          <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
-          <span>No flags. The mission looks healthy from here.</span>
-        </div>
-      ) : (
-        <ul className="space-y-2">
-          {alerts.map((a: IrisAlert, i: number) => (
-            <AlertCard
-              key={i}
-              alert={a}
-              onAction={() => handleAction(a.action_target)}
-              generatedAt={q.data?.generatedAt}
-            />
-          ))}
-        </ul>
-      )}
+      {body}
     </section>
   );
 }
 
+
 function AlertCard({
-  alert, onAction, generatedAt,
-}: { alert: IrisAlert; onAction: () => void; generatedAt?: string }) {
+  alert, onAction, generatedAt, bare = false,
+}: { alert: IrisAlert; onAction: () => void; generatedAt?: string; bare?: boolean }) {
   const urg = alert.urgency;
   const color =
     urg === "critical" ? "#ef4444" :
@@ -120,7 +153,7 @@ function AlertCard({
 
   return (
     <li
-      className="rounded border border-white/10 bg-white/[0.02] p-3 pl-3"
+      className={bare ? "py-2.5 px-3 hover:bg-white/[0.02]" : "rounded border border-white/10 bg-white/[0.02] p-3 pl-3"}
       style={{ borderLeft: `3px solid ${color}` }}
     >
       <div className="flex items-start gap-2">
