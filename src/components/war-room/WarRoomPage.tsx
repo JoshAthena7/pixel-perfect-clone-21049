@@ -71,6 +71,23 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
     },
   });
 
+  const sosActiveQ = useQuery({
+    queryKey: ["war-room-sos-active", missionId],
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const sinceIso = new Date(Date.now() - 4 * 3600_000).toISOString();
+      const { data, error } = await supabase
+        .from("mission_assist_events")
+        .select("id, question_id, created_at")
+        .eq("mission_id", missionId)
+        .eq("event_type", "sos_raised")
+        .gte("created_at", sinceIso)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const [filterWriterId, setFilterWriterId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [nudgeTarget, setNudgeTarget] = useState<{ id: string; name: string } | null>(null);
