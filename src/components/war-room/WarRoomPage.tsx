@@ -152,6 +152,11 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
 
   return (
     <div className="min-h-full text-white" style={{ background: "#0a0f1a" }}>
+      {/* Page header */}
+      <div className="px-4 sm:px-6 pt-5 pb-3 border-b border-white/5">
+        <h1 className="text-xl font-semibold tracking-tight">Air Traffic Control</h1>
+        <p className="text-[12px] text-white/45 mt-0.5">Mission oversight. Live. For leads only.</p>
+      </div>
       {/* Top status bar */}
       <div
         className={`px-4 sm:px-6 py-3 border-b border-white/10 ${healthState === "at_risk" ? "animate-pulse" : ""}`}
