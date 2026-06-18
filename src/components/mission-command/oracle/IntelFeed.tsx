@@ -376,6 +376,23 @@ function EventCard({ event }: { event: any }) {
           <div className="text-sm text-white font-medium">{event.title}</div>
           <div className="text-xs text-white/60 mt-1 line-clamp-3">{event.content}</div>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
+            {isOracle && (
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  padding: "1px 6px",
+                  borderRadius: 3,
+                  background: `${GOLD}22`,
+                  color: GOLD,
+                  border: `1px solid ${GOLD}66`,
+                }}
+              >
+                ORACLE{event.__tier ? ` · ${String(event.__tier).toUpperCase()}` : ""}
+              </span>
+            )}
             {isAtrium && (
               <span
                 style={{
