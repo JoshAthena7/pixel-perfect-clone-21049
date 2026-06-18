@@ -402,9 +402,7 @@ function NotesOverlay({
         {notesQ.isLoading ? (
           <div className="text-xs text-white/40 text-center py-6">Loading notes…</div>
         ) : (notesQ.data ?? []).length === 0 ? (
-          <div className="text-xs text-white/40 text-center py-10">
-            No sticky notes pinned to this question yet.
-          </div>
+          <StickyNotesEmptyCard />
         ) : (
           <div className="grid grid-cols-1 gap-3">
             {(notesQ.data ?? []).map((n: any, idx: number) => {
