@@ -32,13 +32,6 @@ function initials(name: string) {
   return name.split(/\s+/).map((p) => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "?";
 }
 
-const STATUS_META: Record<string, { dot: string; label: string; color: string }> = {
-  active:      { dot: "🟢", label: "Active",      color: "#22c55e" },
-  away:        { dot: "🟡", label: "Away",        color: "#eab308" },
-  quiet:       { dot: "🟠", label: "Quiet",       color: "#f97316" },
-  silent:      { dot: "🔴", label: "Silent",      color: "#ef4444" },
-  not_started: { dot: "⚪", label: "Not started", color: "#94a3b8" },
-};
 
 export function WarRoomPage({ missionId }: { missionId: string }) {
   const qc = useQueryClient();
@@ -128,7 +121,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   }, [d, filterWriterId, filterStatus]);
 
   if (dataQ.isLoading || !d) {
-    return <div className="p-6 text-white/55 text-sm">Loading War Room…</div>;
+    return <div className="p-6 text-white/55 text-sm">Loading Air Traffic Control…</div>;
   }
 
   // Top-bar health status derives strictly from question health counts:
@@ -152,6 +145,11 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
 
   return (
     <div className="min-h-full text-white" style={{ background: "#0a0f1a" }}>
+      {/* Page header */}
+      <div className="px-4 sm:px-6 pt-5 pb-3 border-b border-white/5">
+        <h1 className="text-xl font-semibold tracking-tight">Air Traffic Control</h1>
+        <p className="text-[12px] text-white/45 mt-0.5">Mission oversight. Live. For leads only.</p>
+      </div>
       {/* Top status bar */}
       <div
         className={`px-4 sm:px-6 py-3 border-b border-white/10 ${healthState === "at_risk" ? "animate-pulse" : ""}`}
@@ -215,9 +213,34 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
             ) : (
               <ul className="divide-y divide-white/5">
                 {d.writers.map((w: any) => {
-                  const meta = STATUS_META[w.status];
+                  const total = w.questionCount ?? 0;
+                  const finalized = w.finalized ?? 0;
+                  const activeQ = w.activeCount ?? 0;
+                  const atRiskQ = w.atRisk ?? 0;
+                  const hrs = w.hoursSinceActivity;
+                  const idle = total > 0 && activeQ > 0 && (hrs == null || hrs > 8);
+                  let liveLabel = "— Unassigned";
+                  let liveColor = "#94a3b8";
+                  if (total === 0) {
+                    liveLabel = "— Unassigned"; liveColor = "#94a3b8";
+                  } else if (atRiskQ > 0) {
+                    liveLabel = "⚠ At Risk"; liveColor = "#ef4444";
+                  } else if (idle) {
+                    liveLabel = "● Idle"; liveColor = "#f59e0b";
+                  } else if (finalized > 0) {
+                    liveLabel = "✓ Active"; liveColor = "#22c55e";
+                  } else {
+                    liveLabel = "● Active"; liveColor = "#22c55e";
+                  }
+                  const lastSeen = !w.lastActivity
+                    ? "Never"
+                    : (hrs != null && hrs < 24 ? (hrs < 1 ? "Just now" : `${Math.round(hrs)}h ago`) : relTime(w.lastActivity));
                   return (
-                    <li key={w.userId} className="py-3 first:pt-0 last:pb-0">
+                    <li
+                      key={w.userId}
+                      className="py-3 first:pt-0 last:pb-0 pl-3"
+                      style={{ borderLeft: `4px solid ${liveColor}` }}
+                    >
                       <div className="flex items-start gap-3">
                         <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-xs font-semibold shrink-0">
                           {initials(w.name)}
@@ -227,11 +250,21 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                             <span className="text-sm font-medium truncate">{w.name}</span>
                             <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/55 uppercase tracking-wide">{w.role}</span>
                           </div>
-                          <div className="text-[11px] text-white/50 mt-0.5">
-                            {w.questionCount}q · <span className="text-green-400">{w.healthy}</span>/<span className="text-amber-300">{w.watch}</span>/<span className="text-red-400">{w.atRisk}</span> · {relTime(w.lastActivity)}
-                          </div>
+                          <div className="text-[10px] text-white/40 mt-0.5">{lastSeen}</div>
+                          {total === 0 ? (
+                            <div className="text-[11px] text-white/40 mt-1">
+                              No questions assigned
+                              {/* TODO: requires question_progress.assignee_id or mission_assignments.assigned_writer_id rows linking writers to mission_questions */}
+                            </div>
+                          ) : (
+                            <div className="text-[11px] text-white/55 mt-1">
+                              {total}q · <span className="text-green-400">{finalized}✓</span>{" "}
+                              <span className="text-sky-300">{activeQ}●</span>{" "}
+                              <span className="text-red-400">{atRiskQ}⚠</span>
+                            </div>
+                          )}
                           <div className="flex items-center gap-2 mt-2">
-                            <span className="text-[11px]" style={{ color: meta.color }}>{meta.dot} {meta.label}</span>
+                            <span className="text-[11px]" style={{ color: liveColor }}>{liveLabel}</span>
                             <div className="flex gap-1 ml-auto">
                               <button
                                 onClick={() => { setNudgeTarget({ id: w.userId, name: w.name }); setNudgeMsg(`Hey ${w.name.split(" ")[0]} — checking in on your questions. Anything you need from me?`); }}

@@ -316,7 +316,7 @@ function MissionCard({ m }: { m: AthenaMissionCard }) {
           params={{ missionId: m.id }}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs border border-border bg-surface hover:bg-[var(--athena-gold)]/10 hover:border-[var(--athena-gold)]/40"
         >
-          <Rocket className="h-3.5 w-3.5" /> War Room
+          <Rocket className="h-3.5 w-3.5" /> ATC
         </Link>
         <button
           onClick={() => navigate({ to: "/olympus/wizard/$missionId", params: { missionId: m.id } })}
