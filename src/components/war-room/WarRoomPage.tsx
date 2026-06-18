@@ -301,12 +301,33 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   );
 
   // ---------------- COLUMN: TEAM ----------------
+  const renderWriterRow = (w: any) => (
+    <WriterRow
+      key={w.userId}
+      w={w}
+      highlighted={highlightedWriterId === w.userId}
+      nudgedAt={recentNudgesQ.data?.[w.userId]?.sent_at}
+      filterActive={filterWriterId === w.userId}
+      readOnly={readOnly}
+      onNudge={() => {
+        if (readOnly) return;
+        setNudgeTarget({
+          userId: w.userId, name: w.name, role: w.role,
+          questionCount: w.questionCount ?? 0,
+          liveLabel: deriveLive(w).label, liveColor: deriveLive(w).color,
+        });
+      }}
+      onFilter={() => openWriterDrawer(w)}
+    />
+  );
+
   const teamColumn = (
     <ColumnShell header={`TEAM · ${d.writers.length} MEMBERS`}>
       {d.writers.length === 0 ? (
-        <div className="text-xs text-white/45 px-4 py-8 text-center">No writers assigned to this mission yet.</div>
+        <TeamPulseEmpty />
       ) : (
         <>
+          {allWritersUnassigned && <TeamPulseNoAssignmentsBanner />}
           {ROLE_GROUPS.map((g) => {
             const rows = groups[g.key];
             if (!rows || rows.length === 0) return null;
@@ -315,17 +336,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                 <div className="sticky top-0 z-[1] px-3 py-1 text-[9px] font-semibold uppercase tracking-wider text-white/40 bg-[#070f1c]/95 backdrop-blur border-b border-white/[0.04]">
                   {g.label} · {rows.length}
                 </div>
-                {rows.map((w: any) => <WriterRow key={w.userId} w={w}
-                  highlighted={highlightedWriterId === w.userId}
-                  nudgedAt={recentNudgesQ.data?.[w.userId]?.sent_at}
-                  filterActive={filterWriterId === w.userId}
-                  onNudge={() => setNudgeTarget({
-                    userId: w.userId, name: w.name, role: w.role,
-                    questionCount: w.questionCount ?? 0,
-                    liveLabel: deriveLive(w).label, liveColor: deriveLive(w).color,
-                  })}
-                  onFilter={() => openWriterDrawer(w)}
-                />)}
+                {rows.map(renderWriterRow)}
               </div>
             );
           })}
@@ -334,17 +345,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
               <div className="sticky top-0 z-[1] px-3 py-1 text-[9px] font-semibold uppercase tracking-wider text-white/40 bg-[#070f1c]/95 backdrop-blur border-b border-white/[0.04]">
                 OTHER · {groups.other.length}
               </div>
-              {groups.other.map((w: any) => <WriterRow key={w.userId} w={w}
-                highlighted={highlightedWriterId === w.userId}
-                nudgedAt={recentNudgesQ.data?.[w.userId]?.sent_at}
-                filterActive={filterWriterId === w.userId}
-                onNudge={() => setNudgeTarget({
-                  userId: w.userId, name: w.name, role: w.role,
-                  questionCount: w.questionCount ?? 0,
-                  liveLabel: deriveLive(w).label, liveColor: deriveLive(w).color,
-                })}
-                onFilter={() => openWriterDrawer(w)}
-              />)}
+              {groups.other.map(renderWriterRow)}
             </div>
           )}
         </>
