@@ -129,7 +129,8 @@ function AuthenticatedLayout() {
       localStorage.setItem("atlas_role_home", homeInfo.home);
     } catch { /* ignore */ }
     // /home is the canonical post-login landing; render MissionsListPage there.
-    const landingPaths = new Set(["/", "/atrium", "/olympus", "/v1", "/flight-deck"]);
+    // /olympus is the Athena Command admin dashboard — don't redirect away.
+    const landingPaths = new Set(["/", "/atrium", "/v1", "/flight-deck"]);
     if (landingPaths.has(path)) {
       // eslint-disable-next-line no-console
       console.warn("[ATLAS-NAV] landing-path redirect → /home from", path);
@@ -217,7 +218,8 @@ function AuthedShell({ email, isAdmin }: { email: string | null; isAdmin: boolea
   const onDesk = pathname.startsWith("/olympus/flight-deck");
   const inMission = /^\/(?:olympus\/)?missions\/[^/]+/.test(pathname);
   const inAdmin = pathname.startsWith("/admin");
-  const hideSidebar = onDesk || inMission || inAdmin;
+  const onAthenaCommand = pathname === "/olympus";
+  const hideSidebar = onDesk || inMission || inAdmin || onAthenaCommand;
   // AppSidebar is positioned at left: 48px, so desktop content must clear
   // both the 48px command rail and the 200px sidebar or the left edge clips.
   const sidebarWidth = hideSidebar ? 0 : (isMobile ? 96 : 248);
