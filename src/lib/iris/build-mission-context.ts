@@ -35,12 +35,30 @@ export type MissionContext = {
   // RFP structure
   sections: { number: string; name: string; description: string; weight: number | null }[];
   confirmedExtractions: { field: string; value: string }[];
+  // State Intelligence Pack (per-state library, auto-attached by mission state)
+  stateIntel: { category: string; title: string; description: string; effectiveDate: string | null }[];
   // Optional
   question?: { number: string; text: string; decodedIntent: string; weight: string; wordLimit: number | null; pageLimit: number | null; evaluationCriteria: string; sectionId: string | null };
   documentExcerpts?: { filename: string; type: string; excerpt: string }[];
   // Build telemetry
   _buildMs: number;
   _errors: string[];
+};
+
+// Human-readable category labels for the State Intelligence Pack.
+const STATE_INTEL_LABEL: Record<string, string> = {
+  waivers_authorities: "Waivers & Authorities",
+  state_plan_amendments: "State Plan & Amendments",
+  managed_care_landscape: "Managed Care Landscape",
+  quality_strategy: "Quality Strategy",
+  directed_payments: "Directed Payments & SDPs",
+  core_set_performance: "Core Set Performance",
+  legislative_budget: "Legislative & Budget",
+  rate_setting: "Rate Setting",
+  eligibility_enrollment: "Eligibility & Enrollment",
+  workforce_network: "Workforce & Provider Network",
+  demographics_health: "Demographics & Health Status",
+  litigation_compliance: "Litigation & Compliance",
 };
 
 type SB = {
@@ -219,6 +237,7 @@ export async function buildMissionContext(
       field: s(r.extracted_field),
       value: s(r.user_override_value || r.extracted_value),
     })).filter((e) => e.field && e.value),
+    stateIntel: [],
     _buildMs: 0,
     _errors: errors,
   };
@@ -241,6 +260,24 @@ export async function buildMissionContext(
       type: s(r.document_type),
       excerpt: s(r.content_summary).slice(0, 3000),
     })).filter((d) => d.excerpt);
+  }
+
+  // State Intelligence Pack — fetched after mission state is known.
+  // One row per (state, category, current) — admin-curated reference library
+  // that auto-attaches to every mission in that state.
+  if (ctx.mission.state) {
+    const siRes = await safe("state_intel_documents", errors, supabase.from("state_intel_documents")
+      .select("category, title, description, effective_date")
+      .eq("state_code", ctx.mission.state)
+      .eq("is_current", true)
+      .order("effective_date", { ascending: false, nullsFirst: false })
+      .limit(60), emptyList);
+    ctx.stateIntel = (siRes.data ?? []).map((r: any) => ({
+      category: s(r.category),
+      title: s(r.title),
+      description: s(r.description),
+      effectiveDate: r.effective_date ?? null,
+    })).filter((d) => d.title);
   }
 
   ctx._buildMs = Date.now() - t0;
@@ -325,6 +362,31 @@ export function serializeContextForPrompt(ctx: MissionContext, focus: Focus): st
         (q.evaluationCriteria ? `\nEval criteria: ${q.evaluationCriteria}` : "")),
     });
   }
+
+  // State Intelligence Pack — admin-curated, auto-attached for every focus
+  // when the mission has a state. Grouped by category so the AI sees what
+  // authoritative reference material is on file for this state.
+  if (ctx.stateIntel.length && ctx.mission.state) {
+    const byCat: Record<string, typeof ctx.stateIntel> = {};
+    for (const d of ctx.stateIntel) {
+      (byCat[d.category] ??= []).push(d);
+    }
+    const lines = Object.entries(byCat).map(([cat, docs]) => {
+      const label = STATE_INTEL_LABEL[cat] ?? cat;
+      const items = docs.slice(0, 4).map((d) =>
+        `  • ${d.title}${d.effectiveDate ? ` (${d.effectiveDate})` : ""}${d.description ? ` — ${d.description.slice(0, 140)}` : ""}`
+      ).join("\n");
+      const more = docs.length > 4 ? `\n  + ${docs.length - 4} more` : "";
+      return `${label}:\n${items}${more}`;
+    }).join("\n\n");
+    blocks.push({
+      name: "state_intel",
+      priority: 2,
+      body: section(`STATE INTELLIGENCE PACK (${ctx.mission.state})`,
+        `Authoritative reference library for ${ctx.mission.state} — use these documents as ground truth for state policy, waivers, managed care, and quality landscape.\n\n${lines}`),
+    });
+  }
+
 
   if (focus === "question" || focus === "strategic" || focus === "full") {
     if (ctx.discriminators.length) blocks.push({ name: "discriminators", priority: 2, body: section("DISCRIMINATORS", list(ctx.discriminators)) });
