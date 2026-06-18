@@ -116,7 +116,7 @@ CRITICAL RULES:
         body: JSON.stringify({
           model: "google/gemini-2.5-flash",
           response_format: { type: "json_object" },
-          max_tokens: 8000,
+          max_tokens: 16000,
           messages: [
             { role: "system", content: system },
             { role: "user", content: userMsg },
