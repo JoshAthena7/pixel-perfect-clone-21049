@@ -116,14 +116,22 @@ export function Step1Fuel({
 
   useEffect(() => setName(missionName), [missionName]);
 
+  const [missingTextDocCount, setMissingTextDocCount] = useState(0);
+
   useEffect(() => {
     (async () => {
       const { data } = await supabase
         .from("mission_documents")
-        .select("id, title, file_url, document_purpose, is_style_guide, document_type")
+        .select("id, title, file_url, document_purpose, is_style_guide, document_type, content_summary, metadata")
         .eq("mission_id", missionId)
         .order("created_at", { ascending: true });
       if (!data) return;
+      const missing = data.filter((d) => {
+        const summaryLen = (d.content_summary ?? "").length;
+        const metaLen = (d.metadata as { full_text_length?: number } | null)?.full_text_length ?? 0;
+        return summaryLen < 500 && metaLen < 500;
+      }).length;
+      setMissingTextDocCount(missing);
       setRows((cur) =>
         cur.length
           ? cur
@@ -244,6 +252,35 @@ export function Step1Fuel({
         .from(BUCKET)
         .upload(path, file, { upsert: false });
       if (upErr) throw upErr;
+
+      // CRITICAL: extract raw text from the file in-browser and persist it on
+      // the mission_documents row BEFORE the LLM ever sees it. Previously the
+      // raw text was thrown away after extraction, leaving downstream IRIS
+      // features with no source to work from. See audit on mission CSOC 2026.
+      setRows((cur) =>
+        cur.map((r) => (r.uid === initial.uid ? { ...r, progress: 40 } : r)),
+      );
+      let extractedText = "";
+      try {
+        extractedText = (await extractTextFromBlob(file, file.name)).trim();
+      } catch (extractErr) {
+        console.warn("[Step1Fuel] text extraction failed", file.name, extractErr);
+      }
+
+      // Storage layout:
+      //   content_summary = first 220k chars (legacy readers already use this)
+      //   metadata.text_chunk_2..N = subsequent 220k-char chunks, up to 500k total
+      //   metadata.full_text_length = original length (pre-truncation)
+      const FIRST = 220_000;
+      const CHUNK = 220_000;
+      const MAX_TOTAL = 500_000;
+      const capped = extractedText.slice(0, MAX_TOTAL);
+      const head = capped.slice(0, FIRST);
+      const chunkMeta: Record<string, string> = {};
+      for (let i = FIRST, n = 2; i < capped.length; i += CHUNK, n++) {
+        chunkMeta[`text_chunk_${n}`] = capped.slice(i, i + CHUNK);
+      }
+
       const { data: userData } = await supabase.auth.getUser();
       const guessedPurpose = guessPurpose(file.name);
       const { data: doc, error: insErr } = await supabase
@@ -258,6 +295,16 @@ export function Step1Fuel({
           title: file.name.replace(/\.[^.]+$/, "").slice(0, 200),
           file_url: path,
           uploaded_by: userData.user?.id ?? null,
+          content_summary: head || null,
+          metadata: {
+            full_text_length: extractedText.length,
+            persisted_text_length: capped.length,
+            intelligence_tier: 1,
+            upload_timestamp: new Date().toISOString(),
+            extraction_method: "browser_pdf_parse",
+            text_extraction_ok: extractedText.length > 500,
+            ...chunkMeta,
+          },
         })
         .select("id")
         .single();
@@ -354,6 +401,25 @@ export function Step1Fuel({
             className="bg-white/5 border-white/15 text-white"
           />
         </div>
+
+        {missingTextDocCount > 0 && (
+          <div
+            className="rounded-lg px-4 py-3 flex items-start gap-3"
+            style={{
+              background: "rgba(196,154,43,0.08)",
+              border: "1px solid rgba(196,154,43,0.45)",
+            }}
+          >
+            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#C49A2B" }} />
+            <div className="flex-1">
+              <p className="text-[13.5px] font-semibold text-white">RFP text not saved</p>
+              <p className="text-[12px] text-white/65 mt-0.5">
+                {missingTextDocCount} previously uploaded document{missingTextDocCount === 1 ? "" : "s"} {missingTextDocCount === 1 ? "is" : "are"} missing the raw extracted text. IRIS cannot extract questions or build briefs without it. Re-upload your primary RFP through the dropzone above to fix this.
+              </p>
+            </div>
+          </div>
+        )}
+
 
         <button
           type="button"
