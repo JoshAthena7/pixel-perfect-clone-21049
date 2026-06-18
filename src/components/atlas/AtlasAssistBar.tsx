@@ -18,7 +18,7 @@ const TOOLS: { id: Tool; label: string; icon: React.ReactNode }[] = [
   { id: "decode",    label: "Decode",     icon: <Search className="h-3.5 w-3.5" /> },
   { id: "win_angle", label: "Win Angle",  icon: <Target className="h-3.5 w-3.5" /> },
   { id: "evidence",  label: "Evidence",   icon: <BarChart3 className="h-3.5 w-3.5" /> },
-  { id: "watch_out", label: "Watch Out",  icon: <AlertTriangle className="h-3.5 w-3.5" /> },
+  { id: "watch_out", label: "Risk Flags", icon: <AlertTriangle className="h-3.5 w-3.5" /> },
 ];
 
 const GOLD = "#C49A2B";
