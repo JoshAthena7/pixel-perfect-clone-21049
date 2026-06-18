@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   AlertTriangle, ChevronDown, ChevronRight, FileText, Flag,
-  MessageSquare, Sparkles, Lock, Download, LifeBuoy, Activity, Radio, Gauge,
+  MessageSquare, Sparkles, Lock, Download, LifeBuoy, Activity, Radio, Gauge, Pin,
 } from "lucide-react";
 import { fireAssistEvent } from "@/lib/fireAssistEvent";
 import {
@@ -15,6 +15,7 @@ import { buildLineOfSight } from "@/lib/iris-line-of-sight.functions";
 import { ScoreMeDialog } from "@/components/flight-deck/ScoreMeDialog";
 import { MissionPulsePanel } from "@/components/flight-deck/MissionPulsePanel";
 import { CheckInDialog } from "@/components/flight-deck/CheckInDialog";
+import { StickyNotesPanel } from "@/components/flight-deck/StickyNotesPanel";
 import { AtlasAssistBar } from "@/components/atlas/AtlasAssistBar";
 
 import { TeamPulseCard } from "@/components/atlas/TeamPulseCard";
@@ -103,6 +104,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   const [scoreMeFor, setScoreMeFor] = useState<Q | null>(null);
   const [pulseOpen, setPulseOpen] = useState(false);
   const [checkInFor, setCheckInFor] = useState<Q | null>(null);
+  const [stickyNotesFor, setStickyNotesFor] = useState<Q | null>(null);
   
   const updateStatus = useServerFn(updateProgressStatus);
   const triggerLineOfSight = useServerFn(buildLineOfSight);
@@ -543,6 +545,15 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
         missionId={missionId}
       />
 
+      <StickyNotesPanel
+        open={!!stickyNotesFor}
+        onClose={() => setStickyNotesFor(null)}
+        missionId={missionId}
+        questionId={stickyNotesFor?.id ?? null}
+        questionNumber={stickyNotesFor?.question_number ?? null}
+        questionText={stickyNotesFor?.question_text ?? null}
+      />
+
       <CheckInDialog
         open={!!checkInFor}
         onOpenChange={(v) => { if (!v) setCheckInFor(null); }}
@@ -698,14 +709,14 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                   <SignalRow label="Weight / Pages" value={`${q.evaluation_weight ?? "—"}% · ${q.page_limit ?? "—"}p`} />
                 </div>
 
-                {/* 3-button assist bar — Check-In / Score Me / Mission Pulse */}
+                {/* 4-button assist bar — Check-In / Score Me / Sticky Notes / Mission Pulse */}
                 <div
                   style={{
                     marginTop: "auto",
                     paddingTop: 10,
                     borderTop: "1px solid rgba(255,255,255,0.05)",
                     display: "grid",
-                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gridTemplateColumns: "repeat(4, 1fr)",
                     gap: 8,
                   }}
                 >
@@ -728,6 +739,16 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                     border="rgba(196,154,43,0.35)"
                     color="#C49A2B"
                     onClick={() => setScoreMeFor(q)}
+                  />
+                  <AssistButton
+                    Icon={Pin}
+                    label="Sticky Notes"
+                    sub="Pin it here"
+                    tooltip="Decisions. Warnings. References. Stick them here so the team never loses them."
+                    bg="rgba(255,255,255,0.05)"
+                    border="rgba(255,255,255,0.12)"
+                    color="rgba(255,255,255,0.65)"
+                    onClick={() => setStickyNotesFor(q)}
                   />
                   <AssistButton
                     Icon={Radio}
