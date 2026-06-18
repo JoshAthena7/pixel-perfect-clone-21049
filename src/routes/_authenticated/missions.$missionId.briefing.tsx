@@ -889,7 +889,7 @@ function IrisGuidanceCard({ mission }: { mission: any }) {
         <span style={{ color: GOLD_SOFT }}>{headline2}</span>
       </p>
       {support && (
-        <p className="mt-5 relative" style={{ fontSize: 14, color: "rgba(255,255,255,0.65)", lineHeight: 1.6 }}>
+        <p className="mt-5 relative" style={{ fontSize: 14, color: "rgba(255,255,255,0.65)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
           {support}
         </p>
       )}
