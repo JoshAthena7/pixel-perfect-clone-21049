@@ -124,6 +124,50 @@ type AIQuestion = {
   response_type?: string;
 };
 
+function fallbackQuestionsFromSectionText(sectionText: string): AIQuestion[] {
+  const source = sectionText
+    .replace(/^\s*[A-Z0-9()&/,.;:'’“”\-\s]{4,80}\s*\n+/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (source.length < 50) return [];
+
+  const starts = Array.from(
+    source.matchAll(/\b(?:The\s+Bidder|Bidders?|Contractor)\s+(?:shall|should|must|is\s+required\s+to|are\s+required\s+to|may\s+be\s+required\s+to|is\s+responsible\s+for)\b/gi),
+  ).map((m) => m.index ?? 0);
+  const candidates: string[] = [];
+
+  for (let i = 0; i < starts.length; i++) {
+    const rawStart = starts[i];
+    const priorBoundary = Math.max(
+      source.lastIndexOf(". ", rawStart - 2),
+      source.lastIndexOf("; ", rawStart - 2),
+    );
+    const start = priorBoundary >= 0 && rawStart - priorBoundary < 90 ? priorBoundary + 2 : rawStart;
+    const nextStart = starts[i + 1] ?? source.length;
+    const nextBoundary = Math.max(
+      source.lastIndexOf(". ", nextStart - 2),
+      source.lastIndexOf("; ", nextStart - 2),
+    );
+    const end = nextBoundary > start && nextBoundary < nextStart ? nextBoundary + 1 : nextStart;
+    candidates.push(source.slice(start, end).trim());
+  }
+
+  return candidates
+    .map((text) => text.replace(/^[;:\-\s]+/, "").replace(/\s+/g, " ").trim())
+    .filter((text) => text.split(/\s+/).length >= 10)
+    .filter((text) => /\b(?:shall|should|must|required|provide|submit|include|describe|identify)\b/i.test(text))
+    .filter((text, idx, arr) => arr.findIndex((other) => other.toLowerCase() === text.toLowerCase()) === idx)
+    .slice(0, 12)
+    .map((question_text) => ({
+      question_text: question_text.slice(0, 4000),
+      page_limit: null,
+      word_limit: null,
+      evaluation_weight: null,
+      is_mandatory: /\b(?:shall|must|required)\b/i.test(question_text),
+      response_type: /\bplan\b/i.test(question_text) ? "plan" : /\b(?:chart|schedule|listing|table)\b/i.test(question_text) ? "table" : "narrative",
+    }));
+}
+
 function safeNum(v: unknown): number | null {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   if (typeof v === "string" && v.trim() !== "" && !Number.isNaN(Number(v))) return Number(v);
