@@ -307,7 +307,7 @@ function sectionHeaderIndexes(
   const exactTitleLines = filtered.filter((idx) => {
     if (!name || !nameIndexes.has(idx)) return false;
     const line = getLineAt(fullText, idx).trim();
-    return line.toLowerCase() === name.toLowerCase() && !isLikelyTocLine(line);
+    return line === name && !isLikelyTocLine(line);
   });
   if (exactTitleLines.length > 0) return exactTitleLines;
 
