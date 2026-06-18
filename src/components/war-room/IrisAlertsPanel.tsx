@@ -14,7 +14,7 @@ function relTime(iso: string | null | undefined) {
 
 const GOLD = "#c9a84c";
 
-export function IrisAlertsPanel({ missionId }: { missionId: string }) {
+export function IrisAlertsPanel({ missionId, bare = false, onCountChange }: { missionId: string; bare?: boolean; onCountChange?: (n: number) => void }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const fn = useServerFn(generateIrisAlerts);
