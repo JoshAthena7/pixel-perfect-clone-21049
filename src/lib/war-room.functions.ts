@@ -387,7 +387,7 @@ export const reassignQuestion = createServerFn({ method: "POST" })
       acceptance_status: "pending",
       assigned_at: nowIso,
       updated_at: nowIso,
-    }, { onConflict: "mission_id,question_id,assignee_id" });
+    }, { onConflict: "question_id,assignee_id,role" });
     if (e2) throw new Error(e2.message);
 
     return { ok: true };
