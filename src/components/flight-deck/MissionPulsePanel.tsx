@@ -130,7 +130,7 @@ export function MissionPulsePanel({ open, onOpenChange, missionId, prefill, onPr
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="p-0 border-0 max-w-[800px] w-[95vw]"
+        className="p-0 border-0 max-w-[800px] w-[95vw] [&>button]:hidden"
         style={{ background: "#0a1420", color: "white" }}
       >
 
