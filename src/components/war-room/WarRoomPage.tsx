@@ -393,6 +393,31 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
             )}
           </Widget>
 
+          <Widget
+            title="📌 Sticky Notes"
+            sub="Pinned to questions"
+            stamp={stickyActivityQ.data?.[0]?.created_at ?? undefined}
+          >
+            {(stickyActivityQ.data ?? []).length === 0 ? (
+              <Empty muted>No sticky notes pinned yet.</Empty>
+            ) : (
+              <ul className="space-y-2">
+                {(stickyActivityQ.data ?? []).map((e: any) => {
+                  const summary = (e.metadata?.summary as string) ?? "Pinned a sticky note";
+                  return (
+                    <li key={e.id} className="text-xs flex items-start gap-2">
+                      <span className="shrink-0" style={{ color: "#C49A2B" }}>📌</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white/90" style={{ color: "#E6C97A" }}>{summary}</div>
+                        <div className="text-[10px] text-white/40 mt-0.5">{relTime(e.created_at)}</div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Widget>
+
           <Widget title="Live Intelligence" sub="Last 10 signals" stamp={d.generatedAt}>
             {d.intelFeed.length === 0 ? (
               <Empty>No intelligence events yet for this mission.</Empty>
