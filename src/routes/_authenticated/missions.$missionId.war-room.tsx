@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/missions/$missionId/war-ro
     const { data: mem } = await supabase
       .from("mission_team_members").select("mission_role")
       .eq("member_id", u.user.id).eq("mission_id", params.missionId).maybeSingle();
-    if (!mem || !PM_ROLES.has(mem.mission_role)) {
+    if (!mem || !mem.mission_role || !PM_ROLES.has(mem.mission_role)) {
       throw redirect({
         to: "/missions/$missionId/flight-deck",
         params: { missionId: params.missionId },

@@ -72,6 +72,7 @@ import { Route as AuthenticatedOlympusWizardNewRouteImport } from './routes/_aut
 import { Route as AuthenticatedOlympusWizardMissionIdRouteImport } from './routes/_authenticated/olympus.wizard.$missionId'
 import { Route as AuthenticatedOlympusMissionsNewRouteImport } from './routes/_authenticated/olympus.missions.new'
 import { Route as AuthenticatedMissionsMissionIdWinStrategyRouteImport } from './routes/_authenticated/missions.$missionId.win-strategy'
+import { Route as AuthenticatedMissionsMissionIdWarRoomRouteImport } from './routes/_authenticated/missions.$missionId.war-room'
 import { Route as AuthenticatedMissionsMissionIdTeamRouteImport } from './routes/_authenticated/missions.$missionId.team'
 import { Route as AuthenticatedMissionsMissionIdSettingsRouteImport } from './routes/_authenticated/missions.$missionId.settings'
 import { Route as AuthenticatedMissionsMissionIdScoresRouteImport } from './routes/_authenticated/missions.$missionId.scores'
@@ -446,6 +447,12 @@ const AuthenticatedMissionsMissionIdWinStrategyRoute =
     path: '/win-strategy',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedMissionsMissionIdWarRoomRoute =
+  AuthenticatedMissionsMissionIdWarRoomRouteImport.update({
+    id: '/war-room',
+    path: '/war-room',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdTeamRoute =
   AuthenticatedMissionsMissionIdTeamRouteImport.update({
     id: '/team',
@@ -624,6 +631,7 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/scores': typeof AuthenticatedMissionsMissionIdScoresRoute
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
+  '/missions/$missionId/war-room': typeof AuthenticatedMissionsMissionIdWarRoomRoute
   '/missions/$missionId/win-strategy': typeof AuthenticatedMissionsMissionIdWinStrategyRoute
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/olympus/wizard/$missionId': typeof AuthenticatedOlympusWizardMissionIdRoute
@@ -706,6 +714,7 @@ export interface FileRoutesByTo {
   '/missions/$missionId/scores': typeof AuthenticatedMissionsMissionIdScoresRoute
   '/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
+  '/missions/$missionId/war-room': typeof AuthenticatedMissionsMissionIdWarRoomRoute
   '/missions/$missionId/win-strategy': typeof AuthenticatedMissionsMissionIdWinStrategyRoute
   '/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/olympus/wizard/$missionId': typeof AuthenticatedOlympusWizardMissionIdRoute
@@ -792,6 +801,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/scores': typeof AuthenticatedMissionsMissionIdScoresRoute
   '/_authenticated/missions/$missionId/settings': typeof AuthenticatedMissionsMissionIdSettingsRoute
   '/_authenticated/missions/$missionId/team': typeof AuthenticatedMissionsMissionIdTeamRoute
+  '/_authenticated/missions/$missionId/war-room': typeof AuthenticatedMissionsMissionIdWarRoomRoute
   '/_authenticated/missions/$missionId/win-strategy': typeof AuthenticatedMissionsMissionIdWinStrategyRoute
   '/_authenticated/olympus/missions/new': typeof AuthenticatedOlympusMissionsNewRoute
   '/_authenticated/olympus/wizard/$missionId': typeof AuthenticatedOlympusWizardMissionIdRoute
@@ -878,6 +888,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/scores'
     | '/missions/$missionId/settings'
     | '/missions/$missionId/team'
+    | '/missions/$missionId/war-room'
     | '/missions/$missionId/win-strategy'
     | '/olympus/missions/new'
     | '/olympus/wizard/$missionId'
@@ -960,6 +971,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/scores'
     | '/missions/$missionId/settings'
     | '/missions/$missionId/team'
+    | '/missions/$missionId/war-room'
     | '/missions/$missionId/win-strategy'
     | '/olympus/missions/new'
     | '/olympus/wizard/$missionId'
@@ -1045,6 +1057,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/scores'
     | '/_authenticated/missions/$missionId/settings'
     | '/_authenticated/missions/$missionId/team'
+    | '/_authenticated/missions/$missionId/war-room'
     | '/_authenticated/missions/$missionId/win-strategy'
     | '/_authenticated/olympus/missions/new'
     | '/_authenticated/olympus/wizard/$missionId'
@@ -1546,6 +1559,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdWinStrategyRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/missions/$missionId/war-room': {
+      id: '/_authenticated/missions/$missionId/war-room'
+      path: '/war-room'
+      fullPath: '/missions/$missionId/war-room'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdWarRoomRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
     '/_authenticated/missions/$missionId/team': {
       id: '/_authenticated/missions/$missionId/team'
       path: '/team'
@@ -1762,6 +1782,7 @@ interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdScoresRoute: typeof AuthenticatedMissionsMissionIdScoresRoute
   AuthenticatedMissionsMissionIdSettingsRoute: typeof AuthenticatedMissionsMissionIdSettingsRoute
   AuthenticatedMissionsMissionIdTeamRoute: typeof AuthenticatedMissionsMissionIdTeamRoute
+  AuthenticatedMissionsMissionIdWarRoomRoute: typeof AuthenticatedMissionsMissionIdWarRoomRoute
   AuthenticatedMissionsMissionIdWinStrategyRoute: typeof AuthenticatedMissionsMissionIdWinStrategyRoute
   AuthenticatedMissionsMissionIdIndexRoute: typeof AuthenticatedMissionsMissionIdIndexRoute
 }
@@ -1796,6 +1817,8 @@ const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionI
       AuthenticatedMissionsMissionIdSettingsRoute,
     AuthenticatedMissionsMissionIdTeamRoute:
       AuthenticatedMissionsMissionIdTeamRoute,
+    AuthenticatedMissionsMissionIdWarRoomRoute:
+      AuthenticatedMissionsMissionIdWarRoomRoute,
     AuthenticatedMissionsMissionIdWinStrategyRoute:
       AuthenticatedMissionsMissionIdWinStrategyRoute,
     AuthenticatedMissionsMissionIdIndexRoute:
