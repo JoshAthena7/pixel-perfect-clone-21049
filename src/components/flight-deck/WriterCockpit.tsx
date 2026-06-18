@@ -752,6 +752,23 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                   </div>
                 )}
 
+                {/* Your Place in the Story — narrative brief */}
+                {q.primary_win_theme && (
+                  <NarrativeBriefSection
+                    missionId={missionId}
+                    questionId={q.id}
+                    onJumpToQuestion={(qid) => {
+                      setExpanded(qid);
+                      requestAnimationFrame(() => {
+                        document.getElementById(`q-card-${qid}`)?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "start",
+                        });
+                      });
+                    }}
+                  />
+                )}
+
                 {/* IRIS coaching — single source */}
                 <AtlasAssistBar missionId={missionId} questionId={q.id} />
 
