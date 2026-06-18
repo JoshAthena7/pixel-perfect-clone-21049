@@ -148,12 +148,14 @@ export async function runIrisRfpExtraction(
       if (extracted.length > 50) {
         textParts.push(`# ${title}\n\n${extracted}`);
         const { head, chunkMeta, persistedLength } = buildPersistedTextParts(extracted);
+        const nextMeta = { ...meta };
+        for (let n = 2; n <= 10; n++) delete nextMeta[`text_chunk_${n}`];
         await supabase
           .from("mission_documents")
           .update({
             content_summary: head || null,
             metadata: {
-              ...meta,
+              ...nextMeta,
               ...chunkMeta,
               full_text_length: extracted.length,
               persisted_text_length: persistedLength,
