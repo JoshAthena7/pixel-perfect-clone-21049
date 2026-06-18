@@ -93,7 +93,7 @@ function IrisRefreshPage() {
     // STEP 1 — RFP extraction
     push("rfp", "⏳ Processing uploaded documents (Pass 1 + Pass 2)…");
     try {
-      await runIrisRfpExtraction(missionId);
+      await runIrisRfpExtraction(missionId, { force: true });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       update("rfp", `❌ Document processing failed: ${msg}`, "error");
@@ -104,7 +104,8 @@ function IrisRefreshPage() {
     const { count: qCount } = await supabase
       .from("mission_questions")
       .select("id", { count: "exact", head: true })
-      .eq("mission_id", missionId);
+      .eq("mission_id", missionId)
+      .eq("is_withdrawn", false);
     update(
       "rfp",
       `✅ Documents processed — ${qCount ?? 0} question${qCount === 1 ? "" : "s"} extracted`,
