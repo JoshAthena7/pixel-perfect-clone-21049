@@ -10671,6 +10671,65 @@ export type Database = {
           },
         ]
       }
+      question_notes: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          mission_id: string
+          pinned_to_slack: boolean
+          question_id: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          mission_id: string
+          pinned_to_slack?: boolean
+          question_id: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          mission_id?: string
+          pinned_to_slack?: boolean
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_notes_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_notes_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_notes_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_notes_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       question_progress: {
         Row: {
           acceptance_status: string
