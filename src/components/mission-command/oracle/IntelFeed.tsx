@@ -337,7 +337,7 @@ export function IntelFeed({ missionId }: { missionId: string }) {
         </div>
       )}
 
-      <AddIntelDialog
+      <OracleIntakeModal
         missionId={missionId}
         open={addOpen}
         onOpenChange={setAddOpen}
