@@ -17,6 +17,7 @@ import { extractRFPText } from "@/lib/extract-rfp-text.browser";
 import {
   processRFPDocuments,
   extractQuestionsForSection,
+  rebuildQuestionsDeterministically,
   sliceSectionTextWithFallbacks,
   type SectionLocator,
   type ProcessResult,
@@ -284,6 +285,20 @@ export async function runIrisRfpExtraction(
   console.log(
     `[iris-pass2] Complete: ${questionsInserted} questions from ${sectionsProcessed} sections (${sectionsSkipped} skipped, ${sectionsInferred} inferred, ${sectionsFailed} failed)`,
   );
+
+  if (opts.force || questionsInserted < 50) {
+    try {
+      const rebuilt = await rebuildQuestionsDeterministically({
+        data: { mission_id: missionId, primary_rfp_text: primaryRfpText },
+      });
+      if (rebuilt.inserted > questionsInserted) {
+        console.log(`[iris-deterministic] Rebuilt ${rebuilt.inserted} source-backed questions across ${rebuilt.sections} sections`);
+        questionsInserted = rebuilt.inserted;
+      }
+    } catch (e) {
+      console.warn("[iris-deterministic] rebuild failed; keeping Pass 2 questions", e);
+    }
+  }
 
   // If nothing landed, do NOT silently succeed — flag for manual review.
   if (questionsInserted === 0) {
