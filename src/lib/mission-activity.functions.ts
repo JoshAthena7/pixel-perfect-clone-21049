@@ -19,7 +19,8 @@ export type ActivityStream =
   | "conflict"
   | "check_in"
   | "sticky_note"
-  | "brief_exported";
+  | "brief_exported"
+  | "nudge";
 
 export type ActivityItem = {
   id: string;
