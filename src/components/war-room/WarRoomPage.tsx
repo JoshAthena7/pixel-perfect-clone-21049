@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
@@ -9,6 +9,7 @@ import {
 } from "@/lib/war-room.functions";
 import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
 import { MissionRadar } from "./MissionRadar";
+import { IrisAlertsPanel } from "./IrisAlertsPanel";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -93,6 +94,23 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   const [nudgeTarget, setNudgeTarget] = useState<{ id: string; name: string } | null>(null);
   const [nudgeMsg, setNudgeMsg] = useState("");
   const [reassignFor, setReassignFor] = useState<string | null>(null);
+  const [highlightedWriterId, setHighlightedWriterId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const id = (e as CustomEvent).detail?.writerId as string | undefined;
+      if (!id) return;
+      setHighlightedWriterId(id);
+      // Scroll into view
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`[data-writer-row="${id}"]`);
+        if (el) (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      window.setTimeout(() => setHighlightedWriterId(null), 1100);
+    };
+    window.addEventListener("atc:highlight-writer", handler as EventListener);
+    return () => window.removeEventListener("atc:highlight-writer", handler as EventListener);
+  }, []);
 
   const d = dataQ.data;
 
@@ -270,7 +288,8 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                   return (
                     <li
                       key={w.userId}
-                      className="py-3 first:pt-0 last:pb-0 pl-3"
+                      data-writer-row={w.userId}
+                      className={`py-3 first:pt-0 last:pb-0 pl-3 transition-colors ${highlightedWriterId === w.userId ? "bg-amber-400/20" : ""}`}
                       style={{ borderLeft: `4px solid ${liveColor}` }}
                     >
                       <div className="flex items-start gap-3">
@@ -438,6 +457,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
 
         {/* RIGHT */}
         <div className="space-y-4 lg:col-span-1">
+          <IrisAlertsPanel missionId={missionId} />
           <Widget title="⚡ What IRIS Found" sub="Since your last visit" stamp={d.generatedAt}>
             {d.digest.length === 0 ? (
               <Empty muted>IRIS has been quiet. Everything looks stable.</Empty>
