@@ -1,8 +1,8 @@
-import { createFileRoute, Outlet, redirect, useRouterState, Navigate, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useRouterState, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { toast } from "sonner";
+
 import { supabase } from "@/integrations/supabase/client";
 import { IrisProvider } from "@/components/iris/IrisContext";
 import { AskIrisPanel } from "@/components/iris/AskIrisPanel";
