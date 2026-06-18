@@ -8,13 +8,14 @@ import { cn } from "@/lib/utils";
 
 export const WIZARD_STEPS = [
   { n: 1, label: "Fuel IRIS" },
-  { n: 2, label: "Mission Basics" },
-  { n: 3, label: "Strategy" },
-  { n: 4, label: "Competitive" },
-  { n: 5, label: "Intel Seeds" },
-  { n: 6, label: "Team & Assignments" },
-  { n: 7, label: "Journey" },
-  { n: 8, label: "Review & Launch" },
+  { n: 2, label: "State" },
+  { n: 3, label: "Mission Basics" },
+  { n: 4, label: "Strategy" },
+  { n: 5, label: "Competitive" },
+  { n: 6, label: "Intel Seeds" },
+  { n: 7, label: "Team & Assignments" },
+  { n: 8, label: "Journey" },
+  { n: 9, label: "Review & Launch" },
 ] as const;
 
 export const TOTAL_STEPS = WIZARD_STEPS.length;

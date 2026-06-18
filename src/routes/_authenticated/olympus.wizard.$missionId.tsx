@@ -5,6 +5,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { WizardShellV3 } from "@/components/mission-wizard-v3/WizardShellV3";
 import { Step1Fuel } from "@/components/mission-wizard-v3/Step1Fuel";
+import { Step2State } from "@/components/mission-wizard-v3/Step2State";
 import { Step2Basics } from "@/components/mission-wizard-v3/Step2Basics";
 import { Step3Strategy } from "@/components/mission-wizard-v3/Step3Strategy";
 import { Step4Competitive } from "@/components/mission-wizard-v3/Step4Competitive";
@@ -16,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 type WizardMission = { id: string; name: string; status: string | null; lastStep: number };
 
-const TOTAL = 8;
+const TOTAL = 9;
 const searchSchema = z.object({
   step: z.coerce.number().int().min(1).max(TOTAL).optional(),
 });
@@ -129,13 +130,14 @@ function WizardPage() {
           onBack={back}
         />
       )}
-      {step === 2 && <Step2Basics missionId={missionId} onBack={back} onAdvance={() => go(3)} />}
-      {step === 3 && <Step3Strategy missionId={missionId} onBack={back} onAdvance={() => go(4)} />}
-      {step === 4 && <Step4Competitive missionId={missionId} onBack={back} onAdvance={() => go(5)} />}
-      {step === 5 && <Step5IntelNetwork missionId={missionId} onBack={back} onAdvance={() => go(6)} />}
-      {step === 6 && <Step7Team missionId={missionId} onBack={back} onAdvance={() => go(7)} />}
-      {step === 7 && <Step8Journey missionId={missionId} onBack={back} onAdvance={() => go(8)} />}
-      {step === 8 && <Step8Review missionId={missionId} onBack={back} onJump={go} />}
+      {step === 2 && <Step2State missionId={missionId} onBack={back} onAdvance={() => go(3)} />}
+      {step === 3 && <Step2Basics missionId={missionId} onBack={back} onAdvance={() => go(4)} />}
+      {step === 4 && <Step3Strategy missionId={missionId} onBack={back} onAdvance={() => go(5)} />}
+      {step === 5 && <Step4Competitive missionId={missionId} onBack={back} onAdvance={() => go(6)} />}
+      {step === 6 && <Step5IntelNetwork missionId={missionId} onBack={back} onAdvance={() => go(7)} />}
+      {step === 7 && <Step7Team missionId={missionId} onBack={back} onAdvance={() => go(8)} />}
+      {step === 8 && <Step8Journey missionId={missionId} onBack={back} onAdvance={() => go(9)} />}
+      {step === 9 && <Step8Review missionId={missionId} onBack={back} onJump={go} />}
     </WizardShellV3>
   );
 }
