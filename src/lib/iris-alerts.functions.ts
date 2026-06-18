@@ -73,17 +73,17 @@ export const generateIrisAlerts = createServerFn({ method: "POST" })
     // Profiles
     const memberIds = team.map((t: any) => t.member_id);
     const { data: profiles } = await supabase.from("profiles")
-      .select("id,full_name,email").in("id", memberIds.length ? memberIds : ["00000000-0000-0000-0000-000000000000"]);
+      .select("id,display_name,email").in("id", memberIds.length ? memberIds : ["00000000-0000-0000-0000-000000000000"]);
     const profById: Record<string, any> = {};
-    for (const p of profiles ?? []) profById[p.id] = p;
+    for (const p of (profiles ?? []) as any[]) profById[p.id] = p;
 
     // Build per-writer last activity
-    const lastByUser: Record<string, string | null> = {};
+    const lastByUser: Record<string, string> = {};
     for (const p of progress) {
       if (!p.assignee_id) continue;
       const t = p.last_activity_at || p.updated_at;
       if (!t) continue;
-      if (!lastByUser[p.assignee_id] || t > lastByUser[p.assignee_id]!) lastByUser[p.assignee_id] = t;
+      if (!lastByUser[p.assignee_id] || t > lastByUser[p.assignee_id]) lastByUser[p.assignee_id] = t;
     }
     const writersNoActivity24h: { id: string; name: string }[] = [];
     for (const m of team) {
@@ -93,7 +93,7 @@ export const generateIrisAlerts = createServerFn({ method: "POST" })
         const p = profById[m.member_id];
         writersNoActivity24h.push({
           id: m.member_id,
-          name: p?.full_name || p?.email?.split("@")[0] || "Team member",
+          name: p?.display_name || p?.email?.split("@")[0] || "Team member",
         });
       }
     }
