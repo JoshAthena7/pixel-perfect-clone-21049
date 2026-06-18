@@ -1005,6 +1005,45 @@ function WinThemesStrip({ themes }: { themes: any[] }) {
   );
 }
 
+function AssistButton({
+  Icon, label, sub, tooltip, bg, border, color, onClick,
+}: {
+  Icon: any;
+  label: string;
+  sub: string;
+  tooltip: string;
+  bg: string;
+  border: string;
+  color: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={tooltip}
+      style={{
+        height: 56,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 2,
+        background: bg,
+        border: `0.5px solid ${border}`,
+        color,
+        borderRadius: 6,
+        cursor: "pointer",
+        padding: "4px 8px",
+        lineHeight: 1.1,
+      }}
+    >
+      <Icon size={16} />
+      <span style={{ fontSize: 10, fontWeight: 600 }}>{label}</span>
+      <span style={{ fontSize: 8, color: "rgba(255,255,255,0.45)" }}>{sub}</span>
+    </button>
+  );
+}
+
 function BriefViewer({ q, onClose, onExport }: { q: Q; onClose: () => void; onExport: () => void }) {
   const b = q.iris_brief ?? {};
   return (
