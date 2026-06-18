@@ -28,6 +28,9 @@ const BUCKET = "atlas-rfp-documents";
 const PASS2_CONCURRENCY = 3;
 const BRIEF_CONCURRENCY = 3;
 const MIN_TEXT_CHARS = 50; // Was 200 — too aggressive for form-driven RFPs.
+const TEXT_HEAD_CHARS = 220_000;
+const TEXT_CHUNK_CHARS = 220_000;
+const MAX_PERSISTED_TEXT_CHARS = 1_000_000;
 
 async function extractTextFromBlob(blob: Blob, fileName: string): Promise<string> {
   const lower = fileName.toLowerCase();
@@ -44,15 +47,12 @@ async function extractTextFromBlob(blob: Blob, fileName: string): Promise<string
 }
 
 function buildPersistedTextParts(extractedText: string): { head: string; chunkMeta: Record<string, string>; persistedLength: number } {
-  const FIRST = 220_000;
-  const CHUNK = 220_000;
-  const MAX_TOTAL = 1_000_000;
-  const capped = extractedText.slice(0, MAX_TOTAL);
+  const capped = extractedText.slice(0, MAX_PERSISTED_TEXT_CHARS);
   const chunkMeta: Record<string, string> = {};
-  for (let i = FIRST, n = 2; i < capped.length; i += CHUNK, n++) {
-    chunkMeta[`text_chunk_${n}`] = capped.slice(i, i + CHUNK);
+  for (let i = TEXT_HEAD_CHARS, n = 2; i < capped.length; i += TEXT_CHUNK_CHARS, n++) {
+    chunkMeta[`text_chunk_${n}`] = capped.slice(i, i + TEXT_CHUNK_CHARS);
   }
-  return { head: capped.slice(0, FIRST), chunkMeta, persistedLength: capped.length };
+  return { head: capped.slice(0, TEXT_HEAD_CHARS), chunkMeta, persistedLength: capped.length };
 }
 
 async function runWithConcurrency<T>(
