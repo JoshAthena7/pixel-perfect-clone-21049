@@ -362,6 +362,17 @@ export const getMissionActivity = createServerFn({ method: "POST" })
           summary: `${firstName} exported the brief for ${qLabel}`,
           detail: "",
         });
+      } else if (r.event_type === "nudge_sent") {
+        const recipientName = (meta.recipient_name ?? "a writer").toString();
+        const channel = (meta.channel ?? "").toString();
+        const channelLabel = channel ? ` via ${channel.charAt(0).toUpperCase() + channel.slice(1)}` : "";
+        items.push({
+          id: `nudge:${r.id}`, stream: "nudge", created_at: r.created_at,
+          actor: actorFull, question_id: r.question_id,
+          question_number: q?.question_number ?? null, question_text: q?.question_text ?? null,
+          summary: `${firstName} nudged ${recipientName.split(/[\s@]/)[0] || recipientName}${channelLabel}`,
+          detail: (meta.message ?? "").toString().slice(0, 240),
+        });
       }
     });
 
