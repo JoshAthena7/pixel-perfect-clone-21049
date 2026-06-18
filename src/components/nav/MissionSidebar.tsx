@@ -363,11 +363,16 @@ export function MissionBottomTabs({ missionId }: { missionId: string }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const seg = pathname.split("/")[3] ?? "";
   const { isAdmin } = useIsAdmin();
-  const items = buildItems(missionId).filter((it) => it.id !== "olympus" || isAdmin);
+  const canWarRoom = useWarRoomAccess(missionId, isAdmin);
+  const items = buildItems(missionId).filter((it) => {
+    if (it.id === "olympus") return isAdmin;
+    if (it.id === "war-room") return canWarRoom;
+    return true;
+  });
 
   return (
     <nav
-      className={`md:hidden fixed bottom-0 left-0 right-0 z-40 grid ${items.length === 4 ? "grid-cols-4" : "grid-cols-3"}`}
+      className={`md:hidden fixed bottom-0 left-0 right-0 z-40 grid grid-cols-${Math.min(items.length, 5)}`}
       style={{
         background: "#070f1c",
         borderTop: "1px solid rgba(255,255,255,0.08)",
