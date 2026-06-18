@@ -293,6 +293,11 @@ export function OracleTab({ missionId }: { missionId: string }) {
             <NodeDetailDrawer node={selectedEcosystemNode} onClose={() => setSelectedEcosystemNode(null)} />
           </div>
         )}
+        {isAdmin && visited.has("graph-health") && (
+          <div style={{ display: active === "graph-health" ? "block" : "none" }}>
+            <GraphHealthTab missionId={missionId} />
+          </div>
+        )}
       </div>
     </div>
   );
