@@ -147,7 +147,17 @@ export const getMissionActivity = createServerFn({ method: "POST" })
           .order("created_at", { ascending: false })
           .limit(100),
       ),
+      filterSince(
+        supabaseAdmin
+          .from("mission_assist_events")
+          .select("id,question_id,user_id,event_type,metadata,created_at")
+          .eq("mission_id", data.missionId)
+          .in("event_type", ["check_in", "sticky_note_posted", "brief_exported"])
+          .order("created_at", { ascending: false })
+          .limit(200),
+      ),
     ]);
+    const assistRes = (arguments as any) ? undefined : undefined; // placeholder for TS
 
     // Resolve requester display names for expert_consults
     const requesterIds = Array.from(
