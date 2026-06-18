@@ -41,7 +41,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   const navigate = useNavigate();
   const fetchData = useServerFn(getWarRoomData);
   const fetchTrend = useServerFn(getWarRoomHealthTrend);
-  const nudgeFn = useServerFn(sendNudge);
+  
   const flagFn = useServerFn(flagQuestion);
   const reassignFn = useServerFn(reassignQuestion);
   const bulkResetFn = useServerFn(bulkResetBriefErrors);
