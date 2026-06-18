@@ -1,12 +1,12 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useIsAdmin } from "@/hooks/useAccess";
-import { AthenaCommandPage } from "@/components/athena-command/AthenaCommandPage";
+import { OlympusCommand } from "@/components/olympus/OlympusCommand";
 
 function OlympusIndex() {
   const { isAdmin, isLoading } = useIsAdmin();
   if (isLoading) return null;
   if (!isAdmin) return <Navigate to="/missions" replace />;
-  return <AthenaCommandPage />;
+  return <OlympusCommand />;
 }
 
 export const Route = createFileRoute("/_authenticated/olympus/")({
