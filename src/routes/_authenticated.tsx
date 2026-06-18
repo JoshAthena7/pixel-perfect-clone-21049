@@ -128,15 +128,12 @@ function AuthenticatedLayout() {
     try {
       localStorage.setItem("atlas_role_home", homeInfo.home);
     } catch { /* ignore */ }
-    // /home is the canonical post-login landing; render MissionsListPage there.
-    // /olympus is the Athena Command admin dashboard — don't redirect away.
-    const landingPaths = new Set(["/", "/atrium", "/v1", "/flight-deck"]);
-    if (landingPaths.has(path)) {
-      // eslint-disable-next-line no-console
-      console.warn("[ATLAS-NAV] landing-path redirect → /home from", path);
-      navigate({ to: "/home", replace: true });
-      return;
-    }
+    // NOTE: "/" is already redirected to /home by src/routes/index.tsx's
+    // beforeLoad. /atrium, /v1, /flight-deck no longer exist as routes.
+    // The previous landing-path effect here re-fired whenever the my-home
+    // query refetched (tab focus, token refresh, auth event), randomly
+    // bouncing admins from their current page to /admin via /home. Removed.
+
     if (path.startsWith("/portfolio") && homeInfo.home !== "portfolio" && !isAdmin) {
       // eslint-disable-next-line no-console
       console.warn("[ATLAS-NAV] portfolio gate → /my-work from", path);
