@@ -119,6 +119,13 @@ function TriviaTab({ missionId }: { missionId: string }) {
     retry: false,
   });
   const [picked, setPicked] = useState<number | null>(null);
+  const [rolledUp, setRolledUp] = useState(false);
+
+  useEffect(() => {
+    if (picked === null) return;
+    const t = setTimeout(() => setRolledUp(true), 4000);
+    return () => clearTimeout(t);
+  }, [picked]);
 
   if (isLoading) return <Loading text="IRIS is drafting today's trivia…" />;
   if (error) return <ErrorBlock message={String((error as Error).message)} onRetry={() => refetch()} />;
@@ -130,6 +137,29 @@ function TriviaTab({ missionId }: { missionId: string }) {
     explanation?: string;
   };
   const opts = Array.isArray(c.options) ? c.options : [];
+  const correct = picked !== null && picked === c.correct_index;
+
+  if (rolledUp) {
+    return (
+      <button
+        onClick={() => setRolledUp(false)}
+        className="w-full flex items-center justify-between rounded-md px-3 py-2 text-[11.5px] transition-colors"
+        style={{
+          background: correct ? "rgba(61,190,125,0.08)" : "rgba(224,74,74,0.08)",
+          border: `1px solid ${correct ? "rgba(61,190,125,0.3)" : "rgba(224,74,74,0.3)"}`,
+          color: "rgba(255,255,255,0.7)",
+        }}
+      >
+        <span>
+          <span style={{ color: correct ? "#3DBE7D" : "#f08080", fontWeight: 600 }}>
+            {correct ? "✓ Nailed it" : "✗ Missed it"}
+          </span>
+          <span className="ml-2 text-muted-foreground">Today's trivia answered</span>
+        </span>
+        <span className="text-[10px] text-muted-foreground">Show</span>
+      </button>
+    );
+  }
 
   return (
     <div>
@@ -167,6 +197,7 @@ function TriviaTab({ missionId }: { missionId: string }) {
     </div>
   );
 }
+
 
 /* -------------------- Team -------------------- */
 function TeamTab({ missionId }: { missionId: string }) {
