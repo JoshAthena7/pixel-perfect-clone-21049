@@ -675,6 +675,33 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         missionName={d.mission?.name ?? "this mission"}
         senderFirstName={((meQ.data as any)?.display_name ?? (meQ.data as any)?.email ?? "Lead").split(/[\s@]/)[0] || "Lead"}
       />
+
+      <WriterDrawer
+        open={!!drawerTarget}
+        onClose={() => setDrawerTarget(null)}
+        target={drawerTarget}
+        missionId={missionId}
+        missionName={d.mission?.name ?? "this mission"}
+        daysToDeadline={daysToDeadline}
+        senderFirstName={((meQ.data as any)?.display_name ?? (meQ.data as any)?.email ?? "Lead").split(/[\s@]/)[0] || "Lead"}
+        onNudge={(writerId) => {
+          const w = d.writers.find((x: any) => x.userId === writerId);
+          if (!w) return;
+          setNudgeTarget({
+            userId: w.userId, name: w.name, role: w.role,
+            questionCount: w.questionCount ?? 0,
+            liveLabel: "—", liveColor: "#94a3b8",
+          });
+        }}
+        onOpenFlightDeck={(writerId, questionId) => {
+          // TODO: Flight Deck doesn't yet support a writer filter — open the deck
+          // and (when given) scroll to the specific question.
+          const url = questionId
+            ? `/missions/${missionId}/flight-deck#${questionId}`
+            : `/missions/${missionId}/flight-deck`;
+          window.open(url, "_blank", "noopener");
+        }}
+      />
     </div>
   );
 }
