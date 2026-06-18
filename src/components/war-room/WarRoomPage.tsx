@@ -772,9 +772,10 @@ function deriveLive(w: any) {
 }
 
 function WriterRow({
-  w, highlighted, nudgedAt, filterActive, onNudge, onFilter,
+  w, highlighted, nudgedAt, filterActive, readOnly = false, onNudge, onFilter,
 }: {
   w: any; highlighted: boolean; nudgedAt?: string; filterActive: boolean;
+  readOnly?: boolean;
   onNudge: () => void; onFilter: () => void;
 }) {
   const live = deriveLive(w);
@@ -786,6 +787,7 @@ function WriterRow({
   const lastSeen = !w.lastActivity
     ? "Never"
     : (hrs != null && hrs < 24 ? (hrs < 1 ? "Just now" : `${Math.round(hrs)}h ago`) : relTime(w.lastActivity));
+  const noQuestions = total === 0;
 
   return (
     <div
@@ -802,8 +804,8 @@ function WriterRow({
           <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-white/55 uppercase tracking-wide shrink-0">{w.role}</span>
         </div>
         <div className="text-[10px] text-white/45 mt-0.5 truncate" style={{ fontFamily: "'Courier New', monospace" }}>
-          {total === 0
-            ? `Unassigned · ${lastSeen}`
+          {noQuestions
+            ? <span className="italic text-white/40">— No questions assigned · {lastSeen}</span>
             : <>
                 {total}q · <span className="text-green-400">{finalized}✓</span>{" "}
                 <span className="text-sky-300">{activeQ}●</span>{" "}
@@ -816,13 +818,17 @@ function WriterRow({
       <div className="flex flex-col gap-1 shrink-0">
         <button
           onClick={onNudge}
-          className="text-[9px] px-1.5 py-0.5 rounded border border-white/15 text-white/65 hover:bg-white/5 inline-flex items-center gap-1"
+          disabled={readOnly}
+          title={readOnly ? "Mission is closed — read-only" : undefined}
+          className="text-[9px] px-1.5 py-0.5 rounded border border-white/15 text-white/65 hover:bg-white/5 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <MessageSquare className="w-2.5 h-2.5" /> Nudge
         </button>
         <button
           onClick={onFilter}
-          className={`text-[9px] px-1.5 py-0.5 rounded border inline-flex items-center gap-1 ${filterActive
+          disabled={noQuestions}
+          title={noQuestions ? "No questions assigned to this writer yet." : undefined}
+          className={`text-[9px] px-1.5 py-0.5 rounded border inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed ${filterActive
             ? "bg-amber-500/20 border-amber-400/40 text-amber-200"
             : "border-white/15 text-white/65 hover:bg-white/5"}`}
         >
