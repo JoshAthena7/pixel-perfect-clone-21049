@@ -563,7 +563,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
     const nextOptions = nextStatuses(q.progress_status, !!cockpit?.pensDown);
 
     return (
-      <div key={q.id} style={{
+      <div key={q.id} id={`q-card-${q.id}`} style={{
         background: CARD, borderRadius: 10, marginBottom: 10, overflow: "hidden",
         borderLeft: `3px solid ${healthColor(q.health_status)}`,
         border: `1px solid rgba(255,255,255,0.05)`,
