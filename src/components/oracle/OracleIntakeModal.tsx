@@ -63,7 +63,7 @@ const CATEGORIES: {
   key: OracleCategoryKey;
   label: string;
   desc: string;
-  Icon: React.ComponentType<{ className?: string }>;
+  Icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
 }[] = [
   { key: "regulatory", label: "Regulatory & Compliance", desc: "Statutes, regulations, guidance, waivers, state plan", Icon: Scale },
   { key: "quality", label: "Quality & Performance", desc: "HEDIS, EQRO, NCI domains, benchmarks", Icon: BarChart3 },
