@@ -6,6 +6,7 @@ import { X, ExternalLink, Pin, ArrowLeft, Flag, MessageSquare, Compass } from "l
 import { getWriterDrillDown, getWriterIrisSentence, type WriterQuestionRow } from "@/lib/writer-drilldown.functions";
 import { fireAssistEvent } from "@/lib/fireAssistEvent";
 import { toast } from "sonner";
+import { WriterDrawerNoQuestions, StickyNotesEmptyCard } from "./AtcEmptyStates";
 
 const GOLD = "#c9a84c";
 
