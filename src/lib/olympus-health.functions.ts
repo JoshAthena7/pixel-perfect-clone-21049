@@ -284,11 +284,16 @@ export const getTopIntelligence = createServerFn({ method: "POST" })
           status: string;
           metadata: Record<string, unknown> | null;
         };
+        const url = (row.metadata as { source_url?: string } | null)?.source_url ?? null;
         return {
-          ...row,
+          id: row.id,
+          title: row.title,
+          summary: row.summary,
+          source_name: row.source_name,
+          relevance_score: row.relevance_score,
+          status: row.status,
           usage_count: usage.get(row.id) ?? 0,
-          source_url:
-            (row.metadata as { source_url?: string } | null)?.source_url ?? null,
+          source_url: url,
         };
       }),
     };
