@@ -116,14 +116,22 @@ export function Step1Fuel({
 
   useEffect(() => setName(missionName), [missionName]);
 
+  const [missingTextDocCount, setMissingTextDocCount] = useState(0);
+
   useEffect(() => {
     (async () => {
       const { data } = await supabase
         .from("mission_documents")
-        .select("id, title, file_url, document_purpose, is_style_guide, document_type")
+        .select("id, title, file_url, document_purpose, is_style_guide, document_type, content_summary, metadata")
         .eq("mission_id", missionId)
         .order("created_at", { ascending: true });
       if (!data) return;
+      const missing = data.filter((d) => {
+        const summaryLen = (d.content_summary ?? "").length;
+        const metaLen = (d.metadata as { full_text_length?: number } | null)?.full_text_length ?? 0;
+        return summaryLen < 500 && metaLen < 500;
+      }).length;
+      setMissingTextDocCount(missing);
       setRows((cur) =>
         cur.length
           ? cur
