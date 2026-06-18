@@ -512,20 +512,52 @@ function WinThemesBlock({ missionId }: { missionId: string | null }) {
     queryKey: ["intel-panel-strategy", missionId],
     enabled: !!missionId,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("mission_win_strategy")
-        .select("win_themes, north_star_message")
-        .eq("mission_id", missionId!)
-        .maybeSingle();
-      return data;
+      const [strat, oec, mwt] = await Promise.all([
+        supabase
+          .from("mission_win_strategy")
+          .select("win_themes, north_star_message")
+          .eq("mission_id", missionId!)
+          .maybeSingle(),
+        supabase
+          .from("oracle_engagement_config")
+          .select("win_themes, north_star")
+          .eq("mission_id", missionId!)
+          .maybeSingle(),
+        supabase
+          .from("mission_win_themes")
+          .select("id, title, why_it_matters, status, display_order")
+          .eq("mission_id", missionId!)
+          .order("display_order", { ascending: true }),
+      ]);
+
+      const extract = (arr: any): string[] =>
+        Array.isArray(arr)
+          ? arr
+              .map((t) =>
+                typeof t === "string"
+                  ? t
+                  : t?.title ?? t?.theme ?? t?.name ?? t?.label ?? t?.text ?? "",
+              )
+              .filter(Boolean)
+          : [];
+
+      let themes = extract((oec.data as any)?.win_themes);
+      if (themes.length === 0) themes = extract((strat.data as any)?.win_themes);
+      if (themes.length === 0) {
+        themes = ((mwt.data ?? []) as any[])
+          .filter((t) => t.status !== "archived")
+          .map((t) => t.title)
+          .filter(Boolean);
+      }
+      const north_star_message =
+        (strat.data as any)?.north_star_message ?? (oec.data as any)?.north_star ?? null;
+      return { themes, north_star_message };
     },
   });
 
   if (isLoading) return <Sk />;
   if (!data) return <p className="text-xs text-muted-foreground">Win Strategy not set.</p>;
-  const themes: string[] = Array.isArray(data.win_themes)
-    ? (data.win_themes as any[]).map((t) => (typeof t === "string" ? t : t?.theme ?? t?.title ?? JSON.stringify(t))).filter(Boolean)
-    : [];
+  const themes = data.themes;
   return (
     <div className="space-y-2">
       {themes.length === 0 ? (
