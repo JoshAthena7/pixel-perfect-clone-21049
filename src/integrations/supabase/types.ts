@@ -9423,8 +9423,11 @@ export type Database = {
           raw_item_id: string | null
           recommended_action: string | null
           relevance_score: number
+          scope_tier: string
           signal_type: string
+          state_code: string | null
           status: string
+          taxonomy_node_ids: string[]
           title: string
           updated_at: string
           urgency_score: number
@@ -9442,8 +9445,11 @@ export type Database = {
           raw_item_id?: string | null
           recommended_action?: string | null
           relevance_score?: number
+          scope_tier?: string
           signal_type: string
+          state_code?: string | null
           status?: string
+          taxonomy_node_ids?: string[]
           title: string
           updated_at?: string
           urgency_score?: number
@@ -9461,8 +9467,11 @@ export type Database = {
           raw_item_id?: string | null
           recommended_action?: string | null
           relevance_score?: number
+          scope_tier?: string
           signal_type?: string
+          state_code?: string | null
           status?: string
+          taxonomy_node_ids?: string[]
           title?: string
           updated_at?: string
           urgency_score?: number
@@ -9632,6 +9641,53 @@ export type Database = {
             columns: ["mission_id"]
             isOneToOne: false
             referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oracle_taxonomy: {
+        Row: {
+          created_at: string
+          depth: number
+          description: string | null
+          domain: string
+          id: string
+          is_leaf: boolean
+          node_code: string
+          node_name: string
+          parent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          depth: number
+          description?: string | null
+          domain: string
+          id?: string
+          is_leaf?: boolean
+          node_code: string
+          node_name: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          depth?: number
+          description?: string | null
+          domain?: string
+          id?: string
+          is_leaf?: boolean
+          node_code?: string
+          node_name?: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_taxonomy_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "oracle_taxonomy"
             referencedColumns: ["id"]
           },
         ]
@@ -12699,6 +12755,15 @@ export type Database = {
       }
       prune_pulse_free_text: { Args: never; Returns: number }
       prune_score_me_full_analysis: { Args: never; Returns: number }
+      query_oracle: {
+        Args: {
+          p_limit_per_branch?: number
+          p_mission_id: string
+          p_question_id: string
+          p_taxonomy_codes: string[]
+        }
+        Returns: Json
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
