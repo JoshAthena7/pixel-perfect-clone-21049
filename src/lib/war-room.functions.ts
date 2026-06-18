@@ -86,14 +86,27 @@ export const getWarRoomData = createServerFn({ method: "POST" })
     const memberRows = teamRes.data ?? [];
     const memberIds = memberRows.map((r: any) => r.member_id);
 
-    // Load writer profiles (atlas_team_members keyed by auth user id via email join? — atlas members have separate id but
-    // mission_team_members.member_id IS the auth user id. atlas_team_members.id is its own UUID; we look up by joining on profiles.)
-    const { data: profiles } = memberIds.length
-      ? await supabase.from("profiles").select("id,full_name,email,avatar_url").in("id", memberIds)
+    // mission_team_members.member_id references atlas_team_members.id.
+    // Resolve display name from atlas (first_name + last_name), fall back to
+    // email local-part, and only then to "Unknown".
+    const { data: atlasRows } = memberIds.length
+      ? await supabase
+          .from("atlas_team_members")
+          .select("id,first_name,last_name,email,avatar_url")
+          .in("id", memberIds)
       : { data: [] as any[] };
 
     const profileById: Record<string, any> = {};
-    for (const p of profiles ?? []) profileById[p.id] = p;
+    for (const a of atlasRows ?? []) {
+      const fullName = [a.first_name, a.last_name].filter(Boolean).join(" ").trim();
+      const emailPrefix = typeof a.email === "string" ? a.email.split("@")[0] : "";
+      profileById[a.id] = {
+        id: a.id,
+        full_name: fullName || emailPrefix || null,
+        email: a.email ?? null,
+        avatar_url: a.avatar_url ?? null,
+      };
+    }
 
     // Map: questionId -> latest progress activity per assignee
     const lastByAssignee: Record<string, string> = {};
