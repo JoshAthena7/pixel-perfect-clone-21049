@@ -43,19 +43,9 @@ function parseJson<T = unknown>(s: string): T | null {
   try { return JSON.parse(cleaned.slice(a, b + 1)) as T; } catch { return null; }
 }
 
-function flatten(v: unknown): string {
-  if (v == null) return "";
-  if (typeof v === "string") return v;
-  if (Array.isArray(v)) return v.map(flatten).filter(Boolean).join(" | ");
-  if (typeof v === "object") {
-    const o = v as Record<string, unknown>;
-    return o.title || o.theme || o.text ? String(o.title ?? o.theme ?? o.text) : JSON.stringify(v);
-  }
-  return String(v);
-}
 
-const INSPIRATION_SYS = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Share a piece of general inspiration — a quote, idea, or short reflection on craft, focus, teamwork, public service, or doing hard things well. Voice of a trusted colleague at 7am, direct and human, never motivational-poster. It should NOT reference the specific RFP, deadline, or compliance work. Return ONLY valid JSON.`;
-const TRIVIA_SYS = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Generate one genuinely interesting FUN FACT trivia question about the U.S. state the mission is in — its history, geography, culture, food, landmarks, notable people, or quirky records. NOT about the RFP, Medicaid, procurement, or compliance. Make it the kind of thing a curious colleague would enjoy at the start of the day. Return ONLY valid JSON.`;
+const INSPIRATION_SYS = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Share ONE real quote about LEADERSHIP and KINDNESS — from a thinker, leader, writer, athlete, public servant, or teacher. The pairing of leadership AND kindness is the point. Voice of a trusted colleague at 7am, never motivational-poster. Do NOT reference any specific RFP, client, deadline, or compliance work. Return ONLY valid JSON.`;
+const TRIVIA_SYS = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Generate one genuinely interesting FUN FACT trivia question about the U.S. state given — history, geography, culture, food, landmarks, notable people, or quirky records. NOT about the RFP, Medicaid, procurement, or compliance. Return ONLY valid JSON.`;
 
 export const Route = createFileRoute("/api/public/hooks/atlas-daily-moments")({
   server: {
@@ -80,11 +70,18 @@ export const Route = createFileRoute("/api/public/hooks/atlas-daily-moments")({
         for (const m of missions ?? []) {
           const r = { missionId: m.id, inspiration: "skip", trivia: "skip" };
 
-          const { data: oec } = await supabaseAdmin
-            .from("oracle_engagement_config")
-            .select("north_star, win_themes, central_claim")
-            .eq("mission_id", m.id).maybeSingle();
-          const winThemes = flatten(oec?.win_themes);
+
+
+
+          // Pull last 60 prior moments to exclude repeats.
+          const { data: priorInsp } = await supabaseAdmin
+            .from("atlas_mission_moments")
+            .select("content").eq("mission_id", m.id).eq("moment_type", "inspiration")
+            .order("active_date", { ascending: false }).limit(60);
+          const { data: priorTrivia } = await supabaseAdmin
+            .from("atlas_mission_moments")
+            .select("content").eq("mission_id", m.id).eq("moment_type", "trivia")
+            .order("active_date", { ascending: false }).limit(60);
 
           // INSPIRATION
           try {
@@ -92,9 +89,15 @@ export const Route = createFileRoute("/api/public/hooks/atlas-daily-moments")({
               .from("atlas_mission_moments")
               .select("id").eq("mission_id", m.id).eq("moment_type", "inspiration").eq("active_date", today).maybeSingle();
             if (!have) {
-              const userMsg = `Generate one piece of GENERAL inspiration — a quote or short reflection on craft, focus, teamwork, public service, or doing hard things well. Do NOT reference any specific RFP, client, deadline, or procurement. Keep it universal.
+              const priorQuotes = (priorInsp ?? [])
+                .map((r: any) => r?.content?.quote ? `- "${String(r.content.quote).slice(0, 140)}"${r.content.attribution ? ` — ${r.content.attribution}` : ""}` : null)
+                .filter(Boolean).slice(0, 40).join("\n");
+              const userMsg = `Generate ONE real quote about LEADERSHIP and KINDNESS. The author should be a real person; the quote must touch both leading others AND kindness/humanity. Do NOT reference any specific RFP, client, deadline, or procurement.
 
-Return JSON: { "quote": "max 180 chars", "attribution": "who from — real author/source, or 'IRIS' if original", "context": "max 100 chars — why this idea is worth sitting with today" }`;
+Do NOT repeat any of these prior quotes:
+${priorQuotes || "(none yet)"}
+
+Return JSON: { "quote": "max 200 chars", "attribution": "the real author/source", "context": "max 120 chars — why this matters today" }`;
               const raw = await callIris(lovableKey, INSPIRATION_SYS, userMsg);
               const content = parseJson(raw);
               if (content) {
@@ -116,11 +119,17 @@ Return JSON: { "quote": "max 180 chars", "attribution": "who from — real autho
               .from("atlas_mission_moments")
               .select("id").eq("mission_id", m.id).eq("moment_type", "trivia").eq("active_date", today).maybeSingle();
             if (!have) {
+              const priorQuestions = (priorTrivia ?? [])
+                .map((r: any) => r?.content?.question ? `- ${String(r.content.question).slice(0, 160)}` : null)
+                .filter(Boolean).slice(0, 40).join("\n");
               const userMsg = `State: ${m.state ?? "—"}
 
-Generate one FUN FACT trivia question about this U.S. state — history, geography, culture, food, landmarks, notable people, weird records, etc. NOT about the RFP, Medicaid, procurement, or compliance. Make it genuinely fun and a little surprising.
+Generate ONE FUN FACT trivia question about this U.S. state — history, geography, culture, food, landmarks, notable people, weird records, etc. NOT about the RFP, Medicaid, procurement, or compliance.
 
-Return JSON: { "question": "the trivia question", "options": ["A","B","C","D"], "correct_index": 0, "explanation": "max 250 chars — the interesting story behind the answer", "relevant_questions": [] }`;
+Do NOT repeat any of these prior questions:
+${priorQuestions || "(none yet)"}
+
+Return JSON: { "question": "the trivia question", "options": ["A","B","C","D"], "correct_index": 0, "explanation": "max 250 chars — the interesting story behind the answer" }`;
               const raw = await callIris(lovableKey, TRIVIA_SYS, userMsg);
               const content = parseJson(raw);
               if (content) {
