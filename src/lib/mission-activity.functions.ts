@@ -95,7 +95,7 @@ export const getMissionActivity = createServerFn({ method: "POST" })
 
     const filterSince = (q: any) => (since ? q.gte("created_at", since) : q);
 
-    const [threadRes, consultRes, scoreRes, pulseRes, sosRes, conflictRes] = await Promise.all([
+    const [threadRes, consultRes, scoreRes, pulseRes, sosRes, conflictRes, assistRes] = await Promise.all([
       filterSince(
         supabaseAdmin
           .from("thread_messages")
