@@ -558,7 +558,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
     const dRem = daysBetween(q.due_date);
     const fbList = fbByQid.get(q.id) ?? [];
     const briefAge = q.iris_brief_generated_at ? daysBetween(q.iris_brief_generated_at) : null;
-    const nextOptions = nextStatuses(q.progress_status, !!cockpit?.pensDown);
+    
 
     return (
       <div key={q.id} id={`q-card-${q.id}`} style={{
