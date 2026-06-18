@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useServerFn } from "@tanstack/react-start";
-import { Eye, X, RefreshCcw, MessageSquare } from "lucide-react";
+import { Eye, X, RefreshCcw, MessageSquare, Sparkles, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import {
   scoreMeCoach,
@@ -11,6 +11,7 @@ import {
 } from "@/lib/score-me-coach.functions";
 import { prefetchScoreMeContext } from "@/lib/score-me-prefetch.functions";
 import { irisScoreGapAnalysis } from "@/lib/iris-score-gap-analysis.functions";
+import { runAssistTool } from "@/lib/atlas-assist.functions";
 
 type Props = {
   open: boolean;
