@@ -479,7 +479,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
     <ColumnShell header={`IRIS ALERTS · ${alertCount} ACTIVE`}>
       <div className="flex flex-col h-full">
         <div style={{ flex: "0 0 55%", minHeight: 0 }} className="flex flex-col border-b border-white/[0.06]">
-          <IrisAlertsPanel missionId={missionId} bare onCountChange={setAlertCount} />
+          <IrisAlertsPanel missionId={missionId} bare onCountChange={setAlertCount} missionTooNew={missionTooNew} />
         </div>
         <div style={{ flex: "0 0 45%", minHeight: 0 }} className="flex flex-col">
           <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-white/40 bg-[#050d18] border-b border-white/[0.06]">
