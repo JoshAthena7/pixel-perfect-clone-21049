@@ -444,7 +444,7 @@ function sectionHeaderIndexes(
 /**
  * Bounded section slice: starts at the body section heading (prefer exact
  * line-only title headings over TOC number hits) and stops at the NEXT known
- * section body heading. Caps at 12_000 chars. Returns "" if no header match.
+ * section body heading. Caps at 20_000 chars. Returns "" if no header match.
  */
 function sliceSectionText(
   fullText: string,
