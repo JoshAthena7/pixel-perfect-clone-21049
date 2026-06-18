@@ -402,6 +402,25 @@ export function Step1Fuel({
           />
         </div>
 
+        {missingTextDocCount > 0 && (
+          <div
+            className="rounded-lg px-4 py-3 flex items-start gap-3"
+            style={{
+              background: "rgba(196,154,43,0.08)",
+              border: "1px solid rgba(196,154,43,0.45)",
+            }}
+          >
+            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#C49A2B" }} />
+            <div className="flex-1">
+              <p className="text-[13.5px] font-semibold text-white">RFP text not saved</p>
+              <p className="text-[12px] text-white/65 mt-0.5">
+                {missingTextDocCount} previously uploaded document{missingTextDocCount === 1 ? "" : "s"} {missingTextDocCount === 1 ? "is" : "are"} missing the raw extracted text. IRIS cannot extract questions or build briefs without it. Re-upload your primary RFP through the dropzone above to fix this.
+              </p>
+            </div>
+          </div>
+        )}
+
+
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
