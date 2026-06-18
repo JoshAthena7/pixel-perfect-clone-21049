@@ -711,6 +711,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
       />
 
       <WriterDrawer
+        readOnly={readOnly}
         open={!!drawerTarget}
         onClose={() => setDrawerTarget(null)}
         target={drawerTarget}
