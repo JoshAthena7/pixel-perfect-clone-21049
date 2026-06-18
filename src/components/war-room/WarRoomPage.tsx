@@ -128,7 +128,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   }, [d, filterWriterId, filterStatus]);
 
   if (dataQ.isLoading || !d) {
-    return <div className="p-6 text-white/55 text-sm">Loading War Room…</div>;
+    return <div className="p-6 text-white/55 text-sm">Loading Air Traffic Control…</div>;
   }
 
   // Top-bar health status derives strictly from question health counts:
