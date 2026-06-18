@@ -375,6 +375,24 @@ export const getMissionActivity = createServerFn({ method: "POST" })
           summary: `${firstName} nudged ${recipientName.split(/[\s@]/)[0] || recipientName}${channelLabel}`,
           detail: (meta.message ?? "").toString().slice(0, 240),
         });
+      } else if (r.event_type === "writer_reviewed") {
+        const writerName = (meta.writer_name ?? "a writer").toString();
+        items.push({
+          id: `wreview:${r.id}`, stream: "writer_reviewed", created_at: r.created_at,
+          actor: actorFull, question_id: null,
+          question_number: null, question_text: null,
+          summary: `${firstName} reviewed ${writerName.split(/[\s@]/)[0] || writerName}'s questions in ATC`,
+          detail: "",
+        });
+      } else if (r.event_type === "writer_flagged") {
+        const writerName = (meta.writer_name ?? "a writer").toString();
+        items.push({
+          id: `wflag:${r.id}`, stream: "writer_flagged", created_at: r.created_at,
+          actor: actorFull, question_id: null,
+          question_number: null, question_text: null,
+          summary: `${firstName} flagged ${writerName.split(/[\s@]/)[0] || writerName} for review`,
+          detail: (meta.reason ?? "").toString().slice(0, 240),
+        });
       }
     });
 
