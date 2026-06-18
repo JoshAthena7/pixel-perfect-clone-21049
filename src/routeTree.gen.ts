@@ -22,6 +22,7 @@ import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/t
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedPortfolioRouteImport } from './routes/_authenticated/portfolio'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedOlympusRouteImport } from './routes/_authenticated/olympus'
 import { Route as AuthenticatedMyWorkRouteImport } from './routes/_authenticated/my-work'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedHelpRouteImport } from './routes/_authenticated/help'
@@ -158,6 +159,11 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedOlympusRoute = AuthenticatedOlympusRouteImport.update({
+  id: '/olympus',
+  path: '/olympus',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedMyWorkRoute = AuthenticatedMyWorkRouteImport.update({
   id: '/my-work',
   path: '/my-work',
@@ -213,27 +219,27 @@ const AuthenticatedProfileExpertiseRoute =
   } as any)
 const AuthenticatedOlympusTeamRoute =
   AuthenticatedOlympusTeamRouteImport.update({
-    id: '/olympus/team',
-    path: '/olympus/team',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/team',
+    path: '/team',
+    getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedOlympusFlightDeckRoute =
   AuthenticatedOlympusFlightDeckRouteImport.update({
-    id: '/olympus/flight-deck',
-    path: '/olympus/flight-deck',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/flight-deck',
+    path: '/flight-deck',
+    getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedOlympusChangeRequestsRoute =
   AuthenticatedOlympusChangeRequestsRouteImport.update({
-    id: '/olympus/change-requests',
-    path: '/olympus/change-requests',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/change-requests',
+    path: '/change-requests',
+    getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedOlympusSplatRoute =
   AuthenticatedOlympusSplatRouteImport.update({
-    id: '/olympus/$',
-    path: '/olympus/$',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/$',
+    path: '/$',
+    getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedMissionsMissionIdRoute =
   AuthenticatedMissionsMissionIdRouteImport.update({
@@ -307,9 +313,9 @@ const AuthenticatedAdminActivityRoute =
   } as any)
 const AuthenticatedOlympusMissionsIndexRoute =
   AuthenticatedOlympusMissionsIndexRouteImport.update({
-    id: '/olympus/missions/',
-    path: '/olympus/missions/',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/missions/',
+    path: '/missions/',
+    getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedMissionsMissionIdIndexRoute =
   AuthenticatedMissionsMissionIdIndexRouteImport.update({
@@ -425,21 +431,21 @@ const ApiPublicHooksAtlasDailyFocusGeneratorRoute =
   } as any)
 const AuthenticatedOlympusWizardNewRoute =
   AuthenticatedOlympusWizardNewRouteImport.update({
-    id: '/olympus/wizard/new',
-    path: '/olympus/wizard/new',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/wizard/new',
+    path: '/wizard/new',
+    getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedOlympusWizardMissionIdRoute =
   AuthenticatedOlympusWizardMissionIdRouteImport.update({
-    id: '/olympus/wizard/$missionId',
-    path: '/olympus/wizard/$missionId',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/wizard/$missionId',
+    path: '/wizard/$missionId',
+    getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedOlympusMissionsNewRoute =
   AuthenticatedOlympusMissionsNewRouteImport.update({
-    id: '/olympus/missions/new',
-    path: '/olympus/missions/new',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/missions/new',
+    path: '/missions/new',
+    getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedMissionsMissionIdWinStrategyRoute =
   AuthenticatedMissionsMissionIdWinStrategyRouteImport.update({
@@ -563,21 +569,21 @@ const AuthenticatedAdminMissionsMissionIdRoute =
   } as any)
 const AuthenticatedOlympusMissionsMissionIdIndexRoute =
   AuthenticatedOlympusMissionsMissionIdIndexRouteImport.update({
-    id: '/olympus/missions/$missionId/',
-    path: '/olympus/missions/$missionId/',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/missions/$missionId/',
+    path: '/missions/$missionId/',
+    getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedOlympusMissionsMissionIdWizardRoute =
   AuthenticatedOlympusMissionsMissionIdWizardRouteImport.update({
-    id: '/olympus/missions/$missionId/wizard',
-    path: '/olympus/missions/$missionId/wizard',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/missions/$missionId/wizard',
+    path: '/missions/$missionId/wizard',
+    getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/olympus': typeof OlympusRoute
+  '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/help': typeof AuthenticatedHelpRoute
@@ -662,7 +668,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/olympus': typeof OlympusRoute
+  '/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/unsubscribe': typeof UnsubscribeRoute
   '/help': typeof AuthenticatedHelpRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -753,6 +759,7 @@ export interface FileRoutesById {
   '/_authenticated/help': typeof AuthenticatedHelpRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/my-work': typeof AuthenticatedMyWorkRoute
+  '/_authenticated/olympus': typeof AuthenticatedOlympusRouteWithChildren
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/portfolio': typeof AuthenticatedPortfolioRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
@@ -1009,6 +1016,7 @@ export interface FileRouteTypes {
     | '/_authenticated/help'
     | '/_authenticated/home'
     | '/_authenticated/my-work'
+    | '/_authenticated/olympus'
     | '/_authenticated/onboarding'
     | '/_authenticated/portfolio'
     | '/_authenticated/reports'
@@ -1209,6 +1217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/olympus': {
+      id: '/_authenticated/olympus'
+      path: '/olympus'
+      fullPath: '/olympus'
+      preLoaderRoute: typeof AuthenticatedOlympusRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/my-work': {
       id: '/_authenticated/my-work'
       path: '/my-work'
@@ -1281,31 +1296,31 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/olympus/team': {
       id: '/_authenticated/olympus/team'
-      path: '/olympus/team'
+      path: '/team'
       fullPath: '/olympus/team'
       preLoaderRoute: typeof AuthenticatedOlympusTeamRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/olympus/flight-deck': {
       id: '/_authenticated/olympus/flight-deck'
-      path: '/olympus/flight-deck'
+      path: '/flight-deck'
       fullPath: '/olympus/flight-deck'
       preLoaderRoute: typeof AuthenticatedOlympusFlightDeckRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/olympus/change-requests': {
       id: '/_authenticated/olympus/change-requests'
-      path: '/olympus/change-requests'
+      path: '/change-requests'
       fullPath: '/olympus/change-requests'
       preLoaderRoute: typeof AuthenticatedOlympusChangeRequestsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/olympus/$': {
       id: '/_authenticated/olympus/$'
-      path: '/olympus/$'
+      path: '/$'
       fullPath: '/olympus/$'
       preLoaderRoute: typeof AuthenticatedOlympusSplatRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/missions/$missionId': {
       id: '/_authenticated/missions/$missionId'
@@ -1393,10 +1408,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/olympus/missions/': {
       id: '/_authenticated/olympus/missions/'
-      path: '/olympus/missions'
+      path: '/missions'
       fullPath: '/olympus/missions/'
       preLoaderRoute: typeof AuthenticatedOlympusMissionsIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/missions/$missionId/': {
       id: '/_authenticated/missions/$missionId/'
@@ -1533,24 +1548,24 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/olympus/wizard/new': {
       id: '/_authenticated/olympus/wizard/new'
-      path: '/olympus/wizard/new'
+      path: '/wizard/new'
       fullPath: '/olympus/wizard/new'
       preLoaderRoute: typeof AuthenticatedOlympusWizardNewRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/olympus/wizard/$missionId': {
       id: '/_authenticated/olympus/wizard/$missionId'
-      path: '/olympus/wizard/$missionId'
+      path: '/wizard/$missionId'
       fullPath: '/olympus/wizard/$missionId'
       preLoaderRoute: typeof AuthenticatedOlympusWizardMissionIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/olympus/missions/new': {
       id: '/_authenticated/olympus/missions/new'
-      path: '/olympus/missions/new'
+      path: '/missions/new'
       fullPath: '/olympus/missions/new'
       preLoaderRoute: typeof AuthenticatedOlympusMissionsNewRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/missions/$missionId/win-strategy': {
       id: '/_authenticated/missions/$missionId/win-strategy'
@@ -1694,17 +1709,17 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/olympus/missions/$missionId/': {
       id: '/_authenticated/olympus/missions/$missionId/'
-      path: '/olympus/missions/$missionId'
+      path: '/missions/$missionId'
       fullPath: '/olympus/missions/$missionId/'
       preLoaderRoute: typeof AuthenticatedOlympusMissionsMissionIdIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/olympus/missions/$missionId/wizard': {
       id: '/_authenticated/olympus/missions/$missionId/wizard'
-      path: '/olympus/missions/$missionId/wizard'
+      path: '/missions/$missionId/wizard'
       fullPath: '/olympus/missions/$missionId/wizard'
       preLoaderRoute: typeof AuthenticatedOlympusMissionsMissionIdWizardRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedOlympusRoute
     }
   }
 }
@@ -1766,6 +1781,40 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
+interface AuthenticatedOlympusRouteChildren {
+  AuthenticatedOlympusSplatRoute: typeof AuthenticatedOlympusSplatRoute
+  AuthenticatedOlympusChangeRequestsRoute: typeof AuthenticatedOlympusChangeRequestsRoute
+  AuthenticatedOlympusFlightDeckRoute: typeof AuthenticatedOlympusFlightDeckRoute
+  AuthenticatedOlympusTeamRoute: typeof AuthenticatedOlympusTeamRoute
+  AuthenticatedOlympusMissionsNewRoute: typeof AuthenticatedOlympusMissionsNewRoute
+  AuthenticatedOlympusWizardMissionIdRoute: typeof AuthenticatedOlympusWizardMissionIdRoute
+  AuthenticatedOlympusWizardNewRoute: typeof AuthenticatedOlympusWizardNewRoute
+  AuthenticatedOlympusMissionsIndexRoute: typeof AuthenticatedOlympusMissionsIndexRoute
+  AuthenticatedOlympusMissionsMissionIdWizardRoute: typeof AuthenticatedOlympusMissionsMissionIdWizardRoute
+  AuthenticatedOlympusMissionsMissionIdIndexRoute: typeof AuthenticatedOlympusMissionsMissionIdIndexRoute
+}
+
+const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
+  AuthenticatedOlympusSplatRoute: AuthenticatedOlympusSplatRoute,
+  AuthenticatedOlympusChangeRequestsRoute:
+    AuthenticatedOlympusChangeRequestsRoute,
+  AuthenticatedOlympusFlightDeckRoute: AuthenticatedOlympusFlightDeckRoute,
+  AuthenticatedOlympusTeamRoute: AuthenticatedOlympusTeamRoute,
+  AuthenticatedOlympusMissionsNewRoute: AuthenticatedOlympusMissionsNewRoute,
+  AuthenticatedOlympusWizardMissionIdRoute:
+    AuthenticatedOlympusWizardMissionIdRoute,
+  AuthenticatedOlympusWizardNewRoute: AuthenticatedOlympusWizardNewRoute,
+  AuthenticatedOlympusMissionsIndexRoute:
+    AuthenticatedOlympusMissionsIndexRoute,
+  AuthenticatedOlympusMissionsMissionIdWizardRoute:
+    AuthenticatedOlympusMissionsMissionIdWizardRoute,
+  AuthenticatedOlympusMissionsMissionIdIndexRoute:
+    AuthenticatedOlympusMissionsMissionIdIndexRoute,
+}
+
+const AuthenticatedOlympusRouteWithChildren =
+  AuthenticatedOlympusRoute._addFileChildren(AuthenticatedOlympusRouteChildren)
 
 interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdActivityRoute: typeof AuthenticatedMissionsMissionIdActivityRoute
@@ -1835,6 +1884,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedMyWorkRoute: typeof AuthenticatedMyWorkRoute
+  AuthenticatedOlympusRoute: typeof AuthenticatedOlympusRouteWithChildren
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPortfolioRoute: typeof AuthenticatedPortfolioRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
@@ -1842,19 +1892,9 @@ interface AuthenticatedRouteChildren {
   AuthenticatedWelcomeRoute: typeof AuthenticatedWelcomeRoute
   AuthenticatedMissionNewRoute: typeof AuthenticatedMissionNewRoute
   AuthenticatedMissionsMissionIdRoute: typeof AuthenticatedMissionsMissionIdRouteWithChildren
-  AuthenticatedOlympusSplatRoute: typeof AuthenticatedOlympusSplatRoute
-  AuthenticatedOlympusChangeRequestsRoute: typeof AuthenticatedOlympusChangeRequestsRoute
-  AuthenticatedOlympusFlightDeckRoute: typeof AuthenticatedOlympusFlightDeckRoute
-  AuthenticatedOlympusTeamRoute: typeof AuthenticatedOlympusTeamRoute
   AuthenticatedProfileExpertiseRoute: typeof AuthenticatedProfileExpertiseRoute
   AuthenticatedMissionsIndexRoute: typeof AuthenticatedMissionsIndexRoute
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
-  AuthenticatedOlympusMissionsNewRoute: typeof AuthenticatedOlympusMissionsNewRoute
-  AuthenticatedOlympusWizardMissionIdRoute: typeof AuthenticatedOlympusWizardMissionIdRoute
-  AuthenticatedOlympusWizardNewRoute: typeof AuthenticatedOlympusWizardNewRoute
-  AuthenticatedOlympusMissionsIndexRoute: typeof AuthenticatedOlympusMissionsIndexRoute
-  AuthenticatedOlympusMissionsMissionIdWizardRoute: typeof AuthenticatedOlympusMissionsMissionIdWizardRoute
-  AuthenticatedOlympusMissionsMissionIdIndexRoute: typeof AuthenticatedOlympusMissionsMissionIdIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -1862,6 +1902,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHelpRoute: AuthenticatedHelpRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedMyWorkRoute: AuthenticatedMyWorkRoute,
+  AuthenticatedOlympusRoute: AuthenticatedOlympusRouteWithChildren,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPortfolioRoute: AuthenticatedPortfolioRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
@@ -1870,24 +1911,9 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMissionNewRoute: AuthenticatedMissionNewRoute,
   AuthenticatedMissionsMissionIdRoute:
     AuthenticatedMissionsMissionIdRouteWithChildren,
-  AuthenticatedOlympusSplatRoute: AuthenticatedOlympusSplatRoute,
-  AuthenticatedOlympusChangeRequestsRoute:
-    AuthenticatedOlympusChangeRequestsRoute,
-  AuthenticatedOlympusFlightDeckRoute: AuthenticatedOlympusFlightDeckRoute,
-  AuthenticatedOlympusTeamRoute: AuthenticatedOlympusTeamRoute,
   AuthenticatedProfileExpertiseRoute: AuthenticatedProfileExpertiseRoute,
   AuthenticatedMissionsIndexRoute: AuthenticatedMissionsIndexRoute,
   AuthenticatedProfileIndexRoute: AuthenticatedProfileIndexRoute,
-  AuthenticatedOlympusMissionsNewRoute: AuthenticatedOlympusMissionsNewRoute,
-  AuthenticatedOlympusWizardMissionIdRoute:
-    AuthenticatedOlympusWizardMissionIdRoute,
-  AuthenticatedOlympusWizardNewRoute: AuthenticatedOlympusWizardNewRoute,
-  AuthenticatedOlympusMissionsIndexRoute:
-    AuthenticatedOlympusMissionsIndexRoute,
-  AuthenticatedOlympusMissionsMissionIdWizardRoute:
-    AuthenticatedOlympusMissionsMissionIdWizardRoute,
-  AuthenticatedOlympusMissionsMissionIdIndexRoute:
-    AuthenticatedOlympusMissionsMissionIdIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
