@@ -18,6 +18,7 @@ import {
   processRFPDocuments,
   extractQuestionsForSection,
   sliceSectionTextWithFallbacks,
+  type SectionLocator,
   type ProcessResult,
 } from "@/lib/iris-process-rfp.functions";
 import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
@@ -148,6 +149,15 @@ export async function runIrisRfpExtraction(
     );
   }
 
+  if (opts.force) {
+    const { error: withdrawError } = await supabase
+      .from("mission_questions")
+      .update({ iris_brief_status: "pending", is_withdrawn: true })
+      .eq("mission_id", missionId)
+      .eq("is_withdrawn", false);
+    if (withdrawError) throw withdrawError;
+  }
+
   // PASS 1 — structure extraction (one short server call, idempotent).
   const pass1: ProcessResult = await processRFPDocuments({
     data: { mission_id: missionId, primary_rfp_text: primaryRfpText },
@@ -171,6 +181,10 @@ export async function runIrisRfpExtraction(
   const allSectionNumbers = (sectionRows ?? [])
     .map((s) => s.section_number)
     .filter((n): n is string => !!n);
+  const allSectionLocators: SectionLocator[] = (sectionRows ?? []).map((s) => ({
+    section_number: s.section_number,
+    name: s.name,
+  }));
 
   let questionsInserted = 0;
   let sectionsProcessed = 0;
@@ -188,6 +202,8 @@ export async function runIrisRfpExtraction(
       idx,
       targets.length,
       allSectionNumbers,
+      section.name,
+      allSectionLocators,
     );
 
     const useInferred = slice.length < MIN_TEXT_CHARS;

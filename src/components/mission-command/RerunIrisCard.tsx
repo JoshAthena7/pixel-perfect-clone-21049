@@ -53,11 +53,12 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
         supabase
           .from("mission_questions")
           .select("id", { count: "exact", head: true })
-          .eq("mission_id", missionId),
+          .eq("mission_id", missionId)
+          .eq("is_withdrawn", false),
       ]);
       const isAdmin = (roles?.length ?? 0) > 0;
       const isActive = mission?.status === "active";
-      const needsRun = (nodeCount ?? 0) === 0 || (qCount ?? 0) === 0;
+      const needsRun = (nodeCount ?? 0) === 0 || (qCount ?? 0) < 20;
       return { show: isAdmin && isActive && needsRun };
     },
   });
@@ -86,7 +87,7 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
     // STEP 1
     push("rfp", "⏳ Processing uploaded documents…");
     try {
-      await runIrisRfpExtraction(missionId);
+      await runIrisRfpExtraction(missionId, { force: true });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       update("rfp", `❌ Document processing failed: ${msg}`, "error");
@@ -97,7 +98,8 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
     const { count: qCount } = await supabase
       .from("mission_questions")
       .select("id", { count: "exact", head: true })
-      .eq("mission_id", missionId);
+      .eq("mission_id", missionId)
+      .eq("is_withdrawn", false);
     if (!qCount || qCount === 0) {
       update("rfp", "❌ No questions were extracted from your documents.", "error");
       setFatal("No questions were extracted. Check that your RFP files uploaded correctly.");
