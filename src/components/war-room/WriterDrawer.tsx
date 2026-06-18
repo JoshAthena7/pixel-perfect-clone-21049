@@ -6,6 +6,7 @@ import { X, ExternalLink, Pin, ArrowLeft, Flag, MessageSquare, Compass } from "l
 import { getWriterDrillDown, getWriterIrisSentence, type WriterQuestionRow } from "@/lib/writer-drilldown.functions";
 import { fireAssistEvent } from "@/lib/fireAssistEvent";
 import { toast } from "sonner";
+import { WriterDrawerNoQuestions, StickyNotesEmptyCard } from "./AtcEmptyStates";
 
 const GOLD = "#c9a84c";
 
@@ -58,11 +59,12 @@ type Props = {
   senderFirstName: string;
   onNudge: (writerId: string) => void;
   onOpenFlightDeck: (writerId: string, questionId?: string) => void;
+  readOnly?: boolean;
 };
 
 export function WriterDrawer({
   open, onClose, target, missionId, missionName, daysToDeadline,
-  senderFirstName, onNudge, onOpenFlightDeck,
+  senderFirstName, onNudge, onOpenFlightDeck, readOnly = false,
 }: Props) {
   const [notesForQ, setNotesForQ] = useState<{ id: string; number: string | null; title: string } | null>(null);
   const [flagging, setFlagging] = useState(false);
@@ -221,9 +223,7 @@ export function WriterDrawer({
             {drillQ.isLoading ? (
               <div className="p-6 text-center text-xs text-white/40">Loading questions…</div>
             ) : drillQ.data && drillQ.data.questions.length === 0 ? (
-              <div className="p-6 text-center text-xs text-white/40">
-                No questions assigned to {writerFirst}.
-              </div>
+              <WriterDrawerNoQuestions firstName={writerFirst} />
             ) : (
               <ul>
                 {(drillQ.data?.questions ?? []).map((q) => (
@@ -259,7 +259,9 @@ export function WriterDrawer({
         >
           <button
             onClick={() => { onClose(); setTimeout(() => onNudge(target.userId), 220); }}
-            className="flex-1 text-[11px] py-1.5 rounded border border-white/15 text-white hover:bg-white/5 inline-flex items-center justify-center gap-1.5"
+            disabled={readOnly}
+            title={readOnly ? "Mission is closed — read-only" : undefined}
+            className="flex-1 text-[11px] py-1.5 rounded border border-white/15 text-white hover:bg-white/5 inline-flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <MessageSquare className="w-3 h-3" /> Nudge {writerFirst}
           </button>
@@ -271,8 +273,9 @@ export function WriterDrawer({
           </button>
           <button
             onClick={handleFlag}
-            disabled={flagging}
-            className="flex-1 text-[11px] py-1.5 rounded border inline-flex items-center justify-center gap-1.5 disabled:opacity-50"
+            disabled={flagging || readOnly}
+            title={readOnly ? "Mission is closed — read-only" : undefined}
+            className="flex-1 text-[11px] py-1.5 rounded border inline-flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ borderColor: "rgba(245,158,11,0.5)", color: "#fbbf24", background: "rgba(245,158,11,0.05)" }}
           >
             <Flag className="w-3 h-3" /> Flag for Review
@@ -399,9 +402,7 @@ function NotesOverlay({
         {notesQ.isLoading ? (
           <div className="text-xs text-white/40 text-center py-6">Loading notes…</div>
         ) : (notesQ.data ?? []).length === 0 ? (
-          <div className="text-xs text-white/40 text-center py-10">
-            No sticky notes pinned to this question yet.
-          </div>
+          <StickyNotesEmptyCard />
         ) : (
           <div className="grid grid-cols-1 gap-3">
             {(notesQ.data ?? []).map((n: any, idx: number) => {

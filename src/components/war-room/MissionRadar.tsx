@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 import { getMissionActivity, type ActivityItem, type ActivityStream } from "@/lib/mission-activity.functions";
+import { RadarSkeleton, RadarClearEmpty, RadarFilterEmpty } from "./AtcEmptyStates";
 
 const GOLD = "#c9a84c";
 
@@ -77,15 +78,16 @@ export function MissionRadar({ missionId, bare = false }: { missionId: string; b
     </div>
   );
 
+  const activeFilterLabel = FILTERS.find((f) => f.key === filter)?.label ?? "matching";
+
   const list = (
     <>
       {q.isLoading ? (
-        <div className="text-xs text-white/40 py-6 text-center">Scanning the airspace…</div>
+        <RadarSkeleton count={6} />
+      ) : items.length === 0 ? (
+        <RadarClearEmpty />
       ) : filtered.length === 0 ? (
-        <div className="text-xs text-white/40 py-10 text-center px-4 leading-relaxed">
-          <div className="text-2xl mb-2 opacity-50">📡</div>
-          Radar is clear. Activity appears here the moment it happens.
-        </div>
+        <RadarFilterEmpty label={activeFilterLabel} onClear={() => setFilter("all")} />
       ) : (
         <ul className="divide-y divide-white/[0.04]">
           {filtered.map((it) => {

@@ -1,8 +1,9 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
-import { Zap, RefreshCw, AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { Zap, RefreshCw, AlertTriangle, Info } from "lucide-react";
 import { generateIrisAlerts, type IrisAlert } from "@/lib/iris-alerts.functions";
+import { AlertsSkeleton, IrisHealthyCard, IrisOrientingCard } from "./AtcEmptyStates";
 
 function relTime(iso: string | null | undefined) {
   if (!iso) return "—";
@@ -14,7 +15,7 @@ function relTime(iso: string | null | undefined) {
 
 const GOLD = "#c9a84c";
 
-export function IrisAlertsPanel({ missionId, bare = false, onCountChange }: { missionId: string; bare?: boolean; onCountChange?: (n: number) => void }) {
+export function IrisAlertsPanel({ missionId, bare = false, onCountChange, missionTooNew = false }: { missionId: string; bare?: boolean; onCountChange?: (n: number) => void; missionTooNew?: boolean }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const fn = useServerFn(generateIrisAlerts);
@@ -58,21 +59,16 @@ export function IrisAlertsPanel({ missionId, bare = false, onCountChange }: { mi
   const body = (
     <>
       {q.isLoading ? (
-        <ul className="space-y-2">
-          {[0, 1, 2].map((i) => (
-            <li key={i} className="h-14 rounded bg-white/[0.02] animate-pulse" />
-          ))}
-        </ul>
+        <AlertsSkeleton count={3} />
       ) : errMsg && alerts.length === 0 ? (
         <div className="rounded bg-white/[0.02] p-3 text-xs text-white/55 flex items-start gap-2">
           <Info className="w-3.5 h-3.5 text-sky-400 mt-0.5 shrink-0" />
           <span>IRIS could not generate alerts right now. Check back shortly.</span>
         </div>
+      ) : alerts.length === 0 && missionTooNew ? (
+        <IrisOrientingCard />
       ) : alerts.length === 0 ? (
-        <div className="rounded border border-green-500/20 bg-green-500/5 p-3 text-xs text-green-300 flex items-start gap-2">
-          <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
-          <span>No flags. The mission looks healthy from here.</span>
-        </div>
+        <IrisHealthyCard generatedAt={q.data?.generatedAt} />
       ) : (
         <ul className="space-y-1.5">
           {alerts.map((a: IrisAlert, i: number) => (

@@ -12,6 +12,11 @@ import { MissionRadar } from "./MissionRadar";
 import { IrisAlertsPanel } from "./IrisAlertsPanel";
 import { NudgeModal, type NudgeTarget } from "./NudgeModal";
 import { WriterDrawer, type WriterDrawerTarget } from "./WriterDrawer";
+import {
+  AtcOrientationOverlay, ClosedMissionBanner,
+  TeamPulseSkeleton, TeamPulseEmpty, TeamPulseNoAssignmentsBanner,
+  RadarSkeleton, AlertsSkeleton,
+} from "./AtcEmptyStates";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -238,7 +243,25 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   }, [d, filterWriterId, filterStatus]);
 
   if (dataQ.isLoading || !d) {
-    return <div className="p-6 text-white/55 text-sm">Loading Air Traffic Control…</div>;
+    return (
+      <div className="flex flex-col h-screen text-white" style={{ background: "#070f1c", ...SCANLINE_BG }}>
+        <div className="shrink-0 h-12 border-b border-white/[0.08] bg-[#050d18]" />
+        <div className="flex-1 min-h-0 flex">
+          <div className="h-full overflow-hidden border-r border-white/[0.06]" style={{ width: "26%" }}>
+            <div className="h-9 border-b border-white/[0.06] bg-[#050d18]" />
+            <TeamPulseSkeleton count={5} />
+          </div>
+          <div className="h-full overflow-hidden border-r border-white/[0.06]" style={{ width: "44%" }}>
+            <div className="h-9 border-b border-white/[0.06] bg-[#050d18]" />
+            <div className="p-2"><RadarSkeleton /></div>
+          </div>
+          <div className="h-full overflow-hidden" style={{ width: "30%" }}>
+            <div className="h-9 border-b border-white/[0.06] bg-[#050d18]" />
+            <div className="p-2"><AlertsSkeleton /></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const healthState =
@@ -253,6 +276,14 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   const groups = groupWriters(d.writers);
   const sosCount = sosActiveQ.data?.length ?? 0;
   const missionName = (d.mission?.name ?? "Mission").slice(0, 40);
+
+  const missionStatus = String(d.mission?.status ?? "").toLowerCase();
+  const deadlinePassed = deadline ? new Date(deadline).getTime() < Date.now() : false;
+  const readOnly = missionStatus === "closed" || deadlinePassed;
+
+  const totalQuestions = d.stats.totalQuestions ?? 0;
+  const allWritersUnassigned = d.writers.length > 0 && d.writers.every((w: any) => (w.questionCount ?? 0) === 0);
+  const missionTooNew = d.writers.length === 0 && totalQuestions === 0;
 
   // ---------------- Status pill helpers ----------------
   const StatPill = ({ icon, value, label, danger = false }: { icon: string; value: number | string; label: string; danger?: boolean }) => (
@@ -270,12 +301,33 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   );
 
   // ---------------- COLUMN: TEAM ----------------
+  const renderWriterRow = (w: any) => (
+    <WriterRow
+      key={w.userId}
+      w={w}
+      highlighted={highlightedWriterId === w.userId}
+      nudgedAt={recentNudgesQ.data?.[w.userId]?.sent_at}
+      filterActive={filterWriterId === w.userId}
+      readOnly={readOnly}
+      onNudge={() => {
+        if (readOnly) return;
+        setNudgeTarget({
+          userId: w.userId, name: w.name, role: w.role,
+          questionCount: w.questionCount ?? 0,
+          liveLabel: deriveLive(w).label, liveColor: deriveLive(w).color,
+        });
+      }}
+      onFilter={() => openWriterDrawer(w)}
+    />
+  );
+
   const teamColumn = (
     <ColumnShell header={`TEAM · ${d.writers.length} MEMBERS`}>
       {d.writers.length === 0 ? (
-        <div className="text-xs text-white/45 px-4 py-8 text-center">No writers assigned to this mission yet.</div>
+        <TeamPulseEmpty />
       ) : (
         <>
+          {allWritersUnassigned && <TeamPulseNoAssignmentsBanner />}
           {ROLE_GROUPS.map((g) => {
             const rows = groups[g.key];
             if (!rows || rows.length === 0) return null;
@@ -284,17 +336,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                 <div className="sticky top-0 z-[1] px-3 py-1 text-[9px] font-semibold uppercase tracking-wider text-white/40 bg-[#070f1c]/95 backdrop-blur border-b border-white/[0.04]">
                   {g.label} · {rows.length}
                 </div>
-                {rows.map((w: any) => <WriterRow key={w.userId} w={w}
-                  highlighted={highlightedWriterId === w.userId}
-                  nudgedAt={recentNudgesQ.data?.[w.userId]?.sent_at}
-                  filterActive={filterWriterId === w.userId}
-                  onNudge={() => setNudgeTarget({
-                    userId: w.userId, name: w.name, role: w.role,
-                    questionCount: w.questionCount ?? 0,
-                    liveLabel: deriveLive(w).label, liveColor: deriveLive(w).color,
-                  })}
-                  onFilter={() => openWriterDrawer(w)}
-                />)}
+                {rows.map(renderWriterRow)}
               </div>
             );
           })}
@@ -303,17 +345,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
               <div className="sticky top-0 z-[1] px-3 py-1 text-[9px] font-semibold uppercase tracking-wider text-white/40 bg-[#070f1c]/95 backdrop-blur border-b border-white/[0.04]">
                 OTHER · {groups.other.length}
               </div>
-              {groups.other.map((w: any) => <WriterRow key={w.userId} w={w}
-                highlighted={highlightedWriterId === w.userId}
-                nudgedAt={recentNudgesQ.data?.[w.userId]?.sent_at}
-                filterActive={filterWriterId === w.userId}
-                onNudge={() => setNudgeTarget({
-                  userId: w.userId, name: w.name, role: w.role,
-                  questionCount: w.questionCount ?? 0,
-                  liveLabel: deriveLive(w).label, liveColor: deriveLive(w).color,
-                })}
-                onFilter={() => openWriterDrawer(w)}
-              />)}
+              {groups.other.map(renderWriterRow)}
             </div>
           )}
         </>
@@ -447,7 +479,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
     <ColumnShell header={`IRIS ALERTS · ${alertCount} ACTIVE`}>
       <div className="flex flex-col h-full">
         <div style={{ flex: "0 0 55%", minHeight: 0 }} className="flex flex-col border-b border-white/[0.06]">
-          <IrisAlertsPanel missionId={missionId} bare onCountChange={setAlertCount} />
+          <IrisAlertsPanel missionId={missionId} bare onCountChange={setAlertCount} missionTooNew={missionTooNew} />
         </div>
         <div style={{ flex: "0 0 45%", minHeight: 0 }} className="flex flex-col">
           <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-white/40 bg-[#050d18] border-b border-white/[0.06]">
@@ -616,6 +648,8 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         </div>
       </div>
 
+      {readOnly && <ClosedMissionBanner />}
+
       {/* Mobile tab bar */}
       <div className="atc-mobile shrink-0 flex border-b border-white/[0.06] bg-[#050d18]">
         {([
@@ -677,6 +711,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
       />
 
       <WriterDrawer
+        readOnly={readOnly}
         open={!!drawerTarget}
         onClose={() => setDrawerTarget(null)}
         target={drawerTarget}
@@ -702,9 +737,13 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
           window.open(url, "_blank", "noopener");
         }}
       />
+
+      <AtcOrientationOverlay missionId={missionId} />
     </div>
   );
 }
+
+
 
 // =================== Column shell ===================
 function ColumnShell({ header, headerAccent, children }: {
@@ -740,9 +779,10 @@ function deriveLive(w: any) {
 }
 
 function WriterRow({
-  w, highlighted, nudgedAt, filterActive, onNudge, onFilter,
+  w, highlighted, nudgedAt, filterActive, readOnly = false, onNudge, onFilter,
 }: {
   w: any; highlighted: boolean; nudgedAt?: string; filterActive: boolean;
+  readOnly?: boolean;
   onNudge: () => void; onFilter: () => void;
 }) {
   const live = deriveLive(w);
@@ -754,6 +794,7 @@ function WriterRow({
   const lastSeen = !w.lastActivity
     ? "Never"
     : (hrs != null && hrs < 24 ? (hrs < 1 ? "Just now" : `${Math.round(hrs)}h ago`) : relTime(w.lastActivity));
+  const noQuestions = total === 0;
 
   return (
     <div
@@ -770,8 +811,8 @@ function WriterRow({
           <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-white/55 uppercase tracking-wide shrink-0">{w.role}</span>
         </div>
         <div className="text-[10px] text-white/45 mt-0.5 truncate" style={{ fontFamily: "'Courier New', monospace" }}>
-          {total === 0
-            ? `Unassigned · ${lastSeen}`
+          {noQuestions
+            ? <span className="italic text-white/40">— No questions assigned · {lastSeen}</span>
             : <>
                 {total}q · <span className="text-green-400">{finalized}✓</span>{" "}
                 <span className="text-sky-300">{activeQ}●</span>{" "}
@@ -784,13 +825,17 @@ function WriterRow({
       <div className="flex flex-col gap-1 shrink-0">
         <button
           onClick={onNudge}
-          className="text-[9px] px-1.5 py-0.5 rounded border border-white/15 text-white/65 hover:bg-white/5 inline-flex items-center gap-1"
+          disabled={readOnly}
+          title={readOnly ? "Mission is closed — read-only" : undefined}
+          className="text-[9px] px-1.5 py-0.5 rounded border border-white/15 text-white/65 hover:bg-white/5 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <MessageSquare className="w-2.5 h-2.5" /> Nudge
         </button>
         <button
           onClick={onFilter}
-          className={`text-[9px] px-1.5 py-0.5 rounded border inline-flex items-center gap-1 ${filterActive
+          disabled={noQuestions}
+          title={noQuestions ? "No questions assigned to this writer yet." : undefined}
+          className={`text-[9px] px-1.5 py-0.5 rounded border inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed ${filterActive
             ? "bg-amber-500/20 border-amber-400/40 text-amber-200"
             : "border-white/15 text-white/65 hover:bg-white/5"}`}
         >
