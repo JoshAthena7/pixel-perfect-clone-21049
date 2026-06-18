@@ -108,6 +108,7 @@ export function AskIrisPanel() {
   const [lastQuestionId, setLastQuestionId] = useState<string | null>(null);
   const [mode, setMode] = useState<AskMode>("quick");
   const [researchPhase, setResearchPhase] = useState(0);
+  const [oracleIntakeOpen, setOracleIntakeOpen] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
