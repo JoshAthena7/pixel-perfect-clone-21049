@@ -737,9 +737,13 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
           window.open(url, "_blank", "noopener");
         }}
       />
+
+      <AtcOrientationOverlay missionId={missionId} />
     </div>
   );
 }
+
+
 
 // =================== Column shell ===================
 function ColumnShell({ header, headerAccent, children }: {
