@@ -659,7 +659,7 @@ export const extractQuestionsForSection = createServerFn({ method: "POST" })
       const allQs = Array.isArray(parsed?.questions) ? parsed!.questions : [];
       // Filter out wrong-prefix questions (cross-section bleed)
       const prefix = `${section.section_number}.`;
-      const qs = allQs.filter((q) => {
+      let qs = allQs.filter((q) => {
         const qn = String(q.question_number ?? "").trim();
         return qn === "" || qn.startsWith(prefix);
       });
@@ -667,6 +667,21 @@ export const extractQuestionsForSection = createServerFn({ method: "POST" })
       if (discarded > 0) {
         console.log(`[iris-pass2] Discarded ${discarded} wrong-prefix questions in section ${section.section_number}`);
       }
+      if (!isInferred && qs.length < 2) {
+        const fallbackQs = fallbackQuestionsFromSectionText(data.section_text ?? "");
+        const seen = new Set(qs.map((q) => String(q.question_text ?? "").trim().toLowerCase()));
+        const additions = fallbackQs.filter((q) => {
+          const key = String(q.question_text ?? "").trim().toLowerCase();
+          if (!key || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        if (additions.length > 0) {
+          console.log(`[iris-pass2] Added ${additions.length} regex fallback questions in section ${section.section_number}`);
+          qs = [...qs, ...additions];
+        }
+      }
+
       if (qs.length === 0) return { ok: true, inserted: 0, skipped: "no_questions", inferred: isInferred };
 
       const rows = qs
