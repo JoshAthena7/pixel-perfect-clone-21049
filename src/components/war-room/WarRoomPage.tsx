@@ -208,8 +208,22 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
             <span className="text-white/45">Last IRIS:</span>{" "}
             <span className="text-white">{relTime(d.lastIrisRun)}</span>
           </span>
+          {(sosActiveQ.data?.length ?? 0) > 0 && (
+            <button
+              onClick={() => {
+                const first = sosActiveQ.data?.[0];
+                if (first?.question_id) {
+                  navigate({ to: "/missions/$missionId/flight-deck", params: { missionId }, hash: first.question_id });
+                }
+              }}
+              className="ml-auto inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded animate-pulse"
+              style={{ background: "rgba(239,68,68,0.2)", color: "#fca5a5", border: "1px solid rgba(239,68,68,0.5)" }}
+            >
+              ⚠ {(sosActiveQ.data?.length ?? 0) > 1 ? `${sosActiveQ.data?.length} SOS Active` : "SOS Active"}
+            </button>
+          )}
           <Button
-            size="sm" variant="ghost" className="ml-auto h-7 gap-1.5"
+            size="sm" variant="ghost" className={`${(sosActiveQ.data?.length ?? 0) > 0 ? "" : "ml-auto"} h-7 gap-1.5`}
             onClick={() => { dataQ.refetch(); trendQ.refetch(); }}
           >
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
