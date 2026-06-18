@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/select";
 import { addManualIntelEvent } from "@/lib/intel-events-manual.functions";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
+import { OracleIntakeModal } from "@/components/oracle/OracleIntakeModal";
+import { listOracleSignalsForMission } from "@/lib/oracle-intel.functions";
 
 const GOLD = "#C49A2B";
 const PURPLE = "#a855f7";
@@ -113,6 +115,8 @@ export function IntelFeed({ missionId }: { missionId: string }) {
   const qc = useQueryClient();
   const seedFn = useServerFn(seedMissionIntelligence);
 
+  const listOracleFn = useServerFn(listOracleSignalsForMission);
+
   const { data, isLoading } = useQuery({
     queryKey: ["intel-events", missionId],
     queryFn: async () => {
@@ -127,7 +131,35 @@ export function IntelFeed({ missionId }: { missionId: string }) {
     },
   });
 
-  const events = (data ?? []) as any[];
+  const { data: oracleData } = useQuery({
+    queryKey: ["oracle-signals", missionId],
+    queryFn: () => listOracleFn({ data: { missionId } }),
+    staleTime: 30_000,
+  });
+
+  const events = useMemo(() => {
+    const base = (data ?? []) as any[];
+    const oracleRows = (oracleData ?? []) as any[];
+    // Map oracle_signals to feed-shape, mark as oracle
+    const mapped = oracleRows.map((s) => ({
+      id: `oracle:${s.id}`,
+      mission_id: s.mission_id ?? missionId,
+      event_type: s.signal_type ?? "signal",
+      title: s.title,
+      content: s.summary ?? s.what_happened ?? "",
+      generated_by: "human",
+      source_type: "oracle",
+      signal_category: (s.metadata as any)?.category ?? null,
+      created_at: s.created_at,
+      __oracle: true,
+      __tier: s.tier,
+    }));
+    // Dedupe by id (intel_events row references signalId in source_id; but ids differ)
+    const seen = new Set(base.map((e) => e.id));
+    const merged = [...base, ...mapped.filter((m) => !seen.has(m.id))];
+    merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return merged;
+  }, [data, oracleData, missionId]);
 
   // Fire-and-forget first-pass IRIS seed when the feed is empty.
   // Only triggers once per mission per browser session; the server fn also
@@ -305,7 +337,7 @@ export function IntelFeed({ missionId }: { missionId: string }) {
         </div>
       )}
 
-      <AddIntelDialog
+      <OracleIntakeModal
         missionId={missionId}
         open={addOpen}
         onOpenChange={setAddOpen}
@@ -317,6 +349,7 @@ export function IntelFeed({ missionId }: { missionId: string }) {
 function EventCard({ event }: { event: any }) {
   const color = TYPE_COLORS[event.event_type] || "#64748b";
   const isAtrium = event.source_type === "atrium";
+  const isOracle = event.source_type === "oracle" || event.__oracle === true;
   return (
     <div
       className="rounded-lg p-3"
@@ -343,6 +376,23 @@ function EventCard({ event }: { event: any }) {
           <div className="text-sm text-white font-medium">{event.title}</div>
           <div className="text-xs text-white/60 mt-1 line-clamp-3">{event.content}</div>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
+            {isOracle && (
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  padding: "1px 6px",
+                  borderRadius: 3,
+                  background: `${GOLD}22`,
+                  color: GOLD,
+                  border: `1px solid ${GOLD}66`,
+                }}
+              >
+                ORACLE{event.__tier ? ` · ${String(event.__tier).toUpperCase()}` : ""}
+              </span>
+            )}
             {isAtrium && (
               <span
                 style={{

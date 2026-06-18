@@ -21,12 +21,13 @@ import {
   Send,
   Users,
   FileText,
-  
   AlertTriangle,
   Copy,
   ExternalLink,
   Globe,
+  Plus,
 } from "lucide-react";
+import { OracleIntakeModal } from "@/components/oracle/OracleIntakeModal";
 import { useServerFn } from "@tanstack/react-start";
 import { askIrisWithSources } from "@/lib/iris/perplexity.functions";
 import ReactMarkdown from "react-markdown";
@@ -107,6 +108,7 @@ export function AskIrisPanel() {
   const [lastQuestionId, setLastQuestionId] = useState<string | null>(null);
   const [mode, setMode] = useState<AskMode>("quick");
   const [researchPhase, setResearchPhase] = useState(0);
+  const [oracleIntakeOpen, setOracleIntakeOpen] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -679,6 +681,18 @@ export function AskIrisPanel() {
                 : "Shift+Enter for newline · ` to toggle"}
             </div>
           </div>
+          {iris.current_mission_id && (
+            <div className="mt-1.5 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setOracleIntakeOpen(true)}
+                className="inline-flex items-center gap-1 text-[10px] text-white/40 hover:text-white/80 transition"
+                title="Capture field intel from this question and add it to ORACLE"
+              >
+                <Plus className="h-2.5 w-2.5" /> Add intel to ORACLE
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -701,6 +715,18 @@ export function AskIrisPanel() {
           setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", at: Date.now(), text: "Your engagement lead and mission admins have been notified immediately." }]);
         }}
       />
+      {iris.current_mission_id && (
+        <OracleIntakeModal
+          open={oracleIntakeOpen}
+          onOpenChange={setOracleIntakeOpen}
+          missionId={iris.current_mission_id}
+          initialTier="mission"
+          initialTopicTags={
+            iris.current_question_number ? [`q-${String(iris.current_question_number).toLowerCase()}`] : []
+          }
+          initialCategory="field"
+        />
+      )}
     </>
   );
 }
