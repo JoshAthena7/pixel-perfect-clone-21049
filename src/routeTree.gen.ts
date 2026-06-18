@@ -41,6 +41,7 @@ import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_au
 import { Route as AuthenticatedMissionNewRouteImport } from './routes/_authenticated/mission.new'
 import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated/admin.team'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
+import { Route as AuthenticatedAdminOraclePipelineRouteImport } from './routes/_authenticated/admin.oracle-pipeline'
 import { Route as AuthenticatedAdminOraclePhase2TestRouteImport } from './routes/_authenticated/admin.oracle-phase2-test'
 import { Route as AuthenticatedAdminMessagingRouteImport } from './routes/_authenticated/admin.messaging'
 import { Route as AuthenticatedAdminIrisWriterViewRouteImport } from './routes/_authenticated/admin.iris-writer-view'
@@ -58,6 +59,9 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicHooksRefreshIntelligenceGraphRouteImport } from './routes/api/public/hooks/refresh-intelligence-graph'
+import { Route as ApiPublicHooksOracleScraperRouteImport } from './routes/api/public/hooks/oracle-scraper'
+import { Route as ApiPublicHooksOraclePromoterRouteImport } from './routes/api/public/hooks/oracle-promoter'
+import { Route as ApiPublicHooksOracleClassifierRouteImport } from './routes/api/public/hooks/oracle-classifier'
 import { Route as ApiPublicHooksMonitorStateFeedsRouteImport } from './routes/api/public/hooks/monitor-state-feeds'
 import { Route as ApiPublicHooksMonitorResearchFeedsRouteImport } from './routes/api/public/hooks/monitor-research-feeds'
 import { Route as ApiPublicHooksMonitorCustomFeedsRouteImport } from './routes/api/public/hooks/monitor-custom-feeds'
@@ -264,6 +268,12 @@ const AuthenticatedAdminSettingsRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminOraclePipelineRoute =
+  AuthenticatedAdminOraclePipelineRouteImport.update({
+    id: '/oracle-pipeline',
+    path: '/oracle-pipeline',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminOraclePhase2TestRoute =
   AuthenticatedAdminOraclePhase2TestRouteImport.update({
     id: '/oracle-phase2-test',
@@ -362,6 +372,24 @@ const ApiPublicHooksRefreshIntelligenceGraphRoute =
   ApiPublicHooksRefreshIntelligenceGraphRouteImport.update({
     id: '/api/public/hooks/refresh-intelligence-graph',
     path: '/api/public/hooks/refresh-intelligence-graph',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksOracleScraperRoute =
+  ApiPublicHooksOracleScraperRouteImport.update({
+    id: '/api/public/hooks/oracle-scraper',
+    path: '/api/public/hooks/oracle-scraper',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksOraclePromoterRoute =
+  ApiPublicHooksOraclePromoterRouteImport.update({
+    id: '/api/public/hooks/oracle-promoter',
+    path: '/api/public/hooks/oracle-promoter',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksOracleClassifierRoute =
+  ApiPublicHooksOracleClassifierRouteImport.update({
+    id: '/api/public/hooks/oracle-classifier',
+    path: '/api/public/hooks/oracle-classifier',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicHooksMonitorStateFeedsRoute =
@@ -606,6 +634,7 @@ export interface FileRoutesByFullPath {
   '/admin/iris-writer-view': typeof AuthenticatedAdminIrisWriterViewRoute
   '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/admin/oracle-phase2-test': typeof AuthenticatedAdminOraclePhase2TestRoute
+  '/admin/oracle-pipeline': typeof AuthenticatedAdminOraclePipelineRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/mission/new': typeof AuthenticatedMissionNewRoute
@@ -655,6 +684,9 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/monitor-custom-feeds': typeof ApiPublicHooksMonitorCustomFeedsRoute
   '/api/public/hooks/monitor-research-feeds': typeof ApiPublicHooksMonitorResearchFeedsRoute
   '/api/public/hooks/monitor-state-feeds': typeof ApiPublicHooksMonitorStateFeedsRoute
+  '/api/public/hooks/oracle-classifier': typeof ApiPublicHooksOracleClassifierRoute
+  '/api/public/hooks/oracle-promoter': typeof ApiPublicHooksOraclePromoterRoute
+  '/api/public/hooks/oracle-scraper': typeof ApiPublicHooksOracleScraperRoute
   '/api/public/hooks/refresh-intelligence-graph': typeof ApiPublicHooksRefreshIntelligenceGraphRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -690,6 +722,7 @@ export interface FileRoutesByTo {
   '/admin/iris-writer-view': typeof AuthenticatedAdminIrisWriterViewRoute
   '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/admin/oracle-phase2-test': typeof AuthenticatedAdminOraclePhase2TestRoute
+  '/admin/oracle-pipeline': typeof AuthenticatedAdminOraclePipelineRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/mission/new': typeof AuthenticatedMissionNewRoute
@@ -738,6 +771,9 @@ export interface FileRoutesByTo {
   '/api/public/hooks/monitor-custom-feeds': typeof ApiPublicHooksMonitorCustomFeedsRoute
   '/api/public/hooks/monitor-research-feeds': typeof ApiPublicHooksMonitorResearchFeedsRoute
   '/api/public/hooks/monitor-state-feeds': typeof ApiPublicHooksMonitorStateFeedsRoute
+  '/api/public/hooks/oracle-classifier': typeof ApiPublicHooksOracleClassifierRoute
+  '/api/public/hooks/oracle-promoter': typeof ApiPublicHooksOraclePromoterRoute
+  '/api/public/hooks/oracle-scraper': typeof ApiPublicHooksOracleScraperRoute
   '/api/public/hooks/refresh-intelligence-graph': typeof ApiPublicHooksRefreshIntelligenceGraphRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -777,6 +813,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/iris-writer-view': typeof AuthenticatedAdminIrisWriterViewRoute
   '/_authenticated/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/_authenticated/admin/oracle-phase2-test': typeof AuthenticatedAdminOraclePhase2TestRoute
+  '/_authenticated/admin/oracle-pipeline': typeof AuthenticatedAdminOraclePipelineRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRouteWithChildren
   '/_authenticated/mission/new': typeof AuthenticatedMissionNewRoute
@@ -826,6 +863,9 @@ export interface FileRoutesById {
   '/api/public/hooks/monitor-custom-feeds': typeof ApiPublicHooksMonitorCustomFeedsRoute
   '/api/public/hooks/monitor-research-feeds': typeof ApiPublicHooksMonitorResearchFeedsRoute
   '/api/public/hooks/monitor-state-feeds': typeof ApiPublicHooksMonitorStateFeedsRoute
+  '/api/public/hooks/oracle-classifier': typeof ApiPublicHooksOracleClassifierRoute
+  '/api/public/hooks/oracle-promoter': typeof ApiPublicHooksOraclePromoterRoute
+  '/api/public/hooks/oracle-scraper': typeof ApiPublicHooksOracleScraperRoute
   '/api/public/hooks/refresh-intelligence-graph': typeof ApiPublicHooksRefreshIntelligenceGraphRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -865,6 +905,7 @@ export interface FileRouteTypes {
     | '/admin/iris-writer-view'
     | '/admin/messaging'
     | '/admin/oracle-phase2-test'
+    | '/admin/oracle-pipeline'
     | '/admin/settings'
     | '/admin/team'
     | '/mission/new'
@@ -914,6 +955,9 @@ export interface FileRouteTypes {
     | '/api/public/hooks/monitor-custom-feeds'
     | '/api/public/hooks/monitor-research-feeds'
     | '/api/public/hooks/monitor-state-feeds'
+    | '/api/public/hooks/oracle-classifier'
+    | '/api/public/hooks/oracle-promoter'
+    | '/api/public/hooks/oracle-scraper'
     | '/api/public/hooks/refresh-intelligence-graph'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -949,6 +993,7 @@ export interface FileRouteTypes {
     | '/admin/iris-writer-view'
     | '/admin/messaging'
     | '/admin/oracle-phase2-test'
+    | '/admin/oracle-pipeline'
     | '/admin/settings'
     | '/admin/team'
     | '/mission/new'
@@ -997,6 +1042,9 @@ export interface FileRouteTypes {
     | '/api/public/hooks/monitor-custom-feeds'
     | '/api/public/hooks/monitor-research-feeds'
     | '/api/public/hooks/monitor-state-feeds'
+    | '/api/public/hooks/oracle-classifier'
+    | '/api/public/hooks/oracle-promoter'
+    | '/api/public/hooks/oracle-scraper'
     | '/api/public/hooks/refresh-intelligence-graph'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -1035,6 +1083,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/iris-writer-view'
     | '/_authenticated/admin/messaging'
     | '/_authenticated/admin/oracle-phase2-test'
+    | '/_authenticated/admin/oracle-pipeline'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/team'
     | '/_authenticated/mission/new'
@@ -1084,6 +1133,9 @@ export interface FileRouteTypes {
     | '/api/public/hooks/monitor-custom-feeds'
     | '/api/public/hooks/monitor-research-feeds'
     | '/api/public/hooks/monitor-state-feeds'
+    | '/api/public/hooks/oracle-classifier'
+    | '/api/public/hooks/oracle-promoter'
+    | '/api/public/hooks/oracle-scraper'
     | '/api/public/hooks/refresh-intelligence-graph'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -1118,6 +1170,9 @@ export interface RootRouteChildren {
   ApiPublicHooksMonitorCustomFeedsRoute: typeof ApiPublicHooksMonitorCustomFeedsRoute
   ApiPublicHooksMonitorResearchFeedsRoute: typeof ApiPublicHooksMonitorResearchFeedsRoute
   ApiPublicHooksMonitorStateFeedsRoute: typeof ApiPublicHooksMonitorStateFeedsRoute
+  ApiPublicHooksOracleClassifierRoute: typeof ApiPublicHooksOracleClassifierRoute
+  ApiPublicHooksOraclePromoterRoute: typeof ApiPublicHooksOraclePromoterRoute
+  ApiPublicHooksOracleScraperRoute: typeof ApiPublicHooksOracleScraperRoute
   ApiPublicHooksRefreshIntelligenceGraphRoute: typeof ApiPublicHooksRefreshIntelligenceGraphRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -1352,6 +1407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/oracle-pipeline': {
+      id: '/_authenticated/admin/oracle-pipeline'
+      path: '/oracle-pipeline'
+      fullPath: '/admin/oracle-pipeline'
+      preLoaderRoute: typeof AuthenticatedAdminOraclePipelineRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/oracle-phase2-test': {
       id: '/_authenticated/admin/oracle-phase2-test'
       path: '/oracle-phase2-test'
@@ -1469,6 +1531,27 @@ declare module '@tanstack/react-router' {
       path: '/api/public/hooks/refresh-intelligence-graph'
       fullPath: '/api/public/hooks/refresh-intelligence-graph'
       preLoaderRoute: typeof ApiPublicHooksRefreshIntelligenceGraphRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/oracle-scraper': {
+      id: '/api/public/hooks/oracle-scraper'
+      path: '/api/public/hooks/oracle-scraper'
+      fullPath: '/api/public/hooks/oracle-scraper'
+      preLoaderRoute: typeof ApiPublicHooksOracleScraperRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/oracle-promoter': {
+      id: '/api/public/hooks/oracle-promoter'
+      path: '/api/public/hooks/oracle-promoter'
+      fullPath: '/api/public/hooks/oracle-promoter'
+      preLoaderRoute: typeof ApiPublicHooksOraclePromoterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/oracle-classifier': {
+      id: '/api/public/hooks/oracle-classifier'
+      path: '/api/public/hooks/oracle-classifier'
+      fullPath: '/api/public/hooks/oracle-classifier'
+      preLoaderRoute: typeof ApiPublicHooksOracleClassifierRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/monitor-state-feeds': {
@@ -1749,6 +1832,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminIrisWriterViewRoute: typeof AuthenticatedAdminIrisWriterViewRoute
   AuthenticatedAdminMessagingRoute: typeof AuthenticatedAdminMessagingRoute
   AuthenticatedAdminOraclePhase2TestRoute: typeof AuthenticatedAdminOraclePhase2TestRoute
+  AuthenticatedAdminOraclePipelineRoute: typeof AuthenticatedAdminOraclePipelineRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRouteWithChildren
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -1768,6 +1852,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminMessagingRoute: AuthenticatedAdminMessagingRoute,
   AuthenticatedAdminOraclePhase2TestRoute:
     AuthenticatedAdminOraclePhase2TestRoute,
+  AuthenticatedAdminOraclePipelineRoute: AuthenticatedAdminOraclePipelineRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminTeamRoute: AuthenticatedAdminTeamRouteWithChildren,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
@@ -1949,6 +2034,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksMonitorResearchFeedsRoute:
     ApiPublicHooksMonitorResearchFeedsRoute,
   ApiPublicHooksMonitorStateFeedsRoute: ApiPublicHooksMonitorStateFeedsRoute,
+  ApiPublicHooksOracleClassifierRoute: ApiPublicHooksOracleClassifierRoute,
+  ApiPublicHooksOraclePromoterRoute: ApiPublicHooksOraclePromoterRoute,
+  ApiPublicHooksOracleScraperRoute: ApiPublicHooksOracleScraperRoute,
   ApiPublicHooksRefreshIntelligenceGraphRoute:
     ApiPublicHooksRefreshIntelligenceGraphRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
