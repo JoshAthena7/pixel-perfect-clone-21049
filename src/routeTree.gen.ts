@@ -28,6 +28,7 @@ import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/h
 import { Route as AuthenticatedHelpRouteImport } from './routes/_authenticated/help'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedProfileIndexRouteImport } from './routes/_authenticated/profile/index'
+import { Route as AuthenticatedOlympusIndexRouteImport } from './routes/_authenticated/olympus.index'
 import { Route as AuthenticatedMissionsIndexRouteImport } from './routes/_authenticated/missions/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
@@ -189,6 +190,12 @@ const AuthenticatedProfileIndexRoute =
     id: '/profile/',
     path: '/profile/',
     getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedOlympusIndexRoute =
+  AuthenticatedOlympusIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedOlympusRoute,
   } as any)
 const AuthenticatedMissionsIndexRoute =
   AuthenticatedMissionsIndexRouteImport.update({
@@ -618,6 +625,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/missions/': typeof AuthenticatedMissionsIndexRoute
+  '/olympus/': typeof AuthenticatedOlympusIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/admin/missions/$missionId': typeof AuthenticatedAdminMissionsMissionIdRoute
   '/admin/oracle-sources/$missionId': typeof AuthenticatedAdminOracleSourcesMissionIdRoute
@@ -668,7 +676,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/olympus': typeof AuthenticatedOlympusRouteWithChildren
+  '/olympus': typeof AuthenticatedOlympusIndexRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/help': typeof AuthenticatedHelpRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -789,6 +797,7 @@ export interface FileRoutesById {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
+  '/_authenticated/olympus/': typeof AuthenticatedOlympusIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/admin/missions/$missionId': typeof AuthenticatedAdminMissionsMissionIdRoute
   '/_authenticated/admin/oracle-sources/$missionId': typeof AuthenticatedAdminOracleSourcesMissionIdRoute
@@ -876,6 +885,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/admin/'
     | '/missions/'
+    | '/olympus/'
     | '/profile/'
     | '/admin/missions/$missionId'
     | '/admin/oracle-sources/$missionId'
@@ -1046,6 +1056,7 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/_authenticated/admin/'
     | '/_authenticated/missions/'
+    | '/_authenticated/olympus/'
     | '/_authenticated/profile/'
     | '/_authenticated/admin/missions/$missionId'
     | '/_authenticated/admin/oracle-sources/$missionId'
@@ -1258,6 +1269,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/profile/'
       preLoaderRoute: typeof AuthenticatedProfileIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/olympus/': {
+      id: '/_authenticated/olympus/'
+      path: '/'
+      fullPath: '/olympus/'
+      preLoaderRoute: typeof AuthenticatedOlympusIndexRouteImport
+      parentRoute: typeof AuthenticatedOlympusRoute
     }
     '/_authenticated/missions/': {
       id: '/_authenticated/missions/'
@@ -1787,6 +1805,7 @@ interface AuthenticatedOlympusRouteChildren {
   AuthenticatedOlympusChangeRequestsRoute: typeof AuthenticatedOlympusChangeRequestsRoute
   AuthenticatedOlympusFlightDeckRoute: typeof AuthenticatedOlympusFlightDeckRoute
   AuthenticatedOlympusTeamRoute: typeof AuthenticatedOlympusTeamRoute
+  AuthenticatedOlympusIndexRoute: typeof AuthenticatedOlympusIndexRoute
   AuthenticatedOlympusMissionsNewRoute: typeof AuthenticatedOlympusMissionsNewRoute
   AuthenticatedOlympusWizardMissionIdRoute: typeof AuthenticatedOlympusWizardMissionIdRoute
   AuthenticatedOlympusWizardNewRoute: typeof AuthenticatedOlympusWizardNewRoute
@@ -1801,6 +1820,7 @@ const AuthenticatedOlympusRouteChildren: AuthenticatedOlympusRouteChildren = {
     AuthenticatedOlympusChangeRequestsRoute,
   AuthenticatedOlympusFlightDeckRoute: AuthenticatedOlympusFlightDeckRoute,
   AuthenticatedOlympusTeamRoute: AuthenticatedOlympusTeamRoute,
+  AuthenticatedOlympusIndexRoute: AuthenticatedOlympusIndexRoute,
   AuthenticatedOlympusMissionsNewRoute: AuthenticatedOlympusMissionsNewRoute,
   AuthenticatedOlympusWizardMissionIdRoute:
     AuthenticatedOlympusWizardMissionIdRoute,
