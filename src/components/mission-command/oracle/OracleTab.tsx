@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsAdmin } from "@/hooks/useAccess";
+import { useIsAdmin, useMissionAccess } from "@/hooks/useAccess";
 import { AskIrisButton } from "@/components/iris/AskIrisButton";
 import { RequestChangeButton } from "@/components/RequestChangeButton";
 import { IntelFeed } from "./IntelFeed";
@@ -17,10 +17,11 @@ import { NodeDetailDrawer } from "@/components/intelligence/NodeDetailDrawer";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 import { WriterIntelView } from "@/components/oracle/WriterIntelView";
 import { GraphHealthTab } from "./GraphHealthTab";
+import { StoryMapTab } from "./StoryMapTab";
 
 const GOLD = "#C49A2B";
 
-type TabId = "feed" | "people" | "organizations" | "sources" | "graph" | "graph-health";
+type TabId = "feed" | "people" | "organizations" | "sources" | "graph" | "graph-health" | "story-map";
 
 const BASE_TABS: { id: TabId; label: string }[] = [
   { id: "feed", label: "Feed" },
@@ -29,19 +30,28 @@ const BASE_TABS: { id: TabId; label: string }[] = [
   { id: "sources", label: "Sources" },
   { id: "graph", label: "Graph" },
 ];
+const LEAD_TABS: { id: TabId; label: string }[] = [
+  { id: "story-map", label: "Story Map" },
+];
 const ADMIN_TABS: { id: TabId; label: string }[] = [
   { id: "graph-health", label: "Graph Health" },
 ];
 
 export function OracleTab({ missionId }: { missionId: string }) {
   const { isAdmin } = useIsAdmin();
+  const { data: access } = useMissionAccess(missionId);
+  const canLead = isAdmin || access?.allowed === true;
   const [active, setActive] = useState<TabId>("feed");
   const [visited, setVisited] = useState<Set<TabId>>(new Set(["feed"]));
   const [selectedEcosystemNode, setSelectedEcosystemNode] = useState<any | null>(null);
   const [previewWriter, setPreviewWriter] = useState(false);
 
   const showWriter = !isAdmin || previewWriter;
-  const TABS = isAdmin ? [...BASE_TABS, ...ADMIN_TABS] : BASE_TABS;
+  const TABS = [
+    ...BASE_TABS,
+    ...(canLead ? LEAD_TABS : []),
+    ...(isAdmin ? ADMIN_TABS : []),
+  ];
 
 
 
@@ -291,6 +301,11 @@ export function OracleTab({ missionId }: { missionId: string }) {
             </div>
 
             <NodeDetailDrawer node={selectedEcosystemNode} onClose={() => setSelectedEcosystemNode(null)} />
+          </div>
+        )}
+        {canLead && visited.has("story-map") && (
+          <div style={{ display: active === "story-map" ? "block" : "none" }}>
+            <StoryMapTab missionId={missionId} />
           </div>
         )}
         {isAdmin && visited.has("graph-health") && (
