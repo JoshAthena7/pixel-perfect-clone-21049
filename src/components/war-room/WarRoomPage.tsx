@@ -578,7 +578,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         target={nudgeTarget}
         missionId={missionId}
         missionName={d.mission?.name ?? "this mission"}
-        senderFirstName={(d.writers.find((w: any) => w.userId)?.name?.split(/\s+/)[0]) ?? "Lead"}
+        senderFirstName={((meQ.data as any)?.display_name ?? (meQ.data as any)?.email ?? "Lead").split(/[\s@]/)[0] || "Lead"}
       />
     </div>
   );
