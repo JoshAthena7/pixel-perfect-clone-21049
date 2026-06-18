@@ -16,7 +16,10 @@ export type ActivityStream =
   | "score_me"
   | "mission_pulse"
   | "sos"
-  | "conflict";
+  | "conflict"
+  | "check_in"
+  | "sticky_note"
+  | "brief_exported";
 
 export type ActivityItem = {
   id: string;
