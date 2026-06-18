@@ -5,6 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { runOracleStage } from "@/lib/oracle-pipeline.functions";
 import { toast } from "sonner";
 import { Loader2, Zap } from "lucide-react";
+import { TaxonomyBrowser } from "./TaxonomyBrowser";
+import { IntelReviewQueue } from "./IntelReviewQueue";
+import { SourcesPanel } from "./SourcesPanel";
 
 type MissionRow = { id: string; name: string; submission_deadline: string | null };
 
