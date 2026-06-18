@@ -194,7 +194,6 @@ const FORM_ONLY_SECTIONS = [
   "certification of non-involvement",
   "disclosure of investigations",
   "offer and acceptance",
-  "contract schedule",
   "state-supplied price sheet",
   "small business",
   "pay to play",
