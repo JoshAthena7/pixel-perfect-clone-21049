@@ -9087,6 +9087,130 @@ export type Database = {
           },
         ]
       }
+      oracle_ingestion_queue: {
+        Row: {
+          classification_metadata: Json
+          classified_at: string | null
+          classified_category:
+            | Database["public"]["Enums"]["oracle_category"]
+            | null
+          classified_relevance_score: number | null
+          classified_subcategory:
+            | Database["public"]["Enums"]["oracle_subcategory"]
+            | null
+          classified_summary: string | null
+          classified_topic_tags: string[] | null
+          classified_urgency:
+            | Database["public"]["Enums"]["oracle_urgency"]
+            | null
+          classified_win_theme_tags: string[] | null
+          error_message: string | null
+          id: string
+          ingested_at: string
+          mission_id: string | null
+          oracle_source_id: string | null
+          promoted_at: string | null
+          promoted_node_id: string | null
+          raw_published_at: string | null
+          raw_text: string
+          raw_title: string
+          retry_count: number
+          source_name: string
+          source_url: string
+          state_code: string | null
+          status: Database["public"]["Enums"]["oracle_ingestion_status"]
+          tier: Database["public"]["Enums"]["oracle_tier"] | null
+        }
+        Insert: {
+          classification_metadata?: Json
+          classified_at?: string | null
+          classified_category?:
+            | Database["public"]["Enums"]["oracle_category"]
+            | null
+          classified_relevance_score?: number | null
+          classified_subcategory?:
+            | Database["public"]["Enums"]["oracle_subcategory"]
+            | null
+          classified_summary?: string | null
+          classified_topic_tags?: string[] | null
+          classified_urgency?:
+            | Database["public"]["Enums"]["oracle_urgency"]
+            | null
+          classified_win_theme_tags?: string[] | null
+          error_message?: string | null
+          id?: string
+          ingested_at?: string
+          mission_id?: string | null
+          oracle_source_id?: string | null
+          promoted_at?: string | null
+          promoted_node_id?: string | null
+          raw_published_at?: string | null
+          raw_text: string
+          raw_title: string
+          retry_count?: number
+          source_name: string
+          source_url: string
+          state_code?: string | null
+          status?: Database["public"]["Enums"]["oracle_ingestion_status"]
+          tier?: Database["public"]["Enums"]["oracle_tier"] | null
+        }
+        Update: {
+          classification_metadata?: Json
+          classified_at?: string | null
+          classified_category?:
+            | Database["public"]["Enums"]["oracle_category"]
+            | null
+          classified_relevance_score?: number | null
+          classified_subcategory?:
+            | Database["public"]["Enums"]["oracle_subcategory"]
+            | null
+          classified_summary?: string | null
+          classified_topic_tags?: string[] | null
+          classified_urgency?:
+            | Database["public"]["Enums"]["oracle_urgency"]
+            | null
+          classified_win_theme_tags?: string[] | null
+          error_message?: string | null
+          id?: string
+          ingested_at?: string
+          mission_id?: string | null
+          oracle_source_id?: string | null
+          promoted_at?: string | null
+          promoted_node_id?: string | null
+          raw_published_at?: string | null
+          raw_text?: string
+          raw_title?: string
+          retry_count?: number
+          source_name?: string
+          source_url?: string
+          state_code?: string | null
+          status?: Database["public"]["Enums"]["oracle_ingestion_status"]
+          tier?: Database["public"]["Enums"]["oracle_tier"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_ingestion_queue_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_ingestion_queue_oracle_source_id_fkey"
+            columns: ["oracle_source_id"]
+            isOneToOne: false
+            referencedRelation: "oracle_source_registry"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_ingestion_queue_promoted_node_id_fkey"
+            columns: ["promoted_node_id"]
+            isOneToOne: false
+            referencedRelation: "oracle_signals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oracle_knowledge_base: {
         Row: {
           applicable_mission_types: string[] | null
@@ -9235,6 +9359,102 @@ export type Database = {
           },
         ]
       }
+      oracle_quality_measures: {
+        Row: {
+          competitive_significance: string | null
+          created_at: string
+          id: string
+          mco_benchmark_comparison: string | null
+          mco_rate: number | null
+          measure_code: string
+          measure_description: string | null
+          measure_domain: string | null
+          measure_name: string
+          measure_set: string
+          measurement_year: number
+          mission_id: string | null
+          national_medicaid_benchmark: number | null
+          national_percentile: number | null
+          oracle_node_id: string | null
+          prior_year_state_rate: number | null
+          relevance_to_mission: string | null
+          source_document: string | null
+          source_url: string | null
+          state_benchmark: number | null
+          state_code: string
+          state_current_rate: number | null
+          trend_direction: string | null
+          updated_at: string
+        }
+        Insert: {
+          competitive_significance?: string | null
+          created_at?: string
+          id?: string
+          mco_benchmark_comparison?: string | null
+          mco_rate?: number | null
+          measure_code: string
+          measure_description?: string | null
+          measure_domain?: string | null
+          measure_name: string
+          measure_set: string
+          measurement_year: number
+          mission_id?: string | null
+          national_medicaid_benchmark?: number | null
+          national_percentile?: number | null
+          oracle_node_id?: string | null
+          prior_year_state_rate?: number | null
+          relevance_to_mission?: string | null
+          source_document?: string | null
+          source_url?: string | null
+          state_benchmark?: number | null
+          state_code: string
+          state_current_rate?: number | null
+          trend_direction?: string | null
+          updated_at?: string
+        }
+        Update: {
+          competitive_significance?: string | null
+          created_at?: string
+          id?: string
+          mco_benchmark_comparison?: string | null
+          mco_rate?: number | null
+          measure_code?: string
+          measure_description?: string | null
+          measure_domain?: string | null
+          measure_name?: string
+          measure_set?: string
+          measurement_year?: number
+          mission_id?: string | null
+          national_medicaid_benchmark?: number | null
+          national_percentile?: number | null
+          oracle_node_id?: string | null
+          prior_year_state_rate?: number | null
+          relevance_to_mission?: string | null
+          source_document?: string | null
+          source_url?: string | null
+          state_benchmark?: number | null
+          state_code?: string
+          state_current_rate?: number | null
+          trend_direction?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_quality_measures_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_quality_measures_oracle_node_id_fkey"
+            columns: ["oracle_node_id"]
+            isOneToOne: false
+            referencedRelation: "oracle_signals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oracle_raw_items: {
         Row: {
           content_hash: string | null
@@ -9338,6 +9558,83 @@ export type Database = {
         }
         Relationships: []
       }
+      oracle_sdoh_data: {
+        Row: {
+          created_at: string
+          data_source: string
+          data_year: number
+          geography_fips: string | null
+          geography_name: string
+          geography_type: string
+          id: string
+          medicaid_population_rate: number | null
+          mission_id: string | null
+          national_benchmark: number | null
+          population_affected: number | null
+          prevalence_rate: number | null
+          priority_level: string | null
+          sdoh_domain: string
+          sdoh_measure: string
+          source_url: string | null
+          state_benchmark: number | null
+          state_code: string
+          trend_direction: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_source: string
+          data_year: number
+          geography_fips?: string | null
+          geography_name: string
+          geography_type: string
+          id?: string
+          medicaid_population_rate?: number | null
+          mission_id?: string | null
+          national_benchmark?: number | null
+          population_affected?: number | null
+          prevalence_rate?: number | null
+          priority_level?: string | null
+          sdoh_domain: string
+          sdoh_measure: string
+          source_url?: string | null
+          state_benchmark?: number | null
+          state_code: string
+          trend_direction?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_source?: string
+          data_year?: number
+          geography_fips?: string | null
+          geography_name?: string
+          geography_type?: string
+          id?: string
+          medicaid_population_rate?: number | null
+          mission_id?: string | null
+          national_benchmark?: number | null
+          population_affected?: number | null
+          prevalence_rate?: number | null
+          priority_level?: string | null
+          sdoh_domain?: string
+          sdoh_measure?: string
+          source_url?: string | null
+          state_benchmark?: number | null
+          state_code?: string
+          trend_direction?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_sdoh_data_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oracle_signal_belief_links: {
         Row: {
           belief_id: string
@@ -9414,70 +9711,136 @@ export type Database = {
       }
       oracle_signals: {
         Row: {
+          archived_at: string | null
+          archived_reason: string | null
+          authority: Database["public"]["Enums"]["oracle_authority"]
+          authority_weight: number
+          category: Database["public"]["Enums"]["oracle_category"] | null
           confidence_score: number
           created_at: string
+          effective_date: string | null
+          expiration_date: string | null
           id: string
           impact_score: number
-          mission_id: string
+          ingestion_source: string
+          is_superseded: boolean
+          jpb_variable_tags: string[]
+          last_verified_at: string
+          metadata: Json
+          mission_id: string | null
           oracle_score: number | null
+          published_at: string | null
+          question_type_tags: string[]
           raw_item_id: string | null
           recommended_action: string | null
           relevance_score: number
           scope_tier: string
           signal_type: string
+          source_name: string | null
           state_code: string | null
           status: string
+          subcategory: Database["public"]["Enums"]["oracle_subcategory"] | null
+          summary: string | null
+          superseded_by: string | null
           taxonomy_node_ids: string[]
+          tier: Database["public"]["Enums"]["oracle_tier"]
           title: string
+          topic_tags: string[]
           updated_at: string
+          urgency: Database["public"]["Enums"]["oracle_urgency"]
           urgency_score: number
           visibility: string
           what_happened: string | null
           why_it_matters: string | null
+          win_theme_tags: string[]
         }
         Insert: {
+          archived_at?: string | null
+          archived_reason?: string | null
+          authority?: Database["public"]["Enums"]["oracle_authority"]
+          authority_weight?: number
+          category?: Database["public"]["Enums"]["oracle_category"] | null
           confidence_score?: number
           created_at?: string
+          effective_date?: string | null
+          expiration_date?: string | null
           id?: string
           impact_score?: number
-          mission_id: string
+          ingestion_source?: string
+          is_superseded?: boolean
+          jpb_variable_tags?: string[]
+          last_verified_at?: string
+          metadata?: Json
+          mission_id?: string | null
           oracle_score?: number | null
+          published_at?: string | null
+          question_type_tags?: string[]
           raw_item_id?: string | null
           recommended_action?: string | null
           relevance_score?: number
           scope_tier?: string
           signal_type: string
+          source_name?: string | null
           state_code?: string | null
           status?: string
+          subcategory?: Database["public"]["Enums"]["oracle_subcategory"] | null
+          summary?: string | null
+          superseded_by?: string | null
           taxonomy_node_ids?: string[]
+          tier?: Database["public"]["Enums"]["oracle_tier"]
           title: string
+          topic_tags?: string[]
           updated_at?: string
+          urgency?: Database["public"]["Enums"]["oracle_urgency"]
           urgency_score?: number
           visibility?: string
           what_happened?: string | null
           why_it_matters?: string | null
+          win_theme_tags?: string[]
         }
         Update: {
+          archived_at?: string | null
+          archived_reason?: string | null
+          authority?: Database["public"]["Enums"]["oracle_authority"]
+          authority_weight?: number
+          category?: Database["public"]["Enums"]["oracle_category"] | null
           confidence_score?: number
           created_at?: string
+          effective_date?: string | null
+          expiration_date?: string | null
           id?: string
           impact_score?: number
-          mission_id?: string
+          ingestion_source?: string
+          is_superseded?: boolean
+          jpb_variable_tags?: string[]
+          last_verified_at?: string
+          metadata?: Json
+          mission_id?: string | null
           oracle_score?: number | null
+          published_at?: string | null
+          question_type_tags?: string[]
           raw_item_id?: string | null
           recommended_action?: string | null
           relevance_score?: number
           scope_tier?: string
           signal_type?: string
+          source_name?: string | null
           state_code?: string | null
           status?: string
+          subcategory?: Database["public"]["Enums"]["oracle_subcategory"] | null
+          summary?: string | null
+          superseded_by?: string | null
           taxonomy_node_ids?: string[]
+          tier?: Database["public"]["Enums"]["oracle_tier"]
           title?: string
+          topic_tags?: string[]
           updated_at?: string
+          urgency?: Database["public"]["Enums"]["oracle_urgency"]
           urgency_score?: number
           visibility?: string
           what_happened?: string | null
           why_it_matters?: string | null
+          win_theme_tags?: string[]
         }
         Relationships: [
           {
@@ -9492,6 +9855,13 @@ export type Database = {
             columns: ["raw_item_id"]
             isOneToOne: false
             referencedRelation: "oracle_raw_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_signals_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "oracle_signals"
             referencedColumns: ["id"]
           },
         ]
@@ -9585,6 +9955,109 @@ export type Database = {
             columns: ["sme_id"]
             isOneToOne: false
             referencedRelation: "oracle_sme_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oracle_source_registry: {
+        Row: {
+          check_frequency_hours: number
+          created_at: string
+          created_by: string | null
+          default_authority: Database["public"]["Enums"]["oracle_authority"]
+          default_category: Database["public"]["Enums"]["oracle_category"]
+          default_subcategory: Database["public"]["Enums"]["oracle_subcategory"]
+          description: string | null
+          error_count: number
+          error_message: string | null
+          feed_url: string | null
+          id: string
+          last_checked_at: string | null
+          last_new_item_at: string | null
+          minimum_relevance_threshold: number
+          mission_id: string | null
+          notes: string | null
+          source_name: string
+          source_type: Database["public"]["Enums"]["oracle_source_type"]
+          source_url: string
+          state_code: string | null
+          status: Database["public"]["Enums"]["oracle_source_status"]
+          tier: Database["public"]["Enums"]["oracle_tier"]
+          topic_filter_tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          check_frequency_hours?: number
+          created_at?: string
+          created_by?: string | null
+          default_authority?: Database["public"]["Enums"]["oracle_authority"]
+          default_category: Database["public"]["Enums"]["oracle_category"]
+          default_subcategory: Database["public"]["Enums"]["oracle_subcategory"]
+          description?: string | null
+          error_count?: number
+          error_message?: string | null
+          feed_url?: string | null
+          id?: string
+          last_checked_at?: string | null
+          last_new_item_at?: string | null
+          minimum_relevance_threshold?: number
+          mission_id?: string | null
+          notes?: string | null
+          source_name: string
+          source_type?: Database["public"]["Enums"]["oracle_source_type"]
+          source_url: string
+          state_code?: string | null
+          status?: Database["public"]["Enums"]["oracle_source_status"]
+          tier: Database["public"]["Enums"]["oracle_tier"]
+          topic_filter_tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          check_frequency_hours?: number
+          created_at?: string
+          created_by?: string | null
+          default_authority?: Database["public"]["Enums"]["oracle_authority"]
+          default_category?: Database["public"]["Enums"]["oracle_category"]
+          default_subcategory?: Database["public"]["Enums"]["oracle_subcategory"]
+          description?: string | null
+          error_count?: number
+          error_message?: string | null
+          feed_url?: string | null
+          id?: string
+          last_checked_at?: string | null
+          last_new_item_at?: string | null
+          minimum_relevance_threshold?: number
+          mission_id?: string | null
+          notes?: string | null
+          source_name?: string
+          source_type?: Database["public"]["Enums"]["oracle_source_type"]
+          source_url?: string
+          state_code?: string | null
+          status?: Database["public"]["Enums"]["oracle_source_status"]
+          tier?: Database["public"]["Enums"]["oracle_tier"]
+          topic_filter_tags?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_source_registry_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_source_registry_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_source_registry_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
             referencedColumns: ["id"]
           },
         ]
@@ -10600,11 +11073,15 @@ export type Database = {
       question_intel_links: {
         Row: {
           added_by: string
+          briefing_layer: string | null
           confirmed: boolean
           confirmed_at: string | null
           confirmed_by: string | null
           created_at: string
+          display_order: number
           id: string
+          is_critical: boolean
+          is_suppressed: boolean
           mission_id: string
           question_id: string
           relevance_explanation: string | null
@@ -10613,11 +11090,15 @@ export type Database = {
         }
         Insert: {
           added_by?: string
+          briefing_layer?: string | null
           confirmed?: boolean
           confirmed_at?: string | null
           confirmed_by?: string | null
           created_at?: string
+          display_order?: number
           id?: string
+          is_critical?: boolean
+          is_suppressed?: boolean
           mission_id: string
           question_id: string
           relevance_explanation?: string | null
@@ -10626,11 +11107,15 @@ export type Database = {
         }
         Update: {
           added_by?: string
+          briefing_layer?: string | null
           confirmed?: boolean
           confirmed_at?: string | null
           confirmed_by?: string | null
           created_at?: string
+          display_order?: number
           id?: string
+          is_critical?: boolean
+          is_suppressed?: boolean
           mission_id?: string
           question_id?: string
           relevance_explanation?: string | null
@@ -12858,6 +13343,82 @@ export type Database = {
         | "capacity"
         | "opportunity"
         | "positive"
+      oracle_authority: "primary" | "secondary" | "tertiary" | "field"
+      oracle_category:
+        | "regulatory_federal"
+        | "regulatory_state"
+        | "quality_performance"
+        | "health_outcomes_sdoh"
+        | "policy_innovation"
+        | "evidence_base"
+        | "field_intelligence"
+        | "competitive_landscape"
+        | "client_content_map"
+      oracle_ingestion_status:
+        | "pending"
+        | "classifying"
+        | "classified"
+        | "dismissed"
+        | "error"
+      oracle_source_status: "active" | "paused" | "error" | "deprecated"
+      oracle_source_type: "rss_feed" | "html_scrape" | "api" | "manual_only"
+      oracle_subcategory:
+        | "statute"
+        | "federal_regulation"
+        | "federal_guidance"
+        | "waiver_1115"
+        | "waiver_1915b"
+        | "waiver_1915c"
+        | "federal_policy"
+        | "state_plan"
+        | "state_waiver_condition"
+        | "state_regulation"
+        | "state_contract_requirement"
+        | "state_guidance"
+        | "hedis_measure"
+        | "eqro_finding"
+        | "nci_domain"
+        | "cahps_measure"
+        | "state_quality_benchmark"
+        | "mco_performance"
+        | "population_health"
+        | "sdoh_prevalence"
+        | "health_equity_metric"
+        | "health_outcome_benchmark"
+        | "pain_point"
+        | "gap_analysis"
+        | "cmmi_model"
+        | "demonstration_project"
+        | "federal_grant"
+        | "state_grant"
+        | "vbp_model"
+        | "emerging_policy"
+        | "peer_reviewed"
+        | "federal_agency_publication"
+        | "foundation_report"
+        | "clinical_practice_guideline"
+        | "best_practice_framework"
+        | "systematic_review"
+        | "advocacy_position"
+        | "conference_presentation"
+        | "legislative_testimony"
+        | "industry_association"
+        | "news_media"
+        | "stakeholder_communication"
+        | "forum_notes"
+        | "competitor_profile"
+        | "prior_award_pattern"
+        | "competitor_strength"
+        | "competitor_weakness"
+        | "incumbent_vulnerability"
+        | "differentiation_opportunity"
+        | "win_theme"
+        | "proof_point_category"
+        | "program_description"
+        | "performance_highlight"
+        | "content_pointer"
+      oracle_tier: "platform" | "state" | "mission"
+      oracle_urgency: "immediate" | "high" | "normal" | "low" | "archived"
       response_template_element_type:
         | "header"
         | "subsection"
@@ -13043,6 +13604,85 @@ export const Constants = {
         "opportunity",
         "positive",
       ],
+      oracle_authority: ["primary", "secondary", "tertiary", "field"],
+      oracle_category: [
+        "regulatory_federal",
+        "regulatory_state",
+        "quality_performance",
+        "health_outcomes_sdoh",
+        "policy_innovation",
+        "evidence_base",
+        "field_intelligence",
+        "competitive_landscape",
+        "client_content_map",
+      ],
+      oracle_ingestion_status: [
+        "pending",
+        "classifying",
+        "classified",
+        "dismissed",
+        "error",
+      ],
+      oracle_source_status: ["active", "paused", "error", "deprecated"],
+      oracle_source_type: ["rss_feed", "html_scrape", "api", "manual_only"],
+      oracle_subcategory: [
+        "statute",
+        "federal_regulation",
+        "federal_guidance",
+        "waiver_1115",
+        "waiver_1915b",
+        "waiver_1915c",
+        "federal_policy",
+        "state_plan",
+        "state_waiver_condition",
+        "state_regulation",
+        "state_contract_requirement",
+        "state_guidance",
+        "hedis_measure",
+        "eqro_finding",
+        "nci_domain",
+        "cahps_measure",
+        "state_quality_benchmark",
+        "mco_performance",
+        "population_health",
+        "sdoh_prevalence",
+        "health_equity_metric",
+        "health_outcome_benchmark",
+        "pain_point",
+        "gap_analysis",
+        "cmmi_model",
+        "demonstration_project",
+        "federal_grant",
+        "state_grant",
+        "vbp_model",
+        "emerging_policy",
+        "peer_reviewed",
+        "federal_agency_publication",
+        "foundation_report",
+        "clinical_practice_guideline",
+        "best_practice_framework",
+        "systematic_review",
+        "advocacy_position",
+        "conference_presentation",
+        "legislative_testimony",
+        "industry_association",
+        "news_media",
+        "stakeholder_communication",
+        "forum_notes",
+        "competitor_profile",
+        "prior_award_pattern",
+        "competitor_strength",
+        "competitor_weakness",
+        "incumbent_vulnerability",
+        "differentiation_opportunity",
+        "win_theme",
+        "proof_point_category",
+        "program_description",
+        "performance_highlight",
+        "content_pointer",
+      ],
+      oracle_tier: ["platform", "state", "mission"],
+      oracle_urgency: ["immediate", "high", "normal", "low", "archived"],
       response_template_element_type: [
         "header",
         "subsection",
