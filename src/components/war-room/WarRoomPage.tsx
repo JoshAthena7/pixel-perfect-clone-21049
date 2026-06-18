@@ -312,7 +312,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                   questionCount: w.questionCount ?? 0,
                   liveLabel: deriveLive(w).label, liveColor: deriveLive(w).color,
                 })}
-                onFilter={() => setFilterWriterId(filterWriterId === w.userId ? null : w.userId)}
+                onFilter={() => openWriterDrawer(w)}
               />)}
             </div>
           )}
