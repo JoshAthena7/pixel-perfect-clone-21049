@@ -648,6 +648,8 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         </div>
       </div>
 
+      {readOnly && <ClosedMissionBanner />}
+
       {/* Mobile tab bar */}
       <div className="atc-mobile shrink-0 flex border-b border-white/[0.06] bg-[#050d18]">
         {([
