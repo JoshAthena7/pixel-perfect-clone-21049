@@ -909,6 +909,7 @@ export function sliceSectionTextWithFallbacks(
   allSectionLocators: SectionLocator[] = [],
 ): { text: string; attempt: 1 | 2 | 3 | 0 } {
   if (!sectionNumber) return { text: "", attempt: 0 };
+  const sectionCap = 20_000;
 
   // Attempt 1 — strict line-anchored regex, bounded by next section
   const attempt1 = sliceSectionText(
@@ -930,7 +931,7 @@ export function sliceSectionTextWithFallbacks(
     for (const m of fullText.matchAll(inline)) {
       const idx = m.index ?? 0;
       if (isTocCluster(fullText, idx, locators)) continue;
-      const slice = fullText.slice(idx, idx + 12_000);
+      const slice = fullText.slice(idx, idx + sectionCap);
       if (slice.length >= 50) return { text: slice, attempt: 2 };
     }
   } catch {
@@ -940,7 +941,7 @@ export function sliceSectionTextWithFallbacks(
   // Attempt 3 — proportional slice based on position
   if (totalSections > 0 && fullText.length > 0) {
     const startPos = Math.floor((sectionIndex / totalSections) * fullText.length);
-    const slice = fullText.slice(startPos, startPos + 12_000);
+    const slice = fullText.slice(startPos, startPos + sectionCap);
     if (slice.length >= 50) return { text: slice, attempt: 3 };
   }
 
