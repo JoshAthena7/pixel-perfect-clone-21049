@@ -28,6 +28,9 @@ const BUCKET = "atlas-rfp-documents";
 const PASS2_CONCURRENCY = 3;
 const BRIEF_CONCURRENCY = 3;
 const MIN_TEXT_CHARS = 50; // Was 200 — too aggressive for form-driven RFPs.
+const TEXT_HEAD_CHARS = 220_000;
+const TEXT_CHUNK_CHARS = 220_000;
+const MAX_PERSISTED_TEXT_CHARS = 1_000_000;
 
 async function extractTextFromBlob(blob: Blob, fileName: string): Promise<string> {
   const lower = fileName.toLowerCase();
@@ -41,6 +44,15 @@ async function extractTextFromBlob(blob: Blob, fileName: string): Promise<string
   }
   const file = new File([blob], fileName, { type: blob.type });
   return extractRFPText(file);
+}
+
+function buildPersistedTextParts(extractedText: string): { head: string; chunkMeta: Record<string, string>; persistedLength: number } {
+  const capped = extractedText.slice(0, MAX_PERSISTED_TEXT_CHARS);
+  const chunkMeta: Record<string, string> = {};
+  for (let i = TEXT_HEAD_CHARS, n = 2; i < capped.length; i += TEXT_CHUNK_CHARS, n++) {
+    chunkMeta[`text_chunk_${n}`] = capped.slice(i, i + TEXT_CHUNK_CHARS);
+  }
+  return { head: capped.slice(0, TEXT_HEAD_CHARS), chunkMeta, persistedLength: capped.length };
 }
 
 async function runWithConcurrency<T>(
@@ -118,7 +130,10 @@ export async function runIrisRfpExtraction(
     }
     let cachedText = head;
     if (chunkPieces.length > 0) cachedText = head + chunkPieces.join("");
-    if (cachedText.length > 50) {
+    const originalLength = typeof meta.full_text_length === "number" ? meta.full_text_length : Number(meta.full_text_length ?? 0);
+    const persistedLength = typeof meta.persisted_text_length === "number" ? meta.persisted_text_length : Number(meta.persisted_text_length ?? cachedText.length);
+    const cacheLooksComplete = originalLength <= 0 || persistedLength >= Math.min(originalLength, MAX_PERSISTED_TEXT_CHARS);
+    if (cachedText.length > 50 && cacheLooksComplete) {
       textParts.push(`# ${title}\n\n${cachedText}`);
       continue;
     }
@@ -132,9 +147,22 @@ export async function runIrisRfpExtraction(
       const extracted = (await extractTextFromBlob(blob, fileName)).trim();
       if (extracted.length > 50) {
         textParts.push(`# ${title}\n\n${extracted}`);
+        const { head, chunkMeta, persistedLength } = buildPersistedTextParts(extracted);
+        const nextMeta = { ...meta };
+        for (let n = 2; n <= 10; n++) delete nextMeta[`text_chunk_${n}`];
         await supabase
           .from("mission_documents")
-          .update({ content_summary: extracted.slice(0, 220_000) })
+          .update({
+            content_summary: head || null,
+            metadata: {
+              ...nextMeta,
+              ...chunkMeta,
+              full_text_length: extracted.length,
+              persisted_text_length: persistedLength,
+              extraction_method: "browser_pdf_parse",
+              text_extraction_ok: extracted.length > 500,
+            },
+          })
           .eq("id", doc.id);
       }
     } catch (e) {
@@ -142,7 +170,7 @@ export async function runIrisRfpExtraction(
     }
   }
 
-  const primaryRfpText = textParts.join("\n\n---\n\n").slice(0, 700_000);
+  const primaryRfpText = textParts.join("\n\n---\n\n").slice(0, 950_000);
   if (primaryRfpText.trim().length < 500) {
     throw new Error(
       "RFP text not available. The uploaded documents have no extractable text — re-upload the primary RFP through Step 1 (Fuel IRIS) before running extraction.",
@@ -156,6 +184,20 @@ export async function runIrisRfpExtraction(
       .eq("mission_id", missionId)
       .eq("is_withdrawn", false);
     if (withdrawError) throw withdrawError;
+
+    // Force means rebuild the extraction map too. Otherwise a prior incomplete
+    // structure pass can permanently limit Pass 2 to only the old section range.
+    const { error: sectionsDeleteError } = await supabase
+      .from("mission_sections")
+      .delete()
+      .eq("mission_id", missionId);
+    if (sectionsDeleteError) throw sectionsDeleteError;
+
+    const { error: volumesDeleteError } = await supabase
+      .from("mission_volumes")
+      .delete()
+      .eq("mission_id", missionId);
+    if (volumesDeleteError) throw volumesDeleteError;
   }
 
   // PASS 1 — structure extraction (one short server call, idempotent).
