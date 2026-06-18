@@ -304,9 +304,17 @@ function sectionHeaderIndexes(
     .filter((idx) => !isSectionTitleList(fullText, idx, section, allSections))
     .sort((a, b) => a - b);
 
+  const exactTitleLines = filtered.filter((idx) => {
+    if (!name || !nameIndexes.has(idx)) return false;
+    const line = getLineAt(fullText, idx).trim();
+    return line.toLowerCase() === name.toLowerCase() && !isLikelyTocLine(line);
+  });
+  if (exactTitleLines.length > 0) return exactTitleLines;
+
   const uppercaseNameMatches = filtered.filter((idx) => {
     if (!nameIndexes.has(idx)) return false;
-    const line = fullText.slice(idx, fullText.indexOf("\n", idx + 1) === -1 ? idx + 200 : fullText.indexOf("\n", idx + 1));
+    const line = getLineAt(fullText, idx);
+    if (isLikelyTocLine(line)) return false;
     const letters = line.replace(/[^A-Za-z]/g, "");
     return letters.length > 3 && letters === letters.toUpperCase();
   });
