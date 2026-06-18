@@ -114,10 +114,14 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
     return <div className="p-6 text-white/55 text-sm">Loading War Room…</div>;
   }
 
+  // Top-bar health status derives strictly from question health counts:
+  //   AT RISK  → any mission_questions.health_status = 'at_risk'
+  //   WATCH    → no at_risk, but at least one 'watch'
+  //   ON TRACK → no at_risk and no watch (all healthy or empty)
+  // healthyPct is a separate widget metric and must NOT drive this status.
   const healthState =
-    d.stats.totalQuestions === 0 ? "on_track" :
-    d.stats.healthyPct >= 70 ? "on_track" :
-    d.stats.healthyPct >= 40 ? "watch" : "at_risk";
+    (d.stats.atRiskCount ?? 0) > 0 ? "at_risk" :
+    (d.stats.watchCount ?? 0) > 0 ? "watch" : "on_track";
 
   const topBarColor =
     healthState === "at_risk" ? "rgba(239, 68, 68, 0.12)" :
