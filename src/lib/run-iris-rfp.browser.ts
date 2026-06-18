@@ -130,7 +130,10 @@ export async function runIrisRfpExtraction(
     }
     let cachedText = head;
     if (chunkPieces.length > 0) cachedText = head + chunkPieces.join("");
-    if (cachedText.length > 50) {
+    const originalLength = typeof meta.full_text_length === "number" ? meta.full_text_length : Number(meta.full_text_length ?? 0);
+    const persistedLength = typeof meta.persisted_text_length === "number" ? meta.persisted_text_length : Number(meta.persisted_text_length ?? cachedText.length);
+    const cacheLooksComplete = originalLength <= 0 || persistedLength >= Math.min(originalLength, MAX_PERSISTED_TEXT_CHARS);
+    if (cachedText.length > 50 && cacheLooksComplete) {
       textParts.push(`# ${title}\n\n${cachedText}`);
       continue;
     }
