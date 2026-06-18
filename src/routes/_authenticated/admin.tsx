@@ -20,7 +20,8 @@ const TABS = [
   { id: "missions", label: "Missions", to: "/admin" as const, match: (p: string) => p === "/admin" || p === "/admin/" || p.startsWith("/admin/missions") },
   { id: "staff", label: "Staff", to: "/admin/team" as const, match: (p: string) => p.startsWith("/admin/team") },
   { id: "messaging", label: "Messaging", to: "/admin/messaging" as const, match: (p: string) => p.startsWith("/admin/messaging") },
-  
+  { id: "state-intel", label: "State Intel", to: "/admin/state-intel" as const, match: (p: string) => p.startsWith("/admin/state-intel") },
+
   { id: "iris-control", label: "IRIS Control", to: "/admin/iris-control" as const, match: (p: string) => p.startsWith("/admin/iris-control") },
   { id: "iris-writer-view", label: "IRIS Writer View", to: "/admin/iris-writer-view" as const, match: (p: string) => p.startsWith("/admin/iris-writer-view") },
   { id: "iris-refresh", label: "IRIS Refresh", to: "/admin/iris-refresh" as const, match: (p: string) => p.startsWith("/admin/iris-refresh") },
