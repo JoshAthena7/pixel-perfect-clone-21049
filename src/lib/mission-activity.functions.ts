@@ -16,7 +16,10 @@ export type ActivityStream =
   | "score_me"
   | "mission_pulse"
   | "sos"
-  | "conflict";
+  | "conflict"
+  | "check_in"
+  | "sticky_note"
+  | "brief_exported";
 
 export type ActivityItem = {
   id: string;
@@ -92,7 +95,7 @@ export const getMissionActivity = createServerFn({ method: "POST" })
 
     const filterSince = (q: any) => (since ? q.gte("created_at", since) : q);
 
-    const [threadRes, consultRes, scoreRes, pulseRes, sosRes, conflictRes] = await Promise.all([
+    const [threadRes, consultRes, scoreRes, pulseRes, sosRes, conflictRes, assistRes] = await Promise.all([
       filterSince(
         supabaseAdmin
           .from("thread_messages")
@@ -144,7 +147,17 @@ export const getMissionActivity = createServerFn({ method: "POST" })
           .order("created_at", { ascending: false })
           .limit(100),
       ),
+      filterSince(
+        supabaseAdmin
+          .from("mission_assist_events")
+          .select("id,question_id,user_id,event_type,metadata,created_at")
+          .eq("mission_id", data.missionId)
+          .in("event_type", ["check_in", "sticky_note_posted", "brief_exported"])
+          .order("created_at", { ascending: false })
+          .limit(200),
+      ),
     ]);
+    
 
     // Resolve requester display names for expert_consults
     const requesterIds = Array.from(
@@ -153,7 +166,10 @@ export const getMissionActivity = createServerFn({ method: "POST" })
     const scorerIds = Array.from(
       new Set((scoreRes.data ?? []).map((r: any) => r.scored_by).filter(Boolean)),
     ) as string[];
-    const ids = Array.from(new Set([...requesterIds, ...scorerIds]));
+    const assistActorIds = Array.from(
+      new Set(((assistRes?.data as any[]) ?? []).map((r: any) => r.user_id).filter(Boolean)),
+    ) as string[];
+    const ids = Array.from(new Set([...requesterIds, ...scorerIds, ...assistActorIds]));
     const profileMap = new Map<string, string>();
     if (ids.length) {
       const { data: profs } = await supabaseAdmin
@@ -308,7 +324,48 @@ export const getMissionActivity = createServerFn({ method: "POST" })
       });
     });
 
+    // mission_assist_events: check_in, sticky_note_posted, brief_exported
+    ((assistRes?.data as any[]) ?? []).forEach((r: any) => {
+      const q = r.question_id ? qMap.get(r.question_id) : null;
+      const actorFull = (r.user_id && profileMap.get(r.user_id)) || "Team member";
+      const firstName = actorFull.split(/[\s@]/)[0] || actorFull;
+      const meta = (r.metadata ?? {}) as any;
+      const qLabel = q?.question_number ? `Q${q.question_number}` : "a question";
+      if (r.event_type === "check_in") {
+        const statusLabel =
+          meta.status === "on_track" ? "On Track" :
+          meta.status === "blocked" ? "Blocked" :
+          meta.status === "need_sme" ? "Need SME" :
+          (meta.status ?? "checked in");
+        items.push({
+          id: `checkin:${r.id}`, stream: "check_in", created_at: r.created_at,
+          actor: actorFull, question_id: r.question_id,
+          question_number: q?.question_number ?? null, question_text: q?.question_text ?? null,
+          summary: `${firstName} checked in on ${qLabel} — ${statusLabel}`,
+          detail: (meta.note ?? "").toString(),
+        });
+      } else if (r.event_type === "sticky_note_posted") {
+        const note = (meta.summary ?? "").toString().slice(0, 60);
+        items.push({
+          id: `sticky:${r.id}`, stream: "sticky_note", created_at: r.created_at,
+          actor: actorFull, question_id: r.question_id,
+          question_number: q?.question_number ?? null, question_text: q?.question_text ?? null,
+          summary: `${firstName} pinned a note to ${qLabel} — ${note}${note.length === 60 ? "…" : ""}`,
+          detail: note,
+        });
+      } else if (r.event_type === "brief_exported") {
+        items.push({
+          id: `brief:${r.id}`, stream: "brief_exported", created_at: r.created_at,
+          actor: actorFull, question_id: r.question_id,
+          question_number: q?.question_number ?? null, question_text: q?.question_text ?? null,
+          summary: `${firstName} exported the brief for ${qLabel}`,
+          detail: "",
+        });
+      }
+    });
+
     items.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+
 
 
     // Attention rail

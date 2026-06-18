@@ -8,6 +8,7 @@ import {
   reassignQuestion, bulkResetBriefErrors,
 } from "@/lib/war-room.functions";
 import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
+import { MissionRadar } from "./MissionRadar";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -65,6 +66,23 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         .eq("event_type", "sticky_note_posted")
         .order("created_at", { ascending: false })
         .limit(10);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const sosActiveQ = useQuery({
+    queryKey: ["war-room-sos-active", missionId],
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const sinceIso = new Date(Date.now() - 4 * 3600_000).toISOString();
+      const { data, error } = await supabase
+        .from("mission_assist_events")
+        .select("id, question_id, created_at")
+        .eq("mission_id", missionId)
+        .eq("event_type", "sos_raised")
+        .gte("created_at", sinceIso)
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
@@ -190,8 +208,22 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
             <span className="text-white/45">Last IRIS:</span>{" "}
             <span className="text-white">{relTime(d.lastIrisRun)}</span>
           </span>
+          {(sosActiveQ.data?.length ?? 0) > 0 && (
+            <button
+              onClick={() => {
+                const first = sosActiveQ.data?.[0];
+                if (first?.question_id) {
+                  navigate({ to: "/missions/$missionId/flight-deck", params: { missionId }, hash: first.question_id });
+                }
+              }}
+              className="ml-auto inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded animate-pulse"
+              style={{ background: "rgba(239,68,68,0.2)", color: "#fca5a5", border: "1px solid rgba(239,68,68,0.5)" }}
+            >
+              ⚠ {(sosActiveQ.data?.length ?? 0) > 1 ? `${sosActiveQ.data?.length} SOS Active` : "SOS Active"}
+            </button>
+          )}
           <Button
-            size="sm" variant="ghost" className="ml-auto h-7 gap-1.5"
+            size="sm" variant="ghost" className={`${(sosActiveQ.data?.length ?? 0) > 0 ? "" : "ml-auto"} h-7 gap-1.5`}
             onClick={() => { dataQ.refetch(); trendQ.refetch(); }}
           >
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
@@ -357,6 +389,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
 
         {/* CENTER */}
         <div className="space-y-4 lg:col-span-1">
+          <MissionRadar missionId={missionId} />
           <Widget title="Health Over Time" sub="Last 14 days" stamp={d.generatedAt}>
             {!trendQ.data || !trendQ.data.hasHistory ? (
               <div className="py-6 text-center text-xs text-white/50">
