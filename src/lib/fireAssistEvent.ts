@@ -10,7 +10,8 @@ export type AssistEventType =
   | "status_updated"
   | "check_in"
   | "mock_scored"
-  | "pulse_posted";
+  | "pulse_posted"
+  | "sticky_note_posted";
 
 /**
  * Logs a writer/leader behavior event to mission_assist_events.
