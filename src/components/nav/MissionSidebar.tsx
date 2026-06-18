@@ -119,11 +119,23 @@ function activeForSeg(item: NavItem, seg: string, pathname: string): boolean {
   return item.matchSegs.includes(seg);
 }
 
+function useWarRoomAccess(missionId: string, isAdmin: boolean) {
+  const { data: access } = useMissionAccess(missionId);
+  if (isAdmin) return true;
+  const role = access?.role ?? null;
+  return !!role && PM_ROLES.has(role);
+}
+
 export function MissionSidebar({ missionId, email }: { missionId: string; email?: string | null }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const seg = pathname.split("/")[3] ?? "";
   const { isAdmin } = useIsAdmin();
-  const items = buildItems(missionId).filter((it) => it.id !== "olympus" || isAdmin);
+  const canWarRoom = useWarRoomAccess(missionId, isAdmin);
+  const items = buildItems(missionId).filter((it) => {
+    if (it.id === "olympus") return isAdmin;
+    if (it.id === "war-room") return canWarRoom;
+    return true;
+  });
   const intel = useIntelSummary(missionId);
 
   return (
