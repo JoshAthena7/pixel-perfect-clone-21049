@@ -89,17 +89,22 @@ export async function runIrisRfpExtraction(
     .from("mission_documents")
     .select("id, title, file_url, content_summary, metadata")
     .eq("mission_id", missionId)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: false });
+  // Filter out documents marked superseded by dedup
+  const liveDocs = (docs ?? []).filter((d) => {
+    const meta = (d.metadata ?? {}) as Record<string, unknown>;
+    return meta.superseded !== true && meta.superseded !== "true";
+  });
   if (docsError) throw docsError;
 
-  if (!docs || docs.length === 0) {
+  if (liveDocs.length === 0) {
     throw new Error(
       "RFP text not available. No documents are attached to this mission — upload your RFP in Step 1 (Fuel IRIS) before running extraction.",
     );
   }
 
   const textParts: string[] = [];
-  for (const doc of docs) {
+  for (const doc of liveDocs) {
     const title = doc.title ?? "Document";
     // Reassemble full text: content_summary (first 220k) + any text_chunk_N in metadata.
     const meta = (doc.metadata ?? {}) as Record<string, unknown>;

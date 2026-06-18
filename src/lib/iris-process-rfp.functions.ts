@@ -92,6 +92,8 @@ For each real requirement found, question_text MUST be the actual RFP language v
 
 If this section contains NO substantive requirements (it is a form, certification, signature page, or purely administrative): return {"questions": []}.
 
+CRITICAL — SECTION SCOPE: Every question_number you return MUST start with the section_number you are given as its prefix (e.g. if the section is 3.15, every question_number must begin with "3.15."). If the slice contains text that belongs to a later section (3.16, 3.17, 4.x…), DO NOT extract those requirements — they will be picked up when that section runs. Stay strictly inside the given section.
+
 question_number format: "[section_number].[sequence]" e.g. "3.14.1", "3.14.2". Extract page/word limits and evaluation weight when stated.`;
 
 type Conf = "high" | "medium" | "low";
@@ -374,7 +376,7 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
               evaluation_weight: safeNum(s.evaluation_weight),
               description: s.description ? String(s.description).slice(0, 4000) : null,
               iris_confidence: conf(s.confidence),
-              is_form_only: s.is_form_only === true,
+              is_form_only: classifySectionFormOnly(String(s.name ?? ""), s.description ?? null),
               order_index: si,
             })
             .select("id")
@@ -395,7 +397,7 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
               evaluation_weight: safeNum(ss.evaluation_weight),
               description: ss.description ? String(ss.description).slice(0, 4000) : null,
               iris_confidence: conf(ss.confidence),
-              is_form_only: ss.is_form_only === true,
+              is_form_only: classifySectionFormOnly(String(ss.name ?? ""), ss.description ?? null),
               order_index: ssi,
             });
             if (!ssErr) counts.sub_sections++;
@@ -521,12 +523,22 @@ export const extractQuestionsForSection = createServerFn({ method: "POST" })
       const systemPrompt = isInferred ? INFERRED_SYSTEM : QUESTIONS_SYSTEM;
       const userMsg = isInferred
         ? `RFP Section: ${section.section_number} — ${section.name}\n\nThe RFP text for this section could not be extracted. Based on the section name and number above, generate the likely questions a typical NJ Medicaid RFP section with this title would require bidders to address.`
-        : `RFP Section: ${section.section_number} — ${section.name}\n\nSection text:\n${data.section_text}`;
+        : `RFP Section: ${section.section_number} — ${section.name}\n\nSECTION SCOPE: Only extract requirements that belong to section ${section.section_number}. Every question_number MUST start with "${section.section_number}." — discard anything that belongs to a later section.\n\nSection text:\n${data.section_text}`;
       const content = await callAI(apiKey, systemPrompt, userMsg);
       if (!content) return { ok: false, inserted: 0, skipped: "ai_no_response", inferred: isInferred };
 
       const parsed = tryParseJSON<{ questions?: AIQuestion[] }>(content);
-      const qs = Array.isArray(parsed?.questions) ? parsed!.questions : [];
+      const allQs = Array.isArray(parsed?.questions) ? parsed!.questions : [];
+      // Filter out wrong-prefix questions (cross-section bleed)
+      const prefix = `${section.section_number}.`;
+      const qs = allQs.filter((q) => {
+        const qn = String(q.question_number ?? "").trim();
+        return qn === "" || qn.startsWith(prefix);
+      });
+      const discarded = allQs.length - qs.length;
+      if (discarded > 0) {
+        console.log(`[iris-pass2] Discarded ${discarded} wrong-prefix questions in section ${section.section_number}`);
+      }
       if (qs.length === 0) return { ok: true, inserted: 0, skipped: "no_questions", inferred: isInferred };
 
       const rows = qs
@@ -586,14 +598,15 @@ export const extractQuestionsForSection = createServerFn({ method: "POST" })
 export function sliceSectionTextForClient(
   fullText: string,
   sectionNumber: string | null,
+  allSectionNumbers: string[] = [],
 ): string {
-  return sliceSectionText(fullText, sectionNumber);
+  return sliceSectionText(fullText, sectionNumber, allSectionNumbers);
 }
 
 /**
  * Fallback chain for form-driven RFPs where the canonical line-anchored
  * regex misses. Returns the best slice we can find, or "" if none.
- *   1. line-anchored regex (sliceSectionText)
+ *   1. line-anchored regex bounded by next section (sliceSectionText)
  *   2. inline regex: section number anywhere in the text
  *   3. proportional slice based on section position
  */
@@ -602,11 +615,12 @@ export function sliceSectionTextWithFallbacks(
   sectionNumber: string | null,
   sectionIndex: number,
   totalSections: number,
+  allSectionNumbers: string[] = [],
 ): { text: string; attempt: 1 | 2 | 3 | 0 } {
   if (!sectionNumber) return { text: "", attempt: 0 };
 
-  // Attempt 1 — strict line-anchored regex
-  const attempt1 = sliceSectionText(fullText, sectionNumber);
+  // Attempt 1 — strict line-anchored regex, bounded by next section
+  const attempt1 = sliceSectionText(fullText, sectionNumber, allSectionNumbers);
   if (attempt1.length >= 50) return { text: attempt1, attempt: 1 };
 
   // Attempt 2 — inline regex (section number anywhere)
@@ -615,7 +629,7 @@ export function sliceSectionTextWithFallbacks(
     const inline = new RegExp(`${escaped}(?![0-9])[\\.\\s\\)\\:\\-]`, "i");
     const m = inline.exec(fullText);
     if (m) {
-      const slice = fullText.slice(m.index, m.index + 4000);
+      const slice = fullText.slice(m.index, m.index + 12_000);
       if (slice.length >= 50) return { text: slice, attempt: 2 };
     }
   } catch {
@@ -625,7 +639,7 @@ export function sliceSectionTextWithFallbacks(
   // Attempt 3 — proportional slice based on position
   if (totalSections > 0 && fullText.length > 0) {
     const startPos = Math.floor((sectionIndex / totalSections) * fullText.length);
-    const slice = fullText.slice(startPos, startPos + 4000);
+    const slice = fullText.slice(startPos, startPos + 12_000);
     if (slice.length >= 50) return { text: slice, attempt: 3 };
   }
 
