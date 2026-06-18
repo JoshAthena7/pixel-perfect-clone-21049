@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/select";
 import { addManualIntelEvent } from "@/lib/intel-events-manual.functions";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
+import { OracleIntakeModal } from "@/components/oracle/OracleIntakeModal";
+import { listOracleSignalsForMission } from "@/lib/oracle-intel.functions";
 
 const GOLD = "#C49A2B";
 const PURPLE = "#a855f7";
