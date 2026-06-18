@@ -1,74 +1,99 @@
-## Competitor Intelligence Cards — Step 4
+## State Intelligence Pack — Build Plan
 
-Generate an IRIS Competitor Intelligence Card for every confirmed competitor in the Mission Setup Wizard Step 4, persist it as confirmable/editable extractions, and surface the counter-strategy in the Mission Brief and Flight Deck.
+A per-state intelligence library that lives once, not per mission. Every mission in that state auto-inherits it. Admin-only.
 
-### Stack adaptations (with your sign-off)
-- **Backend boundary:** TanStack `createServerFn` in `src/lib/iris-competitor-intel.functions.ts` instead of a Supabase Edge Function — this project is TanStack Start; `createServerFn` is the canonical equivalent.
-- **Model:** Lovable AI Gateway with `google/gemini-3-flash-preview` (Lovable's built-in AI, no key required) instead of Claude. Same structured-JSON prompt, identical output shape.
-- **Storage:** Reuse `mission_iris_extractions` exactly as you specified — no new tables.
+### Route & access
 
-### 1. Server function: `generateCompetitorIntelligence`
-File: `src/lib/iris-competitor-intel.functions.ts`
+- New route: `/_authenticated/olympus/state-intel/` (list of states)
+- Detail route: `/_authenticated/olympus/state-intel/$stateCode` (the 12-category pack for one state)
+- Gated to admin role via existing `useAccess` / role check used in other Olympus admin pages.
 
-Input: `{ mission_id, competitors: string[] }` (mission state + program type loaded server-side from `missions`).
+### Data model (one migration)
 
-Per competitor, query in this order and collect raw records:
-1. `insights` where `insight_type='competitive_intel'` and name match in `content` or `tags`
-2. `state_dna` where `state = mission.state_location` and content matches
-3. `program_dna` where `program = mission.program_type` and content matches
-4. `signals` content match, newest 5
-5. `missions` where `known_competitors @> ARRAY[name]` (status / outcome)
-6. `experts` where `organization ILIKE %name%`
+Two tables in `public`:
 
-Call Lovable AI Gateway with your exact 8-section + `how_we_beat_them` prompt, requesting JSON. Map confidence → 0.3/0.6/0.9. Upsert one row per competitor into `mission_iris_extractions`:
-- `extracted_field = 'competitor_card_' + slug(name)`
-- `extracted_value = JSON.stringify(card)`
-- `wizard_step = 4`
-- `confidence_score` per mapping
-- `source_file_name = name` (for display)
+**`state_intel_packs`** — one row per state
+- `state_code` (text, PK, e.g. "TX", "FL")
+- `state_name` (text)
+- `last_reviewed_at`, `last_reviewed_by`
+- `notes` (text)
 
-After all cards, generate the **Competitive Landscape Summary** paragraph (second AI call) and upsert as `extracted_field = 'competitive_landscape_summary'`, `wizard_step = 4`.
+**`state_intel_documents`** — uploads
+- `id`, `state_code` (FK), `category` (enum, 12 values below)
+- `title`, `description`
+- `storage_path` (in `state-intel` bucket), `file_size`, `mime_type`
+- `effective_date` (when doc was published)
+- `expires_at` (optional — for waivers with end dates)
+- `is_current` (bool — for superseded docs)
+- `uploaded_by`, `uploaded_at`
 
-### 2. Trigger from Step 4
-In `Step4Competitive.tsx`, add a **"Confirm Competitors & Generate Intelligence"** button. On click:
-1. Save confirmed list to `missions.known_competitors`.
-2. Invoke `generateCompetitorIntelligence` (shows progress: "IRIS is researching N competitors…").
-3. Reveal the cards section.
+Both tables: RLS enabled, GRANTs for authenticated + service_role, admin-only insert/update/delete via `has_role(auth.uid(), 'admin')`, read for all authenticated (writers see what's in the library).
 
-Re-running is allowed — server function upserts; existing user-overridden text on individual sections is preserved (we only overwrite sections where `overridden_by_user = false`).
+New private storage bucket: `state-intel`.
 
-### 3. Competitor card UI
-New component `src/components/mission-wizard-v3/CompetitorCard.tsx`.
+### 12 Categories (the checklist)
 
-**Header row:** name (bold), threat-level badge (HIGH/MEDIUM/LOW computed from incumbent flag + recent-wins count), IRIS confidence label, **Add Intelligence** button (opens modal).
+1. Waivers & Authorities — 1115 STCs, evaluation reports, 1915(b/c/i/k)
+2. State Plan & Amendments — SPA history, MOAs
+3. Managed Care Landscape — current MCO contracts, RFP history, enrollment
+4. Quality Strategy — current quality strategy, EQR reports (last 2 yrs)
+5. Directed Payments & SDPs — current inventory, preprints
+6. Core Set Performance — HEDIS/CAHPS results, improvement plans
+7. Legislative & Budget — recent session actions, budget bills, MMAC/MAC minutes
+8. Rate Setting — capitation rate certifications, actuarial reports
+9. Eligibility & Enrollment — unwinding reports, continuous eligibility status
+10. Workforce & Provider Network — adequacy reports, workforce initiatives
+11. Demographics & Health Status — state health dashboard, SDOH data
+12. Litigation & Compliance — active suits, CMS corrective actions
 
-**Body:** 8 collapsible sections (Incumbent Status, How They Win, Known Weaknesses, Win/Loss History, Likely Teaming, Pricing Posture, Key Personnel, Recent Signals). Gold IRIS badge on each. Inline **Edit** writes `user_override_value` per-section in a sub-extraction row (key pattern: `competitor_card_<slug>__<section>`) so card-level regeneration doesn't clobber edits.
+### UI
 
-**Footer:** gold/amber highlighted **⚡ HOW WE BEAT THEM** box with `how_we_beat_them` paragraph and Edit Counter-Strategy.
+**List page (`/olympus/state-intel`)**:
+- Grid of state cards. Each card shows:
+  - State name + code
+  - Completeness ring: X of 12 categories with at least one current doc
+  - Last reviewed date
+  - "Stale" badge if >6 months
+- "Add state" button
 
-**Empty state:** placeholder copy with prompt to use Add Intelligence.
+**Detail page (`/olympus/state-intel/$stateCode`)**:
+- Header with state name, completeness %, last reviewed, "Mark reviewed" button
+- 12 collapsible category sections, each showing:
+  - Checkbox indicator (green = has current doc, amber = stale, red = empty)
+  - Description of what belongs in this category
+  - List of uploaded docs (title, effective date, uploaded by, download, archive)
+  - Drag-drop upload zone
+- Right rail: "Missions inheriting this pack" — list of active missions in this state
 
-### 4. Add Intelligence modal
-`AddCompetitorIntelModal.tsx` — title, body, tag chips (auto-tags the competitor name). Inserts into `insights` with `insight_type='competitive_intel'`. Optional "Regenerate this card with new intel" button after save.
+### Component split
 
-### 5. Competitive Landscape Summary panel
-Below all cards in Step 4 — read-only synthesis paragraph with single Regenerate button.
+- `src/routes/_authenticated/olympus.state-intel.index.tsx` — list page
+- `src/routes/_authenticated/olympus.state-intel.$stateCode.tsx` — detail page
+- `src/components/state-intel/StateIntelGrid.tsx` — state cards
+- `src/components/state-intel/StateIntelDetail.tsx` — 12-category surface
+- `src/components/state-intel/CategorySection.tsx` — one collapsible category
+- `src/components/state-intel/UploadZone.tsx` — drag-drop + supabase storage upload
+- `src/lib/state-intel/categories.ts` — the canonical 12-category list (id, label, description, what-to-upload examples)
+- `src/lib/state-intel/state-intel.functions.ts` — server fns for upload metadata writes, mark-reviewed, completeness calc
 
-### 6. Wiring to Mission Brief & Flight Deck
-- **Mission Briefing Room** (`/missions/$missionId`): new read-only "Competitive Intelligence" section that renders all `competitor_card_*` extractions plus the landscape summary.
-- **Flight Deck Question Brief** (`iris-brief.functions.ts → generateQuestionBrief`): inject `how_we_beat_them` paragraphs + landscape summary into the brief-generation prompt context, and add a "Counter-Strategy" panel in the Question Brief UI that shows them inline.
+### Nav
 
-### Technical details
-- Slug helper: lowercase, non-alphanumeric → `_`, trim.
-- Threat computation server-side from the queried records, stored as `card.threat_level`.
-- All AI calls use Lovable AI Gateway (`createLovableAiGatewayProvider`); errors (402/429) surface to the wizard with retry.
-- Idempotent: re-running upserts via unique `(mission_id, extracted_field)` index already on `mission_iris_extractions`.
-- All queries scoped server-side via `requireSupabaseAuth`; mission ownership verified before any insert.
+Add "State Intel" entry to Olympus admin nav (`OlympusSecondaryNav.tsx` or `AdminQuickBar.tsx` — whichever houses admin-only links).
 
-### Files touched
-- **New:** `src/lib/iris-competitor-intel.functions.ts`, `src/components/mission-wizard-v3/CompetitorCard.tsx`, `src/components/mission-wizard-v3/AddCompetitorIntelModal.tsx`, `src/components/mission-wizard-v3/CompetitiveLandscapePanel.tsx`, `src/components/mission/CompetitiveIntelligenceSection.tsx` (briefing room).
-- **Edited:** `src/components/mission-wizard-v3/Step4Competitive.tsx`, `src/routes/_authenticated/missions.$missionId.tsx`, `src/lib/iris-brief.functions.ts`, Flight Deck Question Brief component.
+### Out of scope for v1
 
-### Out of scope (confirm if you want them in)
-- Per-section streaming UI while AI generates (kept simple with a single progress spinner).
-- Web-search augmentation when IRIS Memory is empty (your spec says "Limited intelligence available…" copy instead).
+- Auto-attaching the pack into mission context at brief generation (we'll wire that in a follow-up once content exists)
+- Cross-state comparison views
+- Auto-refresh from external sources (CMS, KFF) — manual upload only for v1
+
+### Order of operations
+
+1. Migration (tables + bucket + RLS + GRANTs)
+2. Categories config file
+3. Server functions
+4. List + detail routes
+5. Upload component
+6. Nav link
+7. Smoke test: upload a doc to TX → Waivers, verify completeness updates, verify writers can read but not delete.
+
+Confirm to proceed and I'll start with the migration.

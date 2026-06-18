@@ -11654,6 +11654,92 @@ export type Database = {
         }
         Relationships: []
       }
+      state_intel_documents: {
+        Row: {
+          category: Database["public"]["Enums"]["state_intel_category"]
+          description: string | null
+          effective_date: string | null
+          expires_at: string | null
+          file_size: number | null
+          id: string
+          is_current: boolean
+          mime_type: string | null
+          state_code: string
+          storage_path: string
+          title: string
+          uploaded_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["state_intel_category"]
+          description?: string | null
+          effective_date?: string | null
+          expires_at?: string | null
+          file_size?: number | null
+          id?: string
+          is_current?: boolean
+          mime_type?: string | null
+          state_code: string
+          storage_path: string
+          title: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["state_intel_category"]
+          description?: string | null
+          effective_date?: string | null
+          expires_at?: string | null
+          file_size?: number | null
+          id?: string
+          is_current?: boolean
+          mime_type?: string | null
+          state_code?: string
+          storage_path?: string
+          title?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "state_intel_documents_state_code_fkey"
+            columns: ["state_code"]
+            isOneToOne: false
+            referencedRelation: "state_intel_packs"
+            referencedColumns: ["state_code"]
+          },
+        ]
+      }
+      state_intel_packs: {
+        Row: {
+          created_at: string
+          last_reviewed_at: string | null
+          last_reviewed_by: string | null
+          notes: string | null
+          state_code: string
+          state_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          last_reviewed_at?: string | null
+          last_reviewed_by?: string | null
+          notes?: string | null
+          state_code: string
+          state_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          last_reviewed_at?: string | null
+          last_reviewed_by?: string | null
+          notes?: string | null
+          state_code?: string
+          state_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       state_intelligence: {
         Row: {
           citations: string[]
@@ -12574,6 +12660,19 @@ export type Database = {
         | "word_limit"
       response_template_source: "upload" | "manual"
       response_template_status: "active" | "skipped"
+      state_intel_category:
+        | "waivers_authorities"
+        | "state_plan_amendments"
+        | "managed_care_landscape"
+        | "quality_strategy"
+        | "directed_payments"
+        | "core_set_performance"
+        | "legislative_budget"
+        | "rate_setting"
+        | "eligibility_enrollment"
+        | "workforce_network"
+        | "demographics_health"
+        | "litigation_compliance"
       thread_object_type:
         | "question_record"
         | "deliverable"
@@ -12747,6 +12846,20 @@ export const Constants = {
       ],
       response_template_source: ["upload", "manual"],
       response_template_status: ["active", "skipped"],
+      state_intel_category: [
+        "waivers_authorities",
+        "state_plan_amendments",
+        "managed_care_landscape",
+        "quality_strategy",
+        "directed_payments",
+        "core_set_performance",
+        "legislative_budget",
+        "rate_setting",
+        "eligibility_enrollment",
+        "workforce_network",
+        "demographics_health",
+        "litigation_compliance",
+      ],
       thread_object_type: [
         "question_record",
         "deliverable",
