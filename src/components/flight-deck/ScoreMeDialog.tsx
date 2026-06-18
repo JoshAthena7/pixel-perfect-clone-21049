@@ -47,6 +47,10 @@ export function ScoreMeDialog({
   const [result, setResult] = useState<ScoreMeResult | null>(null);
   const [posting, setPosting] = useState(false);
   const [contextStatus, setContextStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [stuckMode, setStuckMode] = useState(false);
+  const [stuckPrompt, setStuckPrompt] = useState("");
+  const [stuckLoading, setStuckLoading] = useState(false);
+  const [stuckOpener, setStuckOpener] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
