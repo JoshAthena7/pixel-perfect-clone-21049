@@ -291,13 +291,7 @@ export const getAthenaPlatformHealth = createServerFn({ method: "GET" })
       : KNOWN_JOBS.map((j) => ({ ...j, active: true, lastRunAt: null, lastStatus: null }));
 
     return {
-      cronJobs: (cronRes.data ?? []).map((j: any) => ({
-        jobname: j.jobname,
-        schedule: j.schedule,
-        active: j.active,
-        lastRunAt: j.last_run_at,
-        lastStatus: j.last_status,
-      })),
+      cronJobs,
       briefs: { ready, queued, generating, errors },
       graph: {
         nodes: nodesCount,
