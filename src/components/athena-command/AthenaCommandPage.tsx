@@ -28,7 +28,7 @@ const GOLD = "var(--athena-gold)";
 // ---- Live clock ----
 function useNow(intervalMs = 60_000) {
   const [now, setNow] = useState(() => new Date());
-  useMemo(() => {
+  useEffect(() => {
     const t = window.setInterval(() => setNow(new Date()), intervalMs);
     return () => window.clearInterval(t);
   }, [intervalMs]);
