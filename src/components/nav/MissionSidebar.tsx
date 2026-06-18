@@ -55,7 +55,7 @@ function buildItems(missionId: string): NavItem[] {
     },
     {
       id: "war-room",
-      label: "WAR ROOM",
+      label: "ATC",
       Icon: Radar,
       to: `/missions/${missionId}/war-room`,
       matchSegs: ["war-room"],
