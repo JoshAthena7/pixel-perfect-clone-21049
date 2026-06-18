@@ -10,12 +10,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ClipboardList, Eye, Rocket, Settings, Check } from "lucide-react";
+import { ChevronDown, ClipboardList, Eye, Rocket, Settings, Check, Radar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { UserMenu } from "@/components/nav/UserMenu";
 import { useMissionMeta } from "@/hooks/useMissionMeta";
-import { useIsAdmin } from "@/hooks/useAccess";
+import { useIsAdmin, useMissionAccess } from "@/hooks/useAccess";
+
+const PM_ROLES = new Set(["admin", "lead", "engagement_lead", "project_manager"]);
 
 const GOLD = "#d4a843";
 const MUTED = "#666680";
@@ -50,6 +52,13 @@ function buildItems(missionId: string): NavItem[] {
       Icon: Rocket,
       to: `/missions/${missionId}/flight-deck`,
       matchSegs: ["flight-deck"],
+    },
+    {
+      id: "war-room",
+      label: "WAR ROOM",
+      Icon: Radar,
+      to: `/missions/${missionId}/war-room`,
+      matchSegs: ["war-room"],
     },
     {
       id: "olympus",
@@ -110,11 +119,23 @@ function activeForSeg(item: NavItem, seg: string, pathname: string): boolean {
   return item.matchSegs.includes(seg);
 }
 
+function useWarRoomAccess(missionId: string, isAdmin: boolean) {
+  const { data: access } = useMissionAccess(missionId);
+  if (isAdmin) return true;
+  const role = access?.role ?? null;
+  return !!role && PM_ROLES.has(role);
+}
+
 export function MissionSidebar({ missionId, email }: { missionId: string; email?: string | null }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const seg = pathname.split("/")[3] ?? "";
   const { isAdmin } = useIsAdmin();
-  const items = buildItems(missionId).filter((it) => it.id !== "olympus" || isAdmin);
+  const canWarRoom = useWarRoomAccess(missionId, isAdmin);
+  const items = buildItems(missionId).filter((it) => {
+    if (it.id === "olympus") return isAdmin;
+    if (it.id === "war-room") return canWarRoom;
+    return true;
+  });
   const intel = useIntelSummary(missionId);
 
   return (
@@ -342,11 +363,16 @@ export function MissionBottomTabs({ missionId }: { missionId: string }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const seg = pathname.split("/")[3] ?? "";
   const { isAdmin } = useIsAdmin();
-  const items = buildItems(missionId).filter((it) => it.id !== "olympus" || isAdmin);
+  const canWarRoom = useWarRoomAccess(missionId, isAdmin);
+  const items = buildItems(missionId).filter((it) => {
+    if (it.id === "olympus") return isAdmin;
+    if (it.id === "war-room") return canWarRoom;
+    return true;
+  });
 
   return (
     <nav
-      className={`md:hidden fixed bottom-0 left-0 right-0 z-40 grid ${items.length === 4 ? "grid-cols-4" : "grid-cols-3"}`}
+      className={`md:hidden fixed bottom-0 left-0 right-0 z-40 grid ${items.length >= 5 ? "grid-cols-5" : items.length === 4 ? "grid-cols-4" : "grid-cols-3"}`}
       style={{
         background: "#070f1c",
         borderTop: "1px solid rgba(255,255,255,0.08)",
