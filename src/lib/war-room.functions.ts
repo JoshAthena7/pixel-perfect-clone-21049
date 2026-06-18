@@ -190,7 +190,7 @@ export const getWarRoomData = createServerFn({ method: "POST" })
       if (!reasons.length) continue;
 
       const writerId = progressByQ[q.id]?.assignee_id ?? assignByQ[q.id]?.assigned_writer_id ?? null;
-      const writerProf = writerId ? profileById[writerId] : null;
+      const writerProf = writerId ? (profileById[writerId] ?? null) : null;
       // Priority score (lower = more urgent)
       let pri = 9;
       if (stuckByQ[q.id]) pri = 1;
