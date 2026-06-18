@@ -59,11 +59,12 @@ type Props = {
   senderFirstName: string;
   onNudge: (writerId: string) => void;
   onOpenFlightDeck: (writerId: string, questionId?: string) => void;
+  readOnly?: boolean;
 };
 
 export function WriterDrawer({
   open, onClose, target, missionId, missionName, daysToDeadline,
-  senderFirstName, onNudge, onOpenFlightDeck,
+  senderFirstName, onNudge, onOpenFlightDeck, readOnly = false,
 }: Props) {
   const [notesForQ, setNotesForQ] = useState<{ id: string; number: string | null; title: string } | null>(null);
   const [flagging, setFlagging] = useState(false);
