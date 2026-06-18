@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { X, Pin, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fireAssistEvent } from "@/lib/fireAssistEvent";
 import { toast } from "sonner";
 
 type Props = {
