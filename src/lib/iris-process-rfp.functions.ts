@@ -810,8 +810,10 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
         }
 
         if (fallbackVolumeId) {
-          const { error: detectedErr } = await supabase.from("mission_sections").insert(
-            missingDetectedSections.map((s, i) => ({
+          let insertedDetected = 0;
+          for (let i = 0; i < missingDetectedSections.length; i++) {
+            const s = missingDetectedSections[i];
+            const { error: detectedErr } = await supabase.from("mission_sections").insert({
               mission_id: data.mission_id,
               volume_id: fallbackVolumeId,
               parent_section_id: null,
@@ -823,9 +825,10 @@ export const processRFPDocuments = createServerFn({ method: "POST" })
               iris_confidence: "high",
               is_form_only: s.is_form_only,
               order_index: counts.sections + i,
-            })),
-          );
-          if (!detectedErr) counts.sections += missingDetectedSections.length;
+            });
+            if (!detectedErr) insertedDetected++;
+          }
+          counts.sections += insertedDetected;
         }
       }
 
