@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  getWarRoomData, getWarRoomHealthTrend, sendNudge, flagQuestion,
+  getWarRoomData, getWarRoomHealthTrend, flagQuestion,
   reassignQuestion, bulkResetBriefErrors,
 } from "@/lib/war-room.functions";
 import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
