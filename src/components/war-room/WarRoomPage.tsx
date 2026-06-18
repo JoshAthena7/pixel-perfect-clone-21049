@@ -32,13 +32,6 @@ function initials(name: string) {
   return name.split(/\s+/).map((p) => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "?";
 }
 
-const STATUS_META: Record<string, { dot: string; label: string; color: string }> = {
-  active:      { dot: "🟢", label: "Active",      color: "#22c55e" },
-  away:        { dot: "🟡", label: "Away",        color: "#eab308" },
-  quiet:       { dot: "🟠", label: "Quiet",       color: "#f97316" },
-  silent:      { dot: "🔴", label: "Silent",      color: "#ef4444" },
-  not_started: { dot: "⚪", label: "Not started", color: "#94a3b8" },
-};
 
 export function WarRoomPage({ missionId }: { missionId: string }) {
   const qc = useQueryClient();
