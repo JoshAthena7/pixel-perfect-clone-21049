@@ -115,6 +115,8 @@ export function IntelFeed({ missionId }: { missionId: string }) {
   const qc = useQueryClient();
   const seedFn = useServerFn(seedMissionIntelligence);
 
+  const listOracleFn = useServerFn(listOracleSignalsForMission);
+
   const { data, isLoading } = useQuery({
     queryKey: ["intel-events", missionId],
     queryFn: async () => {
@@ -129,7 +131,35 @@ export function IntelFeed({ missionId }: { missionId: string }) {
     },
   });
 
-  const events = (data ?? []) as any[];
+  const { data: oracleData } = useQuery({
+    queryKey: ["oracle-signals", missionId],
+    queryFn: () => listOracleFn({ data: { missionId } }),
+    staleTime: 30_000,
+  });
+
+  const events = useMemo(() => {
+    const base = (data ?? []) as any[];
+    const oracleRows = (oracleData ?? []) as any[];
+    // Map oracle_signals to feed-shape, mark as oracle
+    const mapped = oracleRows.map((s) => ({
+      id: `oracle:${s.id}`,
+      mission_id: s.mission_id ?? missionId,
+      event_type: s.signal_type ?? "signal",
+      title: s.title,
+      content: s.summary ?? s.what_happened ?? "",
+      generated_by: "human",
+      source_type: "oracle",
+      signal_category: (s.metadata as any)?.category ?? null,
+      created_at: s.created_at,
+      __oracle: true,
+      __tier: s.tier,
+    }));
+    // Dedupe by id (intel_events row references signalId in source_id; but ids differ)
+    const seen = new Set(base.map((e) => e.id));
+    const merged = [...base, ...mapped.filter((m) => !seen.has(m.id))];
+    merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return merged;
+  }, [data, oracleData, missionId]);
 
   // Fire-and-forget first-pass IRIS seed when the feed is empty.
   // Only triggers once per mission per browser session; the server fn also
