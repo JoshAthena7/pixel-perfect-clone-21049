@@ -261,11 +261,16 @@ function sectionHeaderIndexes(
   allSections: SectionLocator[],
 ): number[] {
   const indexes = new Set<number>();
+  const nameIndexes = new Set<number>();
   const name = section.name?.trim();
   if (name) {
     const namePattern = escapeRegExp(name).replace(/\s+/g, "\\s+");
     const nameRe = new RegExp(`(?:^|\\n)[ \\t]*${namePattern}[ \\t]*(?:\\n|$)`, "gi");
-    for (const match of fullText.matchAll(nameRe)) indexes.add(match.index ?? 0);
+    for (const match of fullText.matchAll(nameRe)) {
+      const idx = match.index ?? 0;
+      indexes.add(idx);
+      nameIndexes.add(idx);
+    }
   }
 
   if (section.section_number) {
@@ -277,10 +282,18 @@ function sectionHeaderIndexes(
     for (const match of fullText.matchAll(numberRe)) indexes.add(match.index ?? 0);
   }
 
-  return Array.from(indexes)
+  const filtered = Array.from(indexes)
     .filter((idx) => !isTocCluster(fullText, idx, allSections))
     .filter((idx) => !isSectionTitleList(fullText, idx, section, allSections))
     .sort((a, b) => a - b);
+
+  const uppercaseNameMatches = filtered.filter((idx) => {
+    if (!nameIndexes.has(idx)) return false;
+    const line = fullText.slice(idx, fullText.indexOf("\n", idx + 1) === -1 ? idx + 200 : fullText.indexOf("\n", idx + 1));
+    const letters = line.replace(/[^A-Za-z]/g, "");
+    return letters.length > 3 && letters === letters.toUpperCase();
+  });
+  return uppercaseNameMatches.length > 0 ? uppercaseNameMatches : filtered;
 }
 
 /**
