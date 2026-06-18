@@ -1,8 +1,9 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
-import { Zap, RefreshCw, AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { Zap, RefreshCw, AlertTriangle, Info } from "lucide-react";
 import { generateIrisAlerts, type IrisAlert } from "@/lib/iris-alerts.functions";
+import { AlertsSkeleton, IrisHealthyCard, IrisOrientingCard } from "./AtcEmptyStates";
 
 function relTime(iso: string | null | undefined) {
   if (!iso) return "—";
@@ -14,7 +15,7 @@ function relTime(iso: string | null | undefined) {
 
 const GOLD = "#c9a84c";
 
-export function IrisAlertsPanel({ missionId, bare = false, onCountChange }: { missionId: string; bare?: boolean; onCountChange?: (n: number) => void }) {
+export function IrisAlertsPanel({ missionId, bare = false, onCountChange, missionTooNew = false }: { missionId: string; bare?: boolean; onCountChange?: (n: number) => void; missionTooNew?: boolean }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const fn = useServerFn(generateIrisAlerts);
