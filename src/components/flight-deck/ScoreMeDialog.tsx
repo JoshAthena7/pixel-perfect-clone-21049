@@ -126,6 +126,32 @@ export function ScoreMeDialog({
 
   const handleAgain = () => setResult(null);
 
+  const handleGetOpening = async () => {
+    if (!missionId || !questionId) {
+      toast.error("Open Score Me from a question first.");
+      return;
+    }
+    setStuckLoading(true);
+    setStuckOpener(null);
+    try {
+      const { text } = await assistRun({
+        data: {
+          missionId,
+          questionId,
+          tool: "win_angle",
+          mode: "initial",
+          priorResponse: stuckPrompt.trim() || undefined,
+        },
+      });
+      setStuckOpener(text);
+    } catch (e: any) {
+      toast.error("IRIS couldn't generate an opening", { description: e?.message ?? String(e) });
+    } finally {
+      setStuckLoading(false);
+    }
+  };
+
+
   const handleAddToThread = async () => {
     if (!missionId || !questionId || !result) return;
     setPosting(true);
