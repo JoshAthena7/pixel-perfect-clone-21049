@@ -116,13 +116,13 @@ export const generateIrisAlerts = createServerFn({ method: "POST" })
       if (q.health_status !== "at_risk") continue;
       const last = lastByQ[q.id];
       const hrs = last ? (now - new Date(last).getTime()) / 3600_000 : null;
-      if (hrs == null || hrs > 48) atRiskStaleQNums.push(q.question_number);
+      if (hrs == null || hrs > 48) atRiskStaleQNums.push(String(q.question_number ?? q.id));
     }
 
     // SOS active
     const sosQids = Array.from(new Set((sosRes.data ?? []).map((r: any) => r.question_id).filter(Boolean)));
     const qNumById: Record<string, string> = {};
-    for (const q of questions) qNumById[q.id] = q.question_number;
+    for (const q of questions) qNumById[q.id] = String(q.question_number ?? q.id);
     const sosQNums = sosQids.map((id: any) => qNumById[id] ?? id);
 
     const totalQ = questions.length;
