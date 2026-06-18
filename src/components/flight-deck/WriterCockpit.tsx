@@ -89,6 +89,7 @@ type Q = {
   brief_exported_at: string | null;
   last_activity_at: string | null;
   sme_assigned: boolean | null;
+  primary_win_theme: string | null;
 };
 
 export function WriterCockpit({ missionId, missionName }: { missionId: string; missionName: string }) {
