@@ -539,6 +539,14 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
         questionId={checkInFor?.id ?? null}
         questionNumber={checkInFor?.question_number ?? null}
         progressId={checkInFor?.progress_id ?? null}
+        statusOptions={
+          checkInFor
+            ? nextStatuses(checkInFor.progress_status, !!cockpit?.pensDown)
+            : []
+        }
+        onStatusChange={async (s) => {
+          if (checkInFor) await handleStatusChange(checkInFor, s as ProgressStatus);
+        }}
         onSubmitted={() => qc.invalidateQueries({ queryKey: refreshKey })}
       />
 
