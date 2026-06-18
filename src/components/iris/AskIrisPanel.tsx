@@ -21,12 +21,13 @@ import {
   Send,
   Users,
   FileText,
-  
   AlertTriangle,
   Copy,
   ExternalLink,
   Globe,
+  Plus,
 } from "lucide-react";
+import { OracleIntakeModal } from "@/components/oracle/OracleIntakeModal";
 import { useServerFn } from "@tanstack/react-start";
 import { askIrisWithSources } from "@/lib/iris/perplexity.functions";
 import ReactMarkdown from "react-markdown";
