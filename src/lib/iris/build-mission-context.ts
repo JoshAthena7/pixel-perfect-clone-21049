@@ -237,6 +237,7 @@ export async function buildMissionContext(
       field: s(r.extracted_field),
       value: s(r.user_override_value || r.extracted_value),
     })).filter((e) => e.field && e.value),
+    stateIntel: [],
     _buildMs: 0,
     _errors: errors,
   };
