@@ -21,6 +21,7 @@ import {
   type ProcessResult,
 } from "@/lib/iris-process-rfp.functions";
 import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
+import { mapNarrativeStructure } from "@/lib/oracle/map-narrative-structure.functions";
 
 const BUCKET = "atlas-rfp-documents";
 const PASS2_CONCURRENCY = 3;
