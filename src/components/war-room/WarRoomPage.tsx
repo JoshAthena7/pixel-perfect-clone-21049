@@ -61,6 +61,22 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
     queryFn: () => fetchTrend({ data: { missionId } }),
   });
 
+  const stickyActivityQ = useQuery({
+    queryKey: ["war-room-sticky-activity", missionId],
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("mission_assist_events")
+        .select("id, created_at, metadata, question_id, user_id")
+        .eq("mission_id", missionId)
+        .eq("event_type", "sticky_note_posted")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const [filterWriterId, setFilterWriterId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [nudgeTarget, setNudgeTarget] = useState<{ id: string; name: string } | null>(null);
