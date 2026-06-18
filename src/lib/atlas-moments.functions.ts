@@ -101,44 +101,29 @@ export const ensureMissionMoment = createServerFn({ method: "POST" })
 
     let content: Record<string, unknown> | null = null;
     if (momentType === "inspiration") {
-      const userMsg = `=== STRATEGIC CONTEXT ===
-${strategicBlock}
+      const userMsg = `Generate one piece of GENERAL inspiration — a quote or short reflection on craft, focus, teamwork, public service, or doing hard things well. Do NOT reference any specific RFP, client, mission, deadline, or procurement. Keep it universal and human.
 
-Generate one short inspiration moment grounded in this mission's actual stakes and win themes (not generic). Return JSON:
+Return JSON:
 {
-  "quote": "max 180 chars — specific to this mission and what's at stake for the people served",
-  "attribution": "who this is from — e.g. 'Josh Boynton · Athena Strategy Group' or 'IRIS · Mission Brief'",
-  "context": "max 100 chars — why this matters NOW"
+  "quote": "max 180 chars",
+  "attribution": "who this is from — real author/source, or 'IRIS' if original",
+  "context": "max 100 chars — why this idea is worth sitting with today"
 }`;
       const raw = await callIris(INSPIRATION_SYS, userMsg);
       content = parseJson(raw);
     } else {
-      // Trivia: gather this user's assigned question titles for relevance
-      const { data: asgs } = await supabase
-        .from("mission_assignments")
-        .select("question_id, mission_questions:question_id(question_number, question_text)")
-        .eq("mission_id", missionId)
-        .eq("assigned_writer_id", userId)
-        .limit(20);
-      const qList = (asgs ?? [])
-        .map((a: any) => `${a.mission_questions?.question_number ?? "?"} — ${(a.mission_questions?.question_text ?? "").slice(0, 100)}`)
-        .filter(Boolean);
-      const userMsg = `Mission: ${ctx.mission.name} (${ctx.mission.state ?? "—"} · ${ctx.mission.programType ?? "—"})
-North star: ${ctx.northStar || "(none)"}
+      // Trivia: state fun facts, not RFP details
+      const userMsg = `State: ${ctx.mission.state ?? "—"}
 
-RFP structure (sections):
-${sectionsList}
+Generate ONE FUN FACT trivia question about this U.S. state — history, geography, culture, food, landmarks, notable people, weird records, etc. NOT about the RFP, Medicaid, procurement, or compliance. Make it genuinely fun and a little surprising.
 
-Questions assigned to this user:
-${qList.length ? qList.map(q => `- ${q}`).join("\n") : "(none yet)"}
-
-Generate ONE trivia question that makes this writer smarter about THIS specific RFP — reference a real section name, real population, or real program detail above (not generic Medicaid trivia). Return JSON:
+Return JSON:
 {
   "question": "the trivia question",
   "options": ["A","B","C","D"],
   "correct_index": 0,
-  "explanation": "max 250 chars — why this matters to THIS mission specifically",
-  "relevant_questions": ["question numbers this connects to"]
+  "explanation": "max 250 chars — the interesting story behind the answer",
+  "relevant_questions": []
 }`;
       const raw = await callIris(TRIVIA_SYS, userMsg);
       content = parseJson(raw);
