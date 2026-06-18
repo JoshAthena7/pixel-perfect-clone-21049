@@ -253,11 +253,11 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
           </div>
           <div className="h-full overflow-hidden border-r border-white/[0.06]" style={{ width: "44%" }}>
             <div className="h-9 border-b border-white/[0.06] bg-[#050d18]" />
-            <div className="p-2"><RadarSkeletonInline /></div>
+            <div className="p-2"><RadarSkeleton /></div>
           </div>
           <div className="h-full overflow-hidden" style={{ width: "30%" }}>
             <div className="h-9 border-b border-white/[0.06] bg-[#050d18]" />
-            <div className="p-2"><AlertsSkeletonInline /></div>
+            <div className="p-2"><AlertsSkeleton /></div>
           </div>
         </div>
       </div>
