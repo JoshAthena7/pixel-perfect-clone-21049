@@ -94,6 +94,23 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   const [nudgeTarget, setNudgeTarget] = useState<{ id: string; name: string } | null>(null);
   const [nudgeMsg, setNudgeMsg] = useState("");
   const [reassignFor, setReassignFor] = useState<string | null>(null);
+  const [highlightedWriterId, setHighlightedWriterId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const id = (e as CustomEvent).detail?.writerId as string | undefined;
+      if (!id) return;
+      setHighlightedWriterId(id);
+      // Scroll into view
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`[data-writer-row="${id}"]`);
+        if (el) (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      window.setTimeout(() => setHighlightedWriterId(null), 1100);
+    };
+    window.addEventListener("atc:highlight-writer", handler as EventListener);
+    return () => window.removeEventListener("atc:highlight-writer", handler as EventListener);
+  }, []);
 
   const d = dataQ.data;
 
