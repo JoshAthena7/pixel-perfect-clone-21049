@@ -176,21 +176,96 @@ async function callAI(apiKey: string, system: string, user: string): Promise<str
   return json.choices?.[0]?.message?.content?.trim() ?? null;
 }
 
+// --- Form-only classification (allow-list) -------------------------------
+const FORM_ONLY_SECTIONS = [
+  "ownership disclosure",
+  "macbride",
+  "affirmative action",
+  "business registration",
+  "certification of non-involvement",
+  "disclosure of investigations",
+  "offer and acceptance",
+  "contract schedule",
+  "state-supplied price sheet",
+  "small business",
+  "pay to play",
+  "source disclosure",
+  "iran disclosure",
+  "russia",
+  "belarus",
+  "vendor questionnaire",
+];
+const NARRATIVE_VERBS = [
+  "describe", "submit a plan", "set forth", "provide a narrative",
+  "explain", "demonstrate", "address", "discuss", "outline", "detail",
+  "identify", "provide information", "include a", "develop a", "present",
+];
+export function classifySectionFormOnly(name: string, description?: string | null): boolean {
+  const n = (name ?? "").toLowerCase();
+  const d = (description ?? "").toLowerCase();
+  if (FORM_ONLY_SECTIONS.some((k) => n.includes(k))) return true;
+  if (NARRATIVE_VERBS.some((v) => d.includes(v))) return false;
+  return false;
+}
+
 /**
- * Fuzzy text slice: find the section header in `fullText` by digit pattern and
- * return up to 4000 chars starting there. Tolerates "3.14", "Section 3.14",
- * "3.14.", "3.14 NAME", with optional whitespace.
+ * Bounded section slice: starts at the section header match and stops at the
+ * NEXT section header in `allSectionNumbers`. Caps at 12_000 chars. Returns
+ * "" if no header match.
  */
-function sliceSectionText(fullText: string, sectionNumber: string | null): string {
+function sliceSectionText(
+  fullText: string,
+  sectionNumber: string | null,
+  allSectionNumbers: string[] = [],
+): string {
   if (!sectionNumber) return "";
   const escaped = sectionNumber.replace(/\./g, "\\.");
-  // Look for the number at a line start (with optional "Section " prefix),
-  // followed by punctuation/whitespace, not another digit.
-  const re = new RegExp(`(?:^|\\n)[ \\t]*(?:Section[ \\t]+)?${escaped}(?![0-9])[\\.\\s\\)\\:\\-]`, "i");
-  const m = re.exec(fullText);
-  if (!m) return "";
-  const start = m.index;
-  return fullText.slice(start, start + 4000);
+  const startRe = new RegExp(
+    `(?:^|\\n)[ \\t]*(?:Section[ \\t]+)?${escaped}(?![0-9])[\\.\\s\\)\\:\\-]`,
+    "i",
+  );
+  const startMatch = startRe.exec(fullText);
+  if (!startMatch) return "";
+  const startIdx = startMatch.index;
+
+  // Find the immediately-following section header.
+  const sorted = allSectionNumbers
+    .filter((n) => n && n !== sectionNumber)
+    .sort((a, b) => {
+      const ap = a.split(".").map((p) => parseInt(p, 10) || 0);
+      const bp = b.split(".").map((p) => parseInt(p, 10) || 0);
+      for (let i = 0; i < Math.max(ap.length, bp.length); i++) {
+        const av = ap[i] ?? 0;
+        const bv = bp[i] ?? 0;
+        if (av !== bv) return av - bv;
+      }
+      return 0;
+    });
+  const curParts = sectionNumber.split(".").map((p) => parseInt(p, 10) || 0);
+  const nextSection = sorted.find((n) => {
+    const np = n.split(".").map((p) => parseInt(p, 10) || 0);
+    for (let i = 0; i < Math.max(np.length, curParts.length); i++) {
+      const a = np[i] ?? 0;
+      const b = curParts[i] ?? 0;
+      if (a !== b) return a > b;
+    }
+    return false;
+  });
+
+  let endIdx = startIdx + 12_000;
+  if (nextSection) {
+    const escNext = nextSection.replace(/\./g, "\\.");
+    const endRe = new RegExp(
+      `(?:^|\\n)[ \\t]*(?:Section[ \\t]+)?${escNext}(?![0-9])[\\.\\s\\)\\:\\-]`,
+      "i",
+    );
+    const tail = fullText.slice(startIdx + 1);
+    const endMatch = endRe.exec(tail);
+    if (endMatch) endIdx = Math.min(startIdx + 1 + endMatch.index, startIdx + 12_000);
+  }
+
+  const slice = fullText.slice(startIdx, endIdx).trim();
+  return slice.length < 50 ? "" : slice.slice(0, 12_000);
 }
 
 async function runWithConcurrency<T>(
