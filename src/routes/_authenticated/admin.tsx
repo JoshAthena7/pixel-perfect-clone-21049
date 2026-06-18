@@ -16,15 +16,18 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
-const TABS = [
-  { id: "missions", label: "Missions", to: "/admin" as const, match: (p: string) => p === "/admin" || p === "/admin/" || p.startsWith("/admin/missions") },
-  { id: "staff", label: "Staff", to: "/admin/team" as const, match: (p: string) => p.startsWith("/admin/team") },
-  { id: "messaging", label: "Messaging", to: "/admin/messaging" as const, match: (p: string) => p.startsWith("/admin/messaging") },
-  { id: "state-intel", label: "State Intel", to: "/admin/state-intel" as const, match: (p: string) => p.startsWith("/admin/state-intel") },
+type Tab = { id: string; label: string; to: string; match: (p: string) => boolean; highlight?: boolean };
 
-  { id: "iris-control", label: "IRIS Control", to: "/admin/iris-control" as const, match: (p: string) => p.startsWith("/admin/iris-control") },
-  { id: "iris-writer-view", label: "IRIS Writer View", to: "/admin/iris-writer-view" as const, match: (p: string) => p.startsWith("/admin/iris-writer-view") },
-  { id: "iris-refresh", label: "IRIS Refresh", to: "/admin/iris-refresh" as const, match: (p: string) => p.startsWith("/admin/iris-refresh") },
+const TABS: Tab[] = [
+  { id: "mission-command", label: "Mission Command", to: "/olympus", match: (p: string) => p === "/olympus" || p === "/olympus/", highlight: true },
+  { id: "missions", label: "Missions", to: "/admin", match: (p: string) => p === "/admin" || p === "/admin/" || p.startsWith("/admin/missions") },
+  { id: "staff", label: "Staff", to: "/admin/team", match: (p: string) => p.startsWith("/admin/team") },
+  { id: "messaging", label: "Messaging", to: "/admin/messaging", match: (p: string) => p.startsWith("/admin/messaging") },
+  { id: "state-intel", label: "State Intel", to: "/admin/state-intel", match: (p: string) => p.startsWith("/admin/state-intel") },
+
+  { id: "iris-control", label: "IRIS Control", to: "/admin/iris-control", match: (p: string) => p.startsWith("/admin/iris-control") },
+  { id: "iris-writer-view", label: "IRIS Writer View", to: "/admin/iris-writer-view", match: (p: string) => p.startsWith("/admin/iris-writer-view") },
+  { id: "iris-refresh", label: "IRIS Refresh", to: "/admin/iris-refresh", match: (p: string) => p.startsWith("/admin/iris-refresh") },
 ];
 
 function AdminLayout() {
