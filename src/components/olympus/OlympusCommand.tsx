@@ -191,7 +191,7 @@ function Column({
   children,
   borderX,
 }: {
-  title: string;
+  title: React.ReactNode;
   children: React.ReactNode;
   borderX?: boolean;
 }) {
