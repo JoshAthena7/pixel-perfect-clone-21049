@@ -10,12 +10,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ClipboardList, Eye, Rocket, Settings, Check } from "lucide-react";
+import { ChevronDown, ClipboardList, Eye, Rocket, Settings, Check, Radar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { UserMenu } from "@/components/nav/UserMenu";
 import { useMissionMeta } from "@/hooks/useMissionMeta";
-import { useIsAdmin } from "@/hooks/useAccess";
+import { useIsAdmin, useMissionAccess } from "@/hooks/useAccess";
+
+const PM_ROLES = new Set(["admin", "lead", "engagement_lead", "project_manager"]);
 
 const GOLD = "#d4a843";
 const MUTED = "#666680";
