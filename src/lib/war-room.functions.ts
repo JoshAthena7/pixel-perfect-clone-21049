@@ -288,7 +288,7 @@ export const getWarRoomData = createServerFn({ method: "POST" })
       writers,
       sos,
       pipeline,
-      stats: { totalQuestions, healthyPct: totalQuestions ? Math.round((healthyCount / totalQuestions) * 100) : 0, briefsReady: pipeline.ready, writersActiveToday },
+      stats: { totalQuestions, healthyCount, watchCount, atRiskCount, healthyPct: totalQuestions ? Math.round((healthyCount / totalQuestions) * 100) : 0, briefsReady: pipeline.ready, writersActiveToday },
       flagCount: (flagsRes.data ?? []).length,
       digest: digest.slice(0, 8),
       intelFeed: (eventsRes.data ?? []).slice(0, 10).map((e: any) => ({
