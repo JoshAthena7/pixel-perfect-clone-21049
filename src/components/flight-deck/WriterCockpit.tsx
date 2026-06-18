@@ -179,6 +179,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
             brief_exported_at: qp.brief_exported_at,
             last_activity_at: qp.last_activity_at,
             sme_assigned: qp.sme_assigned,
+            primary_win_theme: q.primary_win_theme ?? null,
           };
         });
 
