@@ -35,12 +35,30 @@ export type MissionContext = {
   // RFP structure
   sections: { number: string; name: string; description: string; weight: number | null }[];
   confirmedExtractions: { field: string; value: string }[];
+  // State Intelligence Pack (per-state library, auto-attached by mission state)
+  stateIntel: { category: string; title: string; description: string; effectiveDate: string | null }[];
   // Optional
   question?: { number: string; text: string; decodedIntent: string; weight: string; wordLimit: number | null; pageLimit: number | null; evaluationCriteria: string; sectionId: string | null };
   documentExcerpts?: { filename: string; type: string; excerpt: string }[];
   // Build telemetry
   _buildMs: number;
   _errors: string[];
+};
+
+// Human-readable category labels for the State Intelligence Pack.
+const STATE_INTEL_LABEL: Record<string, string> = {
+  waivers_authorities: "Waivers & Authorities",
+  state_plan_amendments: "State Plan & Amendments",
+  managed_care_landscape: "Managed Care Landscape",
+  quality_strategy: "Quality Strategy",
+  directed_payments: "Directed Payments & SDPs",
+  core_set_performance: "Core Set Performance",
+  legislative_budget: "Legislative & Budget",
+  rate_setting: "Rate Setting",
+  eligibility_enrollment: "Eligibility & Enrollment",
+  workforce_network: "Workforce & Provider Network",
+  demographics_health: "Demographics & Health Status",
+  litigation_compliance: "Litigation & Compliance",
 };
 
 type SB = {
