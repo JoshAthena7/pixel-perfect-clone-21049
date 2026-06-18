@@ -136,6 +136,26 @@ export function CheckInDialog({ open, onOpenChange, missionId, questionId, quest
               />
             </div>
 
+            {statusOptions && statusOptions.length > 0 && (
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,0.55)", marginBottom: 6 }}>UPDATE QUESTION STATUS</div>
+                <select
+                  value={nextStatus}
+                  onChange={(e) => setNextStatus(e.target.value)}
+                  style={{
+                    width: "100%", background: "#06111e", color: "white",
+                    border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6,
+                    padding: "8px 10px", fontSize: 12,
+                  }}
+                >
+                  <option value="">Keep current status</option>
+                  {statusOptions.map((s) => (
+                    <option key={s} value={s}>→ {s.replace(/_/g, " ")}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <button onClick={submit} disabled={sending} style={{
               padding: "10px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: sending ? "wait" : "pointer",
               background: GOLD, color: "#1a1208", border: "none", letterSpacing: "0.05em",
