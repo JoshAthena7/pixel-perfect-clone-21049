@@ -103,15 +103,45 @@ export function IrisAlertsPanel({ missionId, bare = false, onCountChange, missio
 
   const isRefreshing = q.isFetching;
   const alerts = q.data?.alerts ?? [];
+  const sosAlerts = sosQ.data ?? [];
   const errMsg = q.data?.error ?? (q.error ? (q.error as Error).message : null);
 
   if (onCountChange) {
     // best-effort: notify parent of alert count for header chip
-    queueMicrotask(() => onCountChange(alerts.length));
+    queueMicrotask(() => onCountChange(alerts.length + sosAlerts.length));
   }
 
   const body = (
     <>
+      {sosAlerts.length > 0 && (
+        <ul className="space-y-1.5 mb-2">
+          {sosAlerts.map((s) => (
+            <li
+              key={s.qid}
+              className={bare ? "py-2.5 px-3 hover:bg-white/[0.02]" : "rounded border border-white/10 bg-red-500/[0.05] p-3"}
+              style={{ borderLeft: "3px solid #ef4444" }}
+            >
+              <div className="flex items-start gap-2">
+                <LifeBuoy className="w-4 h-4 mt-0.5 shrink-0 text-red-400" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] text-white/90 leading-snug">
+                    <span className="font-semibold">{s.writerName}</span> needs an SME on{" "}
+                    <span style={{ color: GOLD }}>Q{s.qNum}</span> — {s.qText}
+                  </div>
+                  <div className="mt-1.5">
+                    <button
+                      onClick={() => setAssignFor({ qid: s.qid, qNum: s.qNum })}
+                      className="text-[11px] font-medium hover:underline text-red-400"
+                    >
+                      Assign SME →
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
       {q.isLoading ? (
         <AlertsSkeleton count={3} />
       ) : errMsg && alerts.length === 0 ? (
@@ -119,11 +149,11 @@ export function IrisAlertsPanel({ missionId, bare = false, onCountChange, missio
           <Info className="w-3.5 h-3.5 text-sky-400 mt-0.5 shrink-0" />
           <span>IRIS could not generate alerts right now. Check back shortly.</span>
         </div>
-      ) : alerts.length === 0 && missionTooNew ? (
+      ) : alerts.length === 0 && sosAlerts.length === 0 && missionTooNew ? (
         <IrisOrientingCard />
-      ) : alerts.length === 0 ? (
+      ) : alerts.length === 0 && sosAlerts.length === 0 ? (
         <IrisHealthyCard generatedAt={q.data?.generatedAt} />
-      ) : (
+      ) : alerts.length === 0 ? null : (
         <ul className="space-y-1.5">
           {alerts.map((a: IrisAlert, i: number) => (
             <AlertCard
@@ -135,6 +165,14 @@ export function IrisAlertsPanel({ missionId, bare = false, onCountChange, missio
             />
           ))}
         </ul>
+      )}
+      {assignFor && (
+        <AssignSmeModal
+          missionId={missionId}
+          questionId={assignFor.qid}
+          questionNumber={assignFor.qNum}
+          onClose={() => setAssignFor(null)}
+        />
       )}
     </>
   );
