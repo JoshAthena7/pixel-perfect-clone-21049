@@ -2,12 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { CheckCircle2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsAdmin } from "@/hooks/useAccess";
 
 const GOLD = "#D4AF37";
 
 type Counts = { approved: number; pushed: number; needs_review: number; dismissed: number };
 
 export function IntelStatusWidget({ missionId }: { missionId: string }) {
+  const { isAdmin } = useIsAdmin();
   const { data } = useQuery({
     queryKey: ["intel-status-widget", missionId],
     queryFn: async (): Promise<Counts> => {
@@ -31,6 +33,8 @@ export function IntelStatusWidget({ missionId }: { missionId: string }) {
   const counts = data ?? { approved: 0, pushed: 0, needs_review: 0, dismissed: 0 };
   const active = counts.approved + counts.pushed;
   const ready = active >= 10;
+
+  if (!isAdmin) return null;
 
   return (
     <div
