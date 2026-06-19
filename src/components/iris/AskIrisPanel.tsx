@@ -868,7 +868,7 @@ function DraftCardView({ card, onOpenInThread }: { card: Extract<CardKind, { kin
           <Copy className="h-3 w-3" /> Copy
         </button>
         <button className="text-[11px] px-2 py-1 rounded" style={{ background: GOLD, color: "#1a0f00" }} onClick={() => onOpenInThread(card.draft)}>
-          Open in Thread
+          📌 Notes
         </button>
       </div>
     </div>
