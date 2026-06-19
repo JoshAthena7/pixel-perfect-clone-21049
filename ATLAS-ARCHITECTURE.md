@@ -251,6 +251,15 @@ gracefully (cron hooks return early with a skip message; no throws at boot).
 
 ## Known Issues and Technical Debt
 
+### oracle_signals Schema Note
+The original spec referenced `full_text`, `source_url`, and `created_by` as
+`oracle_signals` columns. The actual implementation uses `what_happened`,
+`why_it_matters`, and `recommended_action` — these are the canonical field
+names. All code, prompts, and documentation use these names. Do not add
+`full_text` / `source_url` / `created_by` columns. Option A confirmed
+June 2026.
+
+
 1. **Assist bar drift** — `FlightDeckAssistBar.tsx` ships 5 buttons
    (Thread, Phone a Friend, Score Me, Mission Pulse, SOS), not the
    intended 4 (Check-In, Score Me, Sticky Notes, Mission Pulse).
