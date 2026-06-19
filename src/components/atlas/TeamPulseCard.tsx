@@ -94,7 +94,7 @@ function InspirationTab({ missionId }: { missionId: string }) {
         Today's Inspiration
       </span>
       <div className="pr-32">
-        <div className="text-[17px] italic font-serif leading-snug" style={{ color: "rgba(255,255,255,0.92)" }}>
+        <div className="italic leading-snug" style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
           {c.quote || "—"}
         </div>
         {c.attribution && (
@@ -179,7 +179,7 @@ function TriviaTab({ missionId }: { missionId: string }) {
 
   return (
     <div>
-      <div className="text-[13px] font-semibold text-white">{c.question || "—"}</div>
+      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>{c.question || "—"}</div>
       <div className="mt-3 grid grid-cols-1 gap-1.5">
         {opts.map((opt, i) => {
           const isCorrect = picked !== null && i === c.correct_index;
@@ -194,8 +194,8 @@ function TriviaTab({ missionId }: { missionId: string }) {
               key={i}
               disabled={picked !== null}
               onClick={() => handlePick(i)}
-              className="text-left rounded-md px-3 py-2 text-[12px] transition-colors disabled:cursor-default"
-              style={{ background: bg, border: `1px solid ${border}`, color }}
+              className="text-left rounded-md transition-colors disabled:cursor-default"
+              style={{ background: bg, border: `0.5px solid ${border}`, color, padding: "6px 10px", fontSize: 11 }}
             >
               {opt}
             </button>
