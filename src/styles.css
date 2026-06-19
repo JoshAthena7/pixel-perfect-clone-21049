@@ -734,3 +734,46 @@ html[data-write-mode="on"] .studio-body > .studio-left { border-right: none !imp
   from { transform: rotate(0deg) translateX(14px) rotate(0deg); }
   to { transform: rotate(360deg) translateX(14px) rotate(-360deg); }
 }
+
+/* ────────────────────────────────────────────────────────────────
+   IRIS animation primitives
+   - .iris-bolt-active    : single 500ms pulse on ⚡ bolt icons
+   - .iris-scan-line      : 3s top→bottom gold scan line (Score Me)
+   - .iris-textarea-reading : 2s breathing border while IRIS reads
+   ──────────────────────────────────────────────────────────────── */
+@keyframes iris-bolt-flash {
+  0%   { transform: scale(1);    filter: drop-shadow(0 0 0px rgba(196,154,43,0)); }
+  30%  { transform: scale(1.45); filter: drop-shadow(0 0 8px rgba(196,154,43,0.9)); }
+  100% { transform: scale(1);    filter: drop-shadow(0 0 0px rgba(196,154,43,0)); }
+}
+.iris-bolt-active {
+  animation: iris-bolt-flash 500ms ease-out forwards;
+  transform-origin: center;
+  will-change: transform, filter;
+}
+
+@keyframes iris-scan {
+  from { top: 0%;   opacity: 0.85; }
+  to   { top: 100%; opacity: 0.35; }
+}
+.iris-scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  pointer-events: none;
+  top: 0;
+  background: linear-gradient(to right, transparent, rgba(196,154,43,0.35), transparent);
+  animation: iris-scan 3s linear forwards;
+}
+.iris-scan-line.pass-2 {
+  background: linear-gradient(to right, transparent, rgba(196,154,43,0.18), transparent);
+}
+
+@keyframes iris-border-breathe {
+  0%, 100% { border-color: rgba(255,255,255,0.10); box-shadow: 0 0 0 0 rgba(196,154,43,0); }
+  50%      { border-color: rgba(196,154,43,0.35); box-shadow: 0 0 18px -8px rgba(196,154,43,0.4); }
+}
+.iris-textarea-reading {
+  animation: iris-border-breathe 2s ease-in-out infinite;
+}
