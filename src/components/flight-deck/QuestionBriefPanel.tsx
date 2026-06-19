@@ -77,15 +77,12 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
   // Particle field fades to 0 ~300ms before unmount so the brief reveals smoothly.
   const [particlesFading, setParticlesFading] = useState(false);
   useEffect(() => {
-    if (!genMutation.isPending) {
-      setParticlesFading(false);
-      return;
-    }
-    setParticlesFading(false);
+    if (!genMutation.isPending) setParticlesFading(false);
   }, [genMutation.isPending]);
 
   const brief = data;
   const boltRef = useIrisBoltRef<HTMLSpanElement>("brief");
+
 
 
   return (
