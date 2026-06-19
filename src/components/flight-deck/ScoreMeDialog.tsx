@@ -320,19 +320,26 @@ export function ScoreMeDialog({
 
           {!result && !stuckMode && (
             <>
-              <div className="relative">
+              <div className="relative overflow-hidden rounded-lg">
                 <textarea
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   placeholder="Paste your draft from Word, SharePoint, Loopio, or wherever you are working..."
                   disabled={loading}
-                  className="w-full rounded-lg p-3 text-white text-[13px] resize-y outline-none"
+                  className={`w-full rounded-lg p-3 text-white text-[13px] resize-y outline-none ${loading ? "iris-textarea-reading" : ""}`}
                   style={{
                     background: "rgba(255,255,255,0.03)",
                     border: "1px solid rgba(255,255,255,0.1)",
                     minHeight: 220,
                   }}
                 />
+                {loading && scanPass > 0 && (
+                  <div
+                    key={scanPass}
+                    className={`iris-scan-line ${scanPass > 1 ? "pass-2" : ""}`}
+                    aria-hidden
+                  />
+                )}
                 <div
                   className="absolute right-3 bottom-2"
                   style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}
@@ -340,6 +347,7 @@ export function ScoreMeDialog({
                   {charCount} chars
                 </div>
               </div>
+
 
               <div className="text-center" style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
                 Not sure where to start?{" "}
