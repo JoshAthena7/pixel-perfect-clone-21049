@@ -249,7 +249,7 @@ function StaffCard({
       <div className="flex-1 min-w-0">
         <div className="text-white font-medium text-sm truncate">{fullName(staff)}</div>
         <div className="text-xs mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.45)" }}>
-          {staff.job_title ?? roleLabel(staff.atlas_role)}
+          {roleLabel(staff.atlas_role)}
         </div>
       </div>
       <span
