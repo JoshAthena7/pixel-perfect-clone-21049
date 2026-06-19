@@ -168,6 +168,7 @@ export async function processDocument(input: ProcessInput): Promise<ProcessResul
     if (deduped.length > 0) {
       const rows = deduped.map((it) => ({
         mission_id: input.missionId,
+        signal_type: "policy",
         title: it.title.slice(0, 200),
         what_happened: it.what_happened,
         why_it_matters: it.why_it_matters,
@@ -305,7 +306,8 @@ async function updateStatus(
   documentId: string,
   patch: Record<string, unknown>,
 ): Promise<void> {
-  const { error } = await client.from("mission_documents").update(patch).eq("id", documentId);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await client.from("mission_documents").update(patch as any).eq("id", documentId);
   if (error) console.error("[oracle-document-processor] status update failed:", error.message);
 }
 
