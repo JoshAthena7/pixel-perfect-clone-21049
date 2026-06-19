@@ -11,6 +11,7 @@
  * own 2.5s timeline finishes.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
+import atlasWordmark from "@/assets/atlas-wordmark-optical.png";
 
 const DOT_COUNT = 110;
 const FIELD_W = 1800; // viewBox width — fills the sky
