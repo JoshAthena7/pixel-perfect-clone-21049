@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MissionSidebar, MissionBottomTabs } from "@/components/nav/MissionSidebar";
