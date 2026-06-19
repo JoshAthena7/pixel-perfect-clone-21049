@@ -187,7 +187,7 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
             <SourcesPanel />
           )}
         </Column>
-        <Column title="INTEL REVIEW QUEUE" borderX>
+        <Column title="INTEL REVIEW QUEUE" borderX dataAttr="review">
           <IntelReviewQueue missionId={missionId} taxonomyNodeId={selectedNodeId} />
         </Column>
         <div
