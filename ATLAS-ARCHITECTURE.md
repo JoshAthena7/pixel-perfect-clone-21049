@@ -275,6 +275,41 @@ gracefully (cron hooks return early with a skip message; no throws at boot).
    `debug-log.ts`; remaining `console.warn` / `console.error` are
    catch-block diagnostics intentionally left raw for prod telemetry.
 
+## Activity Logging
+
+The unified activity log is `mission_assist_events` — not `mission_activity`
+(dropped 2026-06-19).
+
+`mission_assist_events` schema:
+- `id`, `mission_id`, `question_id`, `user_id`: standard identifiers
+- `event_type`: text. Current values: `check_in`, `sticky_note_posted`,
+  `sticky_note_pinned_slack`, `brief_exported`, `brief_opened`,
+  `nudge_sent`, `writer_reviewed`, `writer_flagged`, `sos_raised`,
+  `status_updated`, `assist_acknowledged`, `assist_ignored`,
+  `oracle_intel_added`, `score_me_run`, `mission_pulse_signal`.
+- `metadata`: jsonb — event-specific context (must include `summary` string)
+- `created_at`: timestamptz
+
+`getMissionActivity` (`src/lib/mission-activity.functions.ts`) reads from
+7 sources and merges into one stream:
+1. `mission_assist_events` — assist-bar / writer-behavior events
+2. `thread_messages` — collaboration thread
+3. `expert_consults` — phone-a-friend
+4. `score_me_history` — scoring runs with full analysis
+5. `team_updates` (non-SOS) — pulse and emerging-risk signals
+6. `team_updates` (SOS) — SOS + acknowledgements
+7. `conflict_flags` — unresolved conflicts
+
+Do NOT recreate `mission_activity`. Do NOT collapse the 7 sources into one
+table — the stream-specific tables (`score_me_history`, `team_updates`,
+`conflict_flags`) carry typed columns (`score`, `severity`,
+`conflict_description`) that the radar surfaces directly.
+
+When wiring a new action that should appear in Mission Radar, insert into
+`mission_assist_events` after the primary action succeeds, wrap in
+try/catch, and add the new `event_type` to the IN-list in
+`getMissionActivity`.
+
 ## Build History
 
 - Prompts 1–3: ORACLE schema, taxonomy, source registry, `query_oracle`.
