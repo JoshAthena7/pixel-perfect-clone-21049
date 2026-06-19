@@ -5,6 +5,9 @@ import { ChevronDown, ChevronRight, Sparkles, RefreshCw, Eye } from "lucide-reac
 import { supabase } from "@/integrations/supabase/client";
 import { generateQuestionBrief, type QuestionBriefBody } from "@/lib/iris-brief.functions";
 import { fireAssistEvent } from "@/lib/fireAssistEvent";
+import { IrisBriefParticles } from "@/components/iris/IrisBriefParticles";
+import { triggerIrisBolt, useIrisBoltRef } from "@/lib/iris-bolt";
+
 
 type Props = {
   missionId: string;
