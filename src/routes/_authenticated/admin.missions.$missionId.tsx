@@ -12,8 +12,8 @@ export const Route = createFileRoute("/_authenticated/admin/missions/$missionId"
 type Tab = "overview" | "wizard";
 
 const TABS: { id: Tab; label: string }[] = [
+  { id: "wizard", label: "Mission Setup" },
   { id: "overview", label: "Overview" },
-  { id: "wizard", label: "Setup Wizard" },
 ];
 
 type Mission = {
