@@ -66,10 +66,15 @@ Live row counts captured 2026-06-19.
 | `oracle_sdoh_data` | SDOH data by geography | 0 | mission-scoped |
 | `question_intel_links` | Question ↔ signal map (formerly `oracle_question_intel`) | varies | mission-scoped |
 
-`oracle_signals` columns differ slightly from the early spec:
-field-of-record names are `what_happened` / `why_it_matters` /
-`recommended_action` (no separate `full_text` / `source_url` / `created_by`
-columns). Code uses the actual columns; spec doc is the outdated party.
+`oracle_signals` canonical content columns:
+- `what_happened` — primary content describing what the intelligence item is
+- `why_it_matters` — relevance and significance for this procurement
+- `recommended_action` — what the team should do about this item (when present)
+
+These are the field-of-record names used by all code, prompts, and
+documentation. The early spec referenced `full_text` / `source_url` /
+`created_by` — those columns do not exist and must not be added. See the
+"oracle_signals Schema Note" in Known Issues for the canonical decision.
 
 `question_intel_links` uses `relevance_explanation` (not `relevance_reason`)
 and has no `mapping_source` column. Code matches the schema.
@@ -104,7 +109,10 @@ and has no `mapping_source` column. Code matches the schema.
 - `query_oracle(mission_id, question_id, taxonomy_codes[], limit)` — returns
   `jsonb` grouped by taxonomy branch; reads `oracle_signals` with
   `status IN ('approved','pushed','needs_review')`; boost by
-  `question_intel_links.relevance_score`. **Verified live.**
+  `question_intel_links.relevance_score`. **Verified live.** When IRIS
+  formats results for briefing prompts it uses `what_happened` as the
+  primary content, `why_it_matters` as the relevance context, and
+  `recommended_action` as the action guidance (when present).
 - `has_role(_user_id, _role)` — security-definer; reads `user_roles`.
 - `is_mission_team_member(mission_id, user_id)` — security-definer.
 - `is_platform_admin(_user_id)` — legacy helper; internally identical to
@@ -242,6 +250,15 @@ module top level (never at client-import-time). Missing vars degrade
 gracefully (cron hooks return early with a skip message; no throws at boot).
 
 ## Known Issues and Technical Debt
+
+### oracle_signals Schema Note
+The original spec referenced `full_text`, `source_url`, and `created_by` as
+`oracle_signals` columns. The actual implementation uses `what_happened`,
+`why_it_matters`, and `recommended_action` — these are the canonical field
+names. All code, prompts, and documentation use these names. Do not add
+`full_text` / `source_url` / `created_by` columns. Option A confirmed
+June 2026.
+
 
 1. **Assist bar drift** — `FlightDeckAssistBar.tsx` ships 5 buttons
    (Thread, Phone a Friend, Score Me, Mission Pulse, SOS), not the
