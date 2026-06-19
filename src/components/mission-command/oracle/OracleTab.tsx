@@ -39,15 +39,17 @@ const ADMIN_TABS: { id: TabId; label: string }[] = [
 ];
 
 export function OracleTab({ missionId }: { missionId: string }) {
-  const { isAdmin } = useIsAdmin();
-  const { data: access } = useMissionAccess(missionId);
-  const canLead = isAdmin || access?.allowed === true;
+  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
+  const { data: access, isLoading: accessLoading } = useMissionAccess(missionId);
+  const missionRole = access?.role ?? null;
+  const LEAD_ROLES = ["engagement_lead", "manager", "project_manager", "lead", "admin"];
+  const canLead = isAdmin || (missionRole != null && LEAD_ROLES.includes(missionRole));
+  const showWriter = !isAdmin && !canLead;
+  const roleResolving = adminLoading || accessLoading;
   const [active, setActive] = useState<TabId>("feed");
   const [visited, setVisited] = useState<Set<TabId>>(new Set(["feed"]));
   const [selectedEcosystemNode, setSelectedEcosystemNode] = useState<any | null>(null);
-  const [previewWriter, setPreviewWriter] = useState(false);
 
-  const showWriter = !isAdmin || previewWriter;
   const TABS = [
     ...BASE_TABS,
     ...(canLead ? LEAD_TABS : []),
@@ -162,25 +164,17 @@ export function OracleTab({ missionId }: { missionId: string }) {
     ? `IRIS intelligence layer for ${clientLabel} — ${mission.program_type}`
     : `IRIS intelligence layer for ${clientLabel}`;
 
+  if (roleResolving) {
+    return (
+      <div className="py-12 text-center" style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
+        Loading…
+      </div>
+    );
+  }
+
   if (showWriter) {
     return (
       <div className="space-y-4">
-        {isAdmin && previewWriter && (
-          <div
-            className="flex items-center justify-between rounded-md px-3 py-2"
-            style={{ background: "rgba(196,154,43,0.08)", border: "0.5px solid rgba(196,154,43,0.3)" }}
-          >
-            <span style={{ fontSize: 11, color: GOLD }}>👁 Previewing Writer View — this is what writers see.</span>
-            <button
-              type="button"
-              onClick={() => setPreviewWriter(false)}
-              style={{ fontSize: 11, color: GOLD }}
-              className="hover:underline"
-            >
-              Exit preview
-            </button>
-          </div>
-        )}
         <WriterIntelView missionId={missionId} />
       </div>
     );
@@ -189,22 +183,6 @@ export function OracleTab({ missionId }: { missionId: string }) {
   return (
     <div className="space-y-4">
       <IntelLoadBanner missionId={missionId} />
-      <div
-        className="flex items-center justify-between rounded-md px-3 py-2"
-        style={{ background: "rgba(196,154,43,0.06)", border: "0.5px solid rgba(196,154,43,0.2)" }}
-      >
-        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>
-          Admin View — writers see the curated surface.
-        </span>
-        <button
-          type="button"
-          onClick={() => setPreviewWriter(true)}
-          style={{ fontSize: 11, color: GOLD }}
-          className="hover:underline"
-        >
-          👁 Preview Writer View
-        </button>
-      </div>
       <div className="rounded-lg px-4 py-3" style={{ background: "rgba(5,13,24,0.6)", border: "1px solid rgba(255,255,255,0.06)" }}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
