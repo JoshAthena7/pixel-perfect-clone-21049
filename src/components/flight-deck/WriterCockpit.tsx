@@ -471,9 +471,41 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
           </div>
         )}
 
-        <div style={{ marginBottom: 16 }}>
+        <div
+          style={{
+            position: "relative",
+            background: "rgba(255,255,255,0.025)",
+            borderTop: "1px solid rgba(255,255,255,0.07)",
+            borderBottom: "1px solid rgba(255,255,255,0.07)",
+            padding: "12px 16px",
+            borderRadius: 0,
+            marginBottom: 4,
+          }}
+        >
+          <span
+            style={{
+              position: "absolute",
+              top: 6,
+              right: 10,
+              fontSize: 8,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              color: "rgba(255,255,255,0.25)",
+              pointerEvents: "none",
+            }}
+          >
+            Mission Pulse
+          </span>
           <TeamPulseCard missionId={missionId} />
         </div>
+        <div
+          style={{
+            height: 1,
+            background:
+              "linear-gradient(to right, transparent, rgba(196,154,43,0.25), transparent)",
+            margin: "4px 0 12px",
+          }}
+        />
 
         {questions.length === 0 ? (
           <div style={{ padding: 60, textAlign: "center", color: "rgba(255,255,255,0.5)" }}>
