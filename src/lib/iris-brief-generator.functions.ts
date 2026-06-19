@@ -4,6 +4,52 @@
  * using only that grounding (with general Medicaid knowledge labeled where
  * ORACLE has gaps). After the brief is written, every node used is upserted
  * into question_intel_links so the question-to-intel map grows over time.
+ *
+ * ---------------------------------------------------------------------------
+ * Lovable AI Gateway call-site map (ai.gateway.lovable.dev)
+ * Update this index whenever a new gateway call site is added.
+ *
+ * Flight Deck IRIS brief (canonical, ORACLE-grounded):
+ *   src/lib/iris-brief-generator.functions.ts        ← this file
+ *
+ * Brief variants & misc IRIS:
+ *   src/lib/iris-brief.functions.ts                  (legacy brief helpers)
+ *   src/lib/iris-dna.functions.ts                    (mission DNA extraction)
+ *   src/lib/iris-evaluator.functions.ts              (evaluator scoring)
+ *   src/lib/iris-evaluate-brief-impact.server.ts     (impact scoring)
+ *   src/lib/iris-risk-pattern-check.server.ts        (risk patterns)
+ *   src/lib/iris-competitor-intel.functions.ts       (competitor enrichment)
+ *   src/lib/iris-bulk-competitors.functions.ts       (bulk competitor seed)
+ *   src/lib/iris-bulk-feeds.functions.ts             (bulk feed classify)
+ *   src/lib/iris-extract-thread-knowledge.functions.ts
+ *   src/lib/iris-extract-thread-intelligence.functions.ts
+ *   src/lib/iris-alerts.functions.ts                 (alert generation)
+ *   src/lib/iris-process-rfp.functions.ts            (RFP extraction)
+ *   src/lib/iris-seed-mission-intelligence.functions.ts
+ *
+ * Feature-scoped helpers:
+ *   src/lib/thread.functions.ts                      (thread analysis)
+ *   src/lib/sos.functions.ts                         (SOS assist)
+ *   src/lib/score-me-coach.functions.ts              (Score Me coach)
+ *   src/lib/atlas-assist.functions.ts                (Atlas assist bar)
+ *   src/lib/atlas-onboarding.functions.ts
+ *   src/lib/atlas-onboarding-uploads.functions.ts
+ *   src/lib/atlas-moments.functions.ts
+ *   src/lib/writer-drilldown.functions.ts
+ *   src/lib/v2-home.functions.ts
+ *   src/lib/intelligence-graph.functions.ts
+ *   src/lib/intelligence-loadout.functions.ts
+ *   src/lib/canon-extract.server.ts
+ *
+ * Cron / public hooks:
+ *   src/routes/api/public/hooks/iris-daily-monitor.ts
+ *   src/routes/api/public/hooks/refresh-intelligence-graph.ts
+ *   src/routes/api/public/hooks/generate-daily-briefs.ts
+ *   src/routes/api/public/hooks/atlas-daily-moments.ts
+ *   src/routes/api/public/hooks/atlas-daily-focus-generator.ts
+ *
+ * IRIS chat route: src/routes/api/chat/iris.ts (proxied via src/server.ts)
+ * ---------------------------------------------------------------------------
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
