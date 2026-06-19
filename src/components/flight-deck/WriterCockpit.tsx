@@ -1011,7 +1011,11 @@ function CoordinationCards({ cockpit, onFlag, onOpenNotes }: { cockpit: any; onF
               {c.kind === "conflict"
                 ? <button onClick={() => onFlag(c.body ?? "Conflict", c.missionId)} style={btn(RED)}><Flag size={11}/> Flag to Mission Pulse</button>
                 : c.kind === "alignment"
-                  ? <button onClick={() => toast("Coordination thread coming soon")} style={btn(PURPLE)}><MessageSquare size={11}/> Open thread{otherWriter?.name ? ` with ${otherWriter.name}` : ""}</button>
+                  ? <button
+                      onClick={() => onOpenNotes(c.other, otherMeta?.num ?? "", otherMeta?.text ?? "")}
+                      style={btn(PURPLE)}
+                      title="Pin a note to this question so the other writer sees it"
+                    >📌 Notes</button>
                   : <button onClick={() => toast("Proof point view coming soon")} style={btn(GOLD)}>✦ View shared proof point</button>}
             </div>
           </div>
