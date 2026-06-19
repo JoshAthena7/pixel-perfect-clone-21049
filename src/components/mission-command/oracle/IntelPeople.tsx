@@ -2,52 +2,108 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Plus, X, Sparkles } from "lucide-react";
+import { Loader2, Plus, X, Sparkles, Users } from "lucide-react";
 import { upsertIntelPerson } from "@/lib/intel-people-upsert.functions";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 
 const GOLD = "#C49A2B";
 
-const ROLE_GROUPS = [
-  { id: "decision_maker", label: "Decision Makers", color: "#ef4444" },
-  { id: "evaluator", label: "Evaluators", color: "#ef4444" },
-  { id: "stakeholder", label: "Stakeholders", color: "#3b82f6" },
-  { id: "influencer", label: "Influencers", color: "#f59e0b" },
-  { id: "champion", label: "Champions", color: "#10b981" },
-  { id: "advocate", label: "Advocates", color: "#10b981" },
-  { id: "expert", label: "Experts", color: "#8b5cf6" },
-  { id: "legislator", label: "Legislators", color: "#0ea5e9" },
-  { id: "media", label: "Media", color: "#a855f7" },
-  { id: "adversary", label: "Adversaries", color: "#dc2626" },
-  { id: "contact", label: "Contacts", color: "#64748b" },
+const PEOPLE_CATEGORIES = [
+  "field_intelligence",
+  "competitive_landscape",
+  "regulatory_state",
+  "regulatory_federal",
 ];
 
-// Fallback bucket so any future role_type still renders rather than disappearing.
-const FALLBACK_GROUP = { id: "_other", label: "Other", color: "#64748b" };
+const ROLE_OPTIONS = [
+  { value: "decision_maker", label: "Decision Maker" },
+  { value: "evaluator", label: "Evaluator" },
+  { value: "stakeholder", label: "Stakeholder" },
+  { value: "influencer", label: "Influencer" },
+  { value: "champion", label: "Champion" },
+  { value: "advocate", label: "Advocate" },
+  { value: "expert", label: "Expert" },
+  { value: "legislator", label: "Legislator" },
+  { value: "media", label: "Media" },
+  { value: "adversary", label: "Adversary" },
+  { value: "contact", label: "Contact" },
+];
+
+type SourceEntry = {
+  key: string;
+  name: string;
+  category: string;
+  count: number;
+  lastUpdated: string | null;
+  fromOracle: boolean;
+};
 
 export function IntelPeople({ missionId }: { missionId: string }) {
   const [showAdd, setShowAdd] = useState(false);
   const qc = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["intel-people", missionId],
+    queryKey: ["intel-people-sourced", missionId],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("intel_people")
-        .select("*")
-        .eq("mission_id", missionId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
+      const sb = supabase as any;
+      const { data: m } = await sb.from("missions").select("state_code").eq("id", missionId).maybeSingle();
+      const stateCode = m?.state_code ?? null;
+      const orParts = [`tier.eq.platform`, `and(tier.eq.mission,mission_id.eq.${missionId})`];
+      if (stateCode) orParts.push(`and(tier.eq.state,state_code.eq.${stateCode})`);
+
+      const [{ data: signals }, { data: legacy }] = await Promise.all([
+        sb
+          .from("oracle_signals")
+          .select("source_name, category, created_at")
+          .in("category", PEOPLE_CATEGORIES)
+          .neq("status", "dismissed")
+          .or(orParts.join(",")),
+        sb.from("intel_people").select("id,name,title,organization,role_type,influence_level,relationship_stance,notes").eq("mission_id", missionId),
+      ]);
+
+      const oracleMap = new Map<string, SourceEntry>();
+      for (const s of (signals ?? []) as any[]) {
+        const name = (s.source_name ?? "").trim();
+        if (!name) continue;
+        const key = name.toLowerCase();
+        const existing = oracleMap.get(key);
+        if (existing) {
+          existing.count += 1;
+          if (!existing.lastUpdated || (s.created_at && s.created_at > existing.lastUpdated)) {
+            existing.lastUpdated = s.created_at;
+          }
+        } else {
+          oracleMap.set(key, {
+            key,
+            name,
+            category: s.category,
+            count: 1,
+            lastUpdated: s.created_at,
+            fromOracle: true,
+          });
+        }
+      }
+      const oracleEntries = Array.from(oracleMap.values()).sort((a, b) => b.count - a.count);
+      const legacyEntries = ((legacy ?? []) as any[]).slice().sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+      return { oracleEntries, legacyEntries };
     },
   });
 
-  const people = (data ?? []) as any[];
+  const oracleEntries = data?.oracleEntries ?? [];
+  const legacyEntries = data?.legacyEntries ?? [];
+  const totalCount = oracleEntries.length + legacyEntries.length;
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <div className="text-xs text-white/50">{people.length} {people.length === 1 ? "person" : "people"}</div>
+        <div className="text-xs text-white/50">
+          {totalCount} {totalCount === 1 ? "source" : "sources"}
+          {oracleEntries.length > 0 && legacyEntries.length > 0 && (
+            <span className="ml-1 text-white/30">
+              ({oracleEntries.length} ORACLE · {legacyEntries.length} manual)
+            </span>
+          )}
+        </div>
         <button
           onClick={() => setShowAdd(true)}
           className="inline-flex items-center gap-1 rounded px-3 py-1.5 text-xs"
@@ -59,33 +115,30 @@ export function IntelPeople({ missionId }: { missionId: string }) {
 
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="h-5 w-5 animate-spin text-white/40" /></div>
-      ) : people.length === 0 ? (
-        <EmptyState missionId={missionId} onAdd={() => setShowAdd(true)} onSeeded={() => qc.invalidateQueries({ queryKey: ["intel-people", missionId] })} />
+      ) : totalCount === 0 ? (
+        <EmptyState missionId={missionId} onAdd={() => setShowAdd(true)} onSeeded={() => qc.invalidateQueries({ queryKey: ["intel-people-sourced", missionId] })} />
       ) : (
         <div className="space-y-6">
-          {[...ROLE_GROUPS, FALLBACK_GROUP].map((g) => {
-            const knownIds = new Set(ROLE_GROUPS.map((r) => r.id));
-            const items =
-              g.id === "_other"
-                ? people.filter((p) => !knownIds.has(p.role_type))
-                : people.filter((p) => p.role_type === g.id);
-            if (!items.length) return null;
-            return (
-              <section key={g.id}>
-                <div
-                  className="text-[10px] uppercase tracking-wider mb-2 pb-1"
-                  style={{ color: g.color, borderBottom: `1px solid ${g.color}33` }}
-                >
-                  {g.label} ({items.length})
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {items.map((p) => (
-                    <PersonCard key={p.id} person={p} accent={g.color} />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
+          {oracleEntries.length > 0 && (
+            <section>
+              <div className="text-[10px] uppercase tracking-wider mb-2 pb-1" style={{ color: GOLD, borderBottom: `1px solid ${GOLD}33` }}>
+                ORACLE Sources ({oracleEntries.length})
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {oracleEntries.map((e) => <SourceCard key={e.key} entry={e} />)}
+              </div>
+            </section>
+          )}
+          {legacyEntries.length > 0 && (
+            <section>
+              <div className="text-[10px] uppercase tracking-wider mb-2 pb-1 text-white/55" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                Manual Entries ({legacyEntries.length})
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {legacyEntries.map((p: any) => <LegacyPersonCard key={p.id} person={p} />)}
+              </div>
+            </section>
+          )}
         </div>
       )}
 
@@ -94,8 +147,8 @@ export function IntelPeople({ missionId }: { missionId: string }) {
           missionId={missionId}
           onClose={() => setShowAdd(false)}
           onSaved={() => {
-            qc.invalidateQueries({ queryKey: ["intel-people", missionId] });
-            qc.invalidateQueries({ queryKey: ["intel-completeness", missionId] });
+            qc.invalidateQueries({ queryKey: ["intel-people-sourced", missionId] });
+            qc.invalidateQueries({ queryKey: ["intel-counts", missionId] });
             setShowAdd(false);
           }}
         />
@@ -104,38 +157,48 @@ export function IntelPeople({ missionId }: { missionId: string }) {
   );
 }
 
-function PersonCard({ person, accent }: { person: any; accent: string }) {
+function SourceCard({ entry }: { entry: SourceEntry }) {
+  const dt = entry.lastUpdated ? new Date(entry.lastUpdated) : null;
+  const dtLabel = dt ? dt.toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "—";
   return (
-    <div
-      className="rounded-lg p-3"
-      style={{ background: "rgba(5,13,24,0.5)", border: `1px solid ${accent}33`, borderLeftWidth: 3 }}
-    >
+    <div className="rounded-lg p-3" style={{ background: "rgba(5,13,24,0.5)", border: `1px solid ${GOLD}33`, borderLeftWidth: 3, borderLeftColor: GOLD }}>
+      <div className="flex justify-between items-start gap-2">
+        <div className="min-w-0">
+          <div className="text-sm text-white font-medium flex items-center gap-1.5 min-w-0">
+            <Users className="h-3 w-3 shrink-0" style={{ color: GOLD }} />
+            <span className="truncate">{entry.name}</span>
+          </div>
+          <div className="text-[10px] text-white/45 mt-0.5 uppercase tracking-wider">{entry.category.replace(/_/g, " ")}</div>
+        </div>
+        {entry.fromOracle && (
+          <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 3, background: "rgba(196,154,43,0.15)", color: GOLD, border: `0.5px solid ${GOLD}55`, whiteSpace: "nowrap" }}>
+            ORACLE
+          </span>
+        )}
+      </div>
+      <div className="flex items-center justify-between mt-2 text-[10px] text-white/55">
+        <span>{entry.count} {entry.count === 1 ? "item" : "items"}</span>
+        <span>Updated {dtLabel}</span>
+      </div>
+    </div>
+  );
+}
+
+function LegacyPersonCard({ person }: { person: any }) {
+  return (
+    <div className="rounded-lg p-3" style={{ background: "rgba(5,13,24,0.5)", border: "1px solid rgba(255,255,255,0.08)", borderLeftWidth: 3, borderLeftColor: "rgba(255,255,255,0.2)" }}>
       <div className="flex justify-between items-start">
-        <div>
-          <div className="text-sm text-white font-medium">{person.name || "Unnamed"}</div>
-          {person.title && <div className="text-xs text-white/55">{person.title}</div>}
+        <div className="min-w-0">
+          <div className="text-sm text-white font-medium truncate">{person.name || "Unnamed"}</div>
+          {(person.title || person.organization) && (
+            <div className="text-xs text-white/55 truncate">{[person.title, person.organization].filter(Boolean).join(" · ")}</div>
+          )}
         </div>
         <div className="flex gap-1">
-          {person.influence_level && (
-            <Badge label={person.influence_level} />
-          )}
-          {person.relationship_stance && (
-            <Badge label={person.relationship_stance} />
-          )}
+          {person.influence_level && <Badge label={person.influence_level} />}
+          {person.relationship_stance && <Badge label={person.relationship_stance} />}
         </div>
       </div>
-      {person.known_priorities?.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-2">
-          {person.known_priorities.slice(0, 4).map((p: string, i: number) => (
-            <span
-              key={i}
-              style={{ fontSize: 9, padding: "1px 6px", borderRadius: 3, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)" }}
-            >
-              {p}
-            </span>
-          ))}
-        </div>
-      )}
       {person.notes && <div className="text-xs text-white/50 mt-2 line-clamp-2">{person.notes}</div>}
     </div>
   );
@@ -165,7 +228,7 @@ function EmptyState({ missionId, onAdd, onSeeded }: { missionId: string; onAdd: 
   };
   return (
     <div className="rounded-lg py-12 text-center" style={{ background: "rgba(5,13,24,0.4)", border: "1px dashed rgba(255,255,255,0.1)" }}>
-      <div className="text-sm text-white/60">No people captured yet.</div>
+      <div className="text-sm text-white/60">No people or field-intelligence sources captured yet.</div>
       <div className="mt-3 flex items-center justify-center gap-3">
         <button
           onClick={generate}
@@ -182,9 +245,6 @@ function EmptyState({ missionId, onAdd, onSeeded }: { missionId: string; onAdd: 
   );
 }
 
-// Canonical write goes to intel_people via upsertIntelPerson (single source
-// of truth). Name + organization live directly on the row so Olympus / Oracle
-// / Intelligence → People all read from the same place.
 function AddPersonDialog({
   missionId,
   onClose,
@@ -241,7 +301,7 @@ function AddPersonDialog({
         <div className="space-y-3">
           <Input label="Name *" value={name} onChange={setName} />
           <Input label="Title" value={title} onChange={setTitle} />
-          <Select label="Role" value={roleType} onChange={setRoleType} options={ROLE_GROUPS.map((g) => ({ value: g.id, label: g.label }))} />
+          <Select label="Role" value={roleType} onChange={setRoleType} options={ROLE_OPTIONS} />
           <Select label="Influence" value={influence} onChange={(v) => setInfluence(v as typeof influence)} options={[{ value: "high", label: "High" }, { value: "medium", label: "Medium" }, { value: "low", label: "Low" }]} />
           <Select label="Stance" value={stance} onChange={(v) => setStance(v as typeof stance)} options={[{ value: "ally", label: "Ally" }, { value: "neutral", label: "Neutral" }, { value: "unknown", label: "Unknown" }, { value: "hostile", label: "Hostile" }]} />
           <Input label="Organization" value={organization} onChange={setOrganization} />
