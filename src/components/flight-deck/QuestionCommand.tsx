@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -107,8 +107,51 @@ export function QuestionCommand({ missionId }: { missionId: string }) {
     return { total, assigned, awaiting };
   }, [questions]);
 
+  // Pre-warm ORACLE for the first 3 questions (fire-and-forget).
+  // Warms the Postgres query cache so the server-fn brief generation is faster.
+  const prewarmedOracle = useRef<Record<string, any>>({});
+  const [prewarmState, setPrewarmState] = useState<Record<string, "loading" | "ready">>({});
+  const prewarmedKey = useRef<string>("");
+  useEffect(() => {
+    const first3 = questions.slice(0, 3);
+    const key = first3.map((q) => q.id).join("|");
+    if (!key || key === prewarmedKey.current) return;
+    prewarmedKey.current = key;
+    const branches = ["INTENT", "PAINS", "WIN_LEVERS", "WHAT_CHANGED", "RISK"];
+    setPrewarmState((s) => {
+      const next = { ...s };
+      for (const q of first3) if (!prewarmedOracle.current[q.id]) next[q.id] = "loading";
+      return next;
+    });
+    first3.forEach(async (q) => {
+      if (prewarmedOracle.current[q.id]) return;
+      try {
+        const { data } = await supabase.rpc("query_oracle" as any, {
+          p_mission_id: missionId,
+          p_question_id: q.id,
+          p_taxonomy_codes: branches,
+          p_limit_per_branch: 3,
+        });
+        prewarmedOracle.current[q.id] = data ?? null;
+        if (import.meta.env.DEV) {
+          console.log(`Pre-warmed ORACLE for Q${q.question_number ?? q.id.slice(0, 6)}.`);
+        }
+      } catch {
+        // silent
+      } finally {
+        setPrewarmState((s) => ({ ...s, [q.id]: "ready" }));
+      }
+    });
+  }, [questions, missionId]);
+
+  const [briefStage, setBriefStage] = useState<"oracle" | "assemble" | null>(null);
   const handleGenerateBrief = async (q: QuestionRow) => {
     setGeneratingId(q.id);
+    const prewarmed = !!prewarmedOracle.current[q.id];
+    setBriefStage(prewarmed ? "assemble" : "oracle");
+    const stageTimer = prewarmed
+      ? null
+      : window.setTimeout(() => setBriefStage("assemble"), 3000);
     try {
       await generateBrief({ data: { missionId, questionId: q.id } });
       toast.success("IRIS brief ready.");
@@ -117,6 +160,8 @@ export function QuestionCommand({ missionId }: { missionId: string }) {
       toast.error("Brief generation failed.", { description: e?.message });
       refetchQ();
     } finally {
+      if (stageTimer) window.clearTimeout(stageTimer);
+      setBriefStage(null);
       setGeneratingId(null);
     }
   };
