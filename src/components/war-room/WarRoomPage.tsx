@@ -21,6 +21,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } f
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { MomentumScorePill } from "@/components/momentum/MomentumScore";
 import {
   Radar, RefreshCw, MessageSquare, Eye, Flag, MessageCircle, Zap, RotateCcw,
   Users, ChevronDown, ChevronUp,
