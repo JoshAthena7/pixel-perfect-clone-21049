@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
 import { MissionHealthSummaryCard } from "@/components/mission-command/MissionHealthSummaryCard";
+import { MissionClock } from "@/components/briefing/MissionClock";
 
 import { useMissionAccess } from "@/hooks/useAccess";
 import { useServerFn } from "@tanstack/react-start";
@@ -270,17 +271,26 @@ function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
 
         {/* RIGHT 40% */}
         <div className="lg:col-span-2 lg:pl-8 lg:border-l" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
-          <div className="flex items-center gap-2" style={cardLabel}>
-            <Sparkles size={12} /> Next Milestone
-          </div>
-          <h3 className="mt-3 font-bold" style={{ fontSize: 24, lineHeight: 1.2 }}>
-            {msName}
-          </h3>
-          {msDays !== null && (
-            <div className="mt-2" style={{ fontSize: 16, color: GOLD, fontWeight: 600 }}>
-              {msDays} Days Remaining
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2" style={cardLabel}>
+                <Sparkles size={12} /> Next Milestone
+              </div>
+              <h3 className="mt-3 font-bold" style={{ fontSize: 24, lineHeight: 1.2 }}>
+                {msName}
+              </h3>
+              {msDays !== null && (
+                <div className="mt-2" style={{ fontSize: 16, color: GOLD, fontWeight: 600 }}>
+                  {msDays} Days Remaining
+                </div>
+              )}
             </div>
-          )}
+            <MissionClock
+              missionId={missionId}
+              startDate={mission?.blast_off_at}
+              submissionDate={mission?.submission_deadline}
+            />
+          </div>
           <button
             onClick={() => navigate({ to: "/missions/$missionId/flight-deck", params: { missionId } })}
             className="mt-6 w-full flex items-center justify-center gap-2 rounded-xl py-4 transition-all"
