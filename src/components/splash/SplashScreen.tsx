@@ -12,6 +12,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import atlasWordmark from "@/assets/atlas-wordmark-optical.png";
+import athenaMark from "@/assets/athena-mark-v3.png.asset.json";
 
 const DOT_COUNT = 110;
 const FIELD_W = 1800; // viewBox width — fills the sky
@@ -27,8 +28,9 @@ const LABEL_IN_AT = 4200; // ATLAS begins fading in after the sky fills + lines 
 const LABEL_FADE_MS = 1800;
 const HOLD_AT = 6200;     // beat where everything sits, fully visible
 const COLLAPSE_AT = 7000;
-const GONE_AT = 10200;    // long, dramatic dim — ATLAS fades over ~2.8s
-const DONE_AT = 11000;
+const LOGO_GROW_AT = 8200; // the last star blooms into the Athena mark
+const GONE_AT = 11800;    // long, dramatic dim — ATLAS fades, logo lingers
+const DONE_AT = 12800;
 
 type Pos = { x: number; y: number; delay: number; r: number; twinkleDur: number; twinkleDelay: number };
 
