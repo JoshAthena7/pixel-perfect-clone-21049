@@ -398,11 +398,17 @@ export function Step1Fuel({
   async function analyze() {
     setAnalyzing(true);
     setAnalyzeResult(null);
+    // Kick ORACLE document processing off in the background. It re-downloads
+    // and re-extracts every doc, then posts to the processor serially — too
+    // slow to block the wizard on. Basics + RFP extraction are what Step 2
+    // actually needs.
+    void processDocsToOracle().catch((e) =>
+      console.warn("[Step1Fuel] background ORACLE processing failed", e),
+    );
     try {
-      const [rfp, basics, oracleItems] = await Promise.all([
+      const [rfp, basics] = await Promise.all([
         runIrisRfpExtraction(missionId),
         analyzeFn({ data: { missionId, wizardStep: 2, fields: BASICS_FIELDS } }),
-        processDocsToOracle(),
       ]);
       const basicsCount = basics.extractions?.length ?? 0;
       const qCount = rfp?.counts?.questions ?? 0;
@@ -413,10 +419,9 @@ export function Step1Fuel({
         rfp ? `${qCount} questions` : null,
         rfp ? `${sCount} sections` : null,
         rfp ? `${cCount} compliance items` : null,
-        oracleItems > 0 ? `${oracleItems} ORACLE intel items` : null,
       ].filter(Boolean);
       setAnalyzeResult(
-        `IRIS extracted ${parts.join(", ")} from ${basics.document_count ?? 0} documents. Steps 3–7 will refine as you visit them.`,
+        `IRIS extracted ${parts.join(", ")} from ${basics.document_count ?? 0} documents. ORACLE intel is processing in the background. Steps 3–7 will refine as you visit them.`,
       );
       // Advance to Step 2 once analysis completes
       onAdvance();
