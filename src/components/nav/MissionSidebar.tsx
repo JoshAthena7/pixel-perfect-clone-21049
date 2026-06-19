@@ -199,10 +199,6 @@ export function MissionSidebar({ missionId, email }: { missionId: string; email?
         </ul>
       </div>
 
-      <div className="mt-auto flex items-center justify-between gap-2 px-3 py-3 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-        <NotificationBell />
-        <UserMenu email={email ?? undefined} />
-      </div>
     </aside>
   );
 }
