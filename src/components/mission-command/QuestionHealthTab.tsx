@@ -818,8 +818,8 @@ function HealthCard({
               ) : (
                 <FlagPopover onConfirm={onFlag} />
               )}
-              <Button size="sm" variant="outline" onClick={onOpenThread}>
-                <MessageSquare className="h-3.5 w-3.5 mr-1" /> Open Thread
+              <Button size="sm" variant="outline" onClick={onOpenThread} title="Pin a note to this question so the other writer sees it">
+                📌 Notes
               </Button>
               <Button size="sm" variant="outline" onClick={copyReport}>
                 <Clipboard className="h-3.5 w-3.5 mr-1" /> Copy Health Report
