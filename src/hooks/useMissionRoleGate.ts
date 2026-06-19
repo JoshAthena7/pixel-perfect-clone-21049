@@ -20,12 +20,17 @@ export type MissionGate = "manager" | "admin";
 export function useMissionRoleGate(missionId: string, gate: MissionGate) {
   const navigate = useNavigate();
   const { isAdmin, isLoading: adminLoading } = useIsAdmin();
-  const { data: access, isLoading: accessLoading } = useMissionAccess(missionId);
+  const { data: access, isLoading: accessLoading, isFetching: accessFetching } = useMissionAccess(missionId);
 
   const role = (access?.role ?? "").toLowerCase();
   const isManager = isAdmin || MANAGER_ROLES.has(role);
   const allowed = gate === "admin" ? isAdmin : isManager;
-  const resolving = adminLoading || accessLoading;
+  // Treat "data not yet returned" and "background refetch in flight" as
+  // resolving. Without `isFetching` + `access === undefined` guards, a
+  // 60-second token refresh that re-runs the access query can briefly look
+  // like "not allowed" and redirect the user mid-session.
+  const resolving =
+    adminLoading || accessLoading || accessFetching || access === undefined;
 
   useEffect(() => {
     if (resolving) return;
