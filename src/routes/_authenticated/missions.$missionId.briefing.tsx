@@ -389,7 +389,7 @@ function TodaysFocusCard({ missionId, mission, bare = false }: { missionId: stri
   const body = (
     <>
       {finalItems.length === 0 ? (
-        <EmptyState>IRIS will generate today's focus items as the mission progresses.</EmptyState>
+        <EmptyState>No focus items yet. IRIS generates priorities once mission setup is complete.</EmptyState>
       ) : (
         <ol className="space-y-4">
           {finalItems.slice(0, 4).map((item: string, i: number) => (
