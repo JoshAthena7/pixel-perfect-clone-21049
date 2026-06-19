@@ -645,6 +645,8 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
           >
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </Button>
+          <MomentumScorePill missionId={missionId} />
+
         </div>
       </div>
 
