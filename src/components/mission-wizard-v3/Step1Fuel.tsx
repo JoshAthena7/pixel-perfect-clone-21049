@@ -525,8 +525,15 @@ export function Step1Fuel({
               return (
                 <div
                   key={r.uid}
-                  className="rounded-lg px-3 py-2.5 border border-white/10 bg-white/[0.03]"
+                  className="rounded-lg px-3 py-2.5 border border-white/10 bg-white/[0.03] relative"
                 >
+                  {r.status === "done" && !r.userTagged && (
+                    <span
+                      aria-hidden
+                      className="absolute top-2 right-2 rounded-full"
+                      style={{ width: 8, height: 8, background: "rgba(251,191,36,0.8)" }}
+                    />
+                  )}
                   <div className="flex items-center gap-3">
                     <FileText className="h-4 w-4 text-white/45 shrink-0" />
                     <span className="text-[13.5px] text-white truncate flex-1">{r.name}</span>
