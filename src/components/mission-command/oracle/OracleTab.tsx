@@ -325,13 +325,30 @@ export function OracleTab({ missionId }: { missionId: string }) {
   );
 }
 
-function Stat({ label, children }: { label: string; children: React.ReactNode }) {
+function Stat({ label, children, tooltip }: { label: string; children: React.ReactNode; tooltip?: string }) {
   return (
-    <div className="flex flex-col">
-      <span style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.35)" }}>{label}</span>
+    <div className="flex flex-col" title={tooltip}>
+      <span style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.35)" }} className="flex items-center gap-1">
+        {label}
+        {tooltip && (
+          <span
+            aria-label={tooltip}
+            title={tooltip}
+            style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 10, height: 10, borderRadius: 999, border: "0.5px solid rgba(255,255,255,0.35)", color: "rgba(255,255,255,0.45)", fontSize: 8, lineHeight: 1, cursor: "help" }}
+          >
+            i
+          </span>
+        )}
+      </span>
       <span style={{ fontSize: 12 }}>{children}</span>
     </div>
   );
+}
+
+function completenessTooltip(pct: number, approved: number): string {
+  if (pct === 0) return "ORACLE is empty. Run the Setup Wizard to load intelligence.";
+  if (pct >= 100) return `ORACLE coverage is strong. ${approved} intelligence items available.`;
+  return `${pct}% — ${approved} of 50 target intelligence items loaded. Process your RFP in the Setup Wizard to increase coverage.`;
 }
 
 function Divider() {
