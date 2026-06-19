@@ -353,7 +353,7 @@ function StaffDetailPanel({
           </div>
 
           <DetailRow label="Role">{roleLabel(staff.atlas_role)}</DetailRow>
-          {staff.job_title && <DetailRow label="Title">{staff.job_title}</DetailRow>}
+          
           <DetailRow label="Clearance">
             <span style={{ color: c === "Cleared" ? "#22c55e" : c === "Pending" ? "#c9a84c" : "#ef4444" }}>
               {c}
