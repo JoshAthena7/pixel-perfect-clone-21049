@@ -209,14 +209,17 @@ function Column({
   title,
   children,
   borderX,
+  dataAttr,
 }: {
   title: React.ReactNode;
   children: React.ReactNode;
   borderX?: boolean;
+  dataAttr?: string;
 }) {
   return (
     <div
       className="h-full overflow-y-auto"
+      data-olympus-col={dataAttr}
       style={{
         borderLeft: borderX ? "1px solid rgba(255,255,255,0.06)" : undefined,
         borderRight: borderX ? "1px solid rgba(255,255,255,0.06)" : undefined,
