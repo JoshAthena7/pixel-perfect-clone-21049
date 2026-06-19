@@ -695,7 +695,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
               </div>
             )}
 
-            {q.acceptance_status === "need_help" && q.sme_assigned === false && (
+            {(cockpit?.activeSosQids as Set<string> | undefined)?.has(q.id) && (
               <div style={{ marginBottom: 14, padding: "8px 12px", background: "rgba(239,68,68,0.1)", border: `1px solid ${RED}`, borderRadius: 6, fontSize: 12, color: "#fecaca" }}>
                 🆘 Awaiting SME Assignment — your Engagement Lead has been notified.
               </div>
