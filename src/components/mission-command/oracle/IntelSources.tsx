@@ -73,7 +73,9 @@ export function IntelSources({ missionId }: { missionId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <div className="text-xs text-white/50">{sources.length} {sources.length === 1 ? "source" : "sources"}</div>
+        <div className="text-xs text-white/50">
+          {oracleSources.length} ORACLE · {sources.length} legacy
+        </div>
         <button
           onClick={() => setShowAdd(true)}
           className="inline-flex items-center gap-1 rounded px-3 py-1.5 text-xs"
@@ -82,6 +84,23 @@ export function IntelSources({ missionId }: { missionId: string }) {
           <Plus className="h-3 w-3" /> Add Source
         </button>
       </div>
+
+      {oracleSources.length > 0 && (
+        <section>
+          <div className="text-[10px] uppercase tracking-wider mb-2 pb-1" style={{ color: GOLD, borderBottom: `1px solid ${GOLD}33` }}>
+            ORACLE Source Registry ({oracleSources.length})
+          </div>
+          <div className="space-y-2">
+            {(oracleSources as any[]).map((s) => <OracleSourceCard key={s.id} source={s} />)}
+          </div>
+        </section>
+      )}
+
+      {sources.length > 0 && (
+        <div className="text-[10px] uppercase tracking-wider pt-2" style={{ color: "rgba(255,255,255,0.4)" }}>
+          Legacy Sources
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="h-5 w-5 animate-spin text-white/40" /></div>
