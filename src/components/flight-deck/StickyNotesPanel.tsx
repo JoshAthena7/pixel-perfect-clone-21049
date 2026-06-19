@@ -352,6 +352,11 @@ export function StickyNotesPanel({
               boxSizing: "border-box",
             }}
           />
+          {text.length > 500 && (
+            <div style={{ marginTop: 6, fontSize: 11, color: "#f0b84a", lineHeight: 1.4 }}>
+              ⚠ Notes are for decisions and references, not draft content. Keep notes brief.
+            </div>
+          )}
           <div
             style={{
               display: "flex",
