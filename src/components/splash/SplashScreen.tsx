@@ -172,7 +172,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               opacity: collapsing ? 0 : 1,
               transition: collapsing
                 ? "opacity 1800ms ease-in"
-                : `opacity 1400ms ease-out ${p.delay}ms`,
+                : `opacity 2600ms ease-out ${p.delay}ms`,
             }}
           >
             {/* Soft glow halo */}
