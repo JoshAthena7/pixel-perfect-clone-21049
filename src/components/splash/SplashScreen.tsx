@@ -28,9 +28,12 @@ const LABEL_IN_AT = 4200; // ATLAS begins fading in after the sky fills + lines 
 const LABEL_FADE_MS = 1800;
 const HOLD_AT = 6200;     // beat where everything sits, fully visible
 const COLLAPSE_AT = 7000;
-const LOGO_GROW_AT = 8200; // the last star blooms into the Athena mark
-const GONE_AT = 11800;    // long, dramatic dim — ATLAS fades, logo lingers
-const DONE_AT = 12800;
+const LOGO_GROW_AT = 8400;  // the last star blooms outward into the Athena mark
+const LOGO_GROW_MS = 2200;  // slow, deliberate bloom from point → full logo
+const LOGO_HOLD_MS = 3200;  // logo sits on a black sky
+const GONE_AT = LOGO_GROW_AT + LOGO_GROW_MS + LOGO_HOLD_MS; // 13800
+const DONE_AT = GONE_AT + 2400;  // overlay + logo fade to black together (no cut)
+
 
 type Pos = { x: number; y: number; delay: number; r: number; twinkleDur: number; twinkleDelay: number };
 
@@ -116,7 +119,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         zIndex: 9999,
         background: "#000",
         opacity: overlayOpacity,
-        transition: "opacity 800ms ease-out",
+        transition: "opacity 2200ms ease-in-out",
         pointerEvents: "none",
         overflow: "hidden",
       }}
@@ -218,7 +221,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         />
       </svg>
 
-      {/* Athena mark — grows out of the last remaining star */}
+      {/* Athena mark — blooms out of the last gold star, sits, then fades to sky */}
       <div
         style={{
           position: "absolute",
@@ -229,25 +232,57 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           pointerEvents: "none",
         }}
       >
-        <img
-          src={athenaMark.url}
-          alt="Athena"
-          draggable={false}
+        <div
           style={{
-            height: 140,
-            width: 140,
-            objectFit: "contain",
-            userSelect: "none",
-            filter: "drop-shadow(0 0 32px rgba(229,189,90,0.55))",
+            position: "relative",
+            width: 320,
+            height: 320,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             opacity: phase === "gone" ? 0 : logoIn ? 1 : 0,
-            transform: logoIn && phase !== "gone" ? "scale(1)" : "scale(0.02)",
-            transition:
-              phase === "gone"
-                ? "opacity 900ms ease-out, transform 900ms ease-out"
-                : "opacity 1600ms ease-out, transform 1800ms cubic-bezier(0.16,0.84,0.3,1)",
+            transition: phase === "gone"
+              ? "opacity 2200ms ease-in-out"
+              : "opacity 1800ms ease-out",
           }}
-        />
+        >
+          {/* Gold bloom halo — radial gradient that grows with the mark and
+              feathers into the black sky, so the logo never looks pasted. */}
+          <div
+            aria-hidden
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "50%",
+              background:
+                "radial-gradient(circle at center, rgba(229,189,90,0.42) 0%, rgba(196,154,43,0.18) 28%, rgba(196,154,43,0.06) 50%, rgba(0,0,0,0) 72%)",
+              transform: logoIn && phase !== "gone" ? "scale(1)" : "scale(0.04)",
+              transformOrigin: "center",
+              transition: `transform ${LOGO_GROW_MS}ms cubic-bezier(0.19,1,0.22,1)`,
+              filter: "blur(2px)",
+            }}
+          />
+          <img
+            src={athenaMark.url}
+            alt="Athena"
+            draggable={false}
+            style={{
+              position: "relative",
+              height: 150,
+              width: 150,
+              objectFit: "contain",
+              userSelect: "none",
+              // mixBlendMode: screen lets any dark PNG matte dissolve into the black sky.
+              mixBlendMode: "screen",
+              filter: "drop-shadow(0 0 28px rgba(229,189,90,0.55)) drop-shadow(0 0 60px rgba(196,154,43,0.25))",
+              transform: logoIn && phase !== "gone" ? "scale(1)" : "scale(0.02)",
+              transformOrigin: "center",
+              transition: `transform ${LOGO_GROW_MS}ms cubic-bezier(0.19,1,0.22,1)`,
+            }}
+          />
+        </div>
       </div>
+
 
 
 
