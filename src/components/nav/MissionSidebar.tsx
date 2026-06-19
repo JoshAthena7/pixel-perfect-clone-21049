@@ -60,7 +60,7 @@ function buildItems(missionId: string): NavItem[] {
     },
     {
       id: "olympus",
-      label: "OLYMPUS",
+      label: "ORACLE",
       Icon: Settings,
       to: `/admin`,
       matchSegs: ["__admin__"],
