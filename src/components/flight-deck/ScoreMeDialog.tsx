@@ -129,7 +129,16 @@ export function ScoreMeDialog({
     }
     setLoading(true);
     try {
-      const r = await run({ data: { missionId, questionId, draftText: draft } });
+      const r = await run({
+        data: {
+          missionId,
+          questionId,
+          draftText: draft,
+          irisChecklist: checklist
+            ? { items: checklist.items, planned_indices: checklist.planned }
+            : undefined,
+        },
+      });
       setResult(r.result);
       // Fire-and-forget: feed gaps into IRIS Memory.
       void gapAnalysis({
