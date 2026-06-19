@@ -202,7 +202,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{subtitle}</div>
           </div>
           <div className="flex items-center gap-4" style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>
-            <Stat label="Completeness">
+            <Stat label="Completeness" tooltip={completenessTooltip(completeness, counts?.oracleApproved ?? 0)}>
               <div className="flex items-center gap-2">
                 <span style={{ color: GOLD, fontWeight: 600 }}>{completeness}%</span>
                 <div className="relative" style={{ width: 80, height: 3, background: "rgba(255,255,255,0.08)", borderRadius: 2 }}>
