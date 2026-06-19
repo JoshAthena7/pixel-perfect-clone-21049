@@ -11,6 +11,7 @@
  * own 2.5s timeline finishes.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
+import atlasWordmark from "@/assets/atlas-wordmark-optical.png";
 
 const DOT_COUNT = 110;
 const FIELD_W = 1800; // viewBox width — fills the sky
@@ -224,23 +225,24 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           pointerEvents: "none",
         }}
       >
-        <div
+        <img
+          src={atlasWordmark}
+          alt="ATLAS"
+          draggable={false}
           style={{
-            fontFamily: "Inter, system-ui, -apple-system, sans-serif",
-            fontSize: 36,
-            fontWeight: 200,
-            letterSpacing: "0.4em",
-            color: "rgba(255,255,255,0.95)",
+            height: 56,
+            width: "auto",
+            objectFit: "contain",
+            userSelect: "none",
+            filter: "brightness(1.1) drop-shadow(0 0 28px rgba(196,154,43,0.35))",
             opacity: collapsing ? 0 : labelsIn ? 1 : 0,
-            transform: labelsIn && !collapsing ? "translateY(0)" : "translateY(6px)",
-            textShadow: "0 0 24px rgba(196,154,43,0.25)",
+            transform: labelsIn && !collapsing ? "translateY(0) scale(1)" : "translateY(8px) scale(0.985)",
             transition: collapsing
-              ? "opacity 1600ms ease-out"
+              ? "opacity 1600ms ease-out, transform 1600ms ease-out"
               : `opacity ${LABEL_FADE_MS}ms ease-out, transform ${LABEL_FADE_MS}ms ease-out`,
           }}
-        >
-          ATLAS
-        </div>
+        />
+
 
         <div
           style={{
