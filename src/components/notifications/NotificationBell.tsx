@@ -4,18 +4,15 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import {
   Bell,
-  Rocket,
   AlertTriangle,
-  ClipboardCheck,
-  XCircle,
-  UserPlus,
-  Star,
+  LifeBuoy,
   CheckCircle2,
-  MessageCircle,
-  GraduationCap,
-  Eye,
+  FileText,
+  Download,
+  Activity,
+  Radio,
+  ClipboardCheck,
 } from "lucide-react";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Popover,
@@ -25,69 +22,42 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-type Notification = {
+type AssistEvent = {
   id: string;
-  recipient_id: string | null;
-  recipient_role: string;
-  type: string;
-  message: string;
-  metadata: any;
-  is_read: boolean;
+  event_type: string;
+  mission_id: string;
+  question_id: string | null;
   created_at: string;
+  metadata: any;
 };
 
-const ICONS: Record<string, { Icon: any; cls: string }> = {
-  mission_launched: { Icon: Rocket, cls: "text-primary" },
-  amendment_impact: { Icon: AlertTriangle, cls: "text-amber-400" },
-  assignment_acceptance_required: { Icon: ClipboardCheck, cls: "text-primary" },
-  assignment_removed: { Icon: XCircle, cls: "text-red-400" },
-  sme_needed: { Icon: UserPlus, cls: "text-blue-400" },
-  capacity_concern: { Icon: AlertTriangle, cls: "text-red-400" },
-  win_strategy_updated: { Icon: Star, cls: "text-primary" },
-  gate_cleared: { Icon: CheckCircle2, cls: "text-green-400" },
-  qa_communicated: { Icon: MessageCircle, cls: "text-blue-400" },
-  onboarding_complete: { Icon: GraduationCap, cls: "text-green-400" },
-  iris_alert: { Icon: Eye, cls: "text-amber-400 animate-pulse" },
+type MissionMeta = { id: string; name: string | null };
+
+const ACTIVITY: Record<string, { Icon: any; cls: string; label: (e: AssistEvent) => string }> = {
+  sos_raised: { Icon: LifeBuoy, cls: "text-red-400", label: () => "SOS raised — SME assignment requested" },
+  assist_acknowledged: { Icon: CheckCircle2, cls: "text-green-400", label: () => "Assist acknowledged by lead" },
+  assist_ignored: { Icon: AlertTriangle, cls: "text-amber-400", label: () => "Assist dismissed" },
+  brief_opened: { Icon: FileText, cls: "text-blue-400", label: () => "IRIS brief opened" },
+  brief_exported: { Icon: Download, cls: "text-primary", label: () => "Brief exported" },
+  check_in: { Icon: ClipboardCheck, cls: "text-blue-400", label: () => "Writer check-in submitted" },
+  status_updated: { Icon: Activity, cls: "text-primary", label: (e) => `Status updated to ${(e.metadata?.new_status ?? "—").toString().replace(/_/g, " ")}` },
 };
 
-function navTarget(n: Notification): { to: string; search?: Record<string, string> } | null {
-  const missionId = n.metadata?.mission_id;
-  switch (n.type) {
-    case "mission_launched":
-      return missionId ? { to: `/olympus/missions/${missionId}` } : null;
-    case "amendment_impact":
-      return missionId
-        ? { to: `/olympus/missions/${missionId}`, search: { tab: "rfp-documents" } }
-        : null;
-    case "assignment_acceptance_required":
-    case "assignment_removed":
-      return { to: "/olympus/flight-deck" };
-    case "sme_needed":
-    case "capacity_concern":
-      return missionId
-        ? { to: `/olympus/missions/${missionId}`, search: { tab: "team" } }
-        : null;
-    case "win_strategy_updated":
-      return missionId
-        ? { to: `/olympus/missions/${missionId}`, search: { tab: "win-strategy" } }
-        : null;
-    case "gate_cleared":
-      return missionId
-        ? { to: `/olympus/missions/${missionId}`, search: { tab: "journey" } }
-        : null;
-    case "qa_communicated":
-      return missionId
-        ? { to: `/olympus/missions/${missionId}`, search: { tab: "qa-log" } }
-        : null;
-    case "onboarding_complete":
-      return { to: "/olympus/team" };
-    case "iris_alert":
-      return missionId
-        ? { to: `/olympus/missions/${missionId}`, search: { tab: "question-health" } }
-        : null;
-    default:
-      return null;
+const DEFAULT_ACTIVITY = { Icon: Radio, cls: "text-muted-foreground", label: (e: AssistEvent) => e.event_type.replace(/_/g, " ") };
+
+function getActivity(e: AssistEvent) {
+  return ACTIVITY[e.event_type] ?? DEFAULT_ACTIVITY;
+}
+
+function navTarget(e: AssistEvent, currentMissionId: string | null): { to: string; params: any; search?: any } {
+  if (e.question_id) {
+    return { to: "/missions/$missionId/flight-deck", params: { missionId: e.mission_id } };
   }
+  return { to: "/missions/$missionId/briefing", params: { missionId: e.mission_id } };
+}
+
+function lastReadKey(uid: string) {
+  return `lovable.notifBell.lastRead.${uid}`;
 }
 
 export function NotificationBell() {
@@ -95,83 +65,94 @@ export function NotificationBell() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [memberId, setMemberId] = useState<string | null>(null);
+  const [lastReadAt, setLastReadAt] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    supabase.auth.getUser().then(async ({ data }) => {
+    supabase.auth.getUser().then(({ data }) => {
       if (cancelled) return;
       const uid = data.user?.id ?? null;
       setUserId(uid);
-      const { data: m } = await supabase.rpc("current_atlas_member_id");
-      if (!cancelled) setMemberId((m as string) ?? null);
+      if (uid) {
+        try {
+          setLastReadAt(localStorage.getItem(lastReadKey(uid)));
+        } catch {
+          /* ignore */
+        }
+      }
     });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const { data: notifications = [] } = useQuery({
-    queryKey: ["notifications", userId, memberId],
+  const { data: events = [] } = useQuery({
+    queryKey: ["notif-bell", userId],
     queryFn: async () => {
+      if (!userId) return [] as { events: AssistEvent[]; missions: Record<string, string> }["events"];
+      // Missions where I'm a member
+      const { data: members } = await supabase
+        .from("mission_team_members")
+        .select("mission_id")
+        .eq("user_id", userId);
+      const missionIds = Array.from(new Set(((members ?? []) as any[]).map((m) => m.mission_id).filter(Boolean)));
+      if (missionIds.length === 0) return [];
+      const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data } = await supabase
-        .from("atlas_notifications")
-        .select("*")
+        .from("mission_assist_events")
+        .select("id,event_type,mission_id,question_id,created_at,metadata")
+        .in("mission_id", missionIds)
+        .gte("created_at", since)
         .order("created_at", { ascending: false })
-        .limit(50);
-      return (data ?? []) as Notification[];
+        .limit(10);
+      return ((data ?? []) as AssistEvent[]);
     },
     enabled: !!userId,
+    refetchInterval: 60_000,
   });
 
-  // Realtime
-  useEffect(() => {
+  const missionIds = useMemo(() => Array.from(new Set(events.map((e) => e.mission_id))), [events]);
+  const { data: missions = [] } = useQuery({
+    queryKey: ["notif-bell-missions", missionIds.join(",")],
+    queryFn: async () => {
+      if (missionIds.length === 0) return [] as MissionMeta[];
+      const { data } = await supabase.from("missions").select("id,name").in("id", missionIds);
+      return (data ?? []) as MissionMeta[];
+    },
+    enabled: missionIds.length > 0,
+  });
+  const missionNameById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of missions) m.set(r.id, r.name ?? "Mission");
+    return m;
+  }, [missions]);
+
+  const cutoff48 = useMemo(() => new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(), [events.length]);
+  const unreadCount = useMemo(() => {
+    const since = lastReadAt && lastReadAt > cutoff48 ? lastReadAt : cutoff48;
+    return events.filter((e) => e.created_at > since).length;
+  }, [events, lastReadAt, cutoff48]);
+
+  const markAllRead = () => {
     if (!userId) return;
-    const channel = supabase
-      .channel(`notifications-${userId}-${memberId ?? "nil"}-${Math.random().toString(36).slice(2, 8)}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "atlas_notifications" },
-        (payload) => {
-          const n = payload.new as Notification;
-          // Filter to my notifications
-          if (n.recipient_id && n.recipient_id !== userId && n.recipient_id !== memberId) return;
-          qc.invalidateQueries({ queryKey: ["notifications"] });
-          toast(n.message, { duration: 4000 });
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, memberId, qc]);
-
-  const unread = useMemo(() => notifications.filter((n) => !n.is_read), [notifications]);
-  const unreadCount = unread.length;
-
-  const markRead = async (id: string) => {
-    await supabase.from("atlas_notifications").update({ is_read: true }).eq("id", id);
-    qc.invalidateQueries({ queryKey: ["notifications"] });
-  };
-
-  const markAllRead = async () => {
-    const ids = unread.map((n) => n.id);
-    if (ids.length === 0) return;
-    await supabase.from("atlas_notifications").update({ is_read: true }).in("id", ids);
-    qc.invalidateQueries({ queryKey: ["notifications"] });
-  };
-
-  const handleClick = async (n: Notification) => {
-    if (!n.is_read) await markRead(n.id);
-    const target = navTarget(n);
-    if (target) {
-      setOpen(false);
-      navigate({ to: target.to, search: target.search ?? {} } as any);
+    const now = new Date().toISOString();
+    try {
+      localStorage.setItem(lastReadKey(userId), now);
+    } catch {
+      /* ignore */
     }
+    setLastReadAt(now);
+    qc.invalidateQueries({ queryKey: ["notif-bell", userId] });
+  };
+
+  const handleClick = (e: AssistEvent) => {
+    const target = navTarget(e, null);
+    setOpen(false);
+    navigate({ to: target.to as any, params: target.params } as any);
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (o) markAllRead(); }}>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
@@ -190,70 +171,59 @@ export function NotificationBell() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        className="w-[420px] max-w-[95vw] p-0"
-        sideOffset={8}
-      >
+      <PopoverContent align="end" className="w-[420px] max-w-[95vw] p-0" sideOffset={8}>
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <div>
-            <div className="font-semibold text-foreground">Notifications</div>
+            <div className="font-semibold text-foreground">Recent Activity</div>
             <div className="text-xs text-muted-foreground">
-              {unreadCount > 0 ? `${unreadCount} unread` : "All read"}
+              {events.length === 0 ? "Nothing recent" : `${events.length} event${events.length === 1 ? "" : "s"} across your missions`}
             </div>
           </div>
           {unreadCount > 0 && (
-            <button
-              onClick={markAllRead}
-              className="text-xs text-primary hover:underline"
-            >
+            <button onClick={markAllRead} className="text-xs text-primary hover:underline">
               Mark all read
             </button>
           )}
         </div>
         <div className="max-h-[520px] overflow-y-auto">
-          {notifications.length === 0 ? (
+          {events.length === 0 ? (
             <div className="px-6 py-10 text-center">
               <CheckCircle2 className="h-8 w-8 mx-auto text-green-400 mb-2" />
-              <p className="text-sm text-muted-foreground">You are all caught up.</p>
+              <p className="text-sm text-muted-foreground">No mission activity in the last 7 days.</p>
             </div>
           ) : (
             <ul className="divide-y divide-border">
-              {notifications.map((n) => {
-                const meta = ICONS[n.type] ?? { Icon: Bell, cls: "text-muted-foreground" };
+              {events.map((e) => {
+                const meta = getActivity(e);
                 const Icon = meta.Icon;
+                const missionName = missionNameById.get(e.mission_id) ?? "";
+                const isUnread = e.created_at > (lastReadAt ?? cutoff48);
                 return (
                   <li
-                    key={n.id}
-                    onClick={() => handleClick(n)}
+                    key={e.id}
+                    onClick={() => handleClick(e)}
                     className={cn(
                       "flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-surface-hover/50 transition-colors",
-                      !n.is_read && "bg-primary/5",
+                      isUnread && "bg-primary/5",
                     )}
                   >
-                    <Icon className={cn("h-5 w-5 shrink-0 mt-0.5", meta.cls)} />
+                    <Icon className={cn("h-4 w-4 shrink-0 mt-0.5", meta.cls)} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm text-foreground">{n.message}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">
-                        {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                      </p>
+                      <p className="text-sm text-foreground">{meta.label(e)}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {missionName && (
+                          <span className="text-[10px] text-muted-foreground truncate">{missionName}</span>
+                        )}
+                        <span className="text-[10px] text-muted-foreground">
+                          · {formatDistanceToNow(new Date(e.created_at), { addSuffix: true })}
+                        </span>
+                      </div>
                     </div>
-                    {!n.is_read && (
-                      <span className="mt-2 h-2 w-2 rounded-full bg-primary shrink-0" />
-                    )}
                   </li>
                 );
               })}
             </ul>
           )}
-        </div>
-        <div className="border-t border-border px-4 py-2 text-center">
-          <button
-            onClick={() => toast("Full notifications page coming soon.")}
-            className="text-xs text-primary hover:underline"
-          >
-            View all notifications
-          </button>
         </div>
       </PopoverContent>
     </Popover>
