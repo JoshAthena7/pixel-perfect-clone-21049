@@ -1,11 +1,12 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, MoreHorizontal, X, Mail, Loader2 } from "lucide-react";
+import { Search, Plus, MoreHorizontal, X, Mail, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { addAtlasTeamMember } from "@/lib/atlas-team-admin.functions";
 import { useServerFn } from "@tanstack/react-start";
+import { TalentDeskImportDialog } from "@/components/admin/TalentDeskImportDialog";
 
 export const Route = createFileRoute("/_authenticated/admin/team")({
   beforeLoad: async () => {
@@ -74,6 +75,7 @@ function StaffPage() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data: staff = [], isLoading } = useQuery({
     queryKey: ["admin-staff-list"],
@@ -130,15 +132,26 @@ function StaffPage() {
               {staff.length} member{staff.length === 1 ? "" : "s"} across ATLAS.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setAddOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium transition-opacity hover:opacity-90"
-            style={{ background: "#c9a84c", color: "#080c14" }}
-          >
-            <Plus className="h-4 w-4" />
-            Add staff member
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setImportOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium transition-colors hover:bg-white/5"
+              style={{ border: "1px solid rgba(255,255,255,0.12)", color: "white" }}
+            >
+              <Upload className="h-4 w-4" />
+              Import from TalentDesk
+            </button>
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+              style={{ background: "#c9a84c", color: "#080c14" }}
+            >
+              <Plus className="h-4 w-4" />
+              Add staff member
+            </button>
+          </div>
         </div>
 
         {/* Search */}
@@ -194,6 +207,7 @@ function StaffPage() {
       )}
 
       {addOpen && <AddStaffDialog onClose={() => setAddOpen(false)} />}
+      {importOpen && <TalentDeskImportDialog onClose={() => setImportOpen(false)} />}
     </div>
   );
 }
