@@ -12,20 +12,22 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 
-const DOT_COUNT = 90;
+const DOT_COUNT = 110;
 const FIELD_W = 1800; // viewBox width — fills the sky
 const FIELD_H = 1100;
-const LINK_DISTANCE = 180;
+const LINK_DISTANCE = 200;
 const SESSION_KEY = "atlas_splash_shown";
 
 // Timeline (ms)
-const EXPAND_MS = 2200;   // stars drift outward and fill the sky
-const LABEL_IN_AT = 2400; // ATLAS begins fading in after the sky has filled
-const LABEL_FADE_MS = 1600;
-const HOLD_AT = 4400;     // beat where everything sits, fully visible
-const COLLAPSE_AT = 5200;
-const GONE_AT = 5900;
-const DONE_AT = 6200;
+const EXPAND_MS = 2800;   // stars drift outward and twinkle into place
+const LINE_WINDOW_MS = 2400; // window over which lines progressively connect
+const LINE_START_AT = 1800;  // lines begin drawing once enough stars exist
+const LABEL_IN_AT = 4200; // ATLAS begins fading in after the sky fills + lines connect
+const LABEL_FADE_MS = 1800;
+const HOLD_AT = 6200;     // beat where everything sits, fully visible
+const COLLAPSE_AT = 7000;
+const GONE_AT = 7700;
+const DONE_AT = 8000;
 
 type Pos = { x: number; y: number; delay: number; r: number };
 
