@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+// Mission Momentum Score widget — shared via React Query cache key.
 import { useQuery } from "@tanstack/react-query";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { supabase } from "@/integrations/supabase/client";
