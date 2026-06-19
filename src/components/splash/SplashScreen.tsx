@@ -79,6 +79,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
   // 'in' = expanding outward, 'out' = collapsing back, 'gone' = faded.
   const [phase, setPhase] = useState<"in" | "out" | "gone">("in");
   const [labelsIn, setLabelsIn] = useState(false);
+  const [logoIn, setLogoIn] = useState(false);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -87,6 +88,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
     });
     const t1 = setTimeout(() => setLabelsIn(true), LABEL_IN_AT);
     const t2 = setTimeout(() => setPhase("out"), COLLAPSE_AT);
+    const tLogo = setTimeout(() => setLogoIn(true), LOGO_GROW_AT);
     const t3 = setTimeout(() => setPhase("gone"), GONE_AT);
     const t4 = setTimeout(() => onDone(), DONE_AT);
     // touch HOLD_AT so lints don't complain about unused constant
@@ -95,6 +97,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       clearTimeout(t1);
       clearTimeout(t2);
+      clearTimeout(tLogo);
       clearTimeout(t3);
       clearTimeout(t4);
     };
