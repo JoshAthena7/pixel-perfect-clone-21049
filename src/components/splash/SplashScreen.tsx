@@ -204,18 +204,51 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             />
           </g>
         ))}
-        {/* Final lingering core dot */}
+        {/* Final lingering core dot — seeds the Athena logo bloom */}
         <circle
           cx={0}
           cy={0}
           r={2.5}
-          fill="rgba(196,154,43,0.95)"
+          fill="rgba(255,236,180,1)"
           style={{
-            opacity: phase === "out" ? 1 : 0,
-            transition: "opacity 1200ms ease-out",
+            opacity: phase === "out" && !logoIn ? 1 : 0,
+            transition: "opacity 700ms ease-out",
+            filter: "drop-shadow(0 0 8px rgba(229,189,90,0.9))",
           }}
         />
       </svg>
+
+      {/* Athena mark — grows out of the last remaining star */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          pointerEvents: "none",
+        }}
+      >
+        <img
+          src={athenaMark.url}
+          alt="Athena"
+          draggable={false}
+          style={{
+            height: 140,
+            width: 140,
+            objectFit: "contain",
+            userSelect: "none",
+            filter: "drop-shadow(0 0 32px rgba(229,189,90,0.55))",
+            opacity: phase === "gone" ? 0 : logoIn ? 1 : 0,
+            transform: logoIn && phase !== "gone" ? "scale(1)" : "scale(0.02)",
+            transition:
+              phase === "gone"
+                ? "opacity 900ms ease-out, transform 900ms ease-out"
+                : "opacity 1600ms ease-out, transform 1800ms cubic-bezier(0.16,0.84,0.3,1)",
+          }}
+        />
+      </div>
+
 
 
       <div
