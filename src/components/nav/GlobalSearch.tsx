@@ -172,7 +172,7 @@ function SearchModal({ onClose }: { onClose: () => void }) {
             <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: 1, color: "rgba(255,255,255,0.4)" }}>Quick Access</div>
               <QuickLink label="→ Flight Deck" onClick={() => missionId ? go(`/missions/${missionId}/flight-deck`) : go("/home")} />
-              <QuickLink label="→ ATC" onClick={() => missionId ? go(`/missions/${missionId}/atc`) : go("/home")} />
+              <QuickLink label="→ ATC" onClick={() => missionId ? go(`/missions/${missionId}/war-room`) : go("/home")} />
               <QuickLink label="→ ORACLE" onClick={() => missionId ? go(`/missions/${missionId}/intelligence`) : go("/home")} />
             </div>
           )}
@@ -209,7 +209,7 @@ function SearchModal({ onClose }: { onClose: () => void }) {
               {team.map((m: any) => (
                 <ResultRow
                   key={m.id}
-                  onClick={() => go(`/missions/${missionId}/atc?writer=${m.id}`)}
+                  onClick={() => go(`/missions/${missionId}/war-room?writer=${m.id}`)}
                 >
                   <span style={{
                     width: 24, height: 24, borderRadius: "50%", background: "rgba(255,255,255,0.1)",
