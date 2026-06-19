@@ -69,6 +69,7 @@ export function ScoreMeDialog({
       setStuckPrompt("");
       setStuckLoading(false);
       setStuckOpener(null);
+      setChecklist(null);
       return;
     }
     if (!missionId || !questionId) return;
@@ -77,6 +78,36 @@ export function ScoreMeDialog({
     prefetch({ data: { missionId, questionId } })
       .then(() => { if (!cancelled) setContextStatus("ready"); })
       .catch(() => { if (!cancelled) setContextStatus("error"); });
+
+    // Load IRIS Score Predictor checklist + writer's planned indices
+    (async () => {
+      try {
+        const [{ data: q }, { data: me }] = await Promise.all([
+          (await import("@/integrations/supabase/client")).supabase
+            .from("mission_questions").select("iris_brief").eq("id", questionId).maybeSingle(),
+          (await import("@/integrations/supabase/client")).supabase.auth.getUser(),
+        ]);
+        const briefItems = (q as any)?.iris_brief?.score_predictor?.items;
+        const sb = (await import("@/integrations/supabase/client")).supabase;
+        let predictorItems: { text: string; critical?: boolean }[] | null =
+          Array.isArray(briefItems) ? briefItems : null;
+        let planned: number[] = [];
+        if (me?.user) {
+          const { data: progress } = await sb
+            .from("question_progress")
+            .select("metadata")
+            .eq("question_id", questionId)
+            .eq("assignee_id", me.user.id)
+            .maybeSingle();
+          const arr = (progress as any)?.metadata?.iris_checklist_state?.checked;
+          if (Array.isArray(arr)) planned = arr.filter((n: any) => Number.isInteger(n));
+        }
+        if (!cancelled && predictorItems) {
+          setChecklist({ items: predictorItems, planned });
+        }
+      } catch { /* non-blocking */ }
+    })();
+
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, missionId, questionId]);
