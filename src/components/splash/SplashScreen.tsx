@@ -12,23 +12,37 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 
-const DOT_COUNT = 28;
-const RADIUS = 280;
-const LINK_DISTANCE = 120;
+const DOT_COUNT = 90;
+const FIELD_W = 1800; // viewBox width — fills the sky
+const FIELD_H = 1100;
+const LINK_DISTANCE = 180;
 const SESSION_KEY = "atlas_splash_shown";
 
-type Pos = { x: number; y: number; delay: number };
+// Timeline (ms)
+const EXPAND_MS = 2200;   // stars drift outward and fill the sky
+const LABEL_IN_AT = 2400; // ATLAS begins fading in after the sky has filled
+const LABEL_FADE_MS = 1600;
+const HOLD_AT = 4400;     // beat where everything sits, fully visible
+const COLLAPSE_AT = 5200;
+const GONE_AT = 5900;
+const DONE_AT = 6200;
+
+type Pos = { x: number; y: number; delay: number; r: number };
 
 function buildPositions(): Pos[] {
   const out: Pos[] = [];
   for (let i = 0; i < DOT_COUNT; i++) {
-    const baseAngle = (i / DOT_COUNT) * Math.PI * 2;
-    const angle = baseAngle + (Math.random() - 0.5) * 0.45;
-    const r = RADIUS * (0.45 + Math.random() * 0.55);
+    // Spread across the full field with a soft bias away from dead-center
+    // (so the wordmark has breathing room) but still allow some near-center
+    // stars to anchor the constellation.
+    const angle = Math.random() * Math.PI * 2;
+    const r = 120 + Math.pow(Math.random(), 0.6) * (FIELD_W / 2 - 120);
     out.push({
-      x: Math.cos(angle) * r,
-      y: Math.sin(angle) * r,
-      delay: Math.round(Math.random() * 600),
+      x: Math.cos(angle) * r * (0.95 + Math.random() * 0.1),
+      y: Math.sin(angle) * r * 0.62 * (0.95 + Math.random() * 0.1), // squash vertically toward sky aspect
+      // Long staggered delays — stars appear gradually, not in a burst.
+      delay: Math.round(Math.random() * (EXPAND_MS - 600)),
+      r: 1.2 + Math.random() * 1.6,
     });
   }
   return out;
@@ -42,7 +56,7 @@ function buildLinks(positions: Pos[]) {
       const dy = positions[i].y - positions[j].y;
       const d = Math.hypot(dx, dy);
       if (d <= LINK_DISTANCE) {
-        const delay = Math.max(positions[i].delay, positions[j].delay) + 250;
+        const delay = Math.max(positions[i].delay, positions[j].delay) + 400;
         links.push({ a: i, b: j, delay });
       }
     }
@@ -59,15 +73,15 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // Use rAF so the initial translate(0,0) paints before we flip to the
-    // outward translate — guarantees the transition runs.
     rafRef.current = requestAnimationFrame(() => {
-      // no-op; CSS transitions kick in from initial style → applied style
+      // initial paint at (0,0); CSS transitions carry to final positions
     });
-    const t1 = setTimeout(() => setLabelsIn(true), 1400);
-    const t2 = setTimeout(() => setPhase("out"), 2000);
-    const t3 = setTimeout(() => setPhase("gone"), 2300);
-    const t4 = setTimeout(() => onDone(), 2500);
+    const t1 = setTimeout(() => setLabelsIn(true), LABEL_IN_AT);
+    const t2 = setTimeout(() => setPhase("out"), COLLAPSE_AT);
+    const t3 = setTimeout(() => setPhase("gone"), GONE_AT);
+    const t4 = setTimeout(() => onDone(), DONE_AT);
+    // touch HOLD_AT so lints don't complain about unused constant
+    void HOLD_AT;
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       clearTimeout(t1);
@@ -79,6 +93,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
 
   const collapsing = phase === "out" || phase === "gone";
   const overlayOpacity = phase === "gone" ? 0 : 1;
+
 
   return (
     <div
