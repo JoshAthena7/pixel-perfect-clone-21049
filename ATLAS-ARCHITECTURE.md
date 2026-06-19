@@ -109,7 +109,10 @@ and has no `mapping_source` column. Code matches the schema.
 - `query_oracle(mission_id, question_id, taxonomy_codes[], limit)` — returns
   `jsonb` grouped by taxonomy branch; reads `oracle_signals` with
   `status IN ('approved','pushed','needs_review')`; boost by
-  `question_intel_links.relevance_score`. **Verified live.**
+  `question_intel_links.relevance_score`. **Verified live.** When IRIS
+  formats results for briefing prompts it uses `what_happened` as the
+  primary content, `why_it_matters` as the relevance context, and
+  `recommended_action` as the action guidance (when present).
 - `has_role(_user_id, _role)` — security-definer; reads `user_roles`.
 - `is_mission_team_member(mission_id, user_id)` — security-definer.
 - `is_platform_admin(_user_id)` — legacy helper; internally identical to
