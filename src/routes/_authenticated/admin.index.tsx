@@ -12,7 +12,23 @@ type MissionRow = {
   name: string;
   status: string | null;
   client_name: string | null;
+  health_score: number | null;
+  submission_deadline: string | null;
 };
+
+function healthBorderColor(score: number | null | undefined): string {
+  if (score == null) return "rgba(74,222,128,0.7)";
+  if (score >= 70) return "rgba(74,222,128,0.7)";
+  if (score >= 40) return "rgba(251,191,36,0.7)";
+  return "rgba(248,113,113,0.7)";
+}
+
+function daysToSubmission(deadline: string | null | undefined): number | null {
+  if (!deadline) return null;
+  const diff = new Date(deadline).getTime() - Date.now();
+  if (Number.isNaN(diff)) return null;
+  return Math.max(0, Math.ceil(diff / 86400000));
+}
 
 type Bucket = "Active" | "Draft" | "Closed";
 
