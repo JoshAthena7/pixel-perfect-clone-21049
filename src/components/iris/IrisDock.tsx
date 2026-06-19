@@ -12,6 +12,8 @@ import { IrisMark } from "@/components/iris/IrisMark";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
 import { useIris, getPageLabel } from "./IrisContext";
+import { useIrisBoltRef } from "@/lib/iris-bolt";
+
 
 const GOLD = "#C9A55C";
 // IRIS brand mark color (matches the violet/blue eye in the logo)
