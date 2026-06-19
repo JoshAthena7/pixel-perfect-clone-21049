@@ -81,12 +81,46 @@ export function IrisScorePredictor({
     if (!visible || !missionId || !questionId) return;
     if (generatedRef.current === questionId) return;
     generatedRef.current = questionId;
-    setLoading(true);
-    setError(null);
-    run({ data: { missionId, questionId } })
-      .then((r) => setData(r))
-      .catch((e: any) => setError(e?.message ?? "Score Predictor unavailable."))
-      .finally(() => setLoading(false));
+
+    (async () => {
+      // Check if already stored on the brief — skip the AI call if so
+      try {
+        const { data: row } = await supabase
+          .from("mission_questions")
+          .select("iris_brief")
+          .eq("id", questionId)
+          .maybeSingle();
+        const cached = (row as any)?.iris_brief?.score_predictor;
+        if (cached && Array.isArray(cached.items) && cached.items.length) {
+          setData(cached as ScorePredictor);
+          return;
+        }
+      } catch { /* fall through to generate */ }
+
+      setLoading(true);
+      setError(null);
+      try {
+        const r = await run({ data: { missionId, questionId } });
+        setData(r);
+        // Persist onto the brief so Score Me can read it later
+        try {
+          const { data: row } = await supabase
+            .from("mission_questions")
+            .select("iris_brief")
+            .eq("id", questionId)
+            .maybeSingle();
+          const brief = ((row as any)?.iris_brief ?? {}) as Record<string, unknown>;
+          await supabase
+            .from("mission_questions")
+            .update({ iris_brief: { ...brief, score_predictor: r } as any })
+            .eq("id", questionId);
+        } catch { /* non-blocking */ }
+      } catch (e: any) {
+        setError(e?.message ?? "Score Predictor unavailable.");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [visible, missionId, questionId, run]);
 
   async function persist(next: number[]) {
