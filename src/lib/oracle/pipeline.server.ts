@@ -11,6 +11,7 @@
  * Server-only (filename ends with .server). Do NOT import from client code.
  */
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { debugLog } from "@/lib/debug-log";
 
 type SupabaseAdmin = typeof supabaseAdmin;
 
@@ -216,7 +217,7 @@ export async function runScraper(): Promise<ScraperResult> {
   }
 
   const list = sources ?? [];
-  console.log(`[oracle-scraper] starting — checking ${list.length} active sources`);
+  debugLog.log(`[oracle-scraper] starting — checking ${list.length} active sources`);
 
   let queued = 0;
   let errors = 0;
@@ -275,7 +276,7 @@ export async function runScraper(): Promise<ScraperResult> {
     }
   }
 
-  console.log(
+  debugLog.log(
     `[oracle-scraper] complete. ${list.length} sources checked. ${queued} new items queued. ${errors} errors.`,
   );
   return { stage: "scraper", sources_checked: list.length, items_queued: queued, errors };
@@ -430,7 +431,7 @@ export async function runClassifier(): Promise<ClassifierResult> {
   }
 
   const items = pending ?? [];
-  console.log(`[oracle-classifier] starting — ${items.length} pending items`);
+  debugLog.log(`[oracle-classifier] starting — ${items.length} pending items`);
 
   // Load active mission context once
   const { data: missionRows } = await client
@@ -471,7 +472,7 @@ export async function runClassifier(): Promise<ClassifierResult> {
       .eq("id", item.id)
       .eq("status", "pending");
     if (claimErr) {
-      console.warn("[oracle-classifier] claim failed:", claimErr.message);
+      debugLog.warn("[oracle-classifier] claim failed:", claimErr.message);
       continue;
     }
 
@@ -483,7 +484,7 @@ export async function runClassifier(): Promise<ClassifierResult> {
 
     let attempt = await classifyItem(apiKey, item as Parameters<typeof classifyItem>[1], ctxMissions, false);
     if (!attempt.ok && (attempt.status === 429 || attempt.status === 408 || attempt.status === 504)) {
-      console.warn(`[oracle-classifier] gateway throttled (${attempt.status}); leaving remaining as pending`);
+      debugLog.warn(`[oracle-classifier] gateway throttled (${attempt.status}); leaving remaining as pending`);
       // restore claim
       await client.from("oracle_ingestion_queue").update({ status: "pending" }).eq("id", item.id);
       break;
@@ -553,14 +554,14 @@ export async function runClassifier(): Promise<ClassifierResult> {
 
     if (score < 30) {
       dismissed += 1;
-      console.log(`[oracle-classifier] dismissed (low relevance ${score}): ${(item as { raw_title: string }).raw_title.slice(0, 80)}`);
+      debugLog.log(`[oracle-classifier] dismissed (low relevance ${score}): ${(item as { raw_title: string }).raw_title.slice(0, 80)}`);
     } else {
       classified += 1;
-      console.log(`[oracle-classifier] classified ${score}/${urgency}: ${(item as { raw_title: string }).raw_title.slice(0, 80)}`);
+      debugLog.log(`[oracle-classifier] classified ${score}/${urgency}: ${(item as { raw_title: string }).raw_title.slice(0, 80)}`);
     }
   }
 
-  console.log(`[oracle-classifier] complete. ${classified} classified, ${dismissed} dismissed, ${errors} errors.`);
+  debugLog.log(`[oracle-classifier] complete. ${classified} classified, ${dismissed} dismissed, ${errors} errors.`);
   return { stage: "classifier", items_classified: classified, items_dismissed: dismissed, errors };
 }
 
@@ -587,7 +588,7 @@ export async function runPromoter(): Promise<PromoterResult> {
   }
 
   const rows = classifiedRows ?? [];
-  console.log(`[oracle-promoter] starting — ${rows.length} items eligible`);
+  debugLog.log(`[oracle-promoter] starting — ${rows.length} items eligible`);
 
   // Preload taxonomy code → id map
   const { data: taxRows } = await client.from("oracle_taxonomy").select("id, node_code");
@@ -716,6 +717,6 @@ export async function runPromoter(): Promise<PromoterResult> {
     }
   }
 
-  console.log(`[oracle-promoter] complete. ${promoted} promoted, ${alerts} alerts.`);
+  debugLog.log(`[oracle-promoter] complete. ${promoted} promoted, ${alerts} alerts.`);
   return { stage: "promoter", items_promoted: promoted, alerts_created: alerts, errors };
 }
