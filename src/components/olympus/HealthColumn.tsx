@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
-import { Loader2, ExternalLink, DatabaseZap, Zap } from "lucide-react";
+import { Loader2, ExternalLink, DatabaseZap, Zap, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sheet,
   SheetContent,
@@ -71,6 +72,22 @@ export function HealthColumn({
     queryKey: ["olympus-health", "top", missionId],
     queryFn: () => getTopIntelligence({ data: { missionId } }),
     refetchInterval: 60_000,
+  });
+  const recentlyApprovedQ = useQuery({
+    queryKey: ["olympus-health", "recently-approved", missionId],
+    queryFn: async () => {
+      if (!missionId) return [] as any[];
+      const { data } = await (supabase as any)
+        .from("oracle_signals")
+        .select("id,title,category,approved_at,updated_at,created_at")
+        .or(`mission_id.eq.${missionId},tier.eq.platform`)
+        .in("status", ["approved", "pushed"])
+        .order("updated_at", { ascending: false })
+        .limit(3);
+      return (data ?? []) as any[];
+    },
+    refetchInterval: 60_000,
+    enabled: !!missionId,
   });
 
   const [lastUpdated, setLastUpdated] = useState<number>(Date.now());
@@ -150,7 +167,15 @@ export function HealthColumn({
       >
         Updated {relative(new Date(lastUpdated).toISOString())}
       </div>
+      {(recentlyApprovedQ.data?.length ?? 0) > 0 && (
+        <Panel heightPct={15} title="Recently Approved">
+          <RecentlyApprovedList items={recentlyApprovedQ.data ?? []} />
+        </Panel>
+      )}
       <Panel heightPct={35} title="Briefing Coverage" right={<CoverageSummary q={coverageQ.data} />}>
+        <div style={{ padding: "6px 10px", fontStyle: "italic", fontSize: 10, color: "rgba(255,255,255,0.4)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+          Questions become covered when IRIS generates a grounded brief using approved ORACLE intelligence.
+        </div>
         <CoverageList
           data={coverageQ.data}
           loading={coverageQ.isLoading}
@@ -526,5 +551,30 @@ function Skeleton() {
       <div className="h-3 bg-white/5 rounded animate-pulse w-2/3" />
       <div className="h-3 bg-white/5 rounded animate-pulse w-1/2" />
     </div>
+  );
+}
+
+function RecentlyApprovedList({ items }: { items: any[] }) {
+  return (
+    <ul className="divide-y" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
+      {items.map((it) => {
+        const title = String(it.title ?? "Untitled");
+        const trimmed = title.length > 55 ? title.slice(0, 55) + "…" : title;
+        const dt = it.approved_at ?? it.updated_at ?? it.created_at;
+        const dtLabel = dt ? relative(dt) : "";
+        return (
+          <li key={it.id} className="flex items-center gap-2 px-3 py-2" style={{ minHeight: 32 }}>
+            <CheckCircle2 className="h-3 w-3 shrink-0" style={{ color: "#34d399" }} />
+            <span className="text-white truncate flex-1" style={{ fontSize: 11 }}>{trimmed}</span>
+            {it.category && (
+              <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 3, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.55)" }}>
+                {String(it.category).replace(/_/g, " ")}
+              </span>
+            )}
+            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap" }}>{dtLabel}</span>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

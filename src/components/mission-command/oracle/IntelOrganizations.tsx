@@ -2,44 +2,105 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Plus, X, Sparkles } from "lucide-react";
+import { Loader2, Plus, X, Sparkles, Building2 } from "lucide-react";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 
 const GOLD = "#C49A2B";
 
-const ORG_GROUPS = [
-  { id: "competitor", label: "Competitors", color: "#ef4444" },
-  { id: "agency", label: "State Agencies", color: "#3b82f6" },
-  { id: "provider", label: "Providers", color: "#10b981" },
-  { id: "advocacy", label: "Advocacy", color: "#f59e0b" },
-  { id: "vendor", label: "Vendors", color: "#8b5cf6" },
-  { id: "partner", label: "Partners", color: "#06b6d4" },
-  { id: "subcontractor", label: "Subcontractors", color: "#a3e635" },
-  { id: "unknown", label: "Other", color: "#64748b" },
+const ORG_CATEGORIES = ["regulatory_state", "regulatory_federal", "quality_performance"];
+
+const ORG_TYPE_OPTIONS = [
+  { value: "competitor", label: "Competitor" },
+  { value: "agency", label: "State Agency" },
+  { value: "provider", label: "Provider" },
+  { value: "advocacy", label: "Advocacy" },
+  { value: "vendor", label: "Vendor" },
+  { value: "partner", label: "Partner" },
+  { value: "subcontractor", label: "Subcontractor" },
+  { value: "unknown", label: "Other" },
 ];
+
+type SourceEntry = {
+  key: string;
+  name: string;
+  category: string;
+  count: number;
+  lastUpdated: string | null;
+  fromOracle: boolean;
+};
 
 export function IntelOrganizations({ missionId }: { missionId: string }) {
   const [showAdd, setShowAdd] = useState(false);
   const qc = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["intel-orgs", missionId],
+    queryKey: ["intel-orgs-sourced", missionId],
     queryFn: async () => {
-      const [{ data: orgs }, { data: ents }] = await Promise.all([
-        (supabase as any).from("intel_organizations").select("*").eq("mission_id", missionId),
-        (supabase as any).from("intel_entities").select("id,name").eq("entity_type", "organization"),
+      const sb = supabase as any;
+      const { data: m } = await sb.from("missions").select("state_code").eq("id", missionId).maybeSingle();
+      const stateCode = m?.state_code ?? null;
+      const orParts = [`tier.eq.platform`, `and(tier.eq.mission,mission_id.eq.${missionId})`];
+      if (stateCode) orParts.push(`and(tier.eq.state,state_code.eq.${stateCode})`);
+
+      const [{ data: signals }, { data: orgs }, { data: ents }] = await Promise.all([
+        sb
+          .from("oracle_signals")
+          .select("source_name, category, created_at")
+          .in("category", ORG_CATEGORIES)
+          .neq("status", "dismissed")
+          .or(orParts.join(",")),
+        sb.from("intel_organizations").select("*").eq("mission_id", missionId),
+        sb.from("intel_entities").select("id,name").eq("entity_type", "organization"),
       ]);
-      const nameById = new Map<string, string>((ents ?? []).map((e: any) => [e.id, e.name]));
-      return ((orgs ?? []) as any[]).map((o: any) => ({ ...o, name: nameById.get(o.entity_id) }));
+
+      const oracleMap = new Map<string, SourceEntry>();
+      for (const s of (signals ?? []) as any[]) {
+        const name = (s.source_name ?? "").trim();
+        if (!name) continue;
+        const key = name.toLowerCase();
+        const existing = oracleMap.get(key);
+        if (existing) {
+          existing.count += 1;
+          if (!existing.lastUpdated || (s.created_at && s.created_at > existing.lastUpdated)) {
+            existing.lastUpdated = s.created_at;
+          }
+        } else {
+          oracleMap.set(key, {
+            key,
+            name,
+            category: s.category,
+            count: 1,
+            lastUpdated: s.created_at,
+            fromOracle: true,
+          });
+        }
+      }
+      const oracleEntries = Array.from(oracleMap.values()).sort((a, b) => b.count - a.count);
+
+      const nameById = new Map<string, string>(((ents ?? []) as any[]).map((e) => [e.id, e.name]));
+      const legacyEntries = ((orgs ?? []) as any[])
+        .map((o) => ({ ...o, name: nameById.get(o.entity_id) }))
+        .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+
+      return { oracleEntries, legacyEntries };
     },
   });
 
-  const orgs = (data ?? []) as any[];
+  const oracleEntries = data?.oracleEntries ?? [];
+  const legacyEntries = data?.legacyEntries ?? [];
+  const totalCount = oracleEntries.length + legacyEntries.length;
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <div className="text-xs text-white/50">{orgs.length} {orgs.length === 1 ? "organization" : "organizations"}</div>
+        <div className="text-xs text-white/50">
+          {totalCount} {totalCount === 1 ? "organization" : "organizations"}
+          {oracleEntries.length > 0 && legacyEntries.length > 0 && (
+            <span className="ml-1 text-white/30">
+              ({oracleEntries.length} ORACLE · {legacyEntries.length} manual)
+            </span>
+          )}
+        </div>
         <button
           onClick={() => setShowAdd(true)}
           className="inline-flex items-center gap-1 rounded px-3 py-1.5 text-xs"
@@ -51,29 +112,30 @@ export function IntelOrganizations({ missionId }: { missionId: string }) {
 
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="h-5 w-5 animate-spin text-white/40" /></div>
-      ) : orgs.length === 0 ? (
-        <EmptyState missionId={missionId} onAdd={() => setShowAdd(true)} onSeeded={() => qc.invalidateQueries({ queryKey: ["intel-orgs", missionId] })} />
+      ) : totalCount === 0 ? (
+        <EmptyState missionId={missionId} onAdd={() => setShowAdd(true)} onSeeded={() => qc.invalidateQueries({ queryKey: ["intel-orgs-sourced", missionId] })} />
       ) : (
         <div className="space-y-6">
-          {ORG_GROUPS.map((g) => {
-            const items = orgs.filter((o) => o.org_type === g.id);
-            if (!items.length) return null;
-            return (
-              <section key={g.id}>
-                <div
-                  className="text-[10px] uppercase tracking-wider mb-2 pb-1"
-                  style={{ color: g.color, borderBottom: `1px solid ${g.color}33` }}
-                >
-                  {g.label} ({items.length})
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {items.map((o) => (
-                    <OrgCard key={o.id} org={o} accent={g.color} />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
+          {oracleEntries.length > 0 && (
+            <section>
+              <div className="text-[10px] uppercase tracking-wider mb-2 pb-1" style={{ color: GOLD, borderBottom: `1px solid ${GOLD}33` }}>
+                ORACLE Sources ({oracleEntries.length})
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {oracleEntries.map((e) => <SourceCard key={e.key} entry={e} />)}
+              </div>
+            </section>
+          )}
+          {legacyEntries.length > 0 && (
+            <section>
+              <div className="text-[10px] uppercase tracking-wider mb-2 pb-1 text-white/55" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                Manual Entries ({legacyEntries.length})
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {legacyEntries.map((o: any) => <LegacyOrgCard key={o.id} org={o} />)}
+              </div>
+            </section>
+          )}
         </div>
       )}
 
@@ -82,8 +144,8 @@ export function IntelOrganizations({ missionId }: { missionId: string }) {
           missionId={missionId}
           onClose={() => setShowAdd(false)}
           onSaved={() => {
-            qc.invalidateQueries({ queryKey: ["intel-orgs", missionId] });
-            qc.invalidateQueries({ queryKey: ["intel-completeness", missionId] });
+            qc.invalidateQueries({ queryKey: ["intel-orgs-sourced", missionId] });
+            qc.invalidateQueries({ queryKey: ["intel-counts", missionId] });
             setShowAdd(false);
           }}
         />
@@ -92,14 +154,36 @@ export function IntelOrganizations({ missionId }: { missionId: string }) {
   );
 }
 
-function OrgCard({ org, accent }: { org: any; accent: string }) {
+function SourceCard({ entry }: { entry: SourceEntry }) {
+  const dt = entry.lastUpdated ? new Date(entry.lastUpdated) : null;
+  const dtLabel = dt ? dt.toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "—";
   return (
-    <div
-      className="rounded-lg p-3"
-      style={{ background: "rgba(5,13,24,0.5)", border: `1px solid ${accent}33`, borderLeftWidth: 3 }}
-    >
+    <div className="rounded-lg p-3" style={{ background: "rgba(5,13,24,0.5)", border: `1px solid ${GOLD}33`, borderLeftWidth: 3, borderLeftColor: GOLD }}>
+      <div className="flex justify-between items-start gap-2">
+        <div className="min-w-0">
+          <div className="text-sm text-white font-medium flex items-center gap-1.5 min-w-0">
+            <Building2 className="h-3 w-3 shrink-0" style={{ color: GOLD }} />
+            <span className="truncate">{entry.name}</span>
+          </div>
+          <div className="text-[10px] text-white/45 mt-0.5 uppercase tracking-wider">{entry.category.replace(/_/g, " ")}</div>
+        </div>
+        <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 3, background: "rgba(196,154,43,0.15)", color: GOLD, border: `0.5px solid ${GOLD}55`, whiteSpace: "nowrap" }}>
+          ORACLE
+        </span>
+      </div>
+      <div className="flex items-center justify-between mt-2 text-[10px] text-white/55">
+        <span>{entry.count} {entry.count === 1 ? "item" : "items"}</span>
+        <span>Updated {dtLabel}</span>
+      </div>
+    </div>
+  );
+}
+
+function LegacyOrgCard({ org }: { org: any }) {
+  return (
+    <div className="rounded-lg p-3" style={{ background: "rgba(5,13,24,0.5)", border: "1px solid rgba(255,255,255,0.08)", borderLeftWidth: 3, borderLeftColor: "rgba(255,255,255,0.2)" }}>
       <div className="flex justify-between items-start">
-        <div className="text-sm text-white font-medium">{org.name || "Unnamed"}</div>
+        <div className="text-sm text-white font-medium truncate">{org.name || "Unnamed"}</div>
         {org.incumbency_status && org.incumbency_status !== "unknown" && (
           <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 3, background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.7)" }}>
             {org.incumbency_status}
@@ -137,7 +221,7 @@ function EmptyState({ missionId, onAdd, onSeeded }: { missionId: string; onAdd: 
   };
   return (
     <div className="rounded-lg py-12 text-center" style={{ background: "rgba(5,13,24,0.4)", border: "1px dashed rgba(255,255,255,0.1)" }}>
-      <div className="text-sm text-white/60">No organizations captured yet.</div>
+      <div className="text-sm text-white/60">No organizations or regulatory sources captured yet.</div>
       <div className="mt-3 flex items-center justify-center gap-3">
         <button
           onClick={generate}
@@ -199,7 +283,7 @@ function AddOrgDialog({ missionId, onClose, onSaved }: { missionId: string; onCl
           <Field label="Name *"><input value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded px-2 py-1.5 text-sm text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }} /></Field>
           <Field label="Type">
             <select value={orgType} onChange={(e) => setOrgType(e.target.value)} className="w-full rounded px-2 py-1.5 text-sm text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              {ORG_GROUPS.map((g) => <option key={g.id} value={g.id} style={{ background: "#0a121e" }}>{g.label}</option>)}
+              {ORG_TYPE_OPTIONS.map((g) => <option key={g.value} value={g.value} style={{ background: "#0a121e" }}>{g.label}</option>)}
             </select>
           </Field>
           <Field label="Incumbency">

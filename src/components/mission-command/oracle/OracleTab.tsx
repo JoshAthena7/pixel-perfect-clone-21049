@@ -101,30 +101,42 @@ export function OracleTab({ missionId }: { missionId: string }) {
       if (stateCode) orParts.push(`and(tier.eq.state,state_code.eq.${stateCode})`);
       const orStr = orParts.join(",");
 
-      const [people, orgs, rels, oracleAll, oracleApproved, oracleOrgs, sourceReg, distinctSrc] = await Promise.all([
+      const PEOPLE_CATS = ["field_intelligence", "competitive_landscape", "regulatory_state", "regulatory_federal"];
+      const ORG_CATS = ["regulatory_state", "regulatory_federal", "quality_performance"];
+
+      const [people, orgs, rels, oracleAll, oracleApproved, sourceReg, peopleSrcRows, orgSrcRows] = await Promise.all([
         sb.from("intel_people").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
         sb.from("intel_organizations").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
         sb.from("intel_relationships").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
         sb.from("oracle_signals").select("id", { count: "exact", head: true }).neq("status", "dismissed").or(orStr),
         sb.from("oracle_signals").select("id", { count: "exact", head: true }).in("status", ["approved", "pushed"]).or(orStr),
-        sb.from("oracle_signals").select("id", { count: "exact", head: true }).neq("status", "dismissed").in("category", ["regulatory_state", "regulatory_federal", "field_intelligence"]).or(orStr),
         sb.from("oracle_source_registry").select("id", { count: "exact", head: true }).or(orStr),
-        sb.from("oracle_signals").select("source_name").neq("status", "dismissed").or(orStr).limit(500),
+        sb.from("oracle_signals").select("source_name").neq("status", "dismissed").in("category", PEOPLE_CATS).or(orStr).limit(1000),
+        sb.from("oracle_signals").select("source_name").neq("status", "dismissed").in("category", ORG_CATS).or(orStr).limit(1000),
       ]);
-      const distinct = new Set<string>();
-      for (const r of (distinctSrc.data ?? [])) {
-        if (r?.source_name) distinct.add(r.source_name);
-      }
+
+      const distinctSources = (rows: any[] | null | undefined): Set<string> => {
+        const s = new Set<string>();
+        for (const r of rows ?? []) {
+          const n = (r?.source_name ?? "").trim().toLowerCase();
+          if (n) s.add(n);
+        }
+        return s;
+      };
+      const peopleSources = distinctSources(peopleSrcRows.data);
+      const orgSources = distinctSources(orgSrcRows.data);
+      // Merge with legacy counts so sidebar matches the tab (oracle + manual).
+      const legacyPeopleCount = people.count ?? 0;
+      const legacyOrgsCount = orgs.count ?? 0;
       const oracleTotal = oracleAll.count ?? 0;
       return {
         events: oracleTotal,
-        people: distinct.size,
-        orgs: oracleOrgs.count ?? 0,
+        people: peopleSources.size + legacyPeopleCount,
+        orgs: orgSources.size + legacyOrgsCount,
         sources: sourceReg.count ?? 0,
         rels: rels.count ?? 0,
-        // Keep legacy people/org counts for any callers that need them
-        legacyPeople: people.count ?? 0,
-        legacyOrgs: orgs.count ?? 0,
+        legacyPeople: legacyPeopleCount,
+        legacyOrgs: legacyOrgsCount,
         oracleApproved: oracleApproved.count ?? 0,
       };
     },
@@ -190,7 +202,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{subtitle}</div>
           </div>
           <div className="flex items-center gap-4" style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>
-            <Stat label="Completeness">
+            <Stat label="Completeness" tooltip={completenessTooltip(completeness, counts?.oracleApproved ?? 0)}>
               <div className="flex items-center gap-2">
                 <span style={{ color: GOLD, fontWeight: 600 }}>{completeness}%</span>
                 <div className="relative" style={{ width: 80, height: 3, background: "rgba(255,255,255,0.08)", borderRadius: 2 }}>
@@ -313,13 +325,30 @@ export function OracleTab({ missionId }: { missionId: string }) {
   );
 }
 
-function Stat({ label, children }: { label: string; children: React.ReactNode }) {
+function Stat({ label, children, tooltip }: { label: string; children: React.ReactNode; tooltip?: string }) {
   return (
-    <div className="flex flex-col">
-      <span style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.35)" }}>{label}</span>
+    <div className="flex flex-col" title={tooltip}>
+      <span style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.35)" }} className="flex items-center gap-1">
+        {label}
+        {tooltip && (
+          <span
+            aria-label={tooltip}
+            title={tooltip}
+            style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 10, height: 10, borderRadius: 999, border: "0.5px solid rgba(255,255,255,0.35)", color: "rgba(255,255,255,0.45)", fontSize: 8, lineHeight: 1, cursor: "help" }}
+          >
+            i
+          </span>
+        )}
+      </span>
       <span style={{ fontSize: 12 }}>{children}</span>
     </div>
   );
+}
+
+function completenessTooltip(pct: number, approved: number): string {
+  if (pct === 0) return "ORACLE is empty. Run the Setup Wizard to load intelligence.";
+  if (pct >= 100) return `ORACLE coverage is strong. ${approved} intelligence items available.`;
+  return `${pct}% — ${approved} of 50 target intelligence items loaded. Process your RFP in the Setup Wizard to increase coverage.`;
 }
 
 function Divider() {
