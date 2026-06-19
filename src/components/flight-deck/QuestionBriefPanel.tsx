@@ -54,6 +54,9 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
     });
   }, [open, data?.id, missionId, questionId]);
 
+  // Particle field fades to 0 over 300ms before the brief content is revealed.
+  const [particlesFading, setParticlesFading] = useState(false);
+
   const genMutation = useMutation({
     mutationFn: async () => {
       // If a brief already exists, delete prior rows for this question (regenerate = overwrite).
@@ -69,16 +72,15 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
       });
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey });
+      setParticlesFading(true);
       triggerIrisBolt("brief");
+      window.setTimeout(() => {
+        qc.invalidateQueries({ queryKey });
+        setParticlesFading(false);
+      }, 280);
     },
   });
 
-  // Particle field fades to 0 ~300ms before unmount so the brief reveals smoothly.
-  const [particlesFading, setParticlesFading] = useState(false);
-  useEffect(() => {
-    if (!genMutation.isPending) setParticlesFading(false);
-  }, [genMutation.isPending]);
 
   const brief = data;
   const boltRef = useIrisBoltRef<HTMLSpanElement>("brief");
