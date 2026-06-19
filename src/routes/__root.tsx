@@ -98,6 +98,7 @@ function RootComponent() {
       </main>
       <Toaster theme="dark" position="top-right" />
       <SplashGate />
+      <DevToolsPanel />
     </QueryClientProvider>
   );
 }
