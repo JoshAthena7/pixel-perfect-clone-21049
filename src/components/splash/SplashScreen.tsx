@@ -206,7 +206,8 @@ export function SplashGate() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      if (sessionStorage.getItem(SESSION_KEY)) return;
+      const force = new URLSearchParams(window.location.search).get("splash") === "1";
+      if (!force && sessionStorage.getItem(SESSION_KEY)) return;
       sessionStorage.setItem(SESSION_KEY, "true");
       setShow(true);
     } catch {
