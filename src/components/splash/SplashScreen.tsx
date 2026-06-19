@@ -172,7 +172,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               opacity: collapsing ? 0 : 1,
               transition: collapsing
                 ? "opacity 1800ms ease-in"
-                : `opacity 2600ms ease-out ${p.delay}ms`,
+                : `opacity 4000ms ease-out ${p.delay}ms`,
             }}
           >
             {/* Soft glow halo */}
@@ -242,7 +242,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             justifyContent: "center",
             opacity: phase === "gone" ? 0 : logoIn ? 1 : 0,
             transition: phase === "gone"
-              ? "opacity 2200ms ease-in-out"
+              ? "opacity 4000ms ease-in-out"
               : "opacity 3200ms ease-out",
           }}
         >
