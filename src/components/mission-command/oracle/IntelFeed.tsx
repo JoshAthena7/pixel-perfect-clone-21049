@@ -107,6 +107,52 @@ function tabMatches(filter: FilterId, e: any): boolean {
   }
 }
 
+/** Filter pills against oracle_signals shape. */
+function oracleMatches(filter: FilterId, e: any): boolean {
+  const cat = e.signal_category as string | null;
+  const urgency = e.urgency as string | null;
+  const ingestion = e.ingestion_source as string | null;
+  const tags = (e.topic_tags ?? []) as string[];
+  switch (filter) {
+    case "all":
+      return true;
+    case "signals":
+      return cat === "field_intelligence" || cat === "policy_innovation";
+    case "risks":
+      return urgency === "immediate" || urgency === "high" || cat === "competitive_landscape";
+    case "research":
+      return cat === "evidence_base";
+    case "competitive":
+      return cat === "competitive_landscape";
+    case "stakeholder":
+      return tags.includes("stakeholder") || cat === "field_intelligence";
+    case "regulatory":
+      return cat === "regulatory_federal" || cat === "regulatory_state";
+    case "lessons":
+      return ingestion === "rfp_extraction" || ingestion === "document_processing";
+    default:
+      return false;
+  }
+}
+
+/** Format an oracle category enum as a readable pill label. */
+function formatCategory(cat?: string | null): string | null {
+  if (!cat) return null;
+  const map: Record<string, string> = {
+    regulatory_state: "Regulatory · State",
+    regulatory_federal: "Regulatory · Federal",
+    evidence_base: "Evidence Base",
+    field_intelligence: "Field Intelligence",
+    policy_innovation: "Policy Innovation",
+    competitive_landscape: "Competitive",
+    quality_performance: "Quality",
+    health_outcomes_sdoh: "SDOH",
+    client_content_map: "Client Content",
+    stakeholder_communication: "Stakeholder",
+  };
+  return map[cat] ?? cat.replace(/_/g, " ");
+}
+
 export function IntelFeed({ missionId }: { missionId: string }) {
   const [filter, setFilter] = useState<FilterId>("all");
   const [addOpen, setAddOpen] = useState(false);
