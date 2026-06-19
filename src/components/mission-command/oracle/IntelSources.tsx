@@ -104,9 +104,9 @@ export function IntelSources({ missionId }: { missionId: string }) {
 
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="h-5 w-5 animate-spin text-white/40" /></div>
-      ) : sources.length === 0 ? (
+      ) : sources.length === 0 && oracleSources.length === 0 ? (
         <EmptyState onAdd={() => setShowAdd(true)} />
-      ) : (
+      ) : sources.length === 0 ? null : (
         <div className="space-y-6">
           {SOURCE_GROUPS.map((g) => {
             const items = sources.filter((s) => groupIdFor(s.source_type) === g.id);
