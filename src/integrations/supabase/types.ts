@@ -11406,6 +11406,7 @@ export type Database = {
           internal_due_date: string | null
           last_activity_at: string
           max_score: number | null
+          metadata: Json
           mission_id: string
           mock_score: number | null
           question_id: string
@@ -11432,6 +11433,7 @@ export type Database = {
           internal_due_date?: string | null
           last_activity_at?: string
           max_score?: number | null
+          metadata?: Json
           mission_id: string
           mock_score?: number | null
           question_id: string
@@ -11458,6 +11460,7 @@ export type Database = {
           internal_due_date?: string | null
           last_activity_at?: string
           max_score?: number | null
+          metadata?: Json
           mission_id?: string
           mock_score?: number | null
           question_id?: string
