@@ -5426,6 +5426,68 @@ export type Database = {
           },
         ]
       }
+      mission_activity: {
+        Row: {
+          activity_type: string
+          actor_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          mission_id: string
+          question_id: string | null
+          summary: string
+        }
+        Insert: {
+          activity_type: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          mission_id: string
+          question_id?: string | null
+          summary: string
+        }
+        Update: {
+          activity_type?: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          mission_id?: string
+          question_id?: string | null
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_activity_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_activity_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_activity_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_activity_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_assignment_smes: {
         Row: {
           added_at: string
