@@ -930,12 +930,32 @@ function computeJourneyIndex(mission: any): number {
 }
 
 /* ───────────────── 4a. IRIS Guidance ───────────────── */
-function IrisGuidanceCard({ mission }: { mission: any }) {
+function IrisGuidanceCard({ mission, bare = false }: { mission: any; bare?: boolean }) {
   const text = (mission?.iris_disclaimer ?? "").trim();
   const lines = text ? text.split(/\n+/).filter((l: string) => l.trim()) : [];
   const headline1 = lines[0] ?? `${mission?.state ?? "The state"} is not buying disruption.`;
   const headline2 = lines[1] ?? `${mission?.state ?? "The state"} is buying confidence.`;
   const support = lines.slice(2).join("\n\n") || (mission?.why_win ?? "");
+
+  const body = (
+    <>
+      <p
+        className="italic relative"
+        style={{ fontSize: bare ? 20 : 24, lineHeight: 1.35, fontWeight: 300, color: TEXT }}
+      >
+        {headline1}
+        <br />
+        <span style={{ color: GOLD_SOFT }}>{headline2}</span>
+      </p>
+      {support && (
+        <p className="mt-5 relative" style={{ fontSize: 14, color: "rgba(255,255,255,0.65)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+          {support}
+        </p>
+      )}
+    </>
+  );
+
+  if (bare) return body;
 
   return (
     <section
@@ -947,7 +967,6 @@ function IrisGuidanceCard({ mission }: { mission: any }) {
         overflow: "hidden",
       }}
     >
-      {/* IRIS orb */}
       <svg
         width="120"
         height="120"
@@ -970,22 +989,11 @@ function IrisGuidanceCard({ mission }: { mission: any }) {
       <div className="flex items-center gap-2 mb-5 relative" style={cardLabel}>
         <Brain size={14} /> IRIS Guidance
       </div>
-      <p
-        className="italic relative"
-        style={{ fontSize: 24, lineHeight: 1.35, fontWeight: 300, color: TEXT }}
-      >
-        {headline1}
-        <br />
-        <span style={{ color: GOLD_SOFT }}>{headline2}</span>
-      </p>
-      {support && (
-        <p className="mt-5 relative" style={{ fontSize: 14, color: "rgba(255,255,255,0.65)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-          {support}
-        </p>
-      )}
+      {body}
     </section>
   );
 }
+
 
 /* ───────────────── 4b. Evaluator Lens ───────────────── */
 const LENS_PALETTE = [
