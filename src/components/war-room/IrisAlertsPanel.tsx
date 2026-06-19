@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
-import { Zap, RefreshCw, AlertTriangle, Info } from "lucide-react";
+import { Zap, RefreshCw, AlertTriangle, Info, LifeBuoy } from "lucide-react";
 import { generateIrisAlerts, type IrisAlert } from "@/lib/iris-alerts.functions";
 import { AlertsSkeleton, IrisHealthyCard, IrisOrientingCard } from "./AtcEmptyStates";
+import { supabase } from "@/integrations/supabase/client";
+import { AssignSmeModal } from "./AssignSmeModal";
 
 function relTime(iso: string | null | undefined) {
   if (!iso) return "—";
