@@ -75,6 +75,7 @@ function StaffPage() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data: staff = [], isLoading } = useQuery({
     queryKey: ["admin-staff-list"],
