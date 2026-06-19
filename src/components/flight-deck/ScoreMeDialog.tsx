@@ -12,6 +12,7 @@ import {
 import { prefetchScoreMeContext } from "@/lib/score-me-prefetch.functions";
 import { irisScoreGapAnalysis } from "@/lib/iris-score-gap-analysis.functions";
 import { runAssistTool } from "@/lib/atlas-assist.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 type Props = {
   open: boolean;
