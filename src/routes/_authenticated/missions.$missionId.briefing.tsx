@@ -126,7 +126,6 @@ function BriefingPage() {
             <div className="lg:col-span-3"><TodaysFocusCard missionId={missionId} mission={mission} /></div>
             <div className="lg:col-span-2 flex flex-col gap-4">
               <MissionHealthSummaryCard missionId={missionId} />
-              <IntelStatusWidget missionId={missionId} />
             </div>
           </div>
 
