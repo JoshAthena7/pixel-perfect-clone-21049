@@ -143,7 +143,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
   useEffect(() => {
     if (!counts) return;
     if (autoSeededRef.current.has(missionId)) return;
-    if (counts.events > 0 && counts.people === 0 && counts.orgs === 0) {
+    if (counts.events > 0 && counts.legacyPeople === 0 && counts.legacyOrgs === 0) {
       autoSeededRef.current.add(missionId);
       seedFn({ data: { missionId, force: true } })
         .then((res) => {
