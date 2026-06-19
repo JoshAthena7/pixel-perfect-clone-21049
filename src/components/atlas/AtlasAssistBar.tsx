@@ -210,6 +210,12 @@ export function AtlasAssistBar({
           )}
         </div>
       </div>
+
+      <IrisScorePredictor
+        missionId={missionId}
+        questionId={questionId}
+        visible={hasAnyCache || generated}
+      />
     </div>
   );
 }
