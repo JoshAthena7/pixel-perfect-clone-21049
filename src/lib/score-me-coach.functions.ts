@@ -242,6 +242,8 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
     };
 
     // 4) Oracle memory — score_me_history
+    // Note: stores scoring metadata and analysis only (no raw draft text).
+    // Do not store PHI or client confidential proposal text in this table.
     try {
       await supabase.from("score_me_history").insert({
         mission_id: data.missionId,
