@@ -279,11 +279,18 @@ function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
               <h3 className="mt-3 font-bold" style={{ fontSize: 24, lineHeight: 1.2 }}>
                 {msName}
               </h3>
-          {msDays !== null && (
-            <div className="mt-2" style={{ fontSize: 16, color: GOLD, fontWeight: 600 }}>
-              {msDays} Days Remaining
+              {msDays !== null && (
+                <div className="mt-2" style={{ fontSize: 16, color: GOLD, fontWeight: 600 }}>
+                  {msDays} Days Remaining
+                </div>
+              )}
             </div>
-          )}
+            <MissionClock
+              missionId={missionId}
+              startDate={mission?.blast_off_at}
+              submissionDate={mission?.submission_deadline}
+            />
+          </div>
           <button
             onClick={() => navigate({ to: "/missions/$missionId/flight-deck", params: { missionId } })}
             className="mt-6 w-full flex items-center justify-center gap-2 rounded-xl py-4 transition-all"
