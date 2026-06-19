@@ -12,23 +12,37 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 
-const DOT_COUNT = 28;
-const RADIUS = 280;
-const LINK_DISTANCE = 120;
+const DOT_COUNT = 90;
+const FIELD_W = 1800; // viewBox width — fills the sky
+const FIELD_H = 1100;
+const LINK_DISTANCE = 180;
 const SESSION_KEY = "atlas_splash_shown";
 
-type Pos = { x: number; y: number; delay: number };
+// Timeline (ms)
+const EXPAND_MS = 2200;   // stars drift outward and fill the sky
+const LABEL_IN_AT = 2400; // ATLAS begins fading in after the sky has filled
+const LABEL_FADE_MS = 1600;
+const HOLD_AT = 4400;     // beat where everything sits, fully visible
+const COLLAPSE_AT = 5200;
+const GONE_AT = 5900;
+const DONE_AT = 6200;
+
+type Pos = { x: number; y: number; delay: number; r: number };
 
 function buildPositions(): Pos[] {
   const out: Pos[] = [];
   for (let i = 0; i < DOT_COUNT; i++) {
-    const baseAngle = (i / DOT_COUNT) * Math.PI * 2;
-    const angle = baseAngle + (Math.random() - 0.5) * 0.45;
-    const r = RADIUS * (0.45 + Math.random() * 0.55);
+    // Spread across the full field with a soft bias away from dead-center
+    // (so the wordmark has breathing room) but still allow some near-center
+    // stars to anchor the constellation.
+    const angle = Math.random() * Math.PI * 2;
+    const r = 120 + Math.pow(Math.random(), 0.6) * (FIELD_W / 2 - 120);
     out.push({
-      x: Math.cos(angle) * r,
-      y: Math.sin(angle) * r,
-      delay: Math.round(Math.random() * 600),
+      x: Math.cos(angle) * r * (0.95 + Math.random() * 0.1),
+      y: Math.sin(angle) * r * 0.62 * (0.95 + Math.random() * 0.1), // squash vertically toward sky aspect
+      // Long staggered delays — stars appear gradually, not in a burst.
+      delay: Math.round(Math.random() * (EXPAND_MS - 600)),
+      r: 1.2 + Math.random() * 1.6,
     });
   }
   return out;
@@ -42,7 +56,7 @@ function buildLinks(positions: Pos[]) {
       const dy = positions[i].y - positions[j].y;
       const d = Math.hypot(dx, dy);
       if (d <= LINK_DISTANCE) {
-        const delay = Math.max(positions[i].delay, positions[j].delay) + 250;
+        const delay = Math.max(positions[i].delay, positions[j].delay) + 400;
         links.push({ a: i, b: j, delay });
       }
     }
@@ -59,15 +73,15 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // Use rAF so the initial translate(0,0) paints before we flip to the
-    // outward translate — guarantees the transition runs.
     rafRef.current = requestAnimationFrame(() => {
-      // no-op; CSS transitions kick in from initial style → applied style
+      // initial paint at (0,0); CSS transitions carry to final positions
     });
-    const t1 = setTimeout(() => setLabelsIn(true), 1400);
-    const t2 = setTimeout(() => setPhase("out"), 2000);
-    const t3 = setTimeout(() => setPhase("gone"), 2300);
-    const t4 = setTimeout(() => onDone(), 2500);
+    const t1 = setTimeout(() => setLabelsIn(true), LABEL_IN_AT);
+    const t2 = setTimeout(() => setPhase("out"), COLLAPSE_AT);
+    const t3 = setTimeout(() => setPhase("gone"), GONE_AT);
+    const t4 = setTimeout(() => onDone(), DONE_AT);
+    // touch HOLD_AT so lints don't complain about unused constant
+    void HOLD_AT;
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       clearTimeout(t1);
@@ -79,6 +93,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
 
   const collapsing = phase === "out" || phase === "gone";
   const overlayOpacity = phase === "gone" ? 0 : 1;
+
 
   return (
     <div
@@ -98,8 +113,8 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         width="100%"
         height="100%"
         style={{ position: "absolute", inset: 0, display: "block" }}
-        viewBox="-500 -500 1000 1000"
-        preserveAspectRatio="xMidYMid meet"
+        viewBox={`-${FIELD_W / 2} -${FIELD_H / 2} ${FIELD_W} ${FIELD_H}`}
+        preserveAspectRatio="xMidYMid slice"
       >
         {links.map((l, i) => {
           const a = positions[l.a];
@@ -112,15 +127,15 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               y1={collapsing ? 0 : a.y}
               x2={collapsing ? 0 : b.x}
               y2={collapsing ? 0 : b.y}
-              stroke="rgba(196,154,43,0.22)"
-              strokeWidth={0.8}
+              stroke="rgba(196,154,43,0.18)"
+              strokeWidth={0.6}
               strokeDasharray={length}
               strokeDashoffset={collapsing ? length : 0}
               style={{
                 opacity: collapsing ? 0 : 1,
                 transition: collapsing
-                  ? "opacity 200ms ease-out, stroke-dashoffset 200ms ease-out"
-                  : `stroke-dashoffset 400ms ease-out ${l.delay}ms, opacity 200ms ease-out ${l.delay}ms`,
+                  ? "opacity 500ms ease-out, stroke-dashoffset 500ms ease-out"
+                  : `stroke-dashoffset 1100ms ease-out ${l.delay}ms, opacity 600ms ease-out ${l.delay}ms`,
               }}
             />
           );
@@ -130,13 +145,14 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             key={i}
             cx={collapsing ? 0 : p.x}
             cy={collapsing ? 0 : p.y}
-            r={1.5}
-            fill="rgba(196,154,43,0.85)"
+            r={p.r}
+            fill="rgba(196,154,43,0.9)"
             style={{
               opacity: collapsing ? 0 : 1,
               transition: collapsing
-                ? "cx 300ms ease-in, cy 300ms ease-in, opacity 300ms ease-in"
-                : `cx 900ms cubic-bezier(0.22,0.61,0.36,1) ${p.delay}ms, cy 900ms cubic-bezier(0.22,0.61,0.36,1) ${p.delay}ms, opacity 600ms ease-out ${p.delay}ms`,
+                ? "cx 600ms ease-in, cy 600ms ease-in, opacity 600ms ease-in"
+                : `cx 1800ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms, cy 1800ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms, opacity 1200ms ease-out ${p.delay}ms`,
+              filter: "drop-shadow(0 0 2px rgba(196,154,43,0.5))",
             }}
           />
         ))}
@@ -144,14 +160,15 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         <circle
           cx={0}
           cy={0}
-          r={2}
+          r={2.5}
           fill="rgba(196,154,43,0.95)"
           style={{
-            opacity: phase === "out" ? 1 : phase === "gone" ? 0 : 0,
-            transition: "opacity 200ms ease-out",
+            opacity: phase === "out" ? 1 : 0,
+            transition: "opacity 300ms ease-out",
           }}
         />
       </svg>
+
 
       <div
         style={{
@@ -168,18 +185,21 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         <div
           style={{
             fontFamily: "Inter, system-ui, -apple-system, sans-serif",
-            fontSize: 32,
+            fontSize: 36,
             fontWeight: 200,
-            letterSpacing: "0.35em",
+            letterSpacing: "0.4em",
             color: "rgba(255,255,255,0.95)",
             opacity: collapsing ? 0 : labelsIn ? 1 : 0,
+            transform: labelsIn && !collapsing ? "translateY(0)" : "translateY(6px)",
+            textShadow: "0 0 24px rgba(196,154,43,0.25)",
             transition: collapsing
-              ? "opacity 200ms ease-out"
-              : "opacity 400ms ease-out",
+              ? "opacity 500ms ease-out"
+              : `opacity ${LABEL_FADE_MS}ms ease-out, transform ${LABEL_FADE_MS}ms ease-out`,
           }}
         >
           ATLAS
         </div>
+
         <div
           style={{
             fontFamily: "Inter, system-ui, -apple-system, sans-serif",
@@ -189,8 +209,8 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             color: "rgba(196,154,43,0.75)",
             opacity: collapsing ? 0 : labelsIn ? 1 : 0,
             transition: collapsing
-              ? "opacity 200ms ease-out"
-              : "opacity 400ms ease-out 100ms",
+              ? "opacity 500ms ease-out"
+              : `opacity ${LABEL_FADE_MS}ms ease-out 600ms`,
           }}
         >
           Carrying the mission.
