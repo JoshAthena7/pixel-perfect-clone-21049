@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Users, Radar as RadarIcon, Zap, Clipboard, Clock, CheckCircle2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const GOLD = "#c9a84c";
 
@@ -35,19 +36,37 @@ export function RadarSvg({ size = 64 }: { size?: number }) {
    First-time orientation overlay
    ============================================================ */
 export function AtcOrientationOverlay({ missionId }: { missionId: string }) {
-  const storageKey = `atc_visited_${missionId}`;
   const [open, setOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      if (typeof window === "undefined") return;
-      if (!window.localStorage.getItem(storageKey)) setOpen(true);
-    } catch {/* ignore */}
-  }, [storageKey]);
+    let alive = true;
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!alive || !u.user) return;
+      setUserId(u.user.id);
+      const { data: existing } = await supabase
+        .from("mission_assist_events")
+        .select("id")
+        .eq("mission_id", missionId)
+        .eq("user_id", u.user.id)
+        .eq("event_type", "atc_onboarding_dismissed")
+        .limit(1)
+        .maybeSingle();
+      if (alive && !existing) setOpen(true);
+    })();
+    return () => { alive = false; };
+  }, [missionId]);
 
   const dismiss = () => {
-    try { window.localStorage.setItem(storageKey, new Date().toISOString()); } catch {/* ignore */}
     setOpen(false);
+    if (!userId) return;
+    void supabase.from("mission_assist_events").insert({
+      mission_id: missionId,
+      user_id: userId,
+      event_type: "atc_onboarding_dismissed",
+      metadata: { dismissed_at: new Date().toISOString() },
+    });
   };
 
   if (!open) return null;

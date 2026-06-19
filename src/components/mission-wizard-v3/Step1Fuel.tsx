@@ -75,6 +75,7 @@ type Row = {
   purpose?: DocumentPurpose;
   isStyleGuide?: boolean;
   isPrimaryRfp?: boolean;
+  userTagged?: boolean;
 };
 
 async function extractTextFromBlob(blob: Blob, fileName: string): Promise<string> {
@@ -145,13 +146,15 @@ export function Step1Fuel({
               purpose: (d.document_purpose as DocumentPurpose | null) ?? guessPurpose(d.title ?? ""),
               isStyleGuide: !!d.is_style_guide,
               isPrimaryRfp: d.document_type === "primary_rfp",
+              userTagged: !!d.document_purpose,
             })),
       );
     })();
   }, [missionId]);
 
   const hasAnyDone = rows.some((r) => r.status === "done");
-  const canAnalyze = name.trim().length > 0 && hasAnyDone && !analyzing;
+  const allTagged = rows.filter((r) => r.status === "done").every((r) => r.userTagged);
+  const canAnalyze = name.trim().length > 0 && hasAnyDone && allTagged && !analyzing;
 
   const saveName = async (v: string) => {
     setName(v);
@@ -170,7 +173,7 @@ export function Step1Fuel({
       cur.map((r) => {
         if (r.uid !== uid) return r;
         docId = r.documentId;
-        return { ...r, purpose };
+        return { ...r, purpose, userTagged: true };
       }),
     );
     if (docId) {
@@ -522,8 +525,15 @@ export function Step1Fuel({
               return (
                 <div
                   key={r.uid}
-                  className="rounded-lg px-3 py-2.5 border border-white/10 bg-white/[0.03]"
+                  className="rounded-lg px-3 py-2.5 border border-white/10 bg-white/[0.03] relative"
                 >
+                  {r.status === "done" && !r.userTagged && (
+                    <span
+                      aria-hidden
+                      className="absolute top-2 right-2 rounded-full"
+                      style={{ width: 8, height: 8, background: "rgba(251,191,36,0.8)" }}
+                    />
+                  )}
                   <div className="flex items-center gap-3">
                     <FileText className="h-4 w-4 text-white/45 shrink-0" />
                     <span className="text-[13.5px] text-white truncate flex-1">{r.name}</span>
@@ -610,7 +620,7 @@ export function Step1Fuel({
             <button
               disabled={!canAnalyze}
               onClick={analyze}
-              className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-medium disabled:opacity-40"
+              className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-medium disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ background: "#C49A2B", color: "#0D1B3E" }}
             >
               {analyzing ? (
@@ -620,6 +630,11 @@ export function Step1Fuel({
               )}
               {analyzing ? "Analyzing…" : analyzeResult ? "Re-analyze" : "Analyze with IRIS"}
             </button>
+            {hasAnyDone && !allTagged && !analyzing && (
+              <p className="mt-2 text-[11px] italic text-white/45">
+                Tag each document above so IRIS knows how to read it.
+              </p>
+            )}
           </div>
         </div>
       </div>
