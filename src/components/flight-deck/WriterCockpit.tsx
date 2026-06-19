@@ -744,7 +744,11 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
 
                 {/* Compact signal grid — 4 always-visible fields */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <SignalRow label="Status" value={q.progress_status.replace(/_/g, " ")} />
+                  <StatusDropdown
+                    current={q.progress_status}
+                    pensDown={!!cockpit?.pensDown}
+                    onChange={(next) => handleStatusChange(q, next)}
+                  />
                   <SignalRow label="Confidence" value={q.writer_confidence || "Not set"} />
                   <SignalRow label="Last Activity" value={relTime(q.last_activity_at)} />
                   <SignalRow label="Brief Status" value={q.iris_brief_status ? `${q.iris_brief_status}${briefAge != null ? ` · ${briefAge}d old` : ""}` : "—"} />
