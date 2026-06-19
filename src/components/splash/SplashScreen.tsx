@@ -113,8 +113,8 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         width="100%"
         height="100%"
         style={{ position: "absolute", inset: 0, display: "block" }}
-        viewBox="-500 -500 1000 1000"
-        preserveAspectRatio="xMidYMid meet"
+        viewBox={`-${FIELD_W / 2} -${FIELD_H / 2} ${FIELD_W} ${FIELD_H}`}
+        preserveAspectRatio="xMidYMid slice"
       >
         {links.map((l, i) => {
           const a = positions[l.a];
@@ -127,15 +127,15 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               y1={collapsing ? 0 : a.y}
               x2={collapsing ? 0 : b.x}
               y2={collapsing ? 0 : b.y}
-              stroke="rgba(196,154,43,0.22)"
-              strokeWidth={0.8}
+              stroke="rgba(196,154,43,0.18)"
+              strokeWidth={0.6}
               strokeDasharray={length}
               strokeDashoffset={collapsing ? length : 0}
               style={{
                 opacity: collapsing ? 0 : 1,
                 transition: collapsing
-                  ? "opacity 200ms ease-out, stroke-dashoffset 200ms ease-out"
-                  : `stroke-dashoffset 400ms ease-out ${l.delay}ms, opacity 200ms ease-out ${l.delay}ms`,
+                  ? "opacity 500ms ease-out, stroke-dashoffset 500ms ease-out"
+                  : `stroke-dashoffset 1100ms ease-out ${l.delay}ms, opacity 600ms ease-out ${l.delay}ms`,
               }}
             />
           );
@@ -145,13 +145,14 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             key={i}
             cx={collapsing ? 0 : p.x}
             cy={collapsing ? 0 : p.y}
-            r={1.5}
-            fill="rgba(196,154,43,0.85)"
+            r={p.r}
+            fill="rgba(196,154,43,0.9)"
             style={{
               opacity: collapsing ? 0 : 1,
               transition: collapsing
-                ? "cx 300ms ease-in, cy 300ms ease-in, opacity 300ms ease-in"
-                : `cx 900ms cubic-bezier(0.22,0.61,0.36,1) ${p.delay}ms, cy 900ms cubic-bezier(0.22,0.61,0.36,1) ${p.delay}ms, opacity 600ms ease-out ${p.delay}ms`,
+                ? "cx 600ms ease-in, cy 600ms ease-in, opacity 600ms ease-in"
+                : `cx 1800ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms, cy 1800ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms, opacity 1200ms ease-out ${p.delay}ms`,
+              filter: "drop-shadow(0 0 2px rgba(196,154,43,0.5))",
             }}
           />
         ))}
@@ -159,14 +160,15 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         <circle
           cx={0}
           cy={0}
-          r={2}
+          r={2.5}
           fill="rgba(196,154,43,0.95)"
           style={{
-            opacity: phase === "out" ? 1 : phase === "gone" ? 0 : 0,
-            transition: "opacity 200ms ease-out",
+            opacity: phase === "out" ? 1 : 0,
+            transition: "opacity 300ms ease-out",
           }}
         />
       </svg>
+
 
       <div
         style={{
