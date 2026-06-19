@@ -27,8 +27,8 @@ const LABEL_IN_AT = 4200; // ATLAS begins fading in after the sky fills + lines 
 const LABEL_FADE_MS = 1800;
 const HOLD_AT = 6200;     // beat where everything sits, fully visible
 const COLLAPSE_AT = 7000;
-const GONE_AT = 9200;     // long, dramatic dim
-const DONE_AT = 10000;
+const GONE_AT = 10200;    // long, dramatic dim — ATLAS fades over ~2.8s
+const DONE_AT = 11000;
 
 type Pos = { x: number; y: number; delay: number; r: number; twinkleDur: number; twinkleDelay: number };
 
