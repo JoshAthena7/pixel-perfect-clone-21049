@@ -41,7 +41,7 @@ import {
   saveAdminNote,
 } from "@/lib/health-controls.functions";
 import { useIsAdmin, useMissionAccess } from "@/hooks/useAccess";
-import { ThreadPanel } from "@/components/flight-deck/ThreadPanel";
+import { StickyNotesPanel } from "@/components/flight-deck/StickyNotesPanel";
 import { cn } from "@/lib/utils";
 import type { TabId } from "./MissionTabs";
 
