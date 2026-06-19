@@ -272,6 +272,23 @@ export function IntelFeed({ missionId }: { missionId: string }) {
 
   return (
     <div className="space-y-4">
+      {oracleEmpty && !isLoading && (
+        <div
+          className="rounded-lg px-4 py-2 text-xs flex items-center justify-between gap-3"
+          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}
+        >
+          <span>
+            Showing legacy intelligence. Load mission documents in the Setup Wizard to activate ORACLE briefings.
+          </span>
+          <a
+            href={`/missions/${missionId}/setup?step=1`}
+            className="shrink-0 underline"
+            style={{ color: GOLD }}
+          >
+            Open Setup Wizard →
+          </a>
+        </div>
+      )}
       {seeding && (
         <div
           className="rounded-lg px-4 py-3 flex items-center gap-3"
