@@ -113,7 +113,10 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
         }}
       >
         {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-        <Eye size={11} />
+        <span ref={boltRef} style={{ display: "inline-flex", color: "#C49A2B" }}>
+          <Eye size={11} />
+        </span>
+
         <span
           style={{
             fontSize: 10,
