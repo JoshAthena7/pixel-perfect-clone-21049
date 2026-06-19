@@ -1089,10 +1089,18 @@ function CoordinationCards({ cockpit, onFlag, onOpenNotes }: { cockpit: any; onF
           </div>
         );
       })}
-      {cards.length > 5 && (
-        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", textAlign: "center" }}>
-          IRIS found {cards.length - 5} more connection{cards.length - 5 === 1 ? "" : "s"}.
-        </div>
+      {hiddenCount > 0 && (
+        <button
+          onClick={() => setExpanded(v => !v)}
+          style={{
+            background: "transparent", border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: 6, padding: "8px 10px", cursor: "pointer",
+            fontSize: 10.5, letterSpacing: "0.06em", color: "rgba(255,255,255,0.65)",
+            textAlign: "center",
+          }}
+        >
+          {expanded ? "Hide additional connections ↑" : `Show all connections ↓ (${hiddenCount} more)`}
+        </button>
       )}
     </div>
   );
