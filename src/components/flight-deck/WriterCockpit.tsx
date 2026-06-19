@@ -958,6 +958,50 @@ function SignalRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function StatusDropdown({
+  current, pensDown, onChange,
+}: { current: string; pensDown: boolean; onChange: (next: ProgressStatus) => void }) {
+  const options = nextStatuses(current, pensDown);
+  function handleSelect(e: React.ChangeEvent<HTMLSelectElement>) {
+    const next = e.target.value as ProgressStatus;
+    if (!next) return;
+    if (next === "finalized") {
+      const ok = window.confirm("Mark this question as Finalized? This signals to your lead that your response is complete.");
+      if (!ok) { e.target.value = ""; return; }
+    }
+    onChange(next);
+    e.target.value = "";
+  }
+  const displayCurrent = (current ?? "not_started").replace(/_/g, " ");
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <span style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>Status</span>
+      {options.length === 0 ? (
+        <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.85)" }}>{displayCurrent}</span>
+      ) : (
+        <select
+          defaultValue=""
+          onChange={handleSelect}
+          title="Advance status"
+          style={{
+            fontSize: 11.5, color: "rgba(255,255,255,0.95)",
+            background: "rgba(196,154,43,0.08)",
+            border: "1px solid rgba(196,154,43,0.3)", borderRadius: 4,
+            padding: "2px 4px", cursor: "pointer",
+          }}
+        >
+          <option value="" disabled>{displayCurrent} ▾</option>
+          {options.map((opt) => (
+            <option key={opt} value={opt} style={{ background: "#0a1828" }}>
+              → {opt.replace(/_/g, " ")}
+            </option>
+          ))}
+        </select>
+      )}
+    </div>
+  );
+}
+
 function btn(color: string, primary = false): React.CSSProperties {
   return {
     display: "inline-flex", alignItems: "center", gap: 5,
