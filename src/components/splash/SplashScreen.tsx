@@ -243,7 +243,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             opacity: phase === "gone" ? 0 : logoIn ? 1 : 0,
             transition: phase === "gone"
               ? "opacity 2200ms ease-in-out"
-              : "opacity 1800ms ease-out",
+              : "opacity 3200ms ease-out",
           }}
         >
           {/* Gold bloom halo — radial gradient that grows with the mark and
