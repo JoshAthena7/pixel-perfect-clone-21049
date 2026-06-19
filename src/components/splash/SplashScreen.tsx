@@ -242,7 +242,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             justifyContent: "center",
             opacity: phase === "gone" ? 0 : logoIn ? 1 : 0,
             transition: phase === "gone"
-              ? "opacity 2200ms ease-in-out"
+              ? "opacity 4000ms ease-in-out"
               : "opacity 3200ms ease-out",
           }}
         >
