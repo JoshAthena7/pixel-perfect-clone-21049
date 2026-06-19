@@ -85,6 +85,7 @@ import { Route as AuthenticatedMissionsMissionIdScoresRouteImport } from './rout
 import { Route as AuthenticatedMissionsMissionIdReportsRouteImport } from './routes/_authenticated/missions.$missionId.reports'
 import { Route as AuthenticatedMissionsMissionIdQaRouteImport } from './routes/_authenticated/missions.$missionId.qa'
 import { Route as AuthenticatedMissionsMissionIdOracleRouteImport } from './routes/_authenticated/missions.$missionId.oracle'
+import { Route as AuthenticatedMissionsMissionIdOlympusRouteImport } from './routes/_authenticated/missions.$missionId.olympus'
 import { Route as AuthenticatedMissionsMissionIdJourneyRouteImport } from './routes/_authenticated/missions.$missionId.journey'
 import { Route as AuthenticatedMissionsMissionIdIntelligenceRouteImport } from './routes/_authenticated/missions.$missionId.intelligence'
 import { Route as AuthenticatedMissionsMissionIdInsightsRouteImport } from './routes/_authenticated/missions.$missionId.insights'
@@ -531,6 +532,12 @@ const AuthenticatedMissionsMissionIdOracleRoute =
     path: '/oracle',
     getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
   } as any)
+const AuthenticatedMissionsMissionIdOlympusRoute =
+  AuthenticatedMissionsMissionIdOlympusRouteImport.update({
+    id: '/olympus',
+    path: '/olympus',
+    getParentRoute: () => AuthenticatedMissionsMissionIdRoute,
+  } as any)
 const AuthenticatedMissionsMissionIdJourneyRoute =
   AuthenticatedMissionsMissionIdJourneyRouteImport.update({
     id: '/journey',
@@ -669,6 +676,7 @@ export interface FileRoutesByFullPath {
   '/missions/$missionId/insights': typeof AuthenticatedMissionsMissionIdInsightsRoute
   '/missions/$missionId/intelligence': typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   '/missions/$missionId/journey': typeof AuthenticatedMissionsMissionIdJourneyRoute
+  '/missions/$missionId/olympus': typeof AuthenticatedMissionsMissionIdOlympusRoute
   '/missions/$missionId/oracle': typeof AuthenticatedMissionsMissionIdOracleRoute
   '/missions/$missionId/qa': typeof AuthenticatedMissionsMissionIdQaRoute
   '/missions/$missionId/reports': typeof AuthenticatedMissionsMissionIdReportsRoute
@@ -757,6 +765,7 @@ export interface FileRoutesByTo {
   '/missions/$missionId/insights': typeof AuthenticatedMissionsMissionIdInsightsRoute
   '/missions/$missionId/intelligence': typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   '/missions/$missionId/journey': typeof AuthenticatedMissionsMissionIdJourneyRoute
+  '/missions/$missionId/olympus': typeof AuthenticatedMissionsMissionIdOlympusRoute
   '/missions/$missionId/oracle': typeof AuthenticatedMissionsMissionIdOracleRoute
   '/missions/$missionId/qa': typeof AuthenticatedMissionsMissionIdQaRoute
   '/missions/$missionId/reports': typeof AuthenticatedMissionsMissionIdReportsRoute
@@ -850,6 +859,7 @@ export interface FileRoutesById {
   '/_authenticated/missions/$missionId/insights': typeof AuthenticatedMissionsMissionIdInsightsRoute
   '/_authenticated/missions/$missionId/intelligence': typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   '/_authenticated/missions/$missionId/journey': typeof AuthenticatedMissionsMissionIdJourneyRoute
+  '/_authenticated/missions/$missionId/olympus': typeof AuthenticatedMissionsMissionIdOlympusRoute
   '/_authenticated/missions/$missionId/oracle': typeof AuthenticatedMissionsMissionIdOracleRoute
   '/_authenticated/missions/$missionId/qa': typeof AuthenticatedMissionsMissionIdQaRoute
   '/_authenticated/missions/$missionId/reports': typeof AuthenticatedMissionsMissionIdReportsRoute
@@ -943,6 +953,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/insights'
     | '/missions/$missionId/intelligence'
     | '/missions/$missionId/journey'
+    | '/missions/$missionId/olympus'
     | '/missions/$missionId/oracle'
     | '/missions/$missionId/qa'
     | '/missions/$missionId/reports'
@@ -1031,6 +1042,7 @@ export interface FileRouteTypes {
     | '/missions/$missionId/insights'
     | '/missions/$missionId/intelligence'
     | '/missions/$missionId/journey'
+    | '/missions/$missionId/olympus'
     | '/missions/$missionId/oracle'
     | '/missions/$missionId/qa'
     | '/missions/$missionId/reports'
@@ -1123,6 +1135,7 @@ export interface FileRouteTypes {
     | '/_authenticated/missions/$missionId/insights'
     | '/_authenticated/missions/$missionId/intelligence'
     | '/_authenticated/missions/$missionId/journey'
+    | '/_authenticated/missions/$missionId/olympus'
     | '/_authenticated/missions/$missionId/oracle'
     | '/_authenticated/missions/$missionId/qa'
     | '/_authenticated/missions/$missionId/reports'
@@ -1729,6 +1742,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMissionsMissionIdOracleRouteImport
       parentRoute: typeof AuthenticatedMissionsMissionIdRoute
     }
+    '/_authenticated/missions/$missionId/olympus': {
+      id: '/_authenticated/missions/$missionId/olympus'
+      path: '/olympus'
+      fullPath: '/missions/$missionId/olympus'
+      preLoaderRoute: typeof AuthenticatedMissionsMissionIdOlympusRouteImport
+      parentRoute: typeof AuthenticatedMissionsMissionIdRoute
+    }
     '/_authenticated/missions/$missionId/journey': {
       id: '/_authenticated/missions/$missionId/journey'
       path: '/journey'
@@ -1935,6 +1955,7 @@ interface AuthenticatedMissionsMissionIdRouteChildren {
   AuthenticatedMissionsMissionIdInsightsRoute: typeof AuthenticatedMissionsMissionIdInsightsRoute
   AuthenticatedMissionsMissionIdIntelligenceRoute: typeof AuthenticatedMissionsMissionIdIntelligenceRoute
   AuthenticatedMissionsMissionIdJourneyRoute: typeof AuthenticatedMissionsMissionIdJourneyRoute
+  AuthenticatedMissionsMissionIdOlympusRoute: typeof AuthenticatedMissionsMissionIdOlympusRoute
   AuthenticatedMissionsMissionIdOracleRoute: typeof AuthenticatedMissionsMissionIdOracleRoute
   AuthenticatedMissionsMissionIdQaRoute: typeof AuthenticatedMissionsMissionIdQaRoute
   AuthenticatedMissionsMissionIdReportsRoute: typeof AuthenticatedMissionsMissionIdReportsRoute
@@ -1964,6 +1985,8 @@ const AuthenticatedMissionsMissionIdRouteChildren: AuthenticatedMissionsMissionI
       AuthenticatedMissionsMissionIdIntelligenceRoute,
     AuthenticatedMissionsMissionIdJourneyRoute:
       AuthenticatedMissionsMissionIdJourneyRoute,
+    AuthenticatedMissionsMissionIdOlympusRoute:
+      AuthenticatedMissionsMissionIdOlympusRoute,
     AuthenticatedMissionsMissionIdOracleRoute:
       AuthenticatedMissionsMissionIdOracleRoute,
     AuthenticatedMissionsMissionIdQaRoute:
