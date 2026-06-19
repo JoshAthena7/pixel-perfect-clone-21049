@@ -553,3 +553,28 @@ function Skeleton() {
     </div>
   );
 }
+
+function RecentlyApprovedList({ items }: { items: any[] }) {
+  return (
+    <ul className="divide-y" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
+      {items.map((it) => {
+        const title = String(it.title ?? "Untitled");
+        const trimmed = title.length > 55 ? title.slice(0, 55) + "…" : title;
+        const dt = it.approved_at ?? it.updated_at ?? it.created_at;
+        const dtLabel = dt ? relative(dt) : "";
+        return (
+          <li key={it.id} className="flex items-center gap-2 px-3 py-2" style={{ minHeight: 32 }}>
+            <CheckCircle2 className="h-3 w-3 shrink-0" style={{ color: "#34d399" }} />
+            <span className="text-white truncate flex-1" style={{ fontSize: 11 }}>{trimmed}</span>
+            {it.category && (
+              <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 3, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.55)" }}>
+                {String(it.category).replace(/_/g, " ")}
+              </span>
+            )}
+            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap" }}>{dtLabel}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
