@@ -683,3 +683,48 @@ html[data-write-mode="on"] .studio-body > .studio-left { border-right: none !imp
   0% { transform: translate(0, 0) scale(1); opacity: 1; }
   100% { transform: translate(var(--dx), var(--dy)) scale(0.4); opacity: 0; }
 }
+
+/* Ambient Intelligence Pulse Bar */
+@keyframes pulse-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+@keyframes pulse-breathe {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.8; }
+}
+@keyframes pulse-flash {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+.pulse-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  background: transparent;
+  overflow: hidden;
+}
+.pulse-bar[data-state="team"] {
+  opacity: 1;
+  background: linear-gradient(90deg, transparent 0%, rgba(196,154,43,0.7) 50%, transparent 100%);
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  animation: pulse-sweep 1.5s ease-out forwards, pulse-fade 0.5s ease-in 1.5s forwards;
+}
+.pulse-bar[data-state="oracle"] {
+  background: rgba(96,165,250,0.5);
+  animation: pulse-breathe 2s ease-in-out infinite;
+}
+.pulse-bar[data-state="sos"] {
+  background: rgba(248,113,113,0.8);
+  animation: pulse-flash 1s steps(2, end) infinite;
+}
+@keyframes pulse-fade {
+  to { opacity: 0; }
+}
