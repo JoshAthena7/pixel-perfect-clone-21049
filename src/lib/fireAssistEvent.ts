@@ -7,6 +7,7 @@ export type AssistEventType =
   | "assist_ignored"
   | "feedback_submitted"
   | "sos_raised"
+  | "sos_acknowledged"
   | "status_updated"
   | "check_in"
   | "mock_scored"
