@@ -99,7 +99,7 @@ function AuthSync() {
   const router = useRouter();
   const qc = useQueryClient();
   useEffect(() => {
-    let signOutCheck: ReturnType<typeof window.setTimeout> | null = null;
+    let signOutCheck: number | null = null;
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       // CRITICAL: do NOT call router.invalidate() on SIGNED_IN.
       // Supabase fires SIGNED_IN on initial session restore AND on every token
