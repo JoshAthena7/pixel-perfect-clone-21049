@@ -392,7 +392,6 @@ export async function processDocument(input: ProcessInput): Promise<ProcessResul
         authority: it.authority,
         urgency: it.urgency,
         relevance_score: it.relevance_score,
-        oracle_score: it.relevance_score,
         topic_tags: Array.isArray(it.topic_tags) ? it.topic_tags.slice(0, 12) : [],
         tier: "mission",
         scope_tier: "mission",
