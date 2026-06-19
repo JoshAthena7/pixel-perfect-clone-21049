@@ -620,7 +620,7 @@ export function Step1Fuel({
             <button
               disabled={!canAnalyze}
               onClick={analyze}
-              className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-medium disabled:opacity-40"
+              className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-medium disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ background: "#C49A2B", color: "#0D1B3E" }}
             >
               {analyzing ? (
@@ -630,6 +630,11 @@ export function Step1Fuel({
               )}
               {analyzing ? "Analyzing…" : analyzeResult ? "Re-analyze" : "Analyze with IRIS"}
             </button>
+            {hasAnyDone && !allTagged && !analyzing && (
+              <p className="mt-2 text-[11px] italic text-white/45">
+                Tag each document above so IRIS knows how to read it.
+              </p>
+            )}
           </div>
         </div>
       </div>
