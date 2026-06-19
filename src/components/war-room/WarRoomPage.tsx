@@ -770,11 +770,12 @@ function deriveLive(w: any) {
   const activeQ = w.activeCount ?? 0;
   const atRiskQ = w.atRisk ?? 0;
   const hrs = w.hoursSinceActivity;
-  const idle = total > 0 && activeQ > 0 && (hrs == null || hrs > 8);
+  // Heat-border priority: red > amber > green > gray
   if (total === 0) return { label: "— Unassigned", color: "#94a3b8" };
   if (atRiskQ > 0) return { label: "⚠ At Risk", color: "#ef4444" };
-  if (idle) return { label: "● Idle", color: "#f59e0b" };
-  if (finalized > 0) return { label: "✓ Active", color: "#22c55e" };
+  if (activeQ > 0 && (hrs == null || hrs > 8)) return { label: "● Idle", color: "#f59e0b" };
+  if (finalized > 0 && atRiskQ === 0) return { label: "✓ Active", color: "#22c55e" };
+  if (hrs == null) return { label: "— No activity", color: "#94a3b8" };
   return { label: "● Active", color: "#22c55e" };
 }
 
@@ -788,12 +789,11 @@ function WriterRow({
   const live = deriveLive(w);
   const total = w.questionCount ?? 0;
   const finalized = w.finalized ?? 0;
-  const activeQ = w.activeCount ?? 0;
   const atRiskQ = w.atRisk ?? 0;
   const hrs = w.hoursSinceActivity;
   const lastSeen = !w.lastActivity
-    ? "Never"
-    : (hrs != null && hrs < 24 ? (hrs < 1 ? "Just now" : `${Math.round(hrs)}h ago`) : relTime(w.lastActivity));
+    ? "Never active"
+    : `Last seen ${hrs != null && hrs < 1 ? "just now" : hrs != null && hrs < 24 ? `${Math.round(hrs)}h ago` : relTime(w.lastActivity)}`;
   const noQuestions = total === 0;
 
   return (
@@ -812,9 +812,9 @@ function WriterRow({
         </div>
         <div className="text-[10px] text-white/45 mt-0.5 truncate" style={{ fontFamily: "'Courier New', monospace" }}>
           {noQuestions
-            ? <span className="italic text-white/40">— Unassigned · {lastSeen}</span>
+            ? <span className="italic text-white/40">— Unassigned · <span style={{ color: !w.lastActivity ? "#f87171" : undefined }}>{lastSeen}</span></span>
             : <>
-                {total} questions ·{" "}
+                {total}q ·{" "}
                 <span className="text-green-400">{finalized}✓</span>{" "}
                 <span className="text-red-400">{atRiskQ}⚠</span>
                 {" · "}{lastSeen}
