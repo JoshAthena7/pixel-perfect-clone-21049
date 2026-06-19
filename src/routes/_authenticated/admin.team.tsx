@@ -1,11 +1,12 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, MoreHorizontal, X, Mail, Loader2 } from "lucide-react";
+import { Search, Plus, MoreHorizontal, X, Mail, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { addAtlasTeamMember } from "@/lib/atlas-team-admin.functions";
 import { useServerFn } from "@tanstack/react-start";
+import { TalentDeskImportDialog } from "@/components/admin/TalentDeskImportDialog";
 
 export const Route = createFileRoute("/_authenticated/admin/team")({
   beforeLoad: async () => {
