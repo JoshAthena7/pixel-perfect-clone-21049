@@ -996,11 +996,13 @@ function CoordinationCards({ cockpit, onFlag, onOpenNotes }: { cockpit: any; onF
               {c.kind === "conflict" ? "🔴 POTENTIAL CONFLICT" : c.kind === "alignment" ? "🔵 WIN THEME ALIGNMENT" : "✦ SHARED PROOF POINT"}
             </div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", lineHeight: 1.45 }}>
-              <b>Your {mineMeta?.num}</b> — {(mineMeta?.text ?? "").slice(0, 50)}…
+              <b>Your {mineMeta?.num ? `Q${mineMeta.num}` : "question"}</b>
+              {mineMeta?.text ? <> — {String(mineMeta.text).slice(0, 40)}{String(mineMeta.text).length > 40 ? "…" : ""}</> : null}
             </div>
             <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "3px 0" }}>↕ {c.kind === "conflict" ? "conflicts with" : "shares with"}</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", lineHeight: 1.45 }}>
-              <b>{otherMeta?.num ?? "—"}</b> — {(otherMeta?.text ?? "").slice(0, 50)}…
+              <b>{otherMeta?.num ? `Q${otherMeta.num}` : "Related question"}</b>
+              {otherMeta?.text ? <> — {String(otherMeta.text).slice(0, 40)}{String(otherMeta.text).length > 40 ? "…" : ""}</> : null}
               {otherWriter?.name && <> · {otherWriter.name}</>}
               {otherMeta?.health === "at_risk" && <span style={{ marginLeft: 6 }}><Chip color={RED}>At Risk</Chip></span>}
             </div>
