@@ -39,15 +39,17 @@ const ADMIN_TABS: { id: TabId; label: string }[] = [
 ];
 
 export function OracleTab({ missionId }: { missionId: string }) {
-  const { isAdmin } = useIsAdmin();
-  const { data: access } = useMissionAccess(missionId);
-  const canLead = isAdmin || access?.allowed === true;
+  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
+  const { data: access, isLoading: accessLoading } = useMissionAccess(missionId);
+  const missionRole = access?.role ?? null;
+  const LEAD_ROLES = ["engagement_lead", "manager", "project_manager", "lead", "admin"];
+  const canLead = isAdmin || (missionRole != null && LEAD_ROLES.includes(missionRole));
+  const showWriter = !isAdmin && !canLead;
+  const roleResolving = adminLoading || accessLoading;
   const [active, setActive] = useState<TabId>("feed");
   const [visited, setVisited] = useState<Set<TabId>>(new Set(["feed"]));
   const [selectedEcosystemNode, setSelectedEcosystemNode] = useState<any | null>(null);
-  const [previewWriter, setPreviewWriter] = useState(false);
 
-  const showWriter = !isAdmin || previewWriter;
   const TABS = [
     ...BASE_TABS,
     ...(canLead ? LEAD_TABS : []),
