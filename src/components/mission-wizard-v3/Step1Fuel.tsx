@@ -349,17 +349,59 @@ export function Step1Fuel({
     [missionId, rows.length],
   );
 
+  async function processDocsToOracle(): Promise<number> {
+    // Pull every doc for this mission, send unprocessed ones through the
+    // canonical oracle-document-processor route so oracle_signals gets
+    // populated alongside the RFP question extraction.
+    const { data: docs } = await supabase
+      .from("mission_documents")
+      .select("id, title, file_url, document_type, processing_status")
+      .eq("mission_id", missionId);
+    if (!docs?.length) return 0;
+    const targets = docs.filter(
+      (d) => !d.processing_status || d.processing_status === "not_processed" || d.processing_status === "error",
+    );
+    let total = 0;
+    const { data: { user } } = await supabase.auth.getUser();
+    for (const doc of targets) {
+      try {
+        const { data: blob } = await supabase.storage.from(BUCKET).download(doc.file_url);
+        if (!blob) continue;
+        const file = new File([blob], doc.file_url.split("/").pop() || doc.title || "doc", {
+          type: blob.type,
+        });
+        const text = (await extractTextFromBlob(file, file.name)).trim();
+        if (text.length < 100) continue;
+        const res = await fetch("/api/public/hooks/oracle-document-processor", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            document_id: doc.id,
+            mission_id: missionId,
+            extracted_text: text,
+            document_title: doc.title,
+            document_type: doc.document_type ?? "other",
+            char_count: text.length,
+            user_id: user?.id ?? null,
+          }),
+        });
+        const json = (await res.json().catch(() => ({}))) as { ok?: boolean; items_extracted?: number };
+        if (json.ok) total += json.items_extracted ?? 0;
+      } catch (e) {
+        console.warn("[Step1Fuel] oracle processing failed for", doc.title, e);
+      }
+    }
+    return total;
+  }
+
   async function analyze() {
     setAnalyzing(true);
     setAnalyzeResult(null);
     try {
-      // runIrisRfpExtraction reads documents, runs Pass 1 (structure) as a
-      // single short server call, then drives Pass 2 (per-section questions)
-      // from the browser with bounded concurrency — no long single-shot
-      // server request, so the Worker can't time out and bounce the wizard.
-      const [rfp, basics] = await Promise.all([
+      const [rfp, basics, oracleItems] = await Promise.all([
         runIrisRfpExtraction(missionId),
         analyzeFn({ data: { missionId, wizardStep: 2, fields: BASICS_FIELDS } }),
+        processDocsToOracle(),
       ]);
       const basicsCount = basics.extractions?.length ?? 0;
       const qCount = rfp?.counts?.questions ?? 0;
@@ -370,16 +412,20 @@ export function Step1Fuel({
         rfp ? `${qCount} questions` : null,
         rfp ? `${sCount} sections` : null,
         rfp ? `${cCount} compliance items` : null,
+        oracleItems > 0 ? `${oracleItems} ORACLE intel items` : null,
       ].filter(Boolean);
       setAnalyzeResult(
         `IRIS extracted ${parts.join(", ")} from ${basics.document_count ?? 0} documents. Steps 3–7 will refine as you visit them.`,
       );
+      // Advance to Step 2 once analysis completes
+      onAdvance();
     } catch (e) {
       setAnalyzeResult(`Analysis failed: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setAnalyzing(false);
     }
   }
+
 
   return (
     <div>
