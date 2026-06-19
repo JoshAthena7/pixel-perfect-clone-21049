@@ -947,7 +947,7 @@ function btn(color: string, primary = false): React.CSSProperties {
   };
 }
 
-function CoordinationCards({ cockpit, onFlag }: { cockpit: any; onFlag: (desc: string, missionId: string) => void }) {
+function CoordinationCards({ cockpit, onFlag, onOpenNotes }: { cockpit: any; onFlag: (desc: string, missionId: string) => void; onOpenNotes: (questionId: string, questionNumber: string, questionText: string) => void }) {
   if (!cockpit) return null;
   const cards: any[] = [];
   const qNumByQid: Map<string, any> = cockpit.qNumByQid ?? new Map();
