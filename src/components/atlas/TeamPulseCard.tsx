@@ -94,7 +94,7 @@ function InspirationTab({ missionId }: { missionId: string }) {
         Today's Inspiration
       </span>
       <div className="pr-32">
-        <div className="text-[17px] italic font-serif leading-snug" style={{ color: "rgba(255,255,255,0.92)" }}>
+        <div className="italic leading-snug" style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
           {c.quote || "—"}
         </div>
         {c.attribution && (
