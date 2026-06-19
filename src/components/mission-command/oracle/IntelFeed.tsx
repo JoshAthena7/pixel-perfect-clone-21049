@@ -141,30 +141,45 @@ export function IntelFeed({ missionId }: { missionId: string }) {
   const events = useMemo(() => {
     const base = (data ?? []) as any[];
     const oracleRows = (oracleData ?? []) as any[];
-    // Map oracle_signals to feed-shape, mark as oracle
     const mapped = oracleRows.map((s) => ({
       id: `oracle:${s.id}`,
       mission_id: s.mission_id ?? missionId,
       event_type: s.signal_type ?? "signal",
       title: s.title,
-      content: s.summary ?? s.what_happened ?? "",
-      generated_by: "human",
+      content: s.what_happened ?? s.summary ?? "",
+      generated_by: ["manual", "athena_bulk_upload", "athena_upload"].includes(s.ingestion_source)
+        ? "human"
+        : "iris",
       source_type: "oracle",
-      signal_category: (s.metadata as any)?.category ?? null,
+      source_name: s.source_name,
+      source_url: (s.metadata as any)?.source_url ?? null,
+      signal_category: s.category ?? null,
+      urgency: s.urgency,
+      relevance_score: s.relevance_score,
+      ingestion_source: s.ingestion_source,
+      status: s.status,
+      topic_tags: s.topic_tags ?? [],
       created_at: s.created_at,
       __oracle: true,
       __tier: s.tier,
     }));
-    // Dedupe by id (intel_events row references signalId in source_id; but ids differ)
     const seen = new Set(base.map((e) => e.id));
     const merged = [...base, ...mapped.filter((m) => !seen.has(m.id))];
-    merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    return merged;
+    // Dedupe by title similarity (simple equality on normalized title)
+    const titleSeen = new Map<string, any>();
+    for (const item of merged) {
+      const key = String(item.title ?? "").trim().toLowerCase();
+      if (!titleSeen.has(key)) titleSeen.set(key, item);
+      else if (item.__oracle && !titleSeen.get(key).__oracle) titleSeen.set(key, item);
+    }
+    const deduped = Array.from(titleSeen.values());
+    deduped.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return deduped;
   }, [data, oracleData, missionId]);
 
+  const oracleEmpty = (oracleData ?? []).length === 0;
+
   // Fire-and-forget first-pass IRIS seed when the feed is empty.
-  // Only triggers once per mission per browser session; the server fn also
-  // re-checks count===0 before inserting, so race conditions are safe.
   useEffect(() => {
     if (isLoading) return;
     if (events.length > 0) return;
@@ -188,16 +203,23 @@ export function IntelFeed({ missionId }: { missionId: string }) {
     })();
   }, [isLoading, events.length, missionId, seedFn, qc]);
 
-  const filtered = useMemo(
-    () => (filter === "all" ? events : events.filter((e) => tabMatches(filter, e))),
-    [events, filter],
-  );
+  const filtered = useMemo(() => {
+    if (filter === "all") return events;
+    // When a non-all filter is active, hide legacy items per spec.
+    return events.filter((e) => e.__oracle && oracleMatches(filter, e));
+  }, [events, filter]);
 
   const stats = useMemo(() => {
     const week = Date.now() - 7 * 86400 * 1000;
     const recent = events.filter((e) => new Date(e.created_at).getTime() > week).length;
-    const iris = events.filter((e) => e.generated_by === "iris").length;
-    const human = events.filter((e) => e.generated_by === "human").length;
+    const irisSources = new Set(["automated_feed", "rfp_extraction", "document_processing", "iris_generated"]);
+    const humanSources = new Set(["manual", "athena_bulk_upload", "athena_upload"]);
+    const iris = events.filter((e) =>
+      e.__oracle ? irisSources.has(e.ingestion_source) : e.generated_by === "iris",
+    ).length;
+    const human = events.filter((e) =>
+      e.__oracle ? humanSources.has(e.ingestion_source) : e.generated_by === "human",
+    ).length;
     return { total: events.length, recent, iris, human };
   }, [events]);
 
