@@ -65,6 +65,10 @@ export function IntelStatusWidget({ missionId }: { missionId: string }) {
         <Pill label="Dismissed" value={counts.dismissed} color="rgba(255,255,255,0.35)" />
       </div>
 
+      <MomentumScoreCompact missionId={missionId} />
+
+
+
       {ready ? (
         <div
           className="inline-flex items-center gap-2 px-3 py-2 rounded-full w-full justify-center"
