@@ -571,7 +571,6 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
         />
 
         <PulseStrip pulse={cockpit?.pulse ?? []} />
-        <WinThemesStrip themes={cockpit?.winThemes ?? []} />
       </aside>
 
       {briefOpenFor && (
