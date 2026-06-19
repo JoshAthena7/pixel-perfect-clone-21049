@@ -9,6 +9,7 @@ import { TaxonomyBrowser } from "./TaxonomyBrowser";
 import { IntelReviewQueue } from "./IntelReviewQueue";
 import { SourcesPanel } from "./SourcesPanel";
 import { HealthColumn } from "./HealthColumn";
+import { DocumentsTab } from "./DocumentsTab";
 
 type MissionRow = { id: string; name: string; submission_deadline: string | null };
 
@@ -69,7 +70,7 @@ function formatRelative(iso: string | null | undefined): string {
 export function OlympusCommand() {
   const missionsQ = useMissions();
   const [missionId, setMissionId] = useState<string | null>(null);
-  const [leftTab, setLeftTab] = useState<"taxonomy" | "sources">("taxonomy");
+  const [leftTab, setLeftTab] = useState<"taxonomy" | "sources" | "documents">("taxonomy");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const lastRunQ = useLastPipelineRun();
   const runStage = useServerFn(runOracleStage);
@@ -167,13 +168,21 @@ export function OlympusCommand() {
               >
                 SOURCES
               </button>
+              <button
+                onClick={() => setLeftTab("documents")}
+                className={leftTab === "documents" ? "text-white/90" : "text-white/40 hover:text-white/70"}
+              >
+                DOCUMENTS
+              </button>
             </div>
           }
         >
           {leftTab === "taxonomy" ? (
             <TaxonomyBrowser selectedNodeId={selectedNodeId} onSelect={setSelectedNodeId} />
-          ) : (
+          ) : leftTab === "sources" ? (
             <SourcesPanel />
+          ) : (
+            <DocumentsTab missionId={missionId} />
           )}
         </Column>
         <Column title="INTEL REVIEW QUEUE" borderX>
