@@ -47,14 +47,23 @@ export const getIrisPipelineStatus = createServerFn({ method: "GET" })
     const { supabase, userId } = context as any;
     await assertAdmin(supabase, userId);
 
-    const { data: jobs, error: jobsErr } = await supabase.rpc("iris_pipeline_jobs");
+    // Use the admin client + admin-only RPCs so cron.* reads do not depend on
+    // auth.uid() propagating into nested SECURITY DEFINER calls — admin gate
+    // is already enforced above. Previously the page showed "last never" for
+    // every pipeline because nested has_role(auth.uid(),...) checks inside
+    // the legacy RPCs returned empty when reached via the user-scoped client.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: jobs, error: jobsErr } = await (supabaseAdmin as any).rpc(
+      "iris_pipeline_jobs_admin",
+    );
     if (jobsErr) throw new Error(jobsErr.message);
 
     const jobList = (jobs ?? []) as any[];
     const runsResults = await Promise.all(
       jobList.map((j) =>
-        supabase
-          .rpc("iris_pipeline_recent_runs", { _jobid: j.jobid, _limit: 5 })
+        (supabaseAdmin as any)
+          .rpc("iris_pipeline_recent_runs_admin", { _jobid: j.jobid, _limit: 5 })
           .then((r: any) => ({ jobid: j.jobid, runs: r.data ?? [], error: r.error }))
           .catch((e: any) => ({ jobid: j.jobid, runs: [], error: e })),
       ),
@@ -78,7 +87,6 @@ export const getIrisPipelineStatus = createServerFn({ method: "GET" })
       })),
     }));
     return { jobs: out };
-
   });
 
 export const runIrisPipeline = createServerFn({ method: "POST" })
