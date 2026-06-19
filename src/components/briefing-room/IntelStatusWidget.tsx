@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { CheckCircle2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useAccess";
+import { MomentumScoreCompact } from "@/components/momentum/MomentumScore";
 
 const GOLD = "#D4AF37";
 
