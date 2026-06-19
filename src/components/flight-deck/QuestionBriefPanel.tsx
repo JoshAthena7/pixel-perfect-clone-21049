@@ -140,8 +140,9 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
               Loading…
             </div>
           ) : !brief ? (
-            <div style={{ padding: "4px 0 0 0", position: "relative", minHeight: genMutation.isPending ? 160 : undefined }}>
-              {genMutation.isPending && <IrisBriefParticles fading={particlesFading} />}
+            <div style={{ padding: "4px 0 0 0", position: "relative", minHeight: (genMutation.isPending || particlesFading) ? 160 : undefined }}>
+              {(genMutation.isPending || particlesFading) && <IrisBriefParticles fading={particlesFading} />}
+
               <div
                 style={{
                   fontSize: 11.5,
