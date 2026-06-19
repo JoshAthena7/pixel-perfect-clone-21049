@@ -18,6 +18,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { supabase } from "@/integrations/supabase/client";
 import { GlobalSearch } from "@/components/nav/GlobalSearch";
+import { PulseBar } from "@/components/nav/PulseBar";
 
 function NotFoundComponent() {
   return (
@@ -88,6 +89,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSync />
+      <PulseBar />
       <GlobalSearch />
       <main className={isTransitioning ? "atlas-route-frame is-transitioning" : "atlas-route-frame"}>
         <Outlet />
