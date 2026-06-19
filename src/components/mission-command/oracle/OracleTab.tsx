@@ -18,6 +18,7 @@ import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.fu
 import { WriterIntelView } from "@/components/oracle/WriterIntelView";
 import { GraphHealthTab } from "./GraphHealthTab";
 import { StoryMapTab } from "./StoryMapTab";
+import { IntelLoadBanner } from "@/components/intelligence/IntelLoadBanner";
 
 const GOLD = "#C49A2B";
 
