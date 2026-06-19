@@ -65,11 +65,12 @@ export function NotificationBell() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [memberId, setMemberId] = useState<string | null>(null);
   const [lastReadAt, setLastReadAt] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (cancelled) return;
       const uid = data.user?.id ?? null;
       setUserId(uid);
@@ -80,6 +81,8 @@ export function NotificationBell() {
           /* ignore */
         }
       }
+      const { data: m } = await supabase.rpc("current_atlas_member_id");
+      if (!cancelled) setMemberId((m as string) ?? null);
     });
     return () => {
       cancelled = true;
@@ -87,15 +90,23 @@ export function NotificationBell() {
   }, []);
 
   const { data: events = [] } = useQuery({
-    queryKey: ["notif-bell", userId],
+    queryKey: ["notif-bell", userId, memberId],
     queryFn: async () => {
-      if (!userId) return [] as { events: AssistEvent[]; missions: Record<string, string> }["events"];
-      // Missions where I'm a member
-      const { data: members } = await supabase
-        .from("mission_team_members")
-        .select("mission_id")
-        .eq("user_id", userId);
-      const missionIds = Array.from(new Set(((members ?? []) as any[]).map((m) => m.mission_id).filter(Boolean)));
+      if (!userId) return [] as AssistEvent[];
+      // Missions where I'm a member (via atlas member id) — fall back to created_by.
+      let missionIds: string[] = [];
+      if (memberId) {
+        const { data: members } = await supabase
+          .from("mission_team_members")
+          .select("mission_id")
+          .eq("member_id", memberId);
+        missionIds = ((members ?? []) as any[]).map((m) => m.mission_id).filter(Boolean);
+      }
+      const { data: owned } = await supabase
+        .from("missions")
+        .select("id")
+        .eq("created_by", userId);
+      missionIds = Array.from(new Set([...missionIds, ...((owned ?? []) as any[]).map((m) => m.id)]));
       if (missionIds.length === 0) return [];
       const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data } = await supabase
