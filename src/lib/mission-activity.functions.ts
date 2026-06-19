@@ -155,7 +155,7 @@ export const getMissionActivity = createServerFn({ method: "POST" })
           .from("mission_assist_events")
           .select("id,question_id,user_id,event_type,metadata,created_at")
           .eq("mission_id", data.missionId)
-          .in("event_type", ["check_in", "sticky_note_posted", "brief_exported", "nudge_sent", "writer_reviewed", "writer_flagged"])
+          .in("event_type", ["check_in", "sticky_note_posted", "sticky_note_pinned_slack", "brief_exported", "nudge_sent", "writer_reviewed", "writer_flagged", "oracle_intel_added", "score_me_run", "mission_pulse_signal"])
           .order("created_at", { ascending: false })
           .limit(200),
       ),

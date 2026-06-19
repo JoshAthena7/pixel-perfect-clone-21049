@@ -381,6 +381,24 @@ export const addOracleIntel = createServerFn({ method: "POST" })
       extracted_summary: `Added to ORACLE (${scopeLabel} scope)`,
     } as never);
 
+    // Mission Radar event log (silent on failure — observability only)
+    try {
+      await supabase.from("mission_assist_events").insert({
+        mission_id: data.missionId,
+        question_id: null,
+        user_id: userId,
+        event_type: "oracle_intel_added",
+        metadata: {
+          summary: `${authorName} added ${data.category} intel: ${data.title.trim().slice(0, 80)}`,
+          signal_id: signalId,
+          category: data.category,
+          scope: scopeLabel,
+        },
+      } as never);
+    } catch (e) {
+      console.warn("[oracle-intel] assist event insert failed", e);
+    }
+
     return { ok: true, signalId, scope: scopeLabel };
   });
 
