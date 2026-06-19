@@ -20,6 +20,7 @@ type Doc = {
   mission_id: string;
   title: string;
   document_type: string;
+  document_purpose: string | null;
   file_url: string;
   created_at: string;
   processing_status: string | null;
