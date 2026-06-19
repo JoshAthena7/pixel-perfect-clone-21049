@@ -173,6 +173,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
 
   return (
     <div className="space-y-4">
+      <IntelLoadBanner missionId={missionId} />
       <div
         className="flex items-center justify-between rounded-md px-3 py-2"
         style={{ background: "rgba(196,154,43,0.06)", border: "0.5px solid rgba(196,154,43,0.2)" }}
