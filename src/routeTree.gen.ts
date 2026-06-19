@@ -61,6 +61,7 @@ import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/em
 import { Route as ApiPublicHooksRefreshIntelligenceGraphRouteImport } from './routes/api/public/hooks/refresh-intelligence-graph'
 import { Route as ApiPublicHooksOracleScraperRouteImport } from './routes/api/public/hooks/oracle-scraper'
 import { Route as ApiPublicHooksOraclePromoterRouteImport } from './routes/api/public/hooks/oracle-promoter'
+import { Route as ApiPublicHooksOracleDocumentProcessorRouteImport } from './routes/api/public/hooks/oracle-document-processor'
 import { Route as ApiPublicHooksOracleClassifierRouteImport } from './routes/api/public/hooks/oracle-classifier'
 import { Route as ApiPublicHooksMonitorStateFeedsRouteImport } from './routes/api/public/hooks/monitor-state-feeds'
 import { Route as ApiPublicHooksMonitorResearchFeedsRouteImport } from './routes/api/public/hooks/monitor-research-feeds'
@@ -386,6 +387,12 @@ const ApiPublicHooksOraclePromoterRoute =
     path: '/api/public/hooks/oracle-promoter',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksOracleDocumentProcessorRoute =
+  ApiPublicHooksOracleDocumentProcessorRouteImport.update({
+    id: '/api/public/hooks/oracle-document-processor',
+    path: '/api/public/hooks/oracle-document-processor',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksOracleClassifierRoute =
   ApiPublicHooksOracleClassifierRouteImport.update({
     id: '/api/public/hooks/oracle-classifier',
@@ -685,6 +692,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/monitor-research-feeds': typeof ApiPublicHooksMonitorResearchFeedsRoute
   '/api/public/hooks/monitor-state-feeds': typeof ApiPublicHooksMonitorStateFeedsRoute
   '/api/public/hooks/oracle-classifier': typeof ApiPublicHooksOracleClassifierRoute
+  '/api/public/hooks/oracle-document-processor': typeof ApiPublicHooksOracleDocumentProcessorRoute
   '/api/public/hooks/oracle-promoter': typeof ApiPublicHooksOraclePromoterRoute
   '/api/public/hooks/oracle-scraper': typeof ApiPublicHooksOracleScraperRoute
   '/api/public/hooks/refresh-intelligence-graph': typeof ApiPublicHooksRefreshIntelligenceGraphRoute
@@ -772,6 +780,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/monitor-research-feeds': typeof ApiPublicHooksMonitorResearchFeedsRoute
   '/api/public/hooks/monitor-state-feeds': typeof ApiPublicHooksMonitorStateFeedsRoute
   '/api/public/hooks/oracle-classifier': typeof ApiPublicHooksOracleClassifierRoute
+  '/api/public/hooks/oracle-document-processor': typeof ApiPublicHooksOracleDocumentProcessorRoute
   '/api/public/hooks/oracle-promoter': typeof ApiPublicHooksOraclePromoterRoute
   '/api/public/hooks/oracle-scraper': typeof ApiPublicHooksOracleScraperRoute
   '/api/public/hooks/refresh-intelligence-graph': typeof ApiPublicHooksRefreshIntelligenceGraphRoute
@@ -864,6 +873,7 @@ export interface FileRoutesById {
   '/api/public/hooks/monitor-research-feeds': typeof ApiPublicHooksMonitorResearchFeedsRoute
   '/api/public/hooks/monitor-state-feeds': typeof ApiPublicHooksMonitorStateFeedsRoute
   '/api/public/hooks/oracle-classifier': typeof ApiPublicHooksOracleClassifierRoute
+  '/api/public/hooks/oracle-document-processor': typeof ApiPublicHooksOracleDocumentProcessorRoute
   '/api/public/hooks/oracle-promoter': typeof ApiPublicHooksOraclePromoterRoute
   '/api/public/hooks/oracle-scraper': typeof ApiPublicHooksOracleScraperRoute
   '/api/public/hooks/refresh-intelligence-graph': typeof ApiPublicHooksRefreshIntelligenceGraphRoute
@@ -956,6 +966,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/monitor-research-feeds'
     | '/api/public/hooks/monitor-state-feeds'
     | '/api/public/hooks/oracle-classifier'
+    | '/api/public/hooks/oracle-document-processor'
     | '/api/public/hooks/oracle-promoter'
     | '/api/public/hooks/oracle-scraper'
     | '/api/public/hooks/refresh-intelligence-graph'
@@ -1043,6 +1054,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/monitor-research-feeds'
     | '/api/public/hooks/monitor-state-feeds'
     | '/api/public/hooks/oracle-classifier'
+    | '/api/public/hooks/oracle-document-processor'
     | '/api/public/hooks/oracle-promoter'
     | '/api/public/hooks/oracle-scraper'
     | '/api/public/hooks/refresh-intelligence-graph'
@@ -1134,6 +1146,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/monitor-research-feeds'
     | '/api/public/hooks/monitor-state-feeds'
     | '/api/public/hooks/oracle-classifier'
+    | '/api/public/hooks/oracle-document-processor'
     | '/api/public/hooks/oracle-promoter'
     | '/api/public/hooks/oracle-scraper'
     | '/api/public/hooks/refresh-intelligence-graph'
@@ -1171,6 +1184,7 @@ export interface RootRouteChildren {
   ApiPublicHooksMonitorResearchFeedsRoute: typeof ApiPublicHooksMonitorResearchFeedsRoute
   ApiPublicHooksMonitorStateFeedsRoute: typeof ApiPublicHooksMonitorStateFeedsRoute
   ApiPublicHooksOracleClassifierRoute: typeof ApiPublicHooksOracleClassifierRoute
+  ApiPublicHooksOracleDocumentProcessorRoute: typeof ApiPublicHooksOracleDocumentProcessorRoute
   ApiPublicHooksOraclePromoterRoute: typeof ApiPublicHooksOraclePromoterRoute
   ApiPublicHooksOracleScraperRoute: typeof ApiPublicHooksOracleScraperRoute
   ApiPublicHooksRefreshIntelligenceGraphRoute: typeof ApiPublicHooksRefreshIntelligenceGraphRoute
@@ -1545,6 +1559,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/hooks/oracle-promoter'
       fullPath: '/api/public/hooks/oracle-promoter'
       preLoaderRoute: typeof ApiPublicHooksOraclePromoterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/oracle-document-processor': {
+      id: '/api/public/hooks/oracle-document-processor'
+      path: '/api/public/hooks/oracle-document-processor'
+      fullPath: '/api/public/hooks/oracle-document-processor'
+      preLoaderRoute: typeof ApiPublicHooksOracleDocumentProcessorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/oracle-classifier': {
@@ -2035,6 +2056,8 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicHooksMonitorResearchFeedsRoute,
   ApiPublicHooksMonitorStateFeedsRoute: ApiPublicHooksMonitorStateFeedsRoute,
   ApiPublicHooksOracleClassifierRoute: ApiPublicHooksOracleClassifierRoute,
+  ApiPublicHooksOracleDocumentProcessorRoute:
+    ApiPublicHooksOracleDocumentProcessorRoute,
   ApiPublicHooksOraclePromoterRoute: ApiPublicHooksOraclePromoterRoute,
   ApiPublicHooksOracleScraperRoute: ApiPublicHooksOracleScraperRoute,
   ApiPublicHooksRefreshIntelligenceGraphRoute:
