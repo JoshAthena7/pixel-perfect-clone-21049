@@ -276,7 +276,7 @@ export async function runScraper(): Promise<ScraperResult> {
     }
   }
 
-  console.log(
+  debugLog.log(
     `[oracle-scraper] complete. ${list.length} sources checked. ${queued} new items queued. ${errors} errors.`,
   );
   return { stage: "scraper", sources_checked: list.length, items_queued: queued, errors };
