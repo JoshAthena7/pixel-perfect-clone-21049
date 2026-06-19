@@ -132,15 +132,26 @@ function StaffPage() {
               {staff.length} member{staff.length === 1 ? "" : "s"} across ATLAS.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setAddOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium transition-opacity hover:opacity-90"
-            style={{ background: "#c9a84c", color: "#080c14" }}
-          >
-            <Plus className="h-4 w-4" />
-            Add staff member
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setImportOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium transition-colors hover:bg-white/5"
+              style={{ border: "1px solid rgba(255,255,255,0.12)", color: "white" }}
+            >
+              <Upload className="h-4 w-4" />
+              Import from TalentDesk
+            </button>
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+              style={{ background: "#c9a84c", color: "#080c14" }}
+            >
+              <Plus className="h-4 w-4" />
+              Add staff member
+            </button>
+          </div>
         </div>
 
         {/* Search */}
