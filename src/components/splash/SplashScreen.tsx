@@ -258,6 +258,13 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           Carrying the mission.
         </div>
       </div>
+
+      <style>{`
+        @keyframes atlasTwinkle {
+          0%, 100% { opacity: 0.25; transform: scale(0.85); }
+          50%      { opacity: 0.85; transform: scale(1.15); }
+        }
+      `}</style>
     </div>
   );
 }
