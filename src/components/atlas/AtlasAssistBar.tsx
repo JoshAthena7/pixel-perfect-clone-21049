@@ -8,8 +8,9 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Search, Target, BarChart3, AlertTriangle, Copy, RefreshCcw, ArrowDownToLine, Loader2, Zap } from "lucide-react";
+import { Search, Target, BarChart3, AlertTriangle, Copy, RefreshCcw, ArrowDownToLine, Loader2, Zap, X } from "lucide-react";
 import { runAssistTool } from "@/lib/atlas-assist.functions";
+import { generateTacticalSuggestion } from "@/lib/iris-tactical.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -195,7 +196,125 @@ export function AtlasAssistBar({
             </button>
           </div>
         )}
+
+        {/* Ghost-text tactical suggestion — Decode tab only. Reserves 60px. */}
+        <div style={{ minHeight: 60 }}>
+          {active === "decode" && text && !loading && !error && (
+            <TacticalGhostText
+              key={`${questionId}:${text.slice(0, 24)}`}
+              missionId={missionId}
+              questionId={questionId}
+              decodeText={text}
+            />
+          )}
+        </div>
       </div>
+    </div>
+  );
+}
+
+function TacticalGhostText({
+  missionId,
+  questionId,
+  decodeText,
+}: {
+  missionId: string;
+  questionId: string;
+  decodeText: string;
+}) {
+  const run = useServerFn(generateTacticalSuggestion);
+  const [tip, setTip] = useState<string>("");
+  const [visible, setVisible] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const [hover, setHover] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [{ data: q }, { data: m }] = await Promise.all([
+          supabase.from("mission_questions").select("question_number, question_text, mission_id").eq("id", questionId).maybeSingle(),
+          supabase.from("missions").select("name").eq("id", missionId).maybeSingle(),
+        ]);
+        const { data: wt } = await supabase
+          .from("mission_win_themes")
+          .select("title")
+          .eq("mission_id", missionId)
+          .limit(1)
+          .maybeSingle();
+        if (cancelled) return;
+        const { text } = await run({
+          data: {
+            questionNumber: q?.question_number ?? null,
+            questionTitle: q?.question_text ?? null,
+            decodeExcerpt: decodeText.slice(0, 200),
+            missionName: m?.name ?? null,
+            winTheme: wt?.title ?? null,
+          },
+        });
+        if (cancelled || !text) return;
+        setTip(text);
+        // 2-second delay before fading in
+        setTimeout(() => { if (!cancelled) setVisible(true); }, 2000);
+      } catch {
+        // silent
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [missionId, questionId, decodeText, run]);
+
+  if (!tip || dismissed) return null;
+
+  return (
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        marginTop: 16,
+        paddingTop: 12,
+        borderTop: "1px solid rgba(255,255,255,0.06)",
+        opacity: visible ? 1 : 0,
+        transition: "opacity 800ms ease-out",
+        position: "relative",
+      }}
+    >
+      <div style={{
+        fontSize: 8,
+        textTransform: "uppercase",
+        letterSpacing: "0.08em",
+        color: "rgba(196,154,43,0.4)",
+        fontWeight: 600,
+      }}>
+        IRIS · Tactical
+      </div>
+      <div style={{
+        fontFamily: "Georgia, serif",
+        fontSize: 12,
+        fontStyle: "italic",
+        color: "rgba(255,255,255,0.3)",
+        marginTop: 4,
+        paddingRight: 16,
+      }}>
+        {tip}
+      </div>
+      <button
+        aria-label="Dismiss tactical suggestion"
+        onClick={() => setDismissed(true)}
+        style={{
+          position: "absolute",
+          top: 12,
+          right: 0,
+          background: "transparent",
+          border: "none",
+          padding: 2,
+          cursor: "pointer",
+          color: "rgba(255,255,255,0.2)",
+          opacity: hover ? 1 : 0,
+          transition: "opacity 150ms ease-out",
+        }}
+      >
+        <X size={10} />
+      </button>
     </div>
   );
 }
