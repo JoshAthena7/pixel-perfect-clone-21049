@@ -9,6 +9,7 @@ const GOLD = "#D4AF37";
 type Counts = { approved: number; pushed: number; needs_review: number; dismissed: number };
 
 export function IntelStatusWidget({ missionId }: { missionId: string }) {
+  const { isAdmin } = useIsAdmin();
   const { data } = useQuery({
     queryKey: ["intel-status-widget", missionId],
     queryFn: async (): Promise<Counts> => {
