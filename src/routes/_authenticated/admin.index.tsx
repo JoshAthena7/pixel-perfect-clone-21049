@@ -53,7 +53,7 @@ function AdminMissionsPage() {
     queryFn: async (): Promise<MissionRow[]> => {
       const { data } = await supabase
         .from("missions")
-        .select("id,name,status,client_name")
+        .select("id,name,status,client_name,health_score,submission_deadline")
         .order("created_at", { ascending: false });
       return (data ?? []) as MissionRow[];
     },
