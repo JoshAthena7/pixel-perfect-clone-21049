@@ -205,6 +205,7 @@ export function IntelFeed({ missionId }: { missionId: string }) {
       ingestion_source: s.ingestion_source,
       status: s.status,
       topic_tags: s.topic_tags ?? [],
+      section_reference: (s.metadata as any)?.section_reference ?? null,
       created_at: s.created_at,
       __oracle: true,
       __tier: s.tier,
