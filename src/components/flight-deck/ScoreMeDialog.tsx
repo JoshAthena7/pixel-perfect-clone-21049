@@ -53,6 +53,10 @@ export function ScoreMeDialog({
   const [stuckPrompt, setStuckPrompt] = useState("");
   const [stuckLoading, setStuckLoading] = useState(false);
   const [stuckOpener, setStuckOpener] = useState<string | null>(null);
+  const [checklist, setChecklist] = useState<{
+    items: { text: string; critical?: boolean }[];
+    planned: number[];
+  } | null>(null);
 
   useEffect(() => {
     if (!open) {
