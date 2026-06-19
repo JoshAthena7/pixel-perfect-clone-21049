@@ -151,6 +151,7 @@ export function DocumentsTab({ missionId }: { missionId: string | null }) {
           extracted_text: text,
           document_title: doc.title,
           document_type: doc.document_type,
+          content_type_hint: (doc as { document_purpose?: string | null }).document_purpose ?? null,
           char_count: text.length,
           user_id: user?.id ?? null,
         }),
