@@ -167,7 +167,15 @@ export function HealthColumn({
       >
         Updated {relative(new Date(lastUpdated).toISOString())}
       </div>
+      {(recentlyApprovedQ.data?.length ?? 0) > 0 && (
+        <Panel heightPct={15} title="Recently Approved">
+          <RecentlyApprovedList items={recentlyApprovedQ.data ?? []} />
+        </Panel>
+      )}
       <Panel heightPct={35} title="Briefing Coverage" right={<CoverageSummary q={coverageQ.data} />}>
+        <div style={{ padding: "6px 10px", fontStyle: "italic", fontSize: 10, color: "rgba(255,255,255,0.4)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+          Questions become covered when IRIS generates a grounded brief using approved ORACLE intelligence.
+        </div>
         <CoverageList
           data={coverageQ.data}
           loading={coverageQ.isLoading}
