@@ -62,17 +62,21 @@ export const Route = createFileRoute("/_authenticated")({
         TIMEOUT as never,
       ),
     ]);
-    // On timeout for either profile/role lookup, fail OPEN: don't redirect to
-    // /welcome based on missing data. The next navigation will re-check.
+    // Fail OPEN on timeout OR on a null/empty profile row. A transient RLS
+    // blip or token-refresh race can return `data: null` even for a fully
+    // onboarded user — redirecting to /welcome in that case bounces signed-in
+    // users out of /missions/.../briefing and /flight-deck roughly when the
+    // access token refreshes (~60s in some envs). Only redirect when we
+    // explicitly observe `has_onboarded === false`.
     const profTimedOut = profRes === (TIMEOUT as never);
     const roleTimedOut = roleRes === (TIMEOUT as never);
     const prof = profTimedOut ? null : (profRes as { data: { has_onboarded?: boolean } | null }).data;
     const roleRow = roleTimedOut ? null : (roleRes as { data: { role: string } | null }).data;
     const isAdmin = !!roleRow;
-    const onboarded = prof?.has_onboarded === true;
     const path = location.pathname;
     const onWelcome = path === "/welcome" || path.startsWith("/welcome/");
-    if (!profTimedOut && !onboarded && !isAdmin && !onWelcome) {
+    const explicitlyNotOnboarded = prof !== null && prof?.has_onboarded === false;
+    if (explicitlyNotOnboarded && !isAdmin && !onWelcome) {
       throw redirect({ to: "/welcome" });
     }
     return { user, isAdmin };
