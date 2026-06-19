@@ -142,7 +142,9 @@ export function ScoreMeDialog({
         },
       });
       setResult(r.result);
+      triggerIrisBolt("score");
       // Fire-and-forget: feed gaps into IRIS Memory.
+
       void gapAnalysis({
         data: {
           mission_id: missionId,
