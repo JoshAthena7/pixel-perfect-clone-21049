@@ -28,9 +28,12 @@ const LABEL_IN_AT = 4200; // ATLAS begins fading in after the sky fills + lines 
 const LABEL_FADE_MS = 1800;
 const HOLD_AT = 6200;     // beat where everything sits, fully visible
 const COLLAPSE_AT = 7000;
-const LOGO_GROW_AT = 8200; // the last star blooms into the Athena mark
-const GONE_AT = 11800;    // long, dramatic dim — ATLAS fades, logo lingers
-const DONE_AT = 12800;
+const LOGO_GROW_AT = 8400;  // the last star blooms outward into the Athena mark
+const LOGO_GROW_MS = 2200;  // slow, deliberate bloom from point → full logo
+const LOGO_HOLD_MS = 3200;  // logo sits on a black sky
+const GONE_AT = LOGO_GROW_AT + LOGO_GROW_MS + LOGO_HOLD_MS; // 13800
+const DONE_AT = GONE_AT + 2400;  // overlay + logo fade to black together (no cut)
+
 
 type Pos = { x: number; y: number; delay: number; r: number; twinkleDur: number; twinkleDelay: number };
 
