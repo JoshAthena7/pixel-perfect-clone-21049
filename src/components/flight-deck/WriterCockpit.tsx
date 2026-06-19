@@ -145,7 +145,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
       const qids = qpRows.map(r => r.question_id);
       if (qids.length === 0) return { questions: [] as Q[], feedback: [], conflicts: [], connections: [], mission: null, pensDown: false, pulse: [], winThemes: [] };
 
-      const [mq, ms, mission, milestones, feedback, conflicts, connections, pulse, oec, mwt] = await Promise.all([
+      const [mq, ms, mission, milestones, feedback, conflicts, connections, pulse, oec, mwt, assistEvents] = await Promise.all([
         supabase.from("mission_questions").select("*").in("id", qids),
         supabase.from("mission_sections").select("id,name,section_number,evaluation_weight,coherence_status").eq("mission_id", missionId),
         supabase.from("missions").select("id,name,submission_deadline").eq("id", missionId).maybeSingle(),
@@ -156,7 +156,18 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
         supabase.from("mission_pulse_updates").select("domain,created_at").eq("mission_id", missionId).order("created_at", { ascending: false }),
         supabase.from("oracle_engagement_config").select("win_themes").eq("mission_id", missionId).maybeSingle(),
         supabase.from("mission_win_themes").select("id,title,why_it_matters,status,display_order").eq("mission_id", missionId).order("display_order", { ascending: true }),
+        supabase.from("mission_assist_events").select("question_id,event_type,created_at").eq("mission_id", missionId).in("event_type", ["sos_raised", "sos_acknowledged"]).in("question_id", qids).order("created_at", { ascending: true }),
       ]);
+
+      // Determine active (unacknowledged) SOS per question: last event must be sos_raised.
+      const lastSosByQid = new Map<string, string>();
+      for (const ev of ((assistEvents.data ?? []) as any[])) {
+        if (!ev.question_id) continue;
+        lastSosByQid.set(ev.question_id, ev.event_type);
+      }
+      const activeSosQids = new Set<string>();
+      lastSosByQid.forEach((type, qid) => { if (type === "sos_raised") activeSosQids.add(qid); });
+
 
       const sectionMap = new Map<string, any>((ms.data ?? []).map((s: any) => [s.id, s]));
       const qpByQid = new Map<string, any>(qpRows.map(r => [r.question_id, r]));
