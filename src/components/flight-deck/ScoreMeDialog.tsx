@@ -84,17 +84,16 @@ export function ScoreMeDialog({
     (async () => {
       try {
         const [{ data: q }, { data: me }] = await Promise.all([
-          (await import("@/integrations/supabase/client")).supabase
-            .from("mission_questions").select("iris_brief").eq("id", questionId).maybeSingle(),
-          (await import("@/integrations/supabase/client")).supabase.auth.getUser(),
+          supabase.from("mission_questions").select("iris_brief").eq("id", questionId).maybeSingle(),
+          supabase.auth.getUser(),
         ]);
         const briefItems = (q as any)?.iris_brief?.score_predictor?.items;
-        const sb = (await import("@/integrations/supabase/client")).supabase;
-        let predictorItems: { text: string; critical?: boolean }[] | null =
-          Array.isArray(briefItems) ? briefItems : null;
+        const predictorItems: { text: string; critical?: boolean }[] | null = Array.isArray(briefItems)
+          ? briefItems
+          : null;
         let planned: number[] = [];
         if (me?.user) {
-          const { data: progress } = await sb
+          const { data: progress } = await supabase
             .from("question_progress")
             .select("metadata")
             .eq("question_id", questionId)
