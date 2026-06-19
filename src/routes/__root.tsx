@@ -88,6 +88,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSync />
+      <GlobalSearch />
       <main className={isTransitioning ? "atlas-route-frame is-transitioning" : "atlas-route-frame"}>
         <Outlet />
       </main>
