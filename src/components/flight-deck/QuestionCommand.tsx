@@ -386,17 +386,31 @@ function QuestionRowItem({
   onGenerate,
   onView,
   isGenerating,
+  briefStage,
+  prewarm,
 }: {
   q: QuestionRow;
   onAssign: () => void;
   onGenerate: () => void;
   onView: () => void;
   isGenerating: boolean;
+  briefStage?: "oracle" | "assemble" | null;
+  prewarm?: "loading" | "ready" | null;
 }) {
   const text = q.question_text ?? "";
   const truncated = text.length > 80 ? text.slice(0, 80) + "…" : text;
   const sm = statusMeta[q.status ?? "not_started"] ?? statusMeta.not_started;
   const assigneeCount = q.assignees.length;
+  const [glow, setGlow] = useState(false);
+  const prevPrewarm = useRef<typeof prewarm>(null);
+  useEffect(() => {
+    if (prevPrewarm.current === "loading" && prewarm === "ready") {
+      setGlow(true);
+      const t = setTimeout(() => setGlow(false), 1000);
+      return () => clearTimeout(t);
+    }
+    prevPrewarm.current = prewarm ?? null;
+  }, [prewarm]);
 
   return (
     <div
@@ -406,14 +420,35 @@ function QuestionRowItem({
       <span
         className="rounded px-2 py-0.5 shrink-0"
         style={{
+          position: "relative",
           fontSize: 11,
           fontWeight: 700,
           color: GOLD,
           background: `${GOLD}1a`,
           border: `1px solid ${GOLD}55`,
+          boxShadow: glow ? "0 0 6px rgba(196,154,43,0.4)" : "none",
+          transition: "box-shadow 1s ease-out",
         }}
       >
         {q.question_number ?? "—"}
+        {prewarm === "loading" && (
+          <span
+            aria-hidden
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              width: 4,
+              height: 4,
+              marginTop: -2,
+              marginLeft: -2,
+              borderRadius: "50%",
+              background: "rgba(196,154,43,0.6)",
+              animation: "qc-orbit 3s linear infinite",
+              pointerEvents: "none",
+            }}
+          />
+        )}
       </span>
       <div className="min-w-0 flex-1">
         <div style={{ fontSize: 13, color: "white" }} className="truncate">
