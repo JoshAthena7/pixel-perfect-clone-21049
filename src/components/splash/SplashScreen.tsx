@@ -29,7 +29,7 @@ const LABEL_FADE_MS = 1800;
 const HOLD_AT = 6200;     // beat where everything sits, fully visible
 const COLLAPSE_AT = 7000;
 const LOGO_GROW_AT = 8400;  // the last star blooms outward into the Athena mark
-const LOGO_GROW_MS = 2200;  // slow, deliberate bloom from point → full logo
+const LOGO_GROW_MS = 3600;  // slow, deliberate bloom from point → full logo
 const LOGO_HOLD_MS = 3200;  // logo sits on a black sky
 const GONE_AT = LOGO_GROW_AT + LOGO_GROW_MS + LOGO_HOLD_MS; // 13800
 const DONE_AT = GONE_AT + 2400;  // overlay + logo fade to black together (no cut)
@@ -172,7 +172,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               opacity: collapsing ? 0 : 1,
               transition: collapsing
                 ? "opacity 1800ms ease-in"
-                : `opacity 1400ms ease-out ${p.delay}ms`,
+                : `opacity 2600ms ease-out ${p.delay}ms`,
             }}
           >
             {/* Soft glow halo */}
@@ -243,7 +243,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             opacity: phase === "gone" ? 0 : logoIn ? 1 : 0,
             transition: phase === "gone"
               ? "opacity 2200ms ease-in-out"
-              : "opacity 1800ms ease-out",
+              : "opacity 3200ms ease-out",
           }}
         >
           {/* Gold bloom halo — radial gradient that grows with the mark and
