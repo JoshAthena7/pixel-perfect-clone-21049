@@ -12,6 +12,8 @@ import { IrisMark } from "@/components/iris/IrisMark";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
 import { useIris, getPageLabel } from "./IrisContext";
+import { useIrisBoltRef } from "@/lib/iris-bolt";
+
 
 const GOLD = "#C9A55C";
 // IRIS brand mark color (matches the violet/blue eye in the logo)
@@ -56,6 +58,8 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
   const navigate = useNavigate();
   const iris = useIris();
   const [open, setOpen] = useState(false);
+  const boltRef = useIrisBoltRef<HTMLSpanElement>();
+
   const [minimized, setMinimized] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -316,6 +320,7 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
         className="fixed bottom-5 right-5 z-50 group"
       >
         <span
+          ref={boltRef}
           className="relative inline-flex items-center justify-center h-14 w-14 rounded-full shadow-lg"
           style={{ background: `radial-gradient(circle at 30% 30%, ${IRIS_BRAND}, ${IRIS_BRAND_DEEP} 70%, #1A1140)` }}
         >
@@ -329,6 +334,7 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
       </button>
     );
   }
+
 
   if (minimized) {
     return (

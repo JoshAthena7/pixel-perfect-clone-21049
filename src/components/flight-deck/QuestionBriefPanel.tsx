@@ -5,6 +5,9 @@ import { ChevronDown, ChevronRight, Sparkles, RefreshCw, Eye } from "lucide-reac
 import { supabase } from "@/integrations/supabase/client";
 import { generateQuestionBrief, type QuestionBriefBody } from "@/lib/iris-brief.functions";
 import { fireAssistEvent } from "@/lib/fireAssistEvent";
+import { IrisBriefParticles } from "@/components/iris/IrisBriefParticles";
+import { triggerIrisBolt, useIrisBoltRef } from "@/lib/iris-bolt";
+
 
 type Props = {
   missionId: string;
@@ -51,6 +54,9 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
     });
   }, [open, data?.id, missionId, questionId]);
 
+  // Particle field fades to 0 over 300ms before the brief content is revealed.
+  const [particlesFading, setParticlesFading] = useState(false);
+
   const genMutation = useMutation({
     mutationFn: async () => {
       // If a brief already exists, delete prior rows for this question (regenerate = overwrite).
@@ -65,10 +71,21 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
         data: { missionId, questionId, questionText, persist: true },
       });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey }),
+    onSuccess: () => {
+      setParticlesFading(true);
+      triggerIrisBolt("brief");
+      window.setTimeout(() => {
+        qc.invalidateQueries({ queryKey });
+        setParticlesFading(false);
+      }, 280);
+    },
   });
 
+
   const brief = data;
+  const boltRef = useIrisBoltRef<HTMLSpanElement>("brief");
+
+
 
   return (
     <div
@@ -95,7 +112,10 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
         }}
       >
         {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-        <Eye size={11} />
+        <span ref={boltRef} style={{ display: "inline-flex", color: "#C49A2B" }}>
+          <Eye size={11} />
+        </span>
+
         <span
           style={{
             fontSize: 10,
@@ -120,13 +140,17 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
               Loading…
             </div>
           ) : !brief ? (
-            <div style={{ padding: "4px 0 0 0" }}>
+            <div style={{ padding: "4px 0 0 0", position: "relative", minHeight: (genMutation.isPending || particlesFading) ? 160 : undefined }}>
+              {(genMutation.isPending || particlesFading) && <IrisBriefParticles fading={particlesFading} />}
+
               <div
                 style={{
                   fontSize: 11.5,
                   color: "rgba(220,215,255,0.75)",
                   lineHeight: 1.55,
                   marginBottom: 8,
+                  position: "relative",
+                  zIndex: 1,
                 }}
               >
                 Get IRIS guidance before drafting: what the question really asks, who's
@@ -146,15 +170,33 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 6,
+                  position: "relative",
+                  zIndex: 1,
                 }}
               >
                 <Sparkles size={11} />
                 {genMutation.isPending ? "Generating…" : "Generate Question Brief"}
               </button>
+              {genMutation.isPending && (
+                <div
+                  style={{
+                    marginTop: 14,
+                    textAlign: "center",
+                    fontSize: 12,
+                    fontStyle: "italic",
+                    color: "rgba(220,215,255,0.65)",
+                    position: "relative",
+                    zIndex: 1,
+                  }}
+                >
+                  IRIS is assembling your brief…
+                </div>
+              )}
               {genMutation.isError && (
-                <div style={{ marginTop: 6, fontSize: 10.5, color: "#e57373" }}>
+                <div style={{ marginTop: 6, fontSize: 10.5, color: "#e57373", position: "relative", zIndex: 1 }}>
                   {(genMutation.error as Error).message}
                 </div>
+
               )}
             </div>
           ) : (
