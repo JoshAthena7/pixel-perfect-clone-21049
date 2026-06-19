@@ -221,7 +221,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         />
       </svg>
 
-      {/* Athena mark — grows out of the last remaining star */}
+      {/* Athena mark — blooms out of the last gold star, sits, then fades to sky */}
       <div
         style={{
           position: "absolute",
@@ -232,25 +232,57 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           pointerEvents: "none",
         }}
       >
-        <img
-          src={athenaMark.url}
-          alt="Athena"
-          draggable={false}
+        <div
           style={{
-            height: 140,
-            width: 140,
-            objectFit: "contain",
-            userSelect: "none",
-            filter: "drop-shadow(0 0 32px rgba(229,189,90,0.55))",
+            position: "relative",
+            width: 320,
+            height: 320,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             opacity: phase === "gone" ? 0 : logoIn ? 1 : 0,
-            transform: logoIn && phase !== "gone" ? "scale(1)" : "scale(0.02)",
-            transition:
-              phase === "gone"
-                ? "opacity 900ms ease-out, transform 900ms ease-out"
-                : "opacity 1600ms ease-out, transform 1800ms cubic-bezier(0.16,0.84,0.3,1)",
+            transition: phase === "gone"
+              ? "opacity 2200ms ease-in-out"
+              : "opacity 1800ms ease-out",
           }}
-        />
+        >
+          {/* Gold bloom halo — radial gradient that grows with the mark and
+              feathers into the black sky, so the logo never looks pasted. */}
+          <div
+            aria-hidden
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "50%",
+              background:
+                "radial-gradient(circle at center, rgba(229,189,90,0.42) 0%, rgba(196,154,43,0.18) 28%, rgba(196,154,43,0.06) 50%, rgba(0,0,0,0) 72%)",
+              transform: logoIn && phase !== "gone" ? "scale(1)" : "scale(0.04)",
+              transformOrigin: "center",
+              transition: `transform ${LOGO_GROW_MS}ms cubic-bezier(0.19,1,0.22,1)`,
+              filter: "blur(2px)",
+            }}
+          />
+          <img
+            src={athenaMark.url}
+            alt="Athena"
+            draggable={false}
+            style={{
+              position: "relative",
+              height: 150,
+              width: 150,
+              objectFit: "contain",
+              userSelect: "none",
+              // mixBlendMode: screen lets any dark PNG matte dissolve into the black sky.
+              mixBlendMode: "screen",
+              filter: "drop-shadow(0 0 28px rgba(229,189,90,0.55)) drop-shadow(0 0 60px rgba(196,154,43,0.25))",
+              transform: logoIn && phase !== "gone" ? "scale(1)" : "scale(0.02)",
+              transformOrigin: "center",
+              transition: `transform ${LOGO_GROW_MS}ms cubic-bezier(0.19,1,0.22,1)`,
+            }}
+          />
+        </div>
       </div>
+
 
 
 
