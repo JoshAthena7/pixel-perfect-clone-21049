@@ -396,7 +396,7 @@ export async function processDocument(input: ProcessInput): Promise<ProcessResul
         tier: "mission",
         scope_tier: "mission",
         status: "needs_review",
-        visibility: "mission",
+        visibility: "all_users",
         ingestion_source: isRfp ? "rfp_extraction" : "document_processing",
         source_name: input.documentTitle,
         metadata: {
