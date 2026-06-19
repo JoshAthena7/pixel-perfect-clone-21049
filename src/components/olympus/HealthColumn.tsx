@@ -73,6 +73,22 @@ export function HealthColumn({
     queryFn: () => getTopIntelligence({ data: { missionId } }),
     refetchInterval: 60_000,
   });
+  const recentlyApprovedQ = useQuery({
+    queryKey: ["olympus-health", "recently-approved", missionId],
+    queryFn: async () => {
+      if (!missionId) return [] as any[];
+      const { data } = await (supabase as any)
+        .from("oracle_signals")
+        .select("id,title,category,approved_at,updated_at,created_at")
+        .or(`mission_id.eq.${missionId},tier.eq.platform`)
+        .in("status", ["approved", "pushed"])
+        .order("updated_at", { ascending: false })
+        .limit(3);
+      return (data ?? []) as any[];
+    },
+    refetchInterval: 60_000,
+    enabled: !!missionId,
+  });
 
   const [lastUpdated, setLastUpdated] = useState<number>(Date.now());
   useEffect(() => {
