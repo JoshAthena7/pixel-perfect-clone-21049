@@ -185,18 +185,21 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         <div
           style={{
             fontFamily: "Inter, system-ui, -apple-system, sans-serif",
-            fontSize: 32,
+            fontSize: 36,
             fontWeight: 200,
-            letterSpacing: "0.35em",
+            letterSpacing: "0.4em",
             color: "rgba(255,255,255,0.95)",
             opacity: collapsing ? 0 : labelsIn ? 1 : 0,
+            transform: labelsIn && !collapsing ? "translateY(0)" : "translateY(6px)",
+            textShadow: "0 0 24px rgba(196,154,43,0.25)",
             transition: collapsing
-              ? "opacity 200ms ease-out"
-              : "opacity 400ms ease-out",
+              ? "opacity 500ms ease-out"
+              : `opacity ${LABEL_FADE_MS}ms ease-out, transform ${LABEL_FADE_MS}ms ease-out`,
           }}
         >
           ATLAS
         </div>
+
         <div
           style={{
             fontFamily: "Inter, system-ui, -apple-system, sans-serif",
