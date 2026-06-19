@@ -364,6 +364,7 @@ export function Step1Fuel({
     let total = 0;
     const { data: { user } } = await supabase.auth.getUser();
     for (const doc of targets) {
+      if (!doc.file_url) continue;
       try {
         const { data: blob } = await supabase.storage.from(BUCKET).download(doc.file_url);
         if (!blob) continue;
