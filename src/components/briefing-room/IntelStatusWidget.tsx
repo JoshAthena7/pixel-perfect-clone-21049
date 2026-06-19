@@ -34,6 +34,8 @@ export function IntelStatusWidget({ missionId }: { missionId: string }) {
   const active = counts.approved + counts.pushed;
   const ready = active >= 10;
 
+  if (!isAdmin) return null;
+
   return (
     <div
       className="rounded-2xl p-5"
