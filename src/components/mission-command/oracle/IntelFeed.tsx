@@ -124,6 +124,7 @@ export function IntelFeed({ missionId }: { missionId: string }) {
         .from("intel_events")
         .select("*")
         .eq("mission_id", missionId)
+        .neq("routing_status", "dismissed")
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
