@@ -41,14 +41,22 @@ export function AtlasAssistBar({
     acknowledgedRef.current = new Set();
   }, [questionId]);
 
-  // Auto-fetch when tool becomes active and cache is empty
+  // Track whether the user has explicitly asked for the brief to be generated.
+  const [generated, setGenerated] = useState(false);
+
+  // Reset on question change
   useEffect(() => {
-    if (!missionId || !questionId) return;
+    setGenerated(false);
+  }, [questionId]);
+
+  // Auto-fetch only after user clicks Generate (or switches tabs once generated)
+  useEffect(() => {
+    if (!missionId || !questionId || !generated) return;
     const key = `${questionId}:${active}`;
     if (cache[key] !== undefined) return;
     fetchTool(active, "initial");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, questionId, missionId]);
+  }, [active, questionId, missionId, generated]);
 
   async function fetchTool(tool: Tool, mode: "initial" | "regenerate" | "go_deeper") {
     if (!missionId || !questionId) return;
