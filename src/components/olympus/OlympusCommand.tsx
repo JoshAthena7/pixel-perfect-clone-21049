@@ -67,9 +67,9 @@ function formatRelative(iso: string | null | undefined): string {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
-export function OlympusCommand() {
+export function OlympusCommand({ initialMissionId }: { initialMissionId?: string } = {}) {
   const missionsQ = useMissions();
-  const [missionId, setMissionId] = useState<string | null>(null);
+  const [missionId, setMissionId] = useState<string | null>(initialMissionId ?? null);
   const [leftTab, setLeftTab] = useState<"taxonomy" | "sources" | "documents">("taxonomy");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const lastRunQ = useLastPipelineRun();
