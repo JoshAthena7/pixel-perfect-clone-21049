@@ -26,6 +26,7 @@ export const Route = createFileRoute("/api/public/hooks/oracle-document-processo
         const extracted_text = typeof b.extracted_text === "string" ? b.extracted_text : "";
         const document_title = typeof b.document_title === "string" ? b.document_title : "";
         const document_type = typeof b.document_type === "string" ? b.document_type : "other";
+        const content_type_hint = typeof b.content_type_hint === "string" ? b.content_type_hint : null;
         const user_id = typeof b.user_id === "string" ? b.user_id : null;
 
         if (!document_id || !mission_id || !extracted_text || !document_title) {
@@ -42,6 +43,7 @@ export const Route = createFileRoute("/api/public/hooks/oracle-document-processo
             extractedText: extracted_text,
             documentTitle: document_title,
             documentType: document_type,
+            contentTypeHint: content_type_hint,
             userId: user_id,
           });
           return json({ ok: true, ...result }, 200);
