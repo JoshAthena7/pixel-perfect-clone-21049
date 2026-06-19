@@ -548,7 +548,13 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
           );
         })()}
 
-        <CoordinationCards cockpit={cockpit} onFlag={handleFlagConflict} />
+        <CoordinationCards
+          cockpit={cockpit}
+          onFlag={handleFlagConflict}
+          onOpenNotes={(id, num, text) =>
+            setStickyNotesFor({ id, question_number: num, question_text: text } as Q)
+          }
+        />
 
         <PulseStrip pulse={cockpit?.pulse ?? []} />
         <WinThemesStrip themes={cockpit?.winThemes ?? []} />
