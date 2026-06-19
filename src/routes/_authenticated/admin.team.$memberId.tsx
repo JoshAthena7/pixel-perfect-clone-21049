@@ -188,7 +188,9 @@ function MemberProfilePage() {
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold truncate">{fullName}</h1>
-            <p className="text-sm text-muted-foreground truncate">{member.job_title || "—"}</p>
+            <p className="text-sm text-muted-foreground truncate">
+              {ROLE_OPTIONS.find((r) => r.value === currentRole)?.label ?? "Unassigned"}
+            </p>
             <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1"><Mail className="h-3 w-3" /> {member.email}</span>
               {member.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {member.phone}</span>}
