@@ -10,6 +10,15 @@ const ScoreInput = z.object({
   missionId: z.string().uuid(),
   questionId: z.string().uuid(),
   draftText: z.string().min(20).max(40000),
+  irisChecklist: z
+    .object({
+      items: z
+        .array(z.object({ text: z.string(), critical: z.boolean().optional() }))
+        .max(10)
+        .optional(),
+      planned_indices: z.array(z.number().int()).optional(),
+    })
+    .optional(),
 });
 
 export type ScoreMeResult = {
