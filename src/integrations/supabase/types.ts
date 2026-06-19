@@ -13185,7 +13185,27 @@ export type Database = {
           schedule: string
         }[]
       }
+      iris_pipeline_jobs_admin: {
+        Args: never
+        Returns: {
+          active: boolean
+          command: string
+          jobid: number
+          jobname: string
+          schedule: string
+        }[]
+      }
       iris_pipeline_recent_runs: {
+        Args: { _jobid: number; _limit?: number }
+        Returns: {
+          end_time: string
+          return_message: string
+          runid: number
+          start_time: string
+          status: string
+        }[]
+      }
+      iris_pipeline_recent_runs_admin: {
         Args: { _jobid: number; _limit?: number }
         Returns: {
           end_time: string
