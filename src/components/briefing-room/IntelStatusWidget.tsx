@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { CheckCircle2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useAccess";
+import { MomentumScoreCompact } from "@/components/momentum/MomentumScore";
 
 const GOLD = "#D4AF37";
 
@@ -63,6 +64,10 @@ export function IntelStatusWidget({ missionId }: { missionId: string }) {
         <Pill label="Needs Review" value={counts.needs_review} color={GOLD} />
         <Pill label="Dismissed" value={counts.dismissed} color="rgba(255,255,255,0.35)" />
       </div>
+
+      <MomentumScoreCompact missionId={missionId} />
+
+
 
       {ready ? (
         <div

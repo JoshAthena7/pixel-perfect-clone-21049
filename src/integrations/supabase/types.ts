@@ -6877,6 +6877,50 @@ export type Database = {
           },
         ]
       }
+      mission_momentum_daily: {
+        Row: {
+          activity_score: number | null
+          composite_score: number | null
+          created_at: string
+          id: string
+          mission_id: string
+          oracle_score: number | null
+          pace_score: number | null
+          risk_score: number | null
+          score_date: string
+        }
+        Insert: {
+          activity_score?: number | null
+          composite_score?: number | null
+          created_at?: string
+          id?: string
+          mission_id: string
+          oracle_score?: number | null
+          pace_score?: number | null
+          risk_score?: number | null
+          score_date?: string
+        }
+        Update: {
+          activity_score?: number | null
+          composite_score?: number | null
+          created_at?: string
+          id?: string
+          mission_id?: string
+          oracle_score?: number | null
+          pace_score?: number | null
+          risk_score?: number | null
+          score_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_momentum_daily_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_monitoring_sources: {
         Row: {
           created_at: string
@@ -13121,6 +13165,10 @@ export type Database = {
           p_skills: string[]
         }
         Returns: number
+      }
+      calculate_mission_momentum: {
+        Args: { p_mission_id: string }
+        Returns: Json
       }
       calculate_question_health: {
         Args: { p_question_id: string }
