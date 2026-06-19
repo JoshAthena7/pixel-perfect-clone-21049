@@ -238,7 +238,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             opacity: collapsing ? 0 : labelsIn ? 1 : 0,
             transform: labelsIn && !collapsing ? "translateY(0) scale(1)" : "translateY(8px) scale(0.985)",
             transition: collapsing
-              ? "opacity 1600ms ease-out, transform 1600ms ease-out"
+              ? "opacity 2800ms ease-out, transform 2800ms ease-out"
               : `opacity ${LABEL_FADE_MS}ms ease-out, transform ${LABEL_FADE_MS}ms ease-out`,
           }}
         />
