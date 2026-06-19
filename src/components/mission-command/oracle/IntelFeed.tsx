@@ -291,7 +291,7 @@ export function IntelFeed({ missionId }: { missionId: string }) {
               border: "0.5px solid rgba(196,154,43,0.3)",
             }}
           >
-            <Plus className="h-3 w-3" /> Add Intel
+            <Plus className="h-3 w-3" /> Add Single Item
           </button>
         </div>
 
