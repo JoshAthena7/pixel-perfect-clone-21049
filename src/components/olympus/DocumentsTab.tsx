@@ -36,7 +36,7 @@ function useDocuments(missionId: string | null) {
       const { data, error } = await supabase
         .from("mission_documents")
         .select(
-          "id,mission_id,title,document_type,file_url,created_at,processing_status,processed_at,items_extracted,processing_error",
+          "id,mission_id,title,document_type,document_purpose,file_url,created_at,processing_status,processed_at,items_extracted,processing_error",
         )
         .eq("mission_id", missionId!)
         .order("created_at", { ascending: false });
