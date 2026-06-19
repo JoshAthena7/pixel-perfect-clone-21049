@@ -10,6 +10,15 @@ const ScoreInput = z.object({
   missionId: z.string().uuid(),
   questionId: z.string().uuid(),
   draftText: z.string().min(20).max(40000),
+  irisChecklist: z
+    .object({
+      items: z
+        .array(z.object({ text: z.string(), critical: z.boolean().optional() }))
+        .max(10)
+        .optional(),
+      planned_indices: z.array(z.number().int()).optional(),
+    })
+    .optional(),
 });
 
 export type ScoreMeResult = {
@@ -190,6 +199,18 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
               (t) => `- ${t.title}${t.what_theyre_buying ? ` — ${t.what_theyre_buying}` : ""}`,
             ),
             "For each win theme, assess: Does this response reinforce it, contradict it, or miss it entirely? Include a Win Theme Alignment section in your feedback.",
+          ]
+        : []),
+      ...(data.irisChecklist?.items?.length
+        ? [
+            "",
+            `IRIS PRE-WRITING CHECKLIST (writer marked ${data.irisChecklist.planned_indices?.length ?? 0} of ${data.irisChecklist.items.length} as planned):`,
+            ...data.irisChecklist.items.map((it, i) => {
+              const planned = data.irisChecklist!.planned_indices?.includes(i) ? "PLANNED" : "NOT PLANNED";
+              return `${i + 1}. ${it.text} — [${planned}]`;
+            }),
+            `Specifically evaluate whether the draft delivers on each checklist item.`,
+            `Add to your authenticity check: "Checklist Coverage: [N] of ${data.irisChecklist.items.length} planned elements found in the draft."`,
           ]
         : []),
       "",

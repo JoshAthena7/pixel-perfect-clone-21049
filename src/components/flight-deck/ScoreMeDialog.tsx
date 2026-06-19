@@ -12,6 +12,7 @@ import {
 import { prefetchScoreMeContext } from "@/lib/score-me-prefetch.functions";
 import { irisScoreGapAnalysis } from "@/lib/iris-score-gap-analysis.functions";
 import { runAssistTool } from "@/lib/atlas-assist.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 type Props = {
   open: boolean;
@@ -53,6 +54,10 @@ export function ScoreMeDialog({
   const [stuckPrompt, setStuckPrompt] = useState("");
   const [stuckLoading, setStuckLoading] = useState(false);
   const [stuckOpener, setStuckOpener] = useState<string | null>(null);
+  const [checklist, setChecklist] = useState<{
+    items: { text: string; critical?: boolean }[];
+    planned: number[];
+  } | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -65,6 +70,7 @@ export function ScoreMeDialog({
       setStuckPrompt("");
       setStuckLoading(false);
       setStuckOpener(null);
+      setChecklist(null);
       return;
     }
     if (!missionId || !questionId) return;
@@ -73,6 +79,35 @@ export function ScoreMeDialog({
     prefetch({ data: { missionId, questionId } })
       .then(() => { if (!cancelled) setContextStatus("ready"); })
       .catch(() => { if (!cancelled) setContextStatus("error"); });
+
+    // Load IRIS Score Predictor checklist + writer's planned indices
+    (async () => {
+      try {
+        const [{ data: q }, { data: me }] = await Promise.all([
+          supabase.from("mission_questions").select("iris_brief").eq("id", questionId).maybeSingle(),
+          supabase.auth.getUser(),
+        ]);
+        const briefItems = (q as any)?.iris_brief?.score_predictor?.items;
+        const predictorItems: { text: string; critical?: boolean }[] | null = Array.isArray(briefItems)
+          ? briefItems
+          : null;
+        let planned: number[] = [];
+        if (me?.user) {
+          const { data: progress } = await supabase
+            .from("question_progress")
+            .select("metadata")
+            .eq("question_id", questionId)
+            .eq("assignee_id", me.user.id)
+            .maybeSingle();
+          const arr = (progress as any)?.metadata?.iris_checklist_state?.checked;
+          if (Array.isArray(arr)) planned = arr.filter((n: any) => Number.isInteger(n));
+        }
+        if (!cancelled && predictorItems) {
+          setChecklist({ items: predictorItems, planned });
+        }
+      } catch { /* non-blocking */ }
+    })();
+
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, missionId, questionId]);
@@ -94,7 +129,16 @@ export function ScoreMeDialog({
     }
     setLoading(true);
     try {
-      const r = await run({ data: { missionId, questionId, draftText: draft } });
+      const r = await run({
+        data: {
+          missionId,
+          questionId,
+          draftText: draft,
+          irisChecklist: checklist
+            ? { items: checklist.items, planned_indices: checklist.planned }
+            : undefined,
+        },
+      });
       setResult(r.result);
       // Fire-and-forget: feed gaps into IRIS Memory.
       void gapAnalysis({
@@ -225,6 +269,20 @@ export function ScoreMeDialog({
         </div>
 
         <div className="px-5 py-4 space-y-3 max-h-[75vh] overflow-y-auto">
+          {checklist && !result && (
+            <div
+              className="rounded-md px-3 py-2"
+              style={{
+                background: "rgba(196,154,43,0.06)",
+                border: "1px solid rgba(196,154,43,0.25)",
+                fontSize: 11,
+                color: "rgba(255,255,255,0.75)",
+              }}
+            >
+              <span style={{ color: GOLD, fontWeight: 600 }}>You planned for {checklist.planned.length} of {checklist.items.length} IRIS checklist items.</span>{" "}
+              IRIS will check if your draft delivers on them.
+            </div>
+          )}
           {/* IRIS intro */}
           <div
             className="rounded-lg px-3 py-2"

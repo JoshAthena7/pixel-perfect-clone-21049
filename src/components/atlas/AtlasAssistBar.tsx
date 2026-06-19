@@ -13,6 +13,7 @@ import { runAssistTool } from "@/lib/atlas-assist.functions";
 import { generateTacticalSuggestion } from "@/lib/iris-tactical.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { IrisScorePredictor } from "@/components/atlas/IrisScorePredictor";
 
 type Tool = "decode" | "win_angle" | "evidence" | "watch_out";
 const TOOLS: { id: Tool; label: string; icon: React.ReactNode }[] = [
@@ -209,6 +210,12 @@ export function AtlasAssistBar({
           )}
         </div>
       </div>
+
+      <IrisScorePredictor
+        missionId={missionId}
+        questionId={questionId}
+        visible={hasAnyCache || generated}
+      />
     </div>
   );
 }
