@@ -99,6 +99,7 @@ export const getWarRoomData = createServerFn({ method: "POST" })
       : { data: [] as any[] };
 
     const profileById: Record<string, any> = {};
+    const atlasEmails: string[] = [];
     for (const a of atlasRows ?? []) {
       const fullName = [a.first_name, a.last_name].filter(Boolean).join(" ").trim();
       profileById[a.id] = {
@@ -107,22 +108,43 @@ export const getWarRoomData = createServerFn({ method: "POST" })
         email: a.email ?? null,
         avatar_url: a.avatar_url ?? null,
       };
+      if (a.email) atlasEmails.push(a.email);
     }
 
-    // Map: questionId -> latest progress activity per assignee
+    // question_progress.assignee_id references profiles.id (auth user), but
+    // mission_team_members.member_id references atlas_team_members.id. Bridge
+    // them via email so writer activity rolls up to the correct team member.
+    const { data: profileRows } = atlasEmails.length
+      ? await supabaseAdmin.from("profiles").select("id, email").in("email", atlasEmails)
+      : { data: [] as any[] };
+    const atlasIdByProfileId: Record<string, string> = {};
+    const emailToAtlas: Record<string, string> = {};
+    for (const a of atlasRows ?? []) {
+      if (a.email) emailToAtlas[String(a.email).toLowerCase()] = a.id;
+    }
+    for (const p of profileRows ?? []) {
+      const atlasId = emailToAtlas[String(p.email ?? "").toLowerCase()];
+      if (atlasId) atlasIdByProfileId[p.id] = atlasId;
+    }
+    const toAtlasId = (uid: string | null | undefined) =>
+      uid ? (atlasIdByProfileId[uid] ?? uid) : null;
+
+    // Map: questionId -> latest progress activity per assignee (keyed by atlas id)
     const lastByAssignee: Record<string, string> = {};
     const questionsByAssignee: Record<string, Set<string>> = {};
     const progressStatusByAssignee: Record<string, Record<string, string>> = {};
     for (const p of progressRes.data ?? []) {
-      if (!p.assignee_id) continue;
+      const aid = toAtlasId(p.assignee_id);
+      if (!aid) continue;
       const t = p.last_activity_at || p.updated_at;
-      if (!lastByAssignee[p.assignee_id] || (t && t > lastByAssignee[p.assignee_id])) {
-        lastByAssignee[p.assignee_id] = t;
+      if (!lastByAssignee[aid] || (t && t > lastByAssignee[aid])) {
+        lastByAssignee[aid] = t;
       }
-      (questionsByAssignee[p.assignee_id] ??= new Set()).add(p.question_id);
-      (progressStatusByAssignee[p.assignee_id] ??= {})[p.question_id] = p.status ?? "not_started";
+      (questionsByAssignee[aid] ??= new Set()).add(p.question_id);
+      (progressStatusByAssignee[aid] ??= {})[p.question_id] = p.status ?? "not_started";
     }
-    // Also include assignments (writer might not have progress row yet)
+    // Also include assignments (writer might not have progress row yet).
+    // mission_assignments.assigned_writer_id already references atlas_team_members.id.
     for (const a of assignRes.data ?? []) {
       if (!a.assigned_writer_id) continue;
       (questionsByAssignee[a.assigned_writer_id] ??= new Set()).add(a.question_id);
