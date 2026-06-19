@@ -832,11 +832,11 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                     <div style={{ fontSize: 10, fontWeight: 700, color: GOLD, letterSpacing: "0.1em", marginBottom: 4 }}>⚡ IRIS DECODED INTENT</div>
                     <div style={{ fontSize: 12, fontStyle: "italic", color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>{q.iris_decoded_intent}</div>
                   </div>
-                ) : (
+                ) : !q.iris_brief ? (
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontStyle: "italic" }}>
                     IRIS has not decoded the intent yet.
                   </div>
-                )}
+                ) : null}
 
                 {/* Your Place in the Story — narrative brief */}
                 {q.primary_win_theme && (
