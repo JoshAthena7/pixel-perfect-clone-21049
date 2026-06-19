@@ -527,97 +527,9 @@ function relTimeShort(d: string): string {
 }
 
 
-/* ───────────────── 2b. How We Win ───────────────── */
-function HowWeWinCard({ missionId, mission }: { missionId: string; mission?: any }) {
-  const { data: themes = [] } = useQuery({
-    queryKey: ["briefing-win-themes", missionId],
-    queryFn: async () => {
-      // Primary source: curated mission_win_themes table.
-      const { data: curated } = await supabase
-        .from("mission_win_themes")
-        .select("id, title, why_it_matters")
-        .eq("mission_id", missionId)
-        .eq("status", "active")
-        .order("display_order", { ascending: true })
-        .limit(4);
-      if (curated && curated.length > 0) {
-        return curated.map((t: any) => ({ id: t.id, title: t.title, why: t.why_it_matters }));
-      }
-      // Fallback: pull from oracle_engagement_config (where the Setup Wizard stores them).
-      const { data: cfg } = await supabase
-        .from("oracle_engagement_config")
-        .select("win_themes")
-        .eq("mission_id", missionId)
-        .maybeSingle();
-      const items = Array.isArray((cfg as any)?.win_themes) ? ((cfg as any).win_themes as any[]) : [];
-      return items.slice(0, 4).map((it: any, i: number) => {
-        const raw = String(it?.text ?? "").trim();
-        const firstBreak = raw.search(/[\n–—-]/);
-        const title = (firstBreak > 0 ? raw.slice(0, firstBreak) : raw).trim().slice(0, 80) || `Theme ${i + 1}`;
-        const why = firstBreak > 0 ? raw.slice(firstBreak + 1).trim() : "";
-        return { id: it?.id ?? `wt-${i}`, title, why };
-      });
-    },
-  });
+// Win themes are rendered once by OracleCanvas at the top of the briefing.
+// The legacy condensed "How We Win" card was removed to avoid duplication.
 
-  const tints = [
-    { bg: "rgba(91,155,213,0.15)", border: "rgba(91,155,213,0.35)", color: "#5b9bd5", icon: ShieldCheck },
-    { bg: "rgba(45,212,170,0.15)", border: "rgba(45,212,170,0.35)", color: "#2dd4aa", icon: Sparkles },
-    { bg: "rgba(212,175,55,0.18)", border: "rgba(212,175,55,0.4)", color: GOLD, icon: Trophy },
-    { bg: "rgba(244,114,114,0.15)", border: "rgba(244,114,114,0.35)", color: "#f47272", icon: Heart },
-  ];
-
-  return (
-    <section style={glass}>
-      <div className="flex items-center gap-2 mb-5" style={cardLabel}>
-        <Trophy size={14} /> How We Win
-      </div>
-      {themes.length === 0 ? (
-        (mission?.how_we_win ?? "").trim() ? (
-          <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-            {mission.how_we_win}
-          </div>
-        ) : (
-          <EmptyState>Add win themes in the Setup Wizard.</EmptyState>
-        )
-      ) : (
-        <div className="grid grid-cols-2 gap-3">
-          {themes.map((t: any, i: number) => {
-            const tint = tints[i % tints.length];
-            const Icon = tint.icon;
-            return (
-              <div
-                key={t.id}
-                className="p-3"
-                style={{
-                  background: tint.bg,
-                  border: `1px solid ${tint.border}`,
-                  borderRadius: 12,
-                }}
-              >
-                <Icon size={16} style={{ color: tint.color }} />
-                <div
-                  className="mt-2 font-bold uppercase"
-                  style={{ fontSize: 11, letterSpacing: "0.06em", color: TEXT, lineHeight: 1.3 }}
-                >
-                  {t.title}
-                </div>
-                {t.why && (
-                  <div
-                    className="mt-1.5"
-                    style={{ fontSize: 11.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.4 }}
-                  >
-                    {truncate(t.why, 120)}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </section>
-  );
-}
 
 /* ───────────────── 3. Mission Journey ───────────────── */
 const DEFAULT_STAGES = ["Kickoff", "Strategy", "Team", "Writing", "Pink Team", "Red Team", "Submission"];
