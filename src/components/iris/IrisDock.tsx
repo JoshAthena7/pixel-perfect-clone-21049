@@ -58,6 +58,8 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
   const navigate = useNavigate();
   const iris = useIris();
   const [open, setOpen] = useState(false);
+  const boltRef = useIrisBoltRef<HTMLSpanElement>();
+
   const [minimized, setMinimized] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
