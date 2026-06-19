@@ -38,11 +38,14 @@ export const Route = createFileRoute("/_authenticated")({
     // Three-state gate: anyone not ACTIVE (onboarded) and not a platform admin
     // is sent to /welcome to finish onboarding. Platform admins bypass so they
     // can never lock themselves out of Olympus.
+    // Canonical admin check: user_roles via has_role semantics. The
+    // profiles.is_platform_admin column is deprecated — kept in the schema
+    // for back-compat but no longer read in active code.
     const [profRes, roleRes] = await Promise.all([
       withTimeout(
         supabase
           .from("profiles")
-          .select("has_onboarded,is_platform_admin")
+          .select("has_onboarded")
           .eq("id", user.id)
           .maybeSingle(),
         4000,
@@ -63,9 +66,9 @@ export const Route = createFileRoute("/_authenticated")({
     // /welcome based on missing data. The next navigation will re-check.
     const profTimedOut = profRes === (TIMEOUT as never);
     const roleTimedOut = roleRes === (TIMEOUT as never);
-    const prof = profTimedOut ? null : (profRes as { data: { has_onboarded?: boolean; is_platform_admin?: boolean } | null }).data;
+    const prof = profTimedOut ? null : (profRes as { data: { has_onboarded?: boolean } | null }).data;
     const roleRow = roleTimedOut ? null : (roleRes as { data: { role: string } | null }).data;
-    const isAdmin = prof?.is_platform_admin === true || !!roleRow;
+    const isAdmin = !!roleRow;
     const onboarded = prof?.has_onboarded === true;
     const path = location.pathname;
     const onWelcome = path === "/welcome" || path.startsWith("/welcome/");
