@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { CheckCircle2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsAdmin } from "@/hooks/useAccess";
 
 const GOLD = "#D4AF37";
 
