@@ -194,6 +194,72 @@ function SourceCard({ source, accent }: { source: any; accent: string }) {
   );
 }
 
+function tierColor(tier: string) {
+  if (tier === "platform") return "#3b82f6";
+  if (tier === "state") return GOLD;
+  return "#a855f7";
+}
+
+function statusDot(status: string) {
+  if (status === "active") return "#22c55e";
+  if (status === "paused") return "#f59e0b";
+  return "#ef4444";
+}
+
+function relTime(iso: string | null | undefined) {
+  if (!iso) return "never";
+  const t = new Date(iso).getTime();
+  const diff = Date.now() - t;
+  const mins = Math.round(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.round(hrs / 24);
+  return `${days}d ago`;
+}
+
+function OracleSourceCard({ source }: { source: any }) {
+  const tColor = tierColor(source.tier);
+  const sColor = statusDot(source.status);
+  return (
+    <div className="rounded-lg p-3" style={{ background: "rgba(5,13,24,0.5)", border: `1px solid ${tColor}33`, borderLeftWidth: 3 }}>
+      <div className="flex justify-between items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="text-sm text-white font-medium flex items-center gap-2">
+            <span className="truncate">{source.source_name}</span>
+            {source.source_url && (
+              <a href={source.source_url} target="_blank" rel="noreferrer" className="text-white/40 hover:text-white/70 shrink-0">
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+          </div>
+          {source.description && <div className="text-xs text-white/55 mt-1 line-clamp-2">{source.description}</div>}
+          <div className="flex items-center gap-2 mt-2 flex-wrap text-[10px] text-white/45">
+            <span
+              style={{
+                padding: "1px 6px", borderRadius: 3,
+                background: `${tColor}22`, color: tColor, border: `1px solid ${tColor}55`,
+                textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600,
+              }}
+            >
+              {source.tier}{source.tier === "state" && source.state_code ? ` · ${source.state_code}` : ""}
+            </span>
+            <span className="flex items-center gap-1">
+              <span style={{ width: 6, height: 6, borderRadius: 999, background: sColor, display: "inline-block" }} />
+              {source.status}
+            </span>
+            <span>Checked {relTime(source.last_checked_at)}</span>
+            {typeof source.signal_count === "number" && (
+              <span>{source.signal_count} signal{source.signal_count === 1 ? "" : "s"}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (
     <div className="rounded-lg py-12 text-center" style={{ background: "rgba(5,13,24,0.4)", border: "1px dashed rgba(255,255,255,0.1)" }}>
