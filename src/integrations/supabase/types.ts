@@ -6030,11 +6030,16 @@ export type Database = {
           id: string
           is_amendment: boolean
           is_style_guide: boolean
+          items_extracted: number
           metadata: Json
           mission_id: string
+          processed_at: string | null
+          processing_error: string | null
+          processing_status: string
           section_tags: string[]
           source_url: string | null
           title: string | null
+          toc_data: Json | null
           updated_at: string
           uploaded_by: string | null
         }
@@ -6048,11 +6053,16 @@ export type Database = {
           id?: string
           is_amendment?: boolean
           is_style_guide?: boolean
+          items_extracted?: number
           metadata?: Json
           mission_id: string
+          processed_at?: string | null
+          processing_error?: string | null
+          processing_status?: string
           section_tags?: string[]
           source_url?: string | null
           title?: string | null
+          toc_data?: Json | null
           updated_at?: string
           uploaded_by?: string | null
         }
@@ -6066,11 +6076,16 @@ export type Database = {
           id?: string
           is_amendment?: boolean
           is_style_guide?: boolean
+          items_extracted?: number
           metadata?: Json
           mission_id?: string
+          processed_at?: string | null
+          processing_error?: string | null
+          processing_status?: string
           section_tags?: string[]
           source_url?: string | null
           title?: string | null
+          toc_data?: Json | null
           updated_at?: string
           uploaded_by?: string | null
         }
