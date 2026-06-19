@@ -6038,6 +6038,7 @@ export type Database = {
           processing_status: string
           section_tags: string[]
           source_url: string | null
+          style_guide_text: string | null
           title: string | null
           toc_data: Json | null
           updated_at: string
@@ -6061,6 +6062,7 @@ export type Database = {
           processing_status?: string
           section_tags?: string[]
           source_url?: string | null
+          style_guide_text?: string | null
           title?: string | null
           toc_data?: Json | null
           updated_at?: string
@@ -6084,6 +6086,7 @@ export type Database = {
           processing_status?: string
           section_tags?: string[]
           source_url?: string | null
+          style_guide_text?: string | null
           title?: string | null
           toc_data?: Json | null
           updated_at?: string
@@ -8519,6 +8522,7 @@ export type Database = {
           known_competitors: string[] | null
           leadership_broadcast: string | null
           leadership_broadcast_author: string | null
+          metadata: Json
           mission_journey: string | null
           monitoring_schedule: string
           name: string
@@ -8577,6 +8581,7 @@ export type Database = {
           known_competitors?: string[] | null
           leadership_broadcast?: string | null
           leadership_broadcast_author?: string | null
+          metadata?: Json
           mission_journey?: string | null
           monitoring_schedule?: string
           name: string
@@ -8635,6 +8640,7 @@ export type Database = {
           known_competitors?: string[] | null
           leadership_broadcast?: string | null
           leadership_broadcast_author?: string | null
+          metadata?: Json
           mission_journey?: string | null
           monitoring_schedule?: string
           name?: string

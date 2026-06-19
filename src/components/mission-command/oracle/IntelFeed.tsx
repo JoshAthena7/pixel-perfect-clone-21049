@@ -205,6 +205,7 @@ export function IntelFeed({ missionId }: { missionId: string }) {
       ingestion_source: s.ingestion_source,
       status: s.status,
       topic_tags: s.topic_tags ?? [],
+      section_reference: (s.metadata as any)?.section_reference ?? null,
       created_at: s.created_at,
       __oracle: true,
       __tier: s.tier,
@@ -483,6 +484,19 @@ function EventCard({ event }: { event: any }) {
         </div>
         <div className="min-w-0 flex-1" style={{ paddingRight: isOracle ? 64 : 0 }}>
           <div className="text-sm text-white font-medium">{event.title}</div>
+          {isOracle && event.section_reference && (
+            <div
+              className="mt-0.5"
+              style={{
+                fontSize: 9,
+                fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                color: GOLD,
+                opacity: 0.85,
+              }}
+            >
+              § {String(event.section_reference)}
+            </div>
+          )}
           <div className="text-xs text-white/60 mt-1 line-clamp-3">{event.content}</div>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {categoryLabel && (

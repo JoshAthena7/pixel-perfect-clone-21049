@@ -355,7 +355,7 @@ export function Step1Fuel({
     // populated alongside the RFP question extraction.
     const { data: docs } = await supabase
       .from("mission_documents")
-      .select("id, title, file_url, document_type, processing_status")
+      .select("id, title, file_url, document_type, document_purpose, processing_status")
       .eq("mission_id", missionId);
     if (!docs?.length) return 0;
     const targets = docs.filter(
@@ -382,6 +382,7 @@ export function Step1Fuel({
             extracted_text: text,
             document_title: doc.title,
             document_type: doc.document_type ?? "other",
+            content_type_hint: doc.document_purpose ?? null,
             char_count: text.length,
             user_id: user?.id ?? null,
           }),

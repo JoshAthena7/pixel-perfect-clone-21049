@@ -20,6 +20,7 @@ type Doc = {
   mission_id: string;
   title: string;
   document_type: string;
+  document_purpose: string | null;
   file_url: string;
   created_at: string;
   processing_status: string | null;
@@ -36,7 +37,7 @@ function useDocuments(missionId: string | null) {
       const { data, error } = await supabase
         .from("mission_documents")
         .select(
-          "id,mission_id,title,document_type,file_url,created_at,processing_status,processed_at,items_extracted,processing_error",
+          "id,mission_id,title,document_type,document_purpose,file_url,created_at,processing_status,processed_at,items_extracted,processing_error",
         )
         .eq("mission_id", missionId!)
         .order("created_at", { ascending: false });
@@ -151,6 +152,7 @@ export function DocumentsTab({ missionId }: { missionId: string | null }) {
           extracted_text: text,
           document_title: doc.title,
           document_type: doc.document_type,
+          content_type_hint: (doc as { document_purpose?: string | null }).document_purpose ?? null,
           char_count: text.length,
           user_id: user?.id ?? null,
         }),

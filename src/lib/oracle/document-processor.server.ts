@@ -1,14 +1,21 @@
 /**
  * ORACLE Document Processor — server-only logic.
  *
- * Receives plain text (already extracted client-side) and:
- *   1. Chunks based on document type / size
- *   2. Calls Lovable AI Gateway per chunk to extract intelligence items
- *   3. Deduplicates by title similarity
- *   4. Inserts into oracle_signals (tier='mission', status='needs_review')
- *   5. Updates mission_documents.processing_status throughout
- *   6. For primary_rfp: also extracts TOC into mission_documents.toc_data
- *   7. Writes a mission_assist_events row on success
+ * Document-type-aware extraction:
+ *   - Selects an ExtractionTemplate based on document_type + content_type_hint
+ *   - RFPs / State Plans chunk on section boundaries (keeps requirements intact)
+ *   - Writing guides are stored as mission configuration (no oracle_signals)
+ *   - All other types use a standard chunker with type-specific prompts
+ *
+ * Pipeline:
+ *   1. Pick template
+ *   2. Chunk text (section-aware when requested)
+ *   3. Call Lovable AI Gateway per chunk
+ *   4. Deduplicate by title similarity
+ *   5. Insert into oracle_signals (tier='mission', status='needs_review')
+ *   6. Update mission_documents.processing_status throughout
+ *   7. For primary_rfp: also extract TOC into mission_documents.toc_data
+ *   8. Write a mission_assist_events row on success
  */
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -16,11 +23,8 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3-flash-preview";
 
-const RFP_CHUNK_SIZE = 4_000;
-const RFP_CHUNK_OVERLAP = 500;
-const SUPPORT_CHUNK_SIZE = 5_000;
-const SUPPORT_CHUNK_OVERLAP = 500;
-const STANDARD_LIMIT = 20_000;
+const STANDARD_CHUNK_SIZE = 4_000;
+const STANDARD_CHUNK_OVERLAP = 500;
 const MAX_CHARS = 100_000;
 const MAX_CHUNKS = 20;
 
@@ -51,12 +55,28 @@ type ExtractedItem = {
   section_reference?: string | null;
 };
 
+type ChunkStrategy = "section_boundary" | "standard";
+
+type ExtractionTemplate = {
+  id: string;
+  systemPrompt: string;
+  chunkStrategy: ChunkStrategy;
+  defaultCategory: string;
+  defaultSubcategory: string | null;
+  defaultUrgency: string;
+  defaultAuthority: string;
+  relevanceFloor: number;
+  // null = treat as oracle_signal extraction. "style_guide" = special-case storage.
+  specialHandling?: "style_guide" | null;
+};
+
 export type ProcessInput = {
   documentId: string;
   missionId: string;
   extractedText: string;
   documentTitle: string;
   documentType: string;
+  contentTypeHint?: string | null;
   userId: string | null;
 };
 
@@ -64,14 +84,180 @@ export type ProcessResult = {
   items_extracted: number;
   chunks_processed: number;
   toc_entries: number;
+  template_id: string;
+  note?: string;
 };
+
+// ============================================================
+// Template selector
+// ============================================================
+
+export function selectExtractionTemplate(
+  documentType: string,
+  contentTypeHint: string | null | undefined,
+  documentTitle?: string,
+): ExtractionTemplate {
+  const hint = normalizeHint(contentTypeHint);
+  const titleLower = (documentTitle ?? "").toLowerCase();
+
+  // Style guide always wins — never produces oracle_signals.
+  if (hint === "writing_standards" || /style\s*guide|writing\s*(guide|standard)|voice\s*and\s*tone/.test(titleLower)) {
+    return TEMPLATES.style_guide;
+  }
+
+  // Primary RFP always uses Template 1 regardless of hint.
+  if (documentType === "primary_rfp") return TEMPLATES.primary_rfp;
+
+  // State Plan: Procurement hint + title mentions "state plan".
+  if (hint === "procurement" && /state\s*plan/.test(titleLower)) {
+    return TEMPLATES.state_plan;
+  }
+
+  if (hint === "procurement") return TEMPLATES.primary_rfp;
+  if (hint === "competitive_intel") return TEMPLATES.competitive_intel;
+  if (hint === "client_strategy") return TEMPLATES.client_strategy;
+  if (hint === "reference") return TEMPLATES.reference;
+
+  // No hint → fall back on document_type.
+  if (documentType === "state_plan") return TEMPLATES.state_plan;
+  return TEMPLATES.reference;
+}
+
+// Accepts both the wizard pill labels ("Procurement", "Comp Intel") and the
+// stored document_purpose enum values ("procurement", "competitive_intel"…).
+function normalizeHint(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const s = raw.trim().toLowerCase();
+  if (s === "procurement") return "procurement";
+  if (s === "comp intel" || s === "competitive_intel" || s === "competitive intel") return "competitive_intel";
+  if (s === "writing guide" || s === "writing_standards" || s === "style guide") return "writing_standards";
+  if (s === "client strategy" || s === "client_strategy") return "client_strategy";
+  if (s === "reference") return "reference";
+  return null;
+}
+
+const TEMPLATES: Record<string, ExtractionTemplate> = {
+  primary_rfp: {
+    id: "primary_rfp",
+    chunkStrategy: "section_boundary",
+    relevanceFloor: 75,
+    defaultCategory: "regulatory_state",
+    defaultSubcategory: "state_contract_requirement",
+    defaultUrgency: "high",
+    defaultAuthority: "primary",
+    systemPrompt: `You are ORACLE extracting procurement intelligence from a Medicaid managed care RFP.
+This is the primary bid solicitation document. Extract only items that reveal:
+- Scored evaluation criteria (what evaluators will score and how much it's worth)
+- Compliance requirements (shall, must, will be required to — specific obligations)
+- Performance standards and metrics (thresholds, benchmarks, measurement periods)
+- Deliverables and reporting requirements (what must be submitted, when, to whom)
+- Competitive positioning signals (what the state emphasizes, what concerns they signal)
+
+DO NOT extract: administrative submission instructions, font/format requirements,
+boilerplate legal language, standard definitions unless substantively different.
+
+For each item include the section reference if identifiable.
+Return JSON only.`,
+  },
+  state_plan: {
+    id: "state_plan",
+    chunkStrategy: "section_boundary",
+    relevanceFloor: 65,
+    defaultCategory: "regulatory_state",
+    defaultSubcategory: "state_plan",
+    defaultUrgency: "normal",
+    defaultAuthority: "primary",
+    systemPrompt: `You are ORACLE extracting regulatory intelligence from a Medicaid State Plan.
+Extract only items relevant to behavioral health, children's services, managed care,
+or system administration. Focus on:
+- Service definitions for covered behavioral health and children's services
+- Eligibility criteria for relevant populations
+- Federal authority citations (42 CFR references, waiver authorities)
+- Any provisions updated or amended in the last 24 months (flag as higher urgency)
+- Compliance obligations imposed on managed care organizations
+
+Skip: financial management boilerplate, standard assurances language,
+demographic tables unless they contain CSOC-specific data.
+Return JSON only.`,
+  },
+  competitive_intel: {
+    id: "competitive_intel",
+    chunkStrategy: "standard",
+    relevanceFloor: 60,
+    defaultCategory: "competitive_landscape",
+    defaultSubcategory: "prior_award_pattern",
+    defaultUrgency: "normal",
+    defaultAuthority: "secondary",
+    systemPrompt: `You are ORACLE extracting competitive intelligence from a comparison or crosswalk document.
+This document compares old and new requirements or analyzes competitor positioning.
+Extract:
+- Changes between old and new versions — each change as a discrete item
+- New requirements that didn't exist before (urgency = high)
+- Requirements relaxed or removed (competitive opportunity)
+- Competitor strengths or weaknesses implied by the changes
+- Strategic implications for positioning
+
+Return JSON only.`,
+  },
+  client_strategy: {
+    id: "client_strategy",
+    chunkStrategy: "standard",
+    relevanceFloor: 70,
+    defaultCategory: "client_content_map",
+    defaultSubcategory: "win_theme",
+    defaultUrgency: "normal",
+    defaultAuthority: "secondary",
+    systemPrompt: `You are ORACLE extracting client intelligence from a prior proposal or strategy document.
+This is internal Athena or client content. Extract:
+- Win themes and positioning arguments made
+- Specific proof points and metrics cited (data that supports claims)
+- Differentiators — what made this proposal distinctive
+- Claims that need updating (flag if data appears more than 2 years old)
+- Content gaps — important topics that were underdeveloped
+
+Return JSON only. Mark items with stale data as urgency = high.`,
+  },
+  reference: {
+    id: "reference",
+    chunkStrategy: "standard",
+    relevanceFloor: 50,
+    defaultCategory: "field_intelligence",
+    defaultSubcategory: "stakeholder_communication",
+    defaultUrgency: "low",
+    defaultAuthority: "tertiary",
+    systemPrompt: `You are ORACLE extracting background intelligence from a reference document.
+Extract any items that provide useful context for a Medicaid managed care RFP response.
+Apply conservative relevance scoring — only extract genuinely useful items.
+Return JSON only.`,
+  },
+  style_guide: {
+    id: "style_guide",
+    chunkStrategy: "standard",
+    relevanceFloor: 100, // unused
+    defaultCategory: "client_content_map",
+    defaultSubcategory: null,
+    defaultUrgency: "normal",
+    defaultAuthority: "secondary",
+    specialHandling: "style_guide",
+    systemPrompt: "", // never called
+  },
+};
+
+// ============================================================
+// Main entry
+// ============================================================
 
 export async function processDocument(input: ProcessInput): Promise<ProcessResult> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
 
   const client = supabaseAdmin;
-  const isRfp = input.documentType === "primary_rfp";
+  const template = selectExtractionTemplate(
+    input.documentType,
+    input.contentTypeHint,
+    input.documentTitle,
+  );
+
   const fullText = input.extractedText.slice(0, MAX_CHARS);
   if (input.extractedText.length > MAX_CHARS) {
     console.warn(
@@ -84,86 +270,113 @@ export async function processDocument(input: ProcessInput): Promise<ProcessResul
     processing_error: null,
   });
 
+  // ---------- Special case: style guide ----------
+  if (template.specialHandling === "style_guide") {
+    try {
+      await updateStatus(client, input.documentId, {
+        style_guide_text: fullText,
+        is_style_guide: true,
+        processing_status: "processed",
+        processed_at: new Date().toISOString(),
+        items_extracted: 0,
+        processing_error: null,
+      });
+
+      // Mirror onto the mission so IRIS prompt-builders can read it cheaply.
+      const { data: mission } = await client
+        .from("missions")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .select("metadata" as any)
+        .eq("id", input.missionId)
+        .maybeSingle();
+      const existingMeta = ((mission as { metadata?: Record<string, unknown> } | null)?.metadata ?? {}) as Record<
+        string,
+        unknown
+      >;
+      await client
+        .from("missions")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update({ metadata: { ...existingMeta, style_guide: fullText } } as any)
+        .eq("id", input.missionId);
+
+      if (input.userId) {
+        await client.from("mission_assist_events").insert({
+          mission_id: input.missionId,
+          user_id: input.userId,
+          event_type: "oracle_intel_added",
+          metadata: {
+            summary: `Stored "${input.documentTitle}" as mission style guide`,
+            document_id: input.documentId,
+            document_title: input.documentTitle,
+            items_extracted: 0,
+            ingestion_source: "style_guide_config",
+          },
+        });
+      }
+
+      return {
+        items_extracted: 0,
+        chunks_processed: 0,
+        toc_entries: 0,
+        template_id: template.id,
+        note: "Style guide stored as mission configuration. Will condition all IRIS content generation for this mission.",
+      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      await updateStatus(client, input.documentId, {
+        processing_status: "error",
+        processing_error: msg.slice(0, 1000),
+      });
+      throw err;
+    }
+  }
+
+  // ---------- Standard signal extraction ----------
   const allItems: ExtractedItem[] = [];
   let chunksProcessed = 0;
   let tocEntries: Array<{ section_number: string; section_title: string; page_number: number | null }> = [];
+  const isRfp = template.id === "primary_rfp";
 
   try {
+    const chunks = chunkForTemplate(fullText, template.chunkStrategy);
+    const totalChunks = Math.min(chunks.length, MAX_CHUNKS);
+
+    for (let i = 0; i < totalChunks; i++) {
+      await updateStatus(client, input.documentId, {
+        processing_status: `processing_chunk_${i + 1}_of_${totalChunks}`,
+      });
+      const items = await extractFromChunk(apiKey, {
+        chunk: chunks[i],
+        chunkIndex: i + 1,
+        totalChunks,
+        documentTitle: input.documentTitle,
+        template,
+      });
+      allItems.push(...items);
+      chunksProcessed++;
+    }
+
     if (isRfp) {
-      const chunks = chunkText(fullText, RFP_CHUNK_SIZE, RFP_CHUNK_OVERLAP);
-      const totalChunks = Math.min(chunks.length, MAX_CHUNKS);
-      for (let i = 0; i < totalChunks; i++) {
-        await updateStatus(client, input.documentId, {
-          processing_status: `processing_chunk_${i + 1}_of_${totalChunks}`,
-        });
-        const items = await extractFromChunk(apiKey, {
-          text: chunks[i],
-          chunkIndex: i + 1,
-          totalChunks,
-          documentTitle: input.documentTitle,
-          documentType: "primary_rfp",
-        });
-        allItems.push(...items);
-        chunksProcessed++;
-      }
       try {
         tocEntries = await extractToc(apiKey, fullText.slice(0, 3000));
       } catch (err) {
         console.warn("[oracle-document-processor] TOC extraction failed:", err);
       }
-    } else if (fullText.length < STANDARD_LIMIT) {
-      const chunks = chunkText(fullText, 6_000, 300);
-      const totalChunks = Math.min(chunks.length, 2);
-      for (let i = 0; i < totalChunks; i++) {
-        await updateStatus(client, input.documentId, {
-          processing_status: `processing_chunk_${i + 1}_of_${totalChunks}`,
-        });
-        const items = await extractFromChunk(apiKey, {
-          text: chunks[i],
-          chunkIndex: i + 1,
-          totalChunks,
-          documentTitle: input.documentTitle,
-          documentType: input.documentType,
-        });
-        allItems.push(...items);
-        chunksProcessed++;
-      }
-    } else {
-      const chunks = chunkText(fullText, SUPPORT_CHUNK_SIZE, SUPPORT_CHUNK_OVERLAP);
-      const totalChunks = Math.min(chunks.length, MAX_CHUNKS);
-      for (let i = 0; i < totalChunks; i++) {
-        await updateStatus(client, input.documentId, {
-          processing_status: `processing_chunk_${i + 1}_of_${totalChunks}`,
-        });
-        const items = await extractFromChunk(apiKey, {
-          text: chunks[i],
-          chunkIndex: i + 1,
-          totalChunks,
-          documentTitle: input.documentTitle,
-          documentType: input.documentType,
-        });
-        allItems.push(...items);
-        chunksProcessed++;
-      }
     }
 
-    const titleLower = input.documentTitle.toLowerCase();
-    const isKickoffOrStyle =
-      titleLower.includes("kickoff") || titleLower.includes("knowledge transfer") || titleLower.includes("style guide");
-    const isHistoricalRfp = titleLower.includes("2017") || titleLower.includes("crosswalk");
-
+    // Apply template defaults + relevance floor
+    const filtered: ExtractedItem[] = [];
     for (const it of allItems) {
-      if (isKickoffOrStyle && !isRfp) {
-        it.category = it.category || "client_content_map";
-        if (it.urgency !== "immediate" && it.urgency !== "high") it.urgency = "high";
-        it.relevance_score = Math.max(it.relevance_score, 65);
-      }
-      if (isHistoricalRfp && !isRfp) {
-        if (!VALID_CATEGORIES.has(it.category)) it.category = "competitive_landscape";
-      }
+      const rel = clamp(it.relevance_score, 0, 100);
+      if (rel < template.relevanceFloor) continue;
+      if (!VALID_CATEGORIES.has(it.category)) it.category = template.defaultCategory;
+      if (!VALID_URGENCY.has(it.urgency)) it.urgency = template.defaultUrgency;
+      if (!VALID_AUTHORITY.has(it.authority)) it.authority = template.defaultAuthority;
+      it.relevance_score = rel;
+      filtered.push(it);
     }
 
-    const deduped = dedupeByTitle(allItems);
+    const deduped = dedupeByTitle(filtered);
 
     if (deduped.length > 0) {
       const rows = deduped.map((it) => ({
@@ -174,11 +387,11 @@ export async function processDocument(input: ProcessInput): Promise<ProcessResul
         why_it_matters: it.why_it_matters,
         recommended_action: it.recommended_action ?? null,
         summary: it.what_happened.slice(0, 280),
-        category: VALID_CATEGORIES.has(it.category) ? it.category : "field_intelligence",
-        authority: VALID_AUTHORITY.has(it.authority) ? it.authority : isRfp ? "primary" : "secondary",
-        urgency: VALID_URGENCY.has(it.urgency) ? it.urgency : "normal",
-        relevance_score: clamp(it.relevance_score, 0, 100),
-        oracle_score: clamp(it.relevance_score, 0, 100),
+        category: it.category,
+        subcategory: template.defaultSubcategory,
+        authority: it.authority,
+        urgency: it.urgency,
+        relevance_score: it.relevance_score,
         topic_tags: Array.isArray(it.topic_tags) ? it.topic_tags.slice(0, 12) : [],
         tier: "mission",
         scope_tier: "mission",
@@ -190,6 +403,8 @@ export async function processDocument(input: ProcessInput): Promise<ProcessResul
           document_id: input.documentId,
           document_title: input.documentTitle,
           document_type: input.documentType,
+          content_type_hint: input.contentTypeHint ?? null,
+          template_id: template.id,
           section_reference: it.section_reference ?? null,
         },
       }));
@@ -219,11 +434,12 @@ export async function processDocument(input: ProcessInput): Promise<ProcessResul
         user_id: input.userId,
         event_type: "oracle_intel_added",
         metadata: {
-          summary: `Processed "${input.documentTitle}" — extracted ${deduped.length} intel items`,
+          summary: `Processed "${input.documentTitle}" (${template.id}) — extracted ${deduped.length} intel items`,
           document_id: input.documentId,
           document_title: input.documentTitle,
           items_extracted: deduped.length,
           ingestion_source: "document_processing",
+          template_id: template.id,
         },
       });
     }
@@ -232,6 +448,7 @@ export async function processDocument(input: ProcessInput): Promise<ProcessResul
       items_extracted: deduped.length,
       chunks_processed: chunksProcessed,
       toc_entries: tocEntries.length,
+      template_id: template.id,
     };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -244,15 +461,71 @@ export async function processDocument(input: ProcessInput): Promise<ProcessResul
 }
 
 // ============================================================
-// Helpers
+// Chunking
 // ============================================================
 
-function clamp(n: number, min: number, max: number): number {
-  if (typeof n !== "number" || Number.isNaN(n)) return min;
-  return Math.max(min, Math.min(max, Math.round(n)));
+function chunkForTemplate(text: string, strategy: ChunkStrategy): Array<{ text: string; sectionHeader: string | null }> {
+  if (strategy === "section_boundary") {
+    const sectioned = chunkBySection(text);
+    if (sectioned.length > 0) return sectioned;
+    // Fall back to standard if no section headers found.
+  }
+  return chunkStandard(text, STANDARD_CHUNK_SIZE, STANDARD_CHUNK_OVERLAP).map((t) => ({
+    text: t,
+    sectionHeader: null,
+  }));
 }
 
-function chunkText(text: string, size: number, overlap: number): string[] {
+// Detect lines that look like section headers:
+//   "4.16.5 Quality Management"
+//   "Section 4 — Scope of Work"
+const SECTION_HEADER_RE = /^(?:(\d+(?:\.\d+)*)\s+[A-Z][^\n]{0,200}|Section\s+\d+[^\n]{0,200})$/m;
+
+function chunkBySection(text: string): Array<{ text: string; sectionHeader: string | null }> {
+  const lines = text.split(/\r?\n/);
+  const out: Array<{ text: string; sectionHeader: string | null }> = [];
+  let current: string[] = [];
+  let header: string | null = null;
+
+  const flush = () => {
+    const body = current.join("\n").trim();
+    if (body.length > 0) out.push({ text: body, sectionHeader: header });
+  };
+
+  for (const line of lines) {
+    if (SECTION_HEADER_RE.test(line.trim())) {
+      flush();
+      current = [line];
+      header = line.trim();
+    } else {
+      current.push(line);
+    }
+  }
+  flush();
+
+  // If we only got one massive section (no headers detected), bail.
+  if (out.length <= 1) return [];
+
+  // Re-pack tiny sections so each chunk is at least ~1500 chars; split huge ones.
+  const packed: Array<{ text: string; sectionHeader: string | null }> = [];
+  for (const entry of out) {
+    if (entry.text.length <= STANDARD_CHUNK_SIZE * 1.5) {
+      if (packed.length && packed[packed.length - 1].text.length < 1500) {
+        const prev = packed[packed.length - 1];
+        prev.text = `${prev.text}\n\n${entry.text}`;
+        // keep the earlier header
+      } else {
+        packed.push({ ...entry });
+      }
+    } else {
+      const parts = chunkStandard(entry.text, STANDARD_CHUNK_SIZE, STANDARD_CHUNK_OVERLAP);
+      parts.forEach((p, i) => packed.push({ text: p, sectionHeader: i === 0 ? entry.sectionHeader : entry.sectionHeader }));
+    }
+  }
+  return packed;
+}
+
+function chunkStandard(text: string, size: number, overlap: number): string[] {
   if (text.length <= size) return [text];
   const chunks: string[] = [];
   let start = 0;
@@ -263,6 +536,15 @@ function chunkText(text: string, size: number, overlap: number): string[] {
     start = end - overlap;
   }
   return chunks;
+}
+
+// ============================================================
+// Helpers
+// ============================================================
+
+function clamp(n: number, min: number, max: number): number {
+  if (typeof n !== "number" || Number.isNaN(n)) return min;
+  return Math.max(min, Math.min(max, Math.round(n)));
 }
 
 function dedupeByTitle(items: ExtractedItem[]): ExtractedItem[] {
@@ -356,62 +638,42 @@ function parseJsonArray(raw: string): unknown[] {
 async function extractFromChunk(
   apiKey: string,
   opts: {
-    text: string;
+    chunk: { text: string; sectionHeader: string | null };
     chunkIndex: number;
     totalChunks: number;
     documentTitle: string;
-    documentType: string;
+    template: ExtractionTemplate;
   },
 ): Promise<ExtractedItem[]> {
-  const isRfp = opts.documentType === "primary_rfp";
+  const { template, chunk } = opts;
+  const sectionLine = chunk.sectionHeader ? `SECTION CONTEXT: ${chunk.sectionHeader}\n\n` : "";
 
-  const system = isRfp
-    ? "You are ORACLE extracting procurement intelligence from an RFP document. Extract only items that reveal evaluator priorities, scoring criteria, compliance requirements, or competitive positioning opportunities. Ignore boilerplate, administrative instructions, and definitions. Return ONLY valid JSON — no markdown, no prose."
-    : "You are ORACLE extracting intelligence from a Medicaid managed care RFP support document. Extract discrete, actionable intelligence items. Return ONLY valid JSON — no markdown, no prose.";
+  const user = `DOCUMENT: ${opts.documentTitle}
+TEMPLATE: ${template.id}
+Chunk ${opts.chunkIndex} of ${opts.totalChunks}
 
-  const user = isRfp
-    ? `RFP: ${opts.documentTitle}
-Chunk ${opts.chunkIndex} of ${opts.totalChunks}:
+${sectionLine}${chunk.text}
 
-${opts.text}
-
-Extract 0-5 intelligence items. Only extract if the chunk contains genuine evaluator intelligence. Return JSON in this shape: { "items": [ ... ] } where each item is:
-{
-  "title": "max 80 chars",
-  "what_happened": "what this RFP provision says",
-  "why_it_matters": "what evaluators are testing with this requirement",
-  "recommended_action": "what writers must address",
-  "category": "regulatory_state|quality_performance|field_intelligence|competitive_landscape",
-  "authority": "primary",
-  "urgency": "high|normal",
-  "relevance_score": 70-100,
-  "topic_tags": [],
-  "section_reference": "section number or page if identifiable, or null"
-}
-Return { "items": [] } if this chunk has no evaluator intelligence.`
-    : `MISSION: NJ T1932 — CSOC Contracted System Administrator
-DOCUMENT: ${opts.documentTitle}
-DOCUMENT TYPE: ${opts.documentType}
-Chunk ${opts.chunkIndex} of ${opts.totalChunks}:
-
-${opts.text}
-
-Extract 5-15 intelligence items. Each item should be a self-contained piece of intel — a key insight, a requirement, a positioning opportunity, a risk, a proof point. Return JSON in this shape: { "items": [ ... ] } where each item is:
-{
-  "title": "max 80 chars",
-  "what_happened": "core content of this intel item",
-  "why_it_matters": "why this matters for the bid",
-  "recommended_action": "what the team should do (or null)",
-  "category": "regulatory_federal|regulatory_state|quality_performance|health_outcomes_sdoh|policy_innovation|evidence_base|field_intelligence|competitive_landscape|client_content_map",
-  "authority": "primary|secondary|tertiary|field",
-  "urgency": "high|normal|low",
-  "relevance_score": 0-100,
-  "topic_tags": []
-}`;
+Extract 0-12 intelligence items per the system prompt. Return JSON in this shape:
+{ "items": [
+  {
+    "title": "max 80 chars",
+    "what_happened": "core content of this intel item",
+    "why_it_matters": "why this matters for the bid",
+    "recommended_action": "what the team should do (or null)",
+    "category": "regulatory_federal|regulatory_state|quality_performance|health_outcomes_sdoh|policy_innovation|evidence_base|field_intelligence|competitive_landscape|client_content_map",
+    "authority": "primary|secondary|tertiary|field",
+    "urgency": "immediate|high|normal|low",
+    "relevance_score": 0-100,
+    "topic_tags": [],
+    "section_reference": "section number if identifiable, or null"
+  }
+] }
+Return { "items": [] } if this chunk has no genuine intelligence.`;
 
   let raw: string;
   try {
-    raw = await callGateway(apiKey, system, user);
+    raw = await callGateway(apiKey, template.systemPrompt, user);
   } catch (err) {
     console.error("[oracle-document-processor] chunk extraction failed:", err);
     return [];
@@ -425,12 +687,15 @@ Extract 5-15 intelligence items. Each item should be a self-contained piece of i
       what_happened: String(x.what_happened ?? "").trim(),
       why_it_matters: String(x.why_it_matters ?? "").trim(),
       recommended_action: x.recommended_action == null ? null : String(x.recommended_action).trim(),
-      category: String(x.category ?? "field_intelligence"),
-      authority: String(x.authority ?? (isRfp ? "primary" : "secondary")),
-      urgency: String(x.urgency ?? "normal"),
+      category: String(x.category ?? template.defaultCategory),
+      authority: String(x.authority ?? template.defaultAuthority),
+      urgency: String(x.urgency ?? template.defaultUrgency),
       relevance_score: Number(x.relevance_score ?? 60),
       topic_tags: Array.isArray(x.topic_tags) ? (x.topic_tags as unknown[]).map(String) : [],
-      section_reference: x.section_reference == null ? null : String(x.section_reference),
+      section_reference:
+        x.section_reference == null
+          ? chunk.sectionHeader
+          : String(x.section_reference) || chunk.sectionHeader,
     }))
     .filter((it) => it.title.length > 0 && it.what_happened.length > 0);
 }
