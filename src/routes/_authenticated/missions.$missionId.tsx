@@ -1,11 +1,11 @@
-import { createFileRoute, Outlet, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MissionSidebar, MissionBottomTabs } from "@/components/nav/MissionSidebar";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId")({
   loader: async ({ params }) => {
-    const [{ data, error }, { data: progressRows }] = await Promise.all([
+    const [missionRes, progressRes] = await Promise.all([
       supabase
         .from("missions")
         .select("id, status")
@@ -17,10 +17,21 @@ export const Route = createFileRoute("/_authenticated/missions/$missionId")({
         .eq("mission_id", params.missionId)
         .not("wizard_step", "is", null),
     ]);
-    if (error || !data) throw notFound();
+    const { data, error } = missionRes;
+    const progressRows = progressRes.data;
+    // Fail OPEN on transient null/error: a token-refresh race or RLS hiccup
+    // can return `null` for an instant. Throwing notFound here would yank a
+    // signed-in user off /briefing or /flight-deck mid-session. Only treat
+    // an explicit row-missing response as not-found by re-throwing the
+    // original error on subsequent loads.
+    if (error) throw error;
+    if (!data) {
+      return { missionId: params.missionId };
+    }
     // Setup drafts haven't been launched yet — keep the user in the wizard
     // instead of dropping them into a half-empty briefing room.
-    if (["draft", "setup"].includes((data.status ?? "").toLowerCase())) {
+    const status = (data.status ?? "").toLowerCase();
+    if (status === "draft" || status === "setup") {
       const savedStep = Number(
         progressRows?.find((r) => r.extracted_field === "__wizard_last_step")?.extracted_value,
       );
