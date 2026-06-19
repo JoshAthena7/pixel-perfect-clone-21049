@@ -272,13 +272,16 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               width: 150,
               objectFit: "contain",
               userSelect: "none",
-              // mixBlendMode: screen lets any dark PNG matte dissolve into the black sky.
+              // Translucent + screen blend so the mark glows on the sky rather
+              // than sitting on top of it — stars and black bleed through.
               mixBlendMode: "screen",
-              filter: "drop-shadow(0 0 28px rgba(229,189,90,0.55)) drop-shadow(0 0 60px rgba(196,154,43,0.25))",
+              opacity: 0.62,
+              filter: "drop-shadow(0 0 28px rgba(229,189,90,0.45)) drop-shadow(0 0 60px rgba(196,154,43,0.22))",
               transform: logoIn && phase !== "gone" ? "scale(1)" : "scale(0.02)",
               transformOrigin: "center",
               transition: `transform ${LOGO_GROW_MS}ms cubic-bezier(0.19,1,0.22,1)`,
             }}
+
           />
         </div>
       </div>
