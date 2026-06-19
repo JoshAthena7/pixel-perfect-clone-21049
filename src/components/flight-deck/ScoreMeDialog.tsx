@@ -269,6 +269,20 @@ export function ScoreMeDialog({
         </div>
 
         <div className="px-5 py-4 space-y-3 max-h-[75vh] overflow-y-auto">
+          {checklist && !result && (
+            <div
+              className="rounded-md px-3 py-2"
+              style={{
+                background: "rgba(196,154,43,0.06)",
+                border: "1px solid rgba(196,154,43,0.25)",
+                fontSize: 11,
+                color: "rgba(255,255,255,0.75)",
+              }}
+            >
+              <span style={{ color: GOLD, fontWeight: 600 }}>You planned for {checklist.planned.length} of {checklist.items.length} IRIS checklist items.</span>{" "}
+              IRIS will check if your draft delivers on them.
+            </div>
+          )}
           {/* IRIS intro */}
           <div
             className="rounded-lg px-3 py-2"
