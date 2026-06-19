@@ -255,11 +255,19 @@ export const getMissionActivity = createServerFn({ method: "POST" })
       const body = (r.body ?? "").toString();
       const isIris = r.sender_name === "IRIS";
       const emerging = r.update_type === "emerging_risk" || r.update_type === "oracle_finding";
+      const updateLabel: Record<string, string> = {
+        new_intelligence: "shared an intel signal",
+        new_data: "shared a data signal",
+        opportunity: "flagged an opportunity",
+        emerging_risk: "flagged an emerging risk",
+        oracle_finding: "shared an IRIS finding",
+      };
+      const verb = updateLabel[r.update_type] ?? `shared a ${String(r.update_type ?? "").replace(/_/g, " ")} signal`;
       const head = emerging
         ? `IRIS flagged ${r.update_type === "emerging_risk" ? "an emerging risk" : "an IRIS finding"}`
         : isIris
           ? "IRIS distributed an update"
-          : `${r.sender_name} sent a ${r.update_type} signal`;
+          : `${r.sender_name} ${verb}`;
       items.push({
         id: `pulse:${r.id}`,
         stream: "mission_pulse",
