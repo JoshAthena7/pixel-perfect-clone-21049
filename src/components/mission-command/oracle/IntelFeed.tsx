@@ -436,11 +436,34 @@ function EventCard({ event }: { event: any }) {
   const color = TYPE_COLORS[event.event_type] || "#64748b";
   const isAtrium = event.source_type === "atrium";
   const isOracle = event.source_type === "oracle" || event.__oracle === true;
+  const categoryLabel = isOracle ? formatCategory(event.signal_category) : null;
+  const oracleTooltip = isOracle
+    ? `Verified ORACLE intelligence · ${event.status ?? "needs_review"} · Relevance ${event.relevance_score ?? 0}/100`
+    : undefined;
   return (
     <div
-      className="rounded-lg p-3"
+      className="rounded-lg p-3 relative"
       style={{ background: "rgba(5,13,24,0.5)", border: "1px solid rgba(255,255,255,0.06)" }}
     >
+      {isOracle && (
+        <span
+          title={oracleTooltip}
+          className="absolute right-3 top-3 cursor-help"
+          style={{
+            fontSize: 8,
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+            padding: "1px 6px",
+            borderRadius: 3,
+            background: "transparent",
+            color: GOLD,
+            border: `1px solid ${GOLD}`,
+          }}
+        >
+          ORACLE
+        </span>
+      )}
       <div className="flex items-start gap-3">
         <div
           style={{
@@ -458,25 +481,30 @@ function EventCard({ event }: { event: any }) {
         >
           {String(event.event_type).replace(/_/g, " ")}
         </div>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1" style={{ paddingRight: isOracle ? 64 : 0 }}>
           <div className="text-sm text-white font-medium">{event.title}</div>
           <div className="text-xs text-white/60 mt-1 line-clamp-3">{event.content}</div>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
-            {isOracle && (
+            {categoryLabel && (
               <span
                 style={{
                   fontSize: 9,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   textTransform: "uppercase",
-                  letterSpacing: "0.08em",
+                  letterSpacing: "0.06em",
                   padding: "1px 6px",
                   borderRadius: 3,
-                  background: `${GOLD}22`,
+                  background: "rgba(196,154,43,0.1)",
                   color: GOLD,
-                  border: `1px solid ${GOLD}66`,
+                  border: `0.5px solid ${GOLD}55`,
                 }}
               >
-                ORACLE{event.__tier ? ` · ${String(event.__tier).toUpperCase()}` : ""}
+                {categoryLabel}
+              </span>
+            )}
+            {isOracle && event.__tier && (
+              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" }}>
+                {String(event.__tier)}
               </span>
             )}
             {isAtrium && (
@@ -496,6 +524,11 @@ function EventCard({ event }: { event: any }) {
                 Regulatory
               </span>
             )}
+            {isOracle && typeof event.relevance_score === "number" && (
+              <span style={{ fontSize: 9, color: GOLD }}>
+                Relevance {event.relevance_score}
+              </span>
+            )}
             {event.confidence && (
               <span
                 style={{
@@ -509,8 +542,19 @@ function EventCard({ event }: { event: any }) {
                 {String(event.confidence).toUpperCase()}
               </span>
             )}
-            {event.generated_by === "iris" && (
+            {!isOracle && event.generated_by === "iris" && (
               <span style={{ fontSize: 9, color: GOLD }}>● IRIS</span>
+            )}
+            {event.source_name && (
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>
+                {event.source_url ? (
+                  <a href={event.source_url} target="_blank" rel="noreferrer" className="hover:underline">
+                    {event.source_name}
+                  </a>
+                ) : (
+                  event.source_name
+                )}
+              </span>
             )}
             <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>
               {new Date(event.created_at).toLocaleString()}
