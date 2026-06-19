@@ -171,7 +171,7 @@ export function Step1Fuel({
       cur.map((r) => {
         if (r.uid !== uid) return r;
         docId = r.documentId;
-        return { ...r, purpose };
+        return { ...r, purpose, userTagged: true };
       }),
     );
     if (docId) {
