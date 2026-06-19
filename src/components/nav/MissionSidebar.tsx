@@ -12,8 +12,6 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ClipboardList, Eye, Rocket, Settings, Check, Radar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { UserMenu } from "@/components/nav/UserMenu";
 import { useMissionMeta } from "@/hooks/useMissionMeta";
 import { useIsAdmin, useMissionAccess } from "@/hooks/useAccess";
 
@@ -199,10 +197,6 @@ export function MissionSidebar({ missionId, email }: { missionId: string; email?
         </ul>
       </div>
 
-      <div className="mt-auto flex items-center justify-between gap-2 px-3 py-3 border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-        <NotificationBell />
-        <UserMenu email={email ?? undefined} />
-      </div>
     </aside>
   );
 }
