@@ -119,7 +119,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         zIndex: 9999,
         background: "#000",
         opacity: overlayOpacity,
-        transition: "opacity 800ms ease-out",
+        transition: "opacity 2200ms ease-in-out",
         pointerEvents: "none",
         overflow: "hidden",
       }}
