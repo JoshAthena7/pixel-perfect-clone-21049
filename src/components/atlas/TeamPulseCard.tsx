@@ -219,12 +219,12 @@ function TriviaTab({ missionId }: { missionId: string }) {
 function TeamTab({ missionId }: { missionId: string }) {
   return (
     <div className="space-y-4">
-      <RecentWins missionId={missionId} />
       <IrisNudges missionId={missionId} />
       <ShoutoutBox missionId={missionId} />
     </div>
   );
 }
+
 
 function RecentWins({ missionId }: { missionId: string }) {
   const { data: events } = useQuery({
