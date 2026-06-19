@@ -15,12 +15,13 @@ export const getWriterMissionLanding = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
 
-    const [{ data: profile }, { data: adminRole }, { data: atlasMemberId }] = await Promise.all([
-      supabase.from("profiles").select("is_platform_admin").eq("id", userId).maybeSingle(),
+    // Canonical admin check: has_role(auth.uid(), 'admin') via user_roles.
+    // profiles.is_platform_admin is deprecated; see ATLAS-ARCHITECTURE.md (Known Tech Debt).
+    const [{ data: adminRole }, { data: atlasMemberId }] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle(),
       supabase.rpc("current_atlas_member_id"),
     ]);
-    const isAdmin = profile?.is_platform_admin === true || !!adminRole;
+    const isAdmin = !!adminRole;
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const admin = supabaseAdmin as any;
