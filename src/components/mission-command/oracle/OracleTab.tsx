@@ -90,34 +90,49 @@ export function OracleTab({ missionId }: { missionId: string }) {
   const { data: counts } = useQuery({
     queryKey: ["intel-counts", missionId],
     queryFn: async () => {
-      const [events, people, orgs, sources, rels] = await Promise.all([
-        (supabase as any).from("intel_events").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
-        (supabase as any).from("intel_people").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
-        (supabase as any).from("intel_organizations").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
-        (supabase as any).from("intel_sources").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
-        (supabase as any).from("intel_relationships").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
+      const sb = supabase as any;
+      // Resolve mission state_code for state-tier scoping
+      const { data: m } = await sb.from("missions").select("state_code").eq("id", missionId).maybeSingle();
+      const stateCode = m?.state_code ?? null;
+
+      const orParts = [`tier.eq.platform`, `and(tier.eq.mission,mission_id.eq.${missionId})`];
+      if (stateCode) orParts.push(`and(tier.eq.state,state_code.eq.${stateCode})`);
+      const orStr = orParts.join(",");
+
+      const [people, orgs, rels, oracleAll, oracleApproved, oracleOrgs, sourceReg, distinctSrc] = await Promise.all([
+        sb.from("intel_people").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
+        sb.from("intel_organizations").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
+        sb.from("intel_relationships").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
+        sb.from("oracle_signals").select("id", { count: "exact", head: true }).neq("status", "dismissed").or(orStr),
+        sb.from("oracle_signals").select("id", { count: "exact", head: true }).in("status", ["approved", "pushed"]).or(orStr),
+        sb.from("oracle_signals").select("id", { count: "exact", head: true }).neq("status", "dismissed").in("category", ["regulatory_state", "regulatory_federal", "field_intelligence"]).or(orStr),
+        sb.from("oracle_source_registry").select("id", { count: "exact", head: true }).or(orStr),
+        sb.from("oracle_signals").select("source_name").neq("status", "dismissed").or(orStr).limit(500),
       ]);
+      const distinct = new Set<string>();
+      for (const r of (distinctSrc.data ?? [])) {
+        if (r?.source_name) distinct.add(r.source_name);
+      }
+      const oracleTotal = oracleAll.count ?? 0;
       return {
-        events: events.count ?? 0,
-        people: people.count ?? 0,
-        orgs: orgs.count ?? 0,
-        sources: sources.count ?? 0,
+        events: oracleTotal,
+        people: distinct.size,
+        orgs: oracleOrgs.count ?? 0,
+        sources: sourceReg.count ?? 0,
         rels: rels.count ?? 0,
+        // Keep legacy people/org counts for any callers that need them
+        legacyPeople: people.count ?? 0,
+        legacyOrgs: orgs.count ?? 0,
+        oracleApproved: oracleApproved.count ?? 0,
       };
     },
     staleTime: 30_000,
   });
 
-  // 5-dimension completeness
+  // ORACLE-based completeness: approved+pushed signals out of 50 target
   const completeness = (() => {
     if (!counts) return 0;
-    let pct = 0;
-    if (counts.events > 0) pct += 20;
-    if (counts.people > 0) pct += 20;
-    if (counts.orgs > 0) pct += 20;
-    if (counts.sources > 0) pct += 20;
-    if (counts.rels > 0) pct += 20;
-    return pct;
+    return Math.min(100, Math.round((counts.oracleApproved / 50) * 100));
   })();
 
   // Auto-recover: if events were seeded before the people/orgs cascade existed,
@@ -128,7 +143,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
   useEffect(() => {
     if (!counts) return;
     if (autoSeededRef.current.has(missionId)) return;
-    if (counts.events > 0 && counts.people === 0 && counts.orgs === 0) {
+    if (counts.events > 0 && counts.legacyPeople === 0 && counts.legacyOrgs === 0) {
       autoSeededRef.current.add(missionId);
       seedFn({ data: { missionId, force: true } })
         .then((res) => {

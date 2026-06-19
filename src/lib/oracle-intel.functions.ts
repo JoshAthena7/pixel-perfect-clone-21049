@@ -415,20 +415,58 @@ export const listOracleSignalsForMission = createServerFn({ method: "POST" })
       .maybeSingle();
     const stateCode = mission?.state_code ?? null;
 
-    // We can't OR across three tier conditions cleanly in PostgREST without
-    // .or() string; build it.
     const orParts = [`tier.eq.platform`, `and(tier.eq.mission,mission_id.eq.${data.missionId})`];
     if (stateCode) orParts.push(`and(tier.eq.state,state_code.eq.${stateCode})`);
 
     const { data: rows, error } = await context.supabase
       .from("oracle_signals")
       .select(
-        "id, title, summary, what_happened, signal_type, status, tier, scope_tier, state_code, mission_id, topic_tags, win_theme_tags, taxonomy_node_ids, source_name, published_at, created_at, metadata",
+        "id, title, summary, what_happened, why_it_matters, signal_type, status, tier, scope_tier, state_code, mission_id, category, subcategory, urgency, relevance_score, oracle_score, ingestion_source, topic_tags, win_theme_tags, taxonomy_node_ids, source_name, published_at, created_at, metadata",
       )
-      .in("status", ["approved", "pushed", "needs_review"])
+      .neq("status", "dismissed")
       .or(orParts.join(","))
       .order("created_at", { ascending: false })
-      .limit(200);
+      .limit(500);
     if (error) throw error;
     return rows ?? [];
+  });
+
+/* ============ list oracle_source_registry for a mission ============ */
+
+export const listOracleSourcesForMission = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ missionId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: mission } = await context.supabase
+      .from("missions")
+      .select("state_code")
+      .eq("id", data.missionId)
+      .maybeSingle();
+    const stateCode = mission?.state_code ?? null;
+
+    const orParts = [`tier.eq.platform`, `and(tier.eq.mission,mission_id.eq.${data.missionId})`];
+    if (stateCode) orParts.push(`and(tier.eq.state,state_code.eq.${stateCode})`);
+
+    const { data: rows, error } = await context.supabase
+      .from("oracle_source_registry")
+      .select("id, source_name, source_url, tier, state_code, mission_id, status, last_checked_at, default_category, description")
+      .or(orParts.join(","))
+      .order("tier", { ascending: true })
+      .order("source_name", { ascending: true });
+    if (error) throw error;
+
+    const sigOr = [`tier.eq.platform`, `and(tier.eq.mission,mission_id.eq.${data.missionId})`];
+    if (stateCode) sigOr.push(`and(tier.eq.state,state_code.eq.${stateCode})`);
+    const { data: sigs } = await context.supabase
+      .from("oracle_signals")
+      .select("source_name")
+      .neq("status", "dismissed")
+      .or(sigOr.join(","));
+    const counts = new Map<string, number>();
+    for (const s of sigs ?? []) {
+      const n = (s as any).source_name as string | null;
+      if (!n) continue;
+      counts.set(n, (counts.get(n) ?? 0) + 1);
+    }
+    return (rows ?? []).map((r: any) => ({ ...r, signal_count: counts.get(r.source_name) ?? 0 }));
   });

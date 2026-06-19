@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Plus, X, ExternalLink } from "lucide-react";
+import { listOracleSourcesForMission } from "@/lib/oracle-intel.functions";
 
 const GOLD = "#C49A2B";
 
@@ -46,6 +48,13 @@ const groupIdFor = (raw: string | null | undefined): string => {
 export function IntelSources({ missionId }: { missionId: string }) {
   const [showAdd, setShowAdd] = useState(false);
   const qc = useQueryClient();
+  const listOracleSourcesFn = useServerFn(listOracleSourcesForMission);
+
+  const { data: oracleSources = [] } = useQuery({
+    queryKey: ["oracle-source-registry", missionId],
+    queryFn: () => listOracleSourcesFn({ data: { missionId } }),
+    staleTime: 30_000,
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["intel-sources", missionId],
@@ -64,7 +73,9 @@ export function IntelSources({ missionId }: { missionId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <div className="text-xs text-white/50">{sources.length} {sources.length === 1 ? "source" : "sources"}</div>
+        <div className="text-xs text-white/50">
+          {oracleSources.length} ORACLE · {sources.length} legacy
+        </div>
         <button
           onClick={() => setShowAdd(true)}
           className="inline-flex items-center gap-1 rounded px-3 py-1.5 text-xs"
@@ -74,11 +85,28 @@ export function IntelSources({ missionId }: { missionId: string }) {
         </button>
       </div>
 
+      {oracleSources.length > 0 && (
+        <section>
+          <div className="text-[10px] uppercase tracking-wider mb-2 pb-1" style={{ color: GOLD, borderBottom: `1px solid ${GOLD}33` }}>
+            ORACLE Source Registry ({oracleSources.length})
+          </div>
+          <div className="space-y-2">
+            {(oracleSources as any[]).map((s) => <OracleSourceCard key={s.id} source={s} />)}
+          </div>
+        </section>
+      )}
+
+      {sources.length > 0 && (
+        <div className="text-[10px] uppercase tracking-wider pt-2" style={{ color: "rgba(255,255,255,0.4)" }}>
+          Legacy Sources
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="h-5 w-5 animate-spin text-white/40" /></div>
-      ) : sources.length === 0 ? (
+      ) : sources.length === 0 && oracleSources.length === 0 ? (
         <EmptyState onAdd={() => setShowAdd(true)} />
-      ) : (
+      ) : sources.length === 0 ? null : (
         <div className="space-y-6">
           {SOURCE_GROUPS.map((g) => {
             const items = sources.filter((s) => groupIdFor(s.source_type) === g.id);
@@ -161,6 +189,72 @@ function SourceCard({ source, accent }: { source: any; accent: string }) {
             </div>
           );
         })()}
+      </div>
+    </div>
+  );
+}
+
+function tierColor(tier: string) {
+  if (tier === "platform") return "#3b82f6";
+  if (tier === "state") return GOLD;
+  return "#a855f7";
+}
+
+function statusDot(status: string) {
+  if (status === "active") return "#22c55e";
+  if (status === "paused") return "#f59e0b";
+  return "#ef4444";
+}
+
+function relTime(iso: string | null | undefined) {
+  if (!iso) return "never";
+  const t = new Date(iso).getTime();
+  const diff = Date.now() - t;
+  const mins = Math.round(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.round(hrs / 24);
+  return `${days}d ago`;
+}
+
+function OracleSourceCard({ source }: { source: any }) {
+  const tColor = tierColor(source.tier);
+  const sColor = statusDot(source.status);
+  return (
+    <div className="rounded-lg p-3" style={{ background: "rgba(5,13,24,0.5)", border: `1px solid ${tColor}33`, borderLeftWidth: 3 }}>
+      <div className="flex justify-between items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="text-sm text-white font-medium flex items-center gap-2">
+            <span className="truncate">{source.source_name}</span>
+            {source.source_url && (
+              <a href={source.source_url} target="_blank" rel="noreferrer" className="text-white/40 hover:text-white/70 shrink-0">
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+          </div>
+          {source.description && <div className="text-xs text-white/55 mt-1 line-clamp-2">{source.description}</div>}
+          <div className="flex items-center gap-2 mt-2 flex-wrap text-[10px] text-white/45">
+            <span
+              style={{
+                padding: "1px 6px", borderRadius: 3,
+                background: `${tColor}22`, color: tColor, border: `1px solid ${tColor}55`,
+                textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600,
+              }}
+            >
+              {source.tier}{source.tier === "state" && source.state_code ? ` · ${source.state_code}` : ""}
+            </span>
+            <span className="flex items-center gap-1">
+              <span style={{ width: 6, height: 6, borderRadius: 999, background: sColor, display: "inline-block" }} />
+              {source.status}
+            </span>
+            <span>Checked {relTime(source.last_checked_at)}</span>
+            {typeof source.signal_count === "number" && (
+              <span>{source.signal_count} signal{source.signal_count === 1 ? "" : "s"}</span>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
