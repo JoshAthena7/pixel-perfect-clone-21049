@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 type Tab = { id: string; label: string; to: string; match: (p: string) => boolean; highlight?: boolean };
 
 const TABS: Tab[] = [
-  { id: "mission-command", label: "Mission Command", to: "/olympus", match: (p: string) => p === "/olympus" || p === "/olympus/", highlight: true },
+  { id: "mission-command", label: "ORACLE Command", to: "/olympus", match: (p: string) => p === "/olympus" || p === "/olympus/", highlight: true },
   { id: "missions", label: "Missions", to: "/admin", match: (p: string) => p === "/admin" || p === "/admin/" || p.startsWith("/admin/missions") },
   { id: "staff", label: "Staff", to: "/admin/team", match: (p: string) => p.startsWith("/admin/team") },
   { id: "messaging", label: "Messaging", to: "/admin/messaging", match: (p: string) => p.startsWith("/admin/messaging") },

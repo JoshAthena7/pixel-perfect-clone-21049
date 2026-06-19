@@ -110,7 +110,7 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
       >
         <div className="flex items-center gap-3">
           <span style={{ color: "#d4af37", fontSize: 13, fontWeight: 600 }}>
-            ⚡ Olympus · ORACLE Command
+            {initialMissionId ? "⚡ ORACLE" : "⚡ Olympus · ORACLE Command"}
           </span>
         </div>
         <div className="flex items-center gap-4 text-[11px] text-white/60">
