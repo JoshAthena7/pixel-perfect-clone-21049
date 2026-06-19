@@ -12,37 +12,38 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 
-const DOT_COUNT = 90;
+const DOT_COUNT = 110;
 const FIELD_W = 1800; // viewBox width — fills the sky
 const FIELD_H = 1100;
-const LINK_DISTANCE = 180;
+const LINK_DISTANCE = 200;
 const SESSION_KEY = "atlas_splash_shown";
 
 // Timeline (ms)
-const EXPAND_MS = 2200;   // stars drift outward and fill the sky
-const LABEL_IN_AT = 2400; // ATLAS begins fading in after the sky has filled
-const LABEL_FADE_MS = 1600;
-const HOLD_AT = 4400;     // beat where everything sits, fully visible
-const COLLAPSE_AT = 5200;
-const GONE_AT = 5900;
-const DONE_AT = 6200;
+const EXPAND_MS = 2800;   // stars drift outward and twinkle into place
+const LINE_WINDOW_MS = 2400; // window over which lines progressively connect
+const LINE_START_AT = 1800;  // lines begin drawing once enough stars exist
+const LABEL_IN_AT = 4200; // ATLAS begins fading in after the sky fills + lines connect
+const LABEL_FADE_MS = 1800;
+const HOLD_AT = 6200;     // beat where everything sits, fully visible
+const COLLAPSE_AT = 7000;
+const GONE_AT = 7700;
+const DONE_AT = 8000;
 
-type Pos = { x: number; y: number; delay: number; r: number };
+type Pos = { x: number; y: number; delay: number; r: number; twinkleDur: number; twinkleDelay: number };
 
 function buildPositions(): Pos[] {
   const out: Pos[] = [];
   for (let i = 0; i < DOT_COUNT; i++) {
-    // Spread across the full field with a soft bias away from dead-center
-    // (so the wordmark has breathing room) but still allow some near-center
-    // stars to anchor the constellation.
     const angle = Math.random() * Math.PI * 2;
     const r = 120 + Math.pow(Math.random(), 0.6) * (FIELD_W / 2 - 120);
     out.push({
       x: Math.cos(angle) * r * (0.95 + Math.random() * 0.1),
-      y: Math.sin(angle) * r * 0.62 * (0.95 + Math.random() * 0.1), // squash vertically toward sky aspect
-      // Long staggered delays — stars appear gradually, not in a burst.
+      y: Math.sin(angle) * r * 0.62 * (0.95 + Math.random() * 0.1),
       delay: Math.round(Math.random() * (EXPAND_MS - 600)),
-      r: 1.2 + Math.random() * 1.6,
+      // Crisper, slightly varied star sizes. A few brighter "lead" stars.
+      r: Math.random() < 0.15 ? 1.8 + Math.random() * 1.2 : 0.7 + Math.random() * 1.0,
+      twinkleDur: 2200 + Math.random() * 2600,
+      twinkleDelay: Math.round(Math.random() * 2000),
     });
   }
   return out;
@@ -56,11 +57,16 @@ function buildLinks(positions: Pos[]) {
       const dy = positions[i].y - positions[j].y;
       const d = Math.hypot(dx, dy);
       if (d <= LINK_DISTANCE) {
-        const delay = Math.max(positions[i].delay, positions[j].delay) + 400;
-        links.push({ a: i, b: j, delay });
+        links.push({ a: i, b: j, delay: 0 });
       }
     }
   }
+  // Spread the line draws evenly across LINE_WINDOW_MS so the network
+  // grows slowly and visibly rather than all at once.
+  links.sort(() => Math.random() - 0.5);
+  links.forEach((l, idx) => {
+    l.delay = LINE_START_AT + Math.round((idx / Math.max(1, links.length - 1)) * LINE_WINDOW_MS);
+  });
   return links;
 }
 
@@ -116,6 +122,14 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         viewBox={`-${FIELD_W / 2} -${FIELD_H / 2} ${FIELD_W} ${FIELD_H}`}
         preserveAspectRatio="xMidYMid slice"
       >
+        <defs>
+          <radialGradient id="atlas-star" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="rgba(255,236,180,1)" />
+            <stop offset="35%" stopColor="rgba(229,189,90,0.95)" />
+            <stop offset="100%" stopColor="rgba(196,154,43,0)" />
+          </radialGradient>
+        </defs>
+
         {links.map((l, i) => {
           const a = positions[l.a];
           const b = positions[l.b];
@@ -127,34 +141,62 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               y1={collapsing ? 0 : a.y}
               x2={collapsing ? 0 : b.x}
               y2={collapsing ? 0 : b.y}
-              stroke="rgba(196,154,43,0.18)"
-              strokeWidth={0.6}
+              stroke="rgba(218,180,90,0.22)"
+              strokeWidth={0.5}
+              strokeLinecap="round"
               strokeDasharray={length}
               strokeDashoffset={collapsing ? length : 0}
               style={{
                 opacity: collapsing ? 0 : 1,
                 transition: collapsing
                   ? "opacity 500ms ease-out, stroke-dashoffset 500ms ease-out"
-                  : `stroke-dashoffset 1100ms ease-out ${l.delay}ms, opacity 600ms ease-out ${l.delay}ms`,
+                  : `stroke-dashoffset 1600ms cubic-bezier(0.4,0,0.2,1) ${l.delay}ms, opacity 800ms ease-out ${l.delay}ms`,
               }}
             />
           );
         })}
         {positions.map((p, i) => (
-          <circle
+          <g
             key={i}
-            cx={collapsing ? 0 : p.x}
-            cy={collapsing ? 0 : p.y}
-            r={p.r}
-            fill="rgba(196,154,43,0.9)"
             style={{
+              transformOrigin: "0 0",
               opacity: collapsing ? 0 : 1,
               transition: collapsing
-                ? "cx 600ms ease-in, cy 600ms ease-in, opacity 600ms ease-in"
-                : `cx 1800ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms, cy 1800ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms, opacity 1200ms ease-out ${p.delay}ms`,
-              filter: "drop-shadow(0 0 2px rgba(196,154,43,0.5))",
+                ? "opacity 600ms ease-in"
+                : `opacity 1400ms ease-out ${p.delay}ms`,
             }}
-          />
+          >
+            {/* Soft glow halo */}
+            <circle
+              cx={collapsing ? 0 : p.x}
+              cy={collapsing ? 0 : p.y}
+              r={p.r * 4}
+              fill="url(#atlas-star)"
+              style={{
+                opacity: 0.55,
+                transformBox: "fill-box",
+                transformOrigin: "center",
+                animation: collapsing
+                  ? "none"
+                  : `atlasTwinkle ${p.twinkleDur}ms ease-in-out ${p.twinkleDelay}ms infinite`,
+                transition: collapsing
+                  ? "cx 600ms ease-in, cy 600ms ease-in"
+                  : `cx 2000ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms, cy 2000ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms`,
+              }}
+            />
+            {/* Crisp star core */}
+            <circle
+              cx={collapsing ? 0 : p.x}
+              cy={collapsing ? 0 : p.y}
+              r={p.r}
+              fill="rgba(255,243,210,0.98)"
+              style={{
+                transition: collapsing
+                  ? "cx 600ms ease-in, cy 600ms ease-in"
+                  : `cx 2000ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms, cy 2000ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms`,
+              }}
+            />
+          </g>
         ))}
         {/* Final lingering core dot */}
         <circle
@@ -216,6 +258,13 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           Carrying the mission.
         </div>
       </div>
+
+      <style>{`
+        @keyframes atlasTwinkle {
+          0%, 100% { opacity: 0.25; transform: scale(0.85); }
+          50%      { opacity: 0.85; transform: scale(1.15); }
+        }
+      `}</style>
     </div>
   );
 }
