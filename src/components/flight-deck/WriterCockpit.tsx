@@ -465,12 +465,14 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
             Work your brief. Update your status. Flag what needs help.
             Assignments are set by your admin — talk to your Engagement Lead if something needs to change.
           </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <Stat label="Finalized" value={stats.finalized} color={GREEN} />
-            <Stat label="In Review" value={stats.inReview} color={PURPLE} />
-            <Stat label="Active" value={stats.active} color={GOLD} />
-            <Stat label="At Risk" value={stats.atRisk} color={RED} />
-          </div>
+          {(stats.finalized + stats.inReview + stats.active + stats.atRisk) > 0 && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <Stat label="Finalized" value={stats.finalized} color={GREEN} />
+              <Stat label="In Review" value={stats.inReview} color={PURPLE} />
+              <Stat label="Active" value={stats.active} color={GOLD} />
+              <Stat label="At Risk" value={stats.atRisk} color={RED} />
+            </div>
+          )}
         </div>
 
         {cockpit?.pensDown && (
