@@ -196,7 +196,8 @@ export async function processDocument(input: ProcessInput): Promise<ProcessResul
 
       for (let i = 0; i < rows.length; i += 50) {
         const slice = rows.slice(i, i + 50);
-        const { error: insErr } = await client.from("oracle_signals").insert(slice);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error: insErr } = await client.from("oracle_signals").insert(slice as any);
         if (insErr) throw new Error(`oracle_signals insert failed: ${insErr.message}`);
       }
     }
