@@ -123,15 +123,11 @@ function BriefingPage() {
           <OracleCanvasSlot missionId={missionId} />
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-            <div className="lg:col-span-3"><TodaysFocusCard missionId={missionId} mission={mission} /></div>
+            <div className="lg:col-span-3"><IrisBriefCard missionId={missionId} mission={mission} /></div>
             <div className="lg:col-span-2 flex flex-col gap-4">
               <MissionHealthSummaryCard missionId={missionId} />
+              <LeadershipBroadcastCard missionId={missionId} mission={mission} canEdit={canEditBroadcast} />
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <HowWeWinCard missionId={missionId} mission={mission} />
-            <IrisGuidanceCard mission={mission} />
           </div>
 
           <MissionJourneyCard missionId={missionId} mission={mission} />
@@ -146,10 +142,9 @@ function BriefingPage() {
           </div>
 
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <WatchItemsCard missionId={missionId} mission={mission} />
             <WhatChangedCard missionId={missionId} />
-            <LeadershipBroadcastCard missionId={missionId} mission={mission} canEdit={canEditBroadcast} />
           </div>
 
           <MissionLeadersCard missionId={missionId} />
