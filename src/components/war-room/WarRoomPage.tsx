@@ -812,10 +812,10 @@ function WriterRow({
         </div>
         <div className="text-[10px] text-white/45 mt-0.5 truncate" style={{ fontFamily: "'Courier New', monospace" }}>
           {noQuestions
-            ? <span className="italic text-white/40">— No questions assigned · {lastSeen}</span>
+            ? <span className="italic text-white/40">— Unassigned · {lastSeen}</span>
             : <>
-                {total}q · <span className="text-green-400">{finalized}✓</span>{" "}
-                <span className="text-sky-300">{activeQ}●</span>{" "}
+                {total} questions ·{" "}
+                <span className="text-green-400">{finalized}✓</span>{" "}
                 <span className="text-red-400">{atRiskQ}⚠</span>
                 {" · "}{lastSeen}
               </>}
