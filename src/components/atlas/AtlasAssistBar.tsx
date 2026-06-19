@@ -172,7 +172,7 @@ export function AtlasAssistBar({
                 navigator.clipboard.writeText(text).catch(() => {});
                 acknowledgedRef.current.add(key!);
                 fireEvent("assist_acknowledged").catch(() => {});
-                toast.success("Copied to clipboard");
+                toast.success("Copied to clipboard ✓", { duration: 2000 });
               }}
               className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-medium"
               style={{ background: "rgba(196,154,43,0.12)", border: `1px solid ${GOLD}`, color: GOLD }}

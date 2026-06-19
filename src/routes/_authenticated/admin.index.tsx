@@ -12,7 +12,23 @@ type MissionRow = {
   name: string;
   status: string | null;
   client_name: string | null;
+  health_score: number | null;
+  submission_deadline: string | null;
 };
+
+function healthBorderColor(score: number | null | undefined): string {
+  if (score == null) return "rgba(74,222,128,0.7)";
+  if (score >= 70) return "rgba(74,222,128,0.7)";
+  if (score >= 40) return "rgba(251,191,36,0.7)";
+  return "rgba(248,113,113,0.7)";
+}
+
+function daysToSubmission(deadline: string | null | undefined): number | null {
+  if (!deadline) return null;
+  const diff = new Date(deadline).getTime() - Date.now();
+  if (Number.isNaN(diff)) return null;
+  return Math.max(0, Math.ceil(diff / 86400000));
+}
 
 type Bucket = "Active" | "Draft" | "Closed";
 
@@ -37,7 +53,7 @@ function AdminMissionsPage() {
     queryFn: async (): Promise<MissionRow[]> => {
       const { data } = await supabase
         .from("missions")
-        .select("id,name,status,client_name")
+        .select("id,name,status,client_name,health_score,submission_deadline")
         .order("created_at", { ascending: false });
       return (data ?? []) as MissionRow[];
     },
@@ -95,6 +111,8 @@ function AdminMissionsPage() {
             const b = bucketFor(m.status);
             const dot = statusColor(b);
             const staff = counts[m.id] ?? 0;
+            const healthColor = healthBorderColor(m.health_score);
+            const daysLeft = daysToSubmission(m.submission_deadline);
             return (
               <div
                 key={m.id}
@@ -121,12 +139,15 @@ function AdminMissionsPage() {
                 style={{
                   background: "rgba(255,255,255,0.02)",
                   border: "1px solid rgba(255,255,255,0.06)",
+                  borderLeft: `4px solid ${healthColor}`,
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = "rgba(201,168,76,0.5)";
+                  e.currentTarget.style.borderLeftColor = healthColor;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
+                  e.currentTarget.style.borderLeftColor = healthColor;
                 }}
               >
                 <span
@@ -135,11 +156,18 @@ function AdminMissionsPage() {
                 />
                 <div className="flex-1 min-w-0">
                   <div className="text-white font-medium text-sm truncate">{m.name}</div>
-                  {m.client_name && (
-                    <div className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
-                      {m.client_name}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {m.client_name && (
+                      <span className="text-xs truncate" style={{ color: "rgba(255,255,255,0.4)" }}>
+                        {m.client_name}
+                      </span>
+                    )}
+                    {daysLeft != null && (
+                      <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>
+                        {m.client_name ? "· " : ""}{daysLeft}d to submission
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="hidden sm:flex items-center gap-1.5 text-xs shrink-0" style={{ color: "rgba(255,255,255,0.5)" }}>
                   <UsersIcon className="h-3.5 w-3.5" />

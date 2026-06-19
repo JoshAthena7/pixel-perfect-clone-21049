@@ -145,7 +145,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
       const qids = qpRows.map(r => r.question_id);
       if (qids.length === 0) return { questions: [] as Q[], feedback: [], conflicts: [], connections: [], mission: null, pensDown: false, pulse: [], winThemes: [] };
 
-      const [mq, ms, mission, milestones, feedback, conflicts, connections, pulse, oec, mwt] = await Promise.all([
+      const [mq, ms, mission, milestones, feedback, conflicts, connections, pulse, oec, mwt, assistEvents] = await Promise.all([
         supabase.from("mission_questions").select("*").in("id", qids),
         supabase.from("mission_sections").select("id,name,section_number,evaluation_weight,coherence_status").eq("mission_id", missionId),
         supabase.from("missions").select("id,name,submission_deadline").eq("id", missionId).maybeSingle(),
@@ -156,7 +156,18 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
         supabase.from("mission_pulse_updates").select("domain,created_at").eq("mission_id", missionId).order("created_at", { ascending: false }),
         supabase.from("oracle_engagement_config").select("win_themes").eq("mission_id", missionId).maybeSingle(),
         supabase.from("mission_win_themes").select("id,title,why_it_matters,status,display_order").eq("mission_id", missionId).order("display_order", { ascending: true }),
+        supabase.from("mission_assist_events").select("question_id,event_type,created_at").eq("mission_id", missionId).in("event_type", ["sos_raised", "sos_acknowledged"]).in("question_id", qids).order("created_at", { ascending: true }),
       ]);
+
+      // Determine active (unacknowledged) SOS per question: last event must be sos_raised.
+      const lastSosByQid = new Map<string, string>();
+      for (const ev of ((assistEvents.data ?? []) as any[])) {
+        if (!ev.question_id) continue;
+        lastSosByQid.set(ev.question_id, ev.event_type);
+      }
+      const activeSosQids = new Set<string>();
+      lastSosByQid.forEach((type, qid) => { if (type === "sos_raised") activeSosQids.add(qid); });
+
 
       const sectionMap = new Map<string, any>((ms.data ?? []).map((s: any) => [s.id, s]));
       const qpByQid = new Map<string, any>(qpRows.map(r => [r.question_id, r]));
@@ -280,6 +291,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
         qNumByQid,
         writerByQid,
         myQids: Array.from(myQids),
+        activeSosQids,
       };
     },
   });
@@ -453,12 +465,14 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
             Work your brief. Update your status. Flag what needs help.
             Assignments are set by your admin — talk to your Engagement Lead if something needs to change.
           </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <Stat label="Finalized" value={stats.finalized} color={GREEN} />
-            <Stat label="In Review" value={stats.inReview} color={PURPLE} />
-            <Stat label="Active" value={stats.active} color={GOLD} />
-            <Stat label="At Risk" value={stats.atRisk} color={RED} />
-          </div>
+          {(stats.finalized + stats.inReview + stats.active + stats.atRisk) > 0 && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <Stat label="Finalized" value={stats.finalized} color={GREEN} />
+              <Stat label="In Review" value={stats.inReview} color={PURPLE} />
+              <Stat label="Active" value={stats.active} color={GOLD} />
+              <Stat label="At Risk" value={stats.atRisk} color={RED} />
+            </div>
+          )}
         </div>
 
         {cockpit?.pensDown && (
@@ -681,7 +695,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
               </div>
             )}
 
-            {q.acceptance_status === "need_help" && q.sme_assigned === false && (
+            {(cockpit?.activeSosQids as Set<string> | undefined)?.has(q.id) && (
               <div style={{ marginBottom: 14, padding: "8px 12px", background: "rgba(239,68,68,0.1)", border: `1px solid ${RED}`, borderRadius: 6, fontSize: 12, color: "#fecaca" }}>
                 🆘 Awaiting SME Assignment — your Engagement Lead has been notified.
               </div>
