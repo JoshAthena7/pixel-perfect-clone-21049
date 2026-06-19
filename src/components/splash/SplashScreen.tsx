@@ -12,7 +12,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import atlasWordmark from "@/assets/atlas-wordmark-optical.png";
-import athenaMark from "@/assets/athena-mark-v3.png.asset.json";
+import athenaMark from "@/assets/athena-rosette.png.asset.json";
 
 const DOT_COUNT = 110;
 const FIELD_W = 1800; // viewBox width — fills the sky
