@@ -18,6 +18,7 @@ import { getMyHome } from "@/lib/v2-home.functions";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async ({ location }) => {
+    const path = location.pathname;
     // Session lookup reads localStorage — should be instant. If it times out
     // we treat it as a transient glitch and do NOT redirect (otherwise the
     // user gets sporadically kicked back to /login mid-flow).
@@ -31,8 +32,21 @@ export const Route = createFileRoute("/_authenticated")({
       // Transient — let the page render; AuthSync will catch real sign-outs.
       return { user: null as never, isAdmin: false };
     }
-    const user = sessionResult.data.session?.user ?? null;
+    let user = sessionResult.data.session?.user ?? null;
     if (sessionResult.error || !user) {
+      // During token refresh the client can briefly report no session. Verify
+      // before redirecting so mission workspaces do not get kicked out mid-page.
+      const userResult = await withTimeout(
+        supabase.auth.getUser(),
+        2500,
+        TIMEOUT as never,
+      );
+      if (userResult === (TIMEOUT as never)) {
+        return { user: null as never, isAdmin: false };
+      }
+      user = (userResult as { data: { user: typeof user }; error: unknown }).data.user ?? null;
+    }
+    if (!user) {
       throw redirect({ to: "/login" });
     }
     // Three-state gate: anyone not ACTIVE (onboarded) and not a platform admin
@@ -73,7 +87,6 @@ export const Route = createFileRoute("/_authenticated")({
     const prof = profTimedOut ? null : (profRes as { data: { has_onboarded?: boolean } | null }).data;
     const roleRow = roleTimedOut ? null : (roleRes as { data: { role: string } | null }).data;
     const isAdmin = !!roleRow;
-    const path = location.pathname;
     const onWelcome = path === "/welcome" || path.startsWith("/welcome/");
     const explicitlyNotOnboarded = prof !== null && prof?.has_onboarded === false;
     if (explicitlyNotOnboarded && !isAdmin && !onWelcome) {
