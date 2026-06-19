@@ -318,6 +318,7 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
         className="fixed bottom-5 right-5 z-50 group"
       >
         <span
+          ref={boltRef}
           className="relative inline-flex items-center justify-center h-14 w-14 rounded-full shadow-lg"
           style={{ background: `radial-gradient(circle at 30% 30%, ${IRIS_BRAND}, ${IRIS_BRAND_DEEP} 70%, #1A1140)` }}
         >
@@ -331,6 +332,7 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
       </button>
     );
   }
+
 
   if (minimized) {
     return (
