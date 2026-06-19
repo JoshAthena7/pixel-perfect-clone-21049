@@ -122,6 +122,14 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         viewBox={`-${FIELD_W / 2} -${FIELD_H / 2} ${FIELD_W} ${FIELD_H}`}
         preserveAspectRatio="xMidYMid slice"
       >
+        <defs>
+          <radialGradient id="atlas-star" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="rgba(255,236,180,1)" />
+            <stop offset="35%" stopColor="rgba(229,189,90,0.95)" />
+            <stop offset="100%" stopColor="rgba(196,154,43,0)" />
+          </radialGradient>
+        </defs>
+
         {links.map((l, i) => {
           const a = positions[l.a];
           const b = positions[l.b];
@@ -133,34 +141,62 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               y1={collapsing ? 0 : a.y}
               x2={collapsing ? 0 : b.x}
               y2={collapsing ? 0 : b.y}
-              stroke="rgba(196,154,43,0.18)"
-              strokeWidth={0.6}
+              stroke="rgba(218,180,90,0.22)"
+              strokeWidth={0.5}
+              strokeLinecap="round"
               strokeDasharray={length}
               strokeDashoffset={collapsing ? length : 0}
               style={{
                 opacity: collapsing ? 0 : 1,
                 transition: collapsing
                   ? "opacity 500ms ease-out, stroke-dashoffset 500ms ease-out"
-                  : `stroke-dashoffset 1100ms ease-out ${l.delay}ms, opacity 600ms ease-out ${l.delay}ms`,
+                  : `stroke-dashoffset 1600ms cubic-bezier(0.4,0,0.2,1) ${l.delay}ms, opacity 800ms ease-out ${l.delay}ms`,
               }}
             />
           );
         })}
         {positions.map((p, i) => (
-          <circle
+          <g
             key={i}
-            cx={collapsing ? 0 : p.x}
-            cy={collapsing ? 0 : p.y}
-            r={p.r}
-            fill="rgba(196,154,43,0.9)"
             style={{
+              transformOrigin: "0 0",
               opacity: collapsing ? 0 : 1,
               transition: collapsing
-                ? "cx 600ms ease-in, cy 600ms ease-in, opacity 600ms ease-in"
-                : `cx 1800ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms, cy 1800ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms, opacity 1200ms ease-out ${p.delay}ms`,
-              filter: "drop-shadow(0 0 2px rgba(196,154,43,0.5))",
+                ? "opacity 600ms ease-in"
+                : `opacity 1400ms ease-out ${p.delay}ms`,
             }}
-          />
+          >
+            {/* Soft glow halo */}
+            <circle
+              cx={collapsing ? 0 : p.x}
+              cy={collapsing ? 0 : p.y}
+              r={p.r * 4}
+              fill="url(#atlas-star)"
+              style={{
+                opacity: 0.55,
+                transformBox: "fill-box",
+                transformOrigin: "center",
+                animation: collapsing
+                  ? "none"
+                  : `atlasTwinkle ${p.twinkleDur}ms ease-in-out ${p.twinkleDelay}ms infinite`,
+                transition: collapsing
+                  ? "cx 600ms ease-in, cy 600ms ease-in"
+                  : `cx 2000ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms, cy 2000ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms`,
+              }}
+            />
+            {/* Crisp star core */}
+            <circle
+              cx={collapsing ? 0 : p.x}
+              cy={collapsing ? 0 : p.y}
+              r={p.r}
+              fill="rgba(255,243,210,0.98)"
+              style={{
+                transition: collapsing
+                  ? "cx 600ms ease-in, cy 600ms ease-in"
+                  : `cx 2000ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms, cy 2000ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms`,
+              }}
+            />
+          </g>
         ))}
         {/* Final lingering core dot */}
         <circle
