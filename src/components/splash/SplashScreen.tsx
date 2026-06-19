@@ -209,8 +209,8 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             color: "rgba(196,154,43,0.75)",
             opacity: collapsing ? 0 : labelsIn ? 1 : 0,
             transition: collapsing
-              ? "opacity 200ms ease-out"
-              : "opacity 400ms ease-out 100ms",
+              ? "opacity 500ms ease-out"
+              : `opacity ${LABEL_FADE_MS}ms ease-out 600ms`,
           }}
         >
           Carrying the mission.
