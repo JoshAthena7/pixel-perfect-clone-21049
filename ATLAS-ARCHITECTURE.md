@@ -263,10 +263,11 @@ gracefully (cron hooks return early with a skip message; no throws at boot).
    `StickyNotesPanel.tsx`. Need real webhook URLs on mission rows.
 5. **Olympus review-drawer edit mode** — taxonomy override and relevance
    slider stubbed.
-6. **`mission_activity` table referenced in spec but does not exist** —
-   no active code reads it; ATC's Mission Radar derives activity from
-   `question_pulses` / `mission_nudges`. Either table should be added if
-   spec was canonical, or spec updated.
+6. **Activity logging consolidated on `mission_assist_events`** (2026-06-19).
+   `mission_activity` was created then dropped after audit confirmed
+   `mission_assist_events` is the de-facto unified event log (see
+   "Activity Logging" section below). No code path was reading the
+   short-lived `mission_activity` table.
 7. **TODO comments**: 6 across `src/` (manual review).
 8. **Orphan deleted**: `src/components/flight-deck/FlightDeckV2.tsx`
    (1241 lines, 0 importers).

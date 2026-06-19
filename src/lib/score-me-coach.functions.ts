@@ -262,6 +262,24 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
       console.error("[score-me] history insert failed", e);
     }
 
+    // Mission Radar event log (silent on failure — observability only)
+    try {
+      await supabase.from("mission_assist_events").insert({
+        mission_id: data.missionId,
+        question_id: data.questionId,
+        user_id: userId,
+        event_type: "score_me_run",
+        metadata: {
+          summary: `Score Me run — ${result.overall_score.toFixed(1)}/10`,
+          score: result.overall_score,
+          the_one_fix: result.the_one_fix,
+          section_name: sectionName || null,
+        },
+      } as never);
+    } catch (e) {
+      console.warn("[score-me] assist event insert failed", e);
+    }
+
     // 5) Fire-and-forget: persist full session row for analytics
     try {
       const to100 = (n: unknown): number | null => {

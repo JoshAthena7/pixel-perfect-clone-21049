@@ -80,6 +80,23 @@ export const submitMissionPulse = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
+    // Mission Radar event log (silent on failure — observability only)
+    try {
+      await supabaseAdmin.from("mission_assist_events").insert({
+        mission_id: data.missionId,
+        question_id: null,
+        user_id: userId,
+        event_type: "mission_pulse_signal",
+        metadata: {
+          summary: headline,
+          confidence: data.confidence,
+          author,
+        },
+      } as never);
+    } catch (e) {
+      console.warn("[mission-pulse] assist event insert failed", e);
+    }
+
     // Log to Vault under the mission's Tier-2 record
     try {
       await supabaseAdmin.from("mission_vault_documents").insert({
