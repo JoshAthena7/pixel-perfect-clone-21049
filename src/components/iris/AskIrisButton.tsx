@@ -46,7 +46,7 @@ export function AskIrisButton({ prefill }: { prefill?: string }) {
       onClick={handleClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      title="Ask IRIS  ( ` )"
+      title="Ask IRIS anything about this mission. Draws from ORACLE intelligence."
       className="inline-flex items-center gap-1.5 rounded-md transition-colors"
       style={{
         background: bg,
@@ -57,7 +57,7 @@ export function AskIrisButton({ prefill }: { prefill?: string }) {
       }}
     >
       <IrisMark className="h-3.5 w-3.5" />
-      Ask IRIS
+      IRIS Chat
     </button>
   );
 }

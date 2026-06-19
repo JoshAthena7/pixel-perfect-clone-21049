@@ -140,12 +140,39 @@ function normalizeCompetitors(raw: any): CompetitorRow[] {
 
 // ---------- Component ---------------------------------------------------------------
 
+type FilterId = "all" | "signals" | "risks" | "research" | "competitive" | "stakeholder" | "regulatory";
+
+const FILTERS: { id: FilterId; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "signals", label: "Signals" },
+  { id: "risks", label: "Risks" },
+  { id: "research", label: "Research" },
+  { id: "competitive", label: "Competitive" },
+  { id: "stakeholder", label: "Stakeholder" },
+  { id: "regulatory", label: "Regulatory" },
+];
+
+function matchesFilter(nodeType: string | null | undefined, f: FilterId): boolean {
+  if (f === "all") return true;
+  const t = (nodeType ?? "").toLowerCase();
+  switch (f) {
+    case "risks": return t === "risk" || t === "threat";
+    case "research": return t === "requirement" || t === "evaluation_criterion";
+    case "competitive": return t === "competitor" || t === "competitive";
+    case "stakeholder": return t === "stakeholder";
+    case "regulatory": return t === "regulatory" || t === "compliance";
+    case "signals":
+      return !["risk", "threat", "requirement", "evaluation_criterion", "competitor", "competitive", "stakeholder", "regulatory", "compliance"].includes(t);
+    default: return true;
+  }
+}
+
 export function WriterIntelView({ missionId }: { missionId: string }) {
   const { data: nodes, isLoading } = useNodes(missionId);
-  const { data: eng } = useEngagement(missionId);
+  const [filter, setFilter] = useState<FilterId>("all");
 
   const sorted = useMemo(() => {
-    const list = (nodes ?? []).slice();
+    const list = (nodes ?? []).filter((n) => matchesFilter(n.node_type, filter)).slice();
     list.sort((a, b) => {
       const ta = treat(a.node_type, a.confidence_level);
       const tb = treat(b.node_type, b.confidence_level);
@@ -153,58 +180,49 @@ export function WriterIntelView({ missionId }: { missionId: string }) {
       return confRank(b.confidence_level) - confRank(a.confidence_level);
     });
     return list;
-  }, [nodes]);
-
-  const lastUpdated = useMemo(() => {
-    const ts = (nodes ?? [])
-      .map((n) => (n.updated_at ? new Date(n.updated_at).getTime() : 0))
-      .reduce((max, t) => (t > max ? t : max), 0);
-    return ts ? new Date(ts).toISOString() : null;
-  }, [nodes]);
-
-  const featured = sorted[0];
-  const featuredEligible = featured && treat(featured.node_type, featured.confidence_level).bucket <= 1;
-  const rest = featuredEligible ? sorted.slice(1) : sorted;
+  }, [nodes, filter]);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <header>
-        <h1 className="text-white" style={{ fontSize: 22, fontWeight: 500, letterSpacing: "-0.01em" }}>
-          ⚡ What IRIS Is Watching
-        </h1>
-        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginTop: 4 }}>
-          Curated intelligence for your mission. Updated as the environment changes.
-        </p>
-        <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, marginTop: 2 }}>
-          Last updated {relTime(lastUpdated)}
-        </p>
-      </header>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        {FILTERS.map((f) => {
+          const active = filter === f.id;
+          return (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setFilter(f.id)}
+              className="inline-flex items-center rounded-full transition-colors"
+              style={{
+                padding: "5px 12px",
+                fontSize: 12,
+                fontWeight: active ? 500 : 400,
+                color: active ? "#C49A2B" : "rgba(255,255,255,0.45)",
+                background: active ? "rgba(196,154,43,0.12)" : "transparent",
+                border: `0.5px solid ${active ? "rgba(196,154,43,0.3)" : "rgba(255,255,255,0.08)"}`,
+              }}
+            >
+              {f.label}
+            </button>
+          );
+        })}
+      </div>
 
-      {/* Signals strip */}
-      <SignalsStrip eng={eng} />
-
-      {/* Cards */}
       {isLoading ? (
         <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Loading…</div>
       ) : sorted.length === 0 ? (
         <EmptyState />
       ) : (
-        <section className="space-y-4">
-          {featuredEligible && featured ? <FeaturedCard node={featured} /> : null}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {rest.map((n) => (
-              <IntelCard key={n.id} node={n} />
-            ))}
-          </div>
-        </section>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {sorted.map((n) => (
+            <IntelCard key={n.id} node={n} />
+          ))}
+        </div>
       )}
-
-      {/* Competitor landscape */}
-      <CompetitorLandscape missionId={missionId} competitors={normalizeCompetitors(eng?.competitors)} />
     </div>
   );
 }
+
 
 // ---------- Signals strip -----------------------------------------------------------
 

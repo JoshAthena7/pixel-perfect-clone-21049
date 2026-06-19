@@ -181,7 +181,7 @@ function MeetIrisIntro() {
         client_name: client.trim(),
       });
       navigate({
-        to: "/olympus/missions/$missionId/wizard",
+        to: "/olympus/wizard/$missionId",
         params: { missionId: data.id },
         search: { step: 1 },
       });

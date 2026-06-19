@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { runOracleStage } from "@/lib/oracle-pipeline.functions";
 import { toast } from "sonner";
-import { Loader2, Zap } from "lucide-react";
+import { Loader2, Zap, ArrowRight } from "lucide-react";
 import { TaxonomyBrowser } from "./TaxonomyBrowser";
 import { IntelReviewQueue } from "./IntelReviewQueue";
 import { SourcesPanel } from "./SourcesPanel";
 import { HealthColumn } from "./HealthColumn";
+
 
 
 type MissionRow = { id: string; name: string; submission_deadline: string | null };
@@ -172,12 +174,20 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
           }
         >
           {leftTab === "taxonomy" ? (
-            <TaxonomyBrowser selectedNodeId={selectedNodeId} onSelect={setSelectedNodeId} />
+            missionId ? (
+              <OracleLeftColumn
+                missionId={missionId}
+                selectedNodeId={selectedNodeId}
+                onSelect={setSelectedNodeId}
+              />
+            ) : (
+              <TaxonomyBrowser selectedNodeId={selectedNodeId} onSelect={setSelectedNodeId} />
+            )
           ) : (
             <SourcesPanel />
           )}
         </Column>
-        <Column title="INTEL REVIEW QUEUE" borderX>
+        <Column title="INTEL REVIEW QUEUE" borderX dataAttr="review">
           <IntelReviewQueue missionId={missionId} taxonomyNodeId={selectedNodeId} />
         </Column>
         <div
@@ -199,14 +209,17 @@ function Column({
   title,
   children,
   borderX,
+  dataAttr,
 }: {
   title: React.ReactNode;
   children: React.ReactNode;
   borderX?: boolean;
+  dataAttr?: string;
 }) {
   return (
     <div
       className="h-full overflow-y-auto"
+      data-olympus-col={dataAttr}
       style={{
         borderLeft: borderX ? "1px solid rgba(255,255,255,0.06)" : undefined,
         borderRight: borderX ? "1px solid rgba(255,255,255,0.06)" : undefined,
@@ -235,3 +248,123 @@ function PhasePlaceholder({ phase, note }: { phase: string; note: string }) {
 function EmptyMessage({ children }: { children: React.ReactNode }) {
   return <div className="text-[11px] text-white/40 px-2 py-6 text-center">{children}</div>;
 }
+
+function OracleLeftColumn({
+  missionId,
+  selectedNodeId,
+  onSelect,
+}: {
+  missionId: string;
+  selectedNodeId: string | null;
+  onSelect: (id: string | null) => void;
+}) {
+  const countQ = useQuery({
+    queryKey: ["oracle-approved-count", missionId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("oracle_signals")
+        .select("id", { count: "exact", head: true })
+        .eq("mission_id", missionId)
+        .in("status", ["approved", "pushed"]);
+      return count ?? 0;
+    },
+    staleTime: 30_000,
+  });
+
+  if (countQ.isLoading) {
+    return <div className="text-[11px] text-white/40 py-4">Loading…</div>;
+  }
+
+  if ((countQ.data ?? 0) < 10) {
+    return <OracleEmptyGuide missionId={missionId} />;
+  }
+
+  return <TaxonomyBrowser selectedNodeId={selectedNodeId} onSelect={onSelect} />;
+}
+
+function OracleEmptyGuide({ missionId }: { missionId: string }) {
+  const goReview = () => {
+    const el = document.querySelector('[data-olympus-col="review"]');
+    if (el) (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  return (
+    <div
+      className="rounded-lg p-5"
+      style={{
+        background: "rgba(5,13,24,0.85)",
+        border: "1px solid rgba(212,175,55,0.35)",
+        boxShadow: "0 0 30px rgba(212,175,55,0.08)",
+      }}
+    >
+      <div className="text-center mb-5">
+        <div style={{ color: "#d4af37", fontSize: 13, fontWeight: 600 }}>⚡ ORACLE is empty</div>
+        <div className="text-white/55 text-[11px] mt-1">
+          Three steps to activate IRIS briefings:
+        </div>
+      </div>
+      <ol className="space-y-4">
+        <GuideStep n={1} title="Run the Setup Wizard"
+          body="Upload your RFP and documents. IRIS extracts intelligence automatically.">
+          <Link
+            to="/olympus/wizard/$missionId"
+            params={{ missionId }}
+            search={{ step: 1 }}
+            className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium"
+            style={{ background: "#d4af37", color: "#070f1c" }}
+          >
+            Open Setup Wizard <ArrowRight className="h-3 w-3" />
+          </Link>
+        </GuideStep>
+        <GuideStep n={2} title="Review extracted items"
+          body="IRIS will surface items here for your review. Approve what's accurate.">
+          <button
+            type="button"
+            onClick={goReview}
+            className="text-[11px] text-white/55 hover:text-white/80 inline-flex items-center gap-1"
+          >
+            Go to Review Queue <ArrowRight className="h-3 w-3" />
+          </button>
+        </GuideStep>
+        <GuideStep n={3} title="IRIS briefs go live"
+          body="Once you have 10+ approved items, IRIS briefs on every question become grounded in real ORACLE intelligence." />
+      </ol>
+    </div>
+  );
+}
+
+function GuideStep({
+  n,
+  title,
+  body,
+  children,
+}: {
+  n: number;
+  title: string;
+  body: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <li className="flex gap-3">
+      <div
+        className="shrink-0 rounded-full flex items-center justify-center"
+        style={{
+          width: 22,
+          height: 22,
+          background: "rgba(212,175,55,0.12)",
+          border: "1px solid rgba(212,175,55,0.4)",
+          color: "#d4af37",
+          fontSize: 11,
+          fontWeight: 600,
+        }}
+      >
+        {n}
+      </div>
+      <div className="min-w-0">
+        <div className="text-white/85 text-[12px] font-medium">{title}</div>
+        <div className="text-white/45 text-[11px] mt-0.5 leading-snug">{body}</div>
+        {children && <div className="mt-2">{children}</div>}
+      </div>
+    </li>
+  );
+}
+
