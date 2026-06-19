@@ -29,22 +29,21 @@ const COLLAPSE_AT = 7000;
 const GONE_AT = 7700;
 const DONE_AT = 8000;
 
-type Pos = { x: number; y: number; delay: number; r: number };
+type Pos = { x: number; y: number; delay: number; r: number; twinkleDur: number; twinkleDelay: number };
 
 function buildPositions(): Pos[] {
   const out: Pos[] = [];
   for (let i = 0; i < DOT_COUNT; i++) {
-    // Spread across the full field with a soft bias away from dead-center
-    // (so the wordmark has breathing room) but still allow some near-center
-    // stars to anchor the constellation.
     const angle = Math.random() * Math.PI * 2;
     const r = 120 + Math.pow(Math.random(), 0.6) * (FIELD_W / 2 - 120);
     out.push({
       x: Math.cos(angle) * r * (0.95 + Math.random() * 0.1),
-      y: Math.sin(angle) * r * 0.62 * (0.95 + Math.random() * 0.1), // squash vertically toward sky aspect
-      // Long staggered delays — stars appear gradually, not in a burst.
+      y: Math.sin(angle) * r * 0.62 * (0.95 + Math.random() * 0.1),
       delay: Math.round(Math.random() * (EXPAND_MS - 600)),
-      r: 1.2 + Math.random() * 1.6,
+      // Crisper, slightly varied star sizes. A few brighter "lead" stars.
+      r: Math.random() < 0.15 ? 1.8 + Math.random() * 1.2 : 0.7 + Math.random() * 1.0,
+      twinkleDur: 2200 + Math.random() * 2600,
+      twinkleDelay: Math.round(Math.random() * 2000),
     });
   }
   return out;
@@ -58,11 +57,16 @@ function buildLinks(positions: Pos[]) {
       const dy = positions[i].y - positions[j].y;
       const d = Math.hypot(dx, dy);
       if (d <= LINK_DISTANCE) {
-        const delay = Math.max(positions[i].delay, positions[j].delay) + 400;
-        links.push({ a: i, b: j, delay });
+        links.push({ a: i, b: j, delay: 0 });
       }
     }
   }
+  // Spread the line draws evenly across LINE_WINDOW_MS so the network
+  // grows slowly and visibly rather than all at once.
+  links.sort(() => Math.random() - 0.5);
+  links.forEach((l, idx) => {
+    l.delay = LINE_START_AT + Math.round((idx / Math.max(1, links.length - 1)) * LINE_WINDOW_MS);
+  });
   return links;
 }
 
