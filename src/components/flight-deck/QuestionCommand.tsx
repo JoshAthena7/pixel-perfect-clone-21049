@@ -539,7 +539,14 @@ function QuestionRowItem({
               opacity: 0.7,
             }}
           >
-            <Loader2 size={12} className="animate-spin" /> Generating…
+            <Loader2 size={12} className="animate-spin" />
+            <span style={{ fontStyle: "italic", fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
+              {briefStage === "assemble"
+                ? "IRIS is assembling your brief…"
+                : briefStage === "oracle"
+                ? "Querying ORACLE…"
+                : "Generating…"}
+            </span>
           </button>
         ) : q.iris_brief_status === "queued" ? (
           <button
