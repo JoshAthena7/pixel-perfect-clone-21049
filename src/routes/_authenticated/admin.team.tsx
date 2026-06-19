@@ -207,6 +207,7 @@ function StaffPage() {
       )}
 
       {addOpen && <AddStaffDialog onClose={() => setAddOpen(false)} />}
+      {importOpen && <TalentDeskImportDialog onClose={() => setImportOpen(false)} />}
     </div>
   );
 }
