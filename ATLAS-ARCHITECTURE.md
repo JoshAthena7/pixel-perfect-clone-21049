@@ -66,10 +66,15 @@ Live row counts captured 2026-06-19.
 | `oracle_sdoh_data` | SDOH data by geography | 0 | mission-scoped |
 | `question_intel_links` | Question ↔ signal map (formerly `oracle_question_intel`) | varies | mission-scoped |
 
-`oracle_signals` columns differ slightly from the early spec:
-field-of-record names are `what_happened` / `why_it_matters` /
-`recommended_action` (no separate `full_text` / `source_url` / `created_by`
-columns). Code uses the actual columns; spec doc is the outdated party.
+`oracle_signals` canonical content columns:
+- `what_happened` — primary content describing what the intelligence item is
+- `why_it_matters` — relevance and significance for this procurement
+- `recommended_action` — what the team should do about this item (when present)
+
+These are the field-of-record names used by all code, prompts, and
+documentation. The early spec referenced `full_text` / `source_url` /
+`created_by` — those columns do not exist and must not be added. See the
+"oracle_signals Schema Note" in Known Issues for the canonical decision.
 
 `question_intel_links` uses `relevance_explanation` (not `relevance_reason`)
 and has no `mapping_source` column. Code matches the schema.
