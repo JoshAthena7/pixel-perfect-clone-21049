@@ -19,6 +19,7 @@ import appCss from "../styles.css?url";
 import { supabase } from "@/integrations/supabase/client";
 import { GlobalSearch } from "@/components/nav/GlobalSearch";
 import { PulseBar } from "@/components/nav/PulseBar";
+import { SplashGate } from "@/components/splash/SplashScreen";
 
 function NotFoundComponent() {
   return (
@@ -95,6 +96,7 @@ function RootComponent() {
         <Outlet />
       </main>
       <Toaster theme="dark" position="top-right" />
+      <SplashGate />
     </QueryClientProvider>
   );
 }
