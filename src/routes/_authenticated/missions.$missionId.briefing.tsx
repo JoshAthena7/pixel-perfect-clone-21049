@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
 import { MissionHealthSummaryCard } from "@/components/mission-command/MissionHealthSummaryCard";
+import { IntelStatusWidget } from "@/components/briefing-room/IntelStatusWidget";
 import { useMissionAccess } from "@/hooks/useAccess";
 import { useServerFn } from "@tanstack/react-start";
 import { getEvaluatorPriorities, generateEvaluatorPriorities } from "@/lib/evaluator-priorities.functions";
@@ -123,7 +124,10 @@ function BriefingPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             <div className="lg:col-span-3"><TodaysFocusCard missionId={missionId} mission={mission} /></div>
-            <div className="lg:col-span-2"><MissionHealthSummaryCard missionId={missionId} /></div>
+            <div className="lg:col-span-2 flex flex-col gap-4">
+              <MissionHealthSummaryCard missionId={missionId} />
+              <IntelStatusWidget missionId={missionId} />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

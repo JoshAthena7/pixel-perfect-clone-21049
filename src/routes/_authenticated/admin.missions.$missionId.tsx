@@ -12,8 +12,8 @@ export const Route = createFileRoute("/_authenticated/admin/missions/$missionId"
 type Tab = "overview" | "wizard";
 
 const TABS: { id: Tab; label: string }[] = [
+  { id: "wizard", label: "Mission Setup" },
   { id: "overview", label: "Overview" },
-  { id: "wizard", label: "Setup Wizard" },
 ];
 
 type Mission = {
@@ -36,7 +36,7 @@ type Mission = {
 function AdminMissionDetail() {
   const { missionId } = useParams({ from: "/_authenticated/admin/missions/$missionId" });
   const qc = useQueryClient();
-  const [tab, setTab] = useState<Tab>("overview");
+  const [tab, setTab] = useState<Tab>("wizard");
   const [form, setForm] = useState<Partial<Mission>>({});
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
