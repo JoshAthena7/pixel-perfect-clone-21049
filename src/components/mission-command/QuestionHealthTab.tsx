@@ -554,8 +554,8 @@ export function QuestionHealthTab({
         </div>
       )}
 
-      {/* Reuses the existing flight-deck Thread Panel scoped to this question */}
-      <ThreadPanel
+      {/* Sticky Notes panel scoped to this question */}
+      <StickyNotesPanel
         open={!!threadFor}
         onClose={() => setThreadFor(null)}
         missionId={missionId}
