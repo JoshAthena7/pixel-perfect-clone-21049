@@ -345,3 +345,24 @@ try/catch, and add the new `event_type` to the IN-list in
   `.env.example`, `_authenticated.tsx` `is_platform_admin` removal,
   deleted `FlightDeckV2.tsx` orphan, this document fully rewritten
   from live state.
+
+## Data Safety Boundary
+
+ATLAS stores: mission intelligence, metadata, collaboration signals,
+scores, statuses, and brief coordination notes.
+
+ATLAS does NOT store: proposal draft text, PHI, client confidential
+program data, or protected health information.
+
+Key rules:
+- `score_me_history` stores scoring metadata and analysis only (overall
+  score, opportunities, compliance flags, context meta). Raw draft text
+  submitted to Score Me is not persisted.
+- `question_notes` (Sticky Notes) are coordination metadata —
+  decisions, warnings, references. Soft limit 500 characters (UI warning).
+  Not for draft content.
+- IRIS brief output is displayed in the UI and cached for performance —
+  it is not the writing surface. Copy to Brief Notes writes to the
+  clipboard, not the database.
+- Writing happens in the client environment (Word, Loopio, SharePoint).
+  ATLAS is the intelligence layer, not the writing tool.
