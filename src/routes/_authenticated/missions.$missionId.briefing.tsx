@@ -1489,10 +1489,22 @@ function LeadershipBroadcastCard({
   };
 
   return (
-    <section style={{ ...glass, position: "relative" }}>
-      <div className="flex items-center justify-between gap-2 mb-4">
-        <div className="flex items-center gap-2" style={cardLabel}>
-          <Megaphone size={14} /> Leadership Broadcast
+    <section
+      style={{
+        position: "relative",
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        borderLeft: "3px solid rgba(196,154,43,0.4)",
+        borderRadius: 10,
+        padding: "12px 14px",
+      }}
+    >
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div
+          className="flex items-center gap-1.5"
+          style={{ fontSize: 10, letterSpacing: "0.12em", fontWeight: 700, color: META_SOFT, textTransform: "uppercase" }}
+        >
+          <Megaphone size={11} /> Leadership Broadcast
         </div>
         {canEdit && !editing && (
           <button
@@ -1500,36 +1512,36 @@ function LeadershipBroadcastCard({
             aria-label="Edit leadership broadcast"
             className="grid place-items-center"
             style={{
-              width: 26,
-              height: 26,
-              borderRadius: 6,
-              background: "rgba(255,255,255,0.06)",
+              width: 22,
+              height: 22,
+              borderRadius: 5,
+              background: "rgba(255,255,255,0.04)",
               color: META,
             }}
           >
-            <Pencil size={12} />
+            <Pencil size={10} />
           </button>
         )}
         {savedAt && (
-          <span style={{ fontSize: 11, color: "#4ade80", fontWeight: 700 }}>Saved ✓</span>
+          <span style={{ fontSize: 10, color: "#4ade80", fontWeight: 700 }}>Saved ✓</span>
         )}
       </div>
 
       {editing ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            rows={4}
+            rows={3}
             placeholder="What does leadership want the team to hear?"
             style={{
               width: "100%",
               background: "rgba(0,0,0,0.25)",
               border: "1px solid rgba(255,255,255,0.15)",
-              borderRadius: 8,
-              padding: 10,
+              borderRadius: 6,
+              padding: 8,
               color: TEXT,
-              fontSize: 14,
+              fontSize: 13,
               lineHeight: 1.5,
               resize: "vertical",
             }}
@@ -1537,27 +1549,22 @@ function LeadershipBroadcastCard({
           <input
             value={author}
             onChange={(e) => setAuthor(e.target.value)}
-            placeholder="Attribution (e.g. Josh Kahn, CEO)"
+            placeholder="Attribution"
             style={{
               width: "100%",
               background: "rgba(0,0,0,0.25)",
               border: "1px solid rgba(255,255,255,0.15)",
-              borderRadius: 8,
-              padding: "8px 10px",
+              borderRadius: 6,
+              padding: "6px 8px",
               color: TEXT,
-              fontSize: 13,
+              fontSize: 12,
             }}
           />
           <div className="flex items-center justify-end gap-2">
             <button
               onClick={() => setEditing(false)}
               disabled={saving}
-              style={{
-                fontSize: 12,
-                color: META,
-                padding: "6px 12px",
-                borderRadius: 6,
-              }}
+              style={{ fontSize: 11, color: META, padding: "4px 10px", borderRadius: 5 }}
             >
               Cancel
             </button>
@@ -1565,12 +1572,12 @@ function LeadershipBroadcastCard({
               onClick={save}
               disabled={saving}
               style={{
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 700,
                 color: NAVY,
                 background: GOLD,
-                padding: "6px 14px",
-                borderRadius: 6,
+                padding: "4px 12px",
+                borderRadius: 5,
               }}
             >
               {saving ? "Saving…" : "Save"}
@@ -1579,22 +1586,26 @@ function LeadershipBroadcastCard({
         </div>
       ) : quote ? (
         <>
-          <div style={{ fontFamily: "Georgia, serif", fontSize: 48, color: GOLD, lineHeight: 1, marginBottom: -8 }}>
-            “
-          </div>
-          <p className="italic" style={{ fontSize: 17, lineHeight: 1.5, color: "rgba(255,255,255,0.92)" }}>
+          <p
+            className="italic"
+            style={{ fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.92)" }}
+          >
             {quote}
           </p>
-          <div className="mt-4 text-right" style={{ color: GOLD, fontSize: 13, fontWeight: 600 }}>
+          <div
+            className="mt-2"
+            style={{ color: META_SOFT, fontSize: 11 }}
+          >
             — {attribution}
           </div>
         </>
       ) : (
-        <EmptyState>No broadcast yet. Click the pencil to add one.</EmptyState>
+        <div style={{ fontSize: 12, color: META_SOFT }}>No broadcast yet. Click the pencil to add one.</div>
       )}
     </section>
   );
 }
+
 
 /* ───────────────── 6. Mission Leaders ───────────────── */
 const LEADER_ROLES: { role: string; label: string }[] = [
