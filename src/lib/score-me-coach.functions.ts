@@ -201,6 +201,18 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
             "For each win theme, assess: Does this response reinforce it, contradict it, or miss it entirely? Include a Win Theme Alignment section in your feedback.",
           ]
         : []),
+      ...(data.irisChecklist?.items?.length
+        ? [
+            "",
+            `IRIS PRE-WRITING CHECKLIST (writer marked ${data.irisChecklist.planned_indices?.length ?? 0} of ${data.irisChecklist.items.length} as planned):`,
+            ...data.irisChecklist.items.map((it, i) => {
+              const planned = data.irisChecklist!.planned_indices?.includes(i) ? "PLANNED" : "NOT PLANNED";
+              return `${i + 1}. ${it.text} — [${planned}]`;
+            }),
+            `Specifically evaluate whether the draft delivers on each checklist item.`,
+            `Add to your authenticity check: "Checklist Coverage: [N] of ${data.irisChecklist.items.length} planned elements found in the draft."`,
+          ]
+        : []),
       "",
       `Draft to coach:\n${data.draftText}`,
       "",
