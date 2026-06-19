@@ -224,6 +224,8 @@ export function QuestionCommand({ missionId }: { missionId: string }) {
           onGenerate={handleGenerateBrief}
           onView={(q) => setBriefTarget(q)}
           generatingId={generatingId}
+          briefStage={briefStage}
+          prewarmState={prewarmState}
         />
       ) : (
         <AddQuestionsPanel missionId={missionId} onAdded={() => refetchQ()} />
@@ -281,12 +283,16 @@ function AllQuestionsList({
   onGenerate,
   onView,
   generatingId,
+  briefStage,
+  prewarmState,
 }: {
   questions: QuestionRow[];
   onAssign: (q: QuestionRow) => void;
   onGenerate: (q: QuestionRow) => void;
   onView: (q: QuestionRow) => void;
   generatingId: string | null;
+  briefStage: "oracle" | "assemble" | null;
+  prewarmState: Record<string, "loading" | "ready">;
 }) {
   if (questions.length === 0) {
     return (
@@ -305,7 +311,7 @@ function AllQuestionsList({
   }
   return (
     <div className="space-y-2">
-      {questions.map((q) => (
+      {questions.map((q, idx) => (
         <QuestionRowItem
           key={q.id}
           q={q}
@@ -313,6 +319,8 @@ function AllQuestionsList({
           onGenerate={() => onGenerate(q)}
           onView={() => onView(q)}
           isGenerating={generatingId === q.id}
+          briefStage={generatingId === q.id ? briefStage : null}
+          prewarm={idx < 3 ? prewarmState[q.id] ?? null : null}
         />
       ))}
     </div>
