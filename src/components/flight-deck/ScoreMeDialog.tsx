@@ -165,9 +165,9 @@ export function ScoreMeDialog({
           theOneFix: result.the_one_fix,
         },
       });
-      toast.success("Posted to Thread");
+      toast.success("Posted to Notes");
     } catch (e: any) {
-      toast.error("Could not post to Thread", { description: e?.message ?? String(e) });
+      toast.error("Could not post to Notes", { description: e?.message ?? String(e) });
     } finally {
       setPosting(false);
     }
@@ -544,7 +544,7 @@ export function ScoreMeDialog({
                   style={{ height: 28, fontSize: 11 }}
                 >
                   <MessageSquare size={12} className="mr-1" />
-                  {posting ? "Adding…" : "Add to Thread"}
+                  {posting ? "Adding…" : "Add to Notes"}
                 </Button>
               </div>
             </div>

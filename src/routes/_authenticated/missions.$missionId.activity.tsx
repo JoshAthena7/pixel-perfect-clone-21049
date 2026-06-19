@@ -50,7 +50,7 @@ const STREAMS: {
   color: string;
   Icon: typeof MessageSquare;
 }[] = [
-  { key: "thread", label: "Thread", color: "rgba(255,255,255,0.6)", Icon: MessageSquare },
+  { key: "thread", label: "Notes", color: "rgba(255,255,255,0.6)", Icon: MessageSquare },
   { key: "phone_a_friend", label: "Phone a Friend", color: "#7BA7D4", Icon: PhoneCall },
   { key: "score_me", label: "Score Me", color: "#C49A2B", Icon: Target },
   { key: "mission_pulse", label: "Mission Pulse", color: "rgba(200,195,255,0.85)", Icon: ActivityIcon },

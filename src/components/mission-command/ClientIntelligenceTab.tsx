@@ -106,7 +106,7 @@ export function ClientIntelligenceTab({ missionId }: { missionId: string }) {
         </p>
       </div>
       <div className="rounded-md border bg-primary/5 px-4 py-3 text-sm">
-        This intelligence is visible to IRIS and informs every section brief and Thread interaction on this mission.
+        This intelligence is visible to IRIS and informs every section brief and Sticky Notes interaction on this mission.
       </div>
 
       <Input placeholder="Search across all categories…" value={search} onChange={(e) => setSearch(e.target.value)} />

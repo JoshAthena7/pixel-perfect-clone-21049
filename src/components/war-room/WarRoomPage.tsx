@@ -437,7 +437,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                           </button>
                           <button onClick={() => navigate({ to: "/missions/$missionId/flight-deck", params: { missionId }, hash: s.questionId })}
                             className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 inline-flex items-center gap-1">
-                            <MessageCircle className="w-3 h-3" /> Thread
+                            📌 Notes
                           </button>
                           <button onClick={() => briefMut.mutate(s.questionId)}
                             disabled={briefMut.isPending}

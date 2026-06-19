@@ -41,7 +41,7 @@ import {
   saveAdminNote,
 } from "@/lib/health-controls.functions";
 import { useIsAdmin, useMissionAccess } from "@/hooks/useAccess";
-import { ThreadPanel } from "@/components/flight-deck/ThreadPanel";
+import { StickyNotesPanel } from "@/components/flight-deck/StickyNotesPanel";
 import { cn } from "@/lib/utils";
 import type { TabId } from "./MissionTabs";
 
@@ -554,8 +554,8 @@ export function QuestionHealthTab({
         </div>
       )}
 
-      {/* Reuses the existing flight-deck Thread Panel scoped to this question */}
-      <ThreadPanel
+      {/* Sticky Notes panel scoped to this question */}
+      <StickyNotesPanel
         open={!!threadFor}
         onClose={() => setThreadFor(null)}
         missionId={missionId}
@@ -818,8 +818,8 @@ function HealthCard({
               ) : (
                 <FlagPopover onConfirm={onFlag} />
               )}
-              <Button size="sm" variant="outline" onClick={onOpenThread}>
-                <MessageSquare className="h-3.5 w-3.5 mr-1" /> Open Thread
+              <Button size="sm" variant="outline" onClick={onOpenThread} title="Pin a note to this question so the other writer sees it">
+                📌 Notes
               </Button>
               <Button size="sm" variant="outline" onClick={copyReport}>
                 <Clipboard className="h-3.5 w-3.5 mr-1" /> Copy Health Report

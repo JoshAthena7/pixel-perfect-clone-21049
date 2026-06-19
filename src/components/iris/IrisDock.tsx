@@ -372,7 +372,7 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
         {messages.map((m) => (
           <MessageRow key={m.id} m={m} onOpenInThread={(draft) => {
             if (iris.current_mission_id && iris.current_question_id) {
-              toast.success("Opening Thread workspace…");
+              toast.success("Opening Sticky Notes…");
               navigate({ to: "/olympus/missions/$missionId", params: { missionId: iris.current_mission_id }, search: { tab: "questions", question: iris.current_question_id, draft } as never });
             } else {
               toast.error("No active question. Open a question first.");
@@ -465,7 +465,7 @@ function DraftCardView({ card, onOpenInThread }: { card: DraftCard; onOpenInThre
           <Copy className="h-3 w-3 mr-1" /> Copy
         </Button>
         <Button size="sm" className="text-xs" style={{ background: IRIS_BRAND, color: "#0F1A2E" }} onClick={() => onOpenInThread(card.draft)}>
-          Open in Thread
+          📌 Notes
         </Button>
       </div>
     </div>

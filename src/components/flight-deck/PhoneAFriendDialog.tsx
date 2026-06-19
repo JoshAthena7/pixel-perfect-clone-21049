@@ -118,7 +118,7 @@ export function PhoneAFriendDialog({
 
   const handleAdd = async (m: ExpertMatch) => {
     if (!missionId || !questionId) {
-      toast.error("Open this from a question to add to its Thread.");
+      toast.error("Open this from a question to add to its Sticky Notes.");
       return;
     }
     setAddingId(m.user_id);
@@ -135,9 +135,9 @@ export function PhoneAFriendDialog({
           whyIrisRecommends: m.why_iris_recommends || "recommended by IRIS",
         },
       });
-      toast.success(`${m.name} added to Thread`);
+      toast.success(`${m.name} added to Notes`);
     } catch (e: any) {
-      toast.error("Could not add to Thread", { description: e?.message ?? String(e) });
+      toast.error("Could not add to Notes", { description: e?.message ?? String(e) });
     } finally {
       setAddingId(null);
     }
@@ -362,7 +362,7 @@ export function PhoneAFriendDialog({
                           style={{ height: 24, fontSize: 10 }}
                         >
                           <Plus size={11} className="mr-1" />
-                          {addingId === m.user_id ? "Adding…" : "Add to Thread"}
+                          {addingId === m.user_id ? "Adding…" : "Add to Notes"}
                         </Button>
                         <Button
                           size="sm"

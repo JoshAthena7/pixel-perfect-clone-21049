@@ -133,7 +133,7 @@ export function StyleGuideTab({ missionId }: { missionId: string }) {
       <div>
         <h2 className="text-2xl font-semibold">Style Guide & Sensitivities</h2>
         <div className="mt-3 rounded-lg border border-primary/40 bg-primary/10 p-3 text-sm">
-          These standards are known to IRIS and applied in every Thread interaction and Score Me evaluation on this mission. Keep them current.
+          These standards are known to IRIS and applied in every Sticky Notes interaction and Score Me evaluation on this mission. Keep them current.
         </div>
         {lastSavedLabel && (
           <p className="text-xs text-muted-foreground mt-2">{lastSavedLabel}</p>

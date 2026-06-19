@@ -182,7 +182,7 @@ function DecisionCard({
         className="inline-flex items-center gap-1 mt-2 hover:underline"
         style={{ fontSize: 10, color: PURPLE }}
       >
-        See {sectionLabel} Thread <ArrowRight className="h-3 w-3" />
+        📌 Notes <ArrowRight className="h-3 w-3" />
       </button>
     </div>
   );
@@ -326,7 +326,7 @@ function AlignmentCard({
         className="inline-flex items-center gap-1 mt-1.5 hover:underline"
         style={{ fontSize: 10, color: PURPLE }}
       >
-        See their Thread <ArrowRight className="h-3 w-3" />
+        📌 Notes <ArrowRight className="h-3 w-3" />
       </button>
     </div>
   );

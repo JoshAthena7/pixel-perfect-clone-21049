@@ -191,7 +191,7 @@ export function FlightDeckLayout({
       if (!detail.questionId) return;
       setSelectedId(detail.questionId);
       setThreadOpen(true);
-      toast(`Opening ${detail.sectionName ?? "section"} Thread…`, {
+      toast(`Opening ${detail.sectionName ?? "section"} Sticky Notes…`, {
         duration: 2000,
         style: {
           background: "rgba(196,154,43,0.95)",
