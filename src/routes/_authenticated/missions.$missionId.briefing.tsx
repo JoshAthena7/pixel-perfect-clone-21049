@@ -1371,8 +1371,15 @@ function WhatChangedCard({ missionId }: { missionId: string }) {
         .eq("mission_id", missionId)
         .gte("created_at", since)
         .order("created_at", { ascending: false })
-        .limit(5);
-      return data ?? [];
+        .limit(20);
+      const filtered = (data ?? []).filter((ev: any) => {
+        const title = String(ev.title ?? "");
+        const type = String(ev.event_type ?? "").toUpperCase();
+        if (title.toLowerCase().startsWith("initial scan:")) return false;
+        if (type === "EXTRACTION") return false;
+        return true;
+      });
+      return filtered.slice(0, 5);
     },
   });
 
@@ -1382,7 +1389,8 @@ function WhatChangedCard({ missionId }: { missionId: string }) {
         <RefreshCw size={14} /> What Changed
       </div>
       {events.length === 0 ? (
-        <EmptyState>No changes in the last 24 hours.</EmptyState>
+        <EmptyState>No updates yet. Changes to mission intelligence will appear here.</EmptyState>
+
       ) : (
         <>
           <ul className="space-y-3">
