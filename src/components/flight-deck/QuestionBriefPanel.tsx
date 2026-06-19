@@ -141,13 +141,16 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
               Loading…
             </div>
           ) : !brief ? (
-            <div style={{ padding: "4px 0 0 0" }}>
+            <div style={{ padding: "4px 0 0 0", position: "relative", minHeight: genMutation.isPending ? 160 : undefined }}>
+              {genMutation.isPending && <IrisBriefParticles fading={particlesFading} />}
               <div
                 style={{
                   fontSize: 11.5,
                   color: "rgba(220,215,255,0.75)",
                   lineHeight: 1.55,
                   marginBottom: 8,
+                  position: "relative",
+                  zIndex: 1,
                 }}
               >
                 Get IRIS guidance before drafting: what the question really asks, who's
@@ -167,15 +170,33 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 6,
+                  position: "relative",
+                  zIndex: 1,
                 }}
               >
                 <Sparkles size={11} />
                 {genMutation.isPending ? "Generating…" : "Generate Question Brief"}
               </button>
+              {genMutation.isPending && (
+                <div
+                  style={{
+                    marginTop: 14,
+                    textAlign: "center",
+                    fontSize: 12,
+                    fontStyle: "italic",
+                    color: "rgba(220,215,255,0.65)",
+                    position: "relative",
+                    zIndex: 1,
+                  }}
+                >
+                  IRIS is assembling your brief…
+                </div>
+              )}
               {genMutation.isError && (
-                <div style={{ marginTop: 6, fontSize: 10.5, color: "#e57373" }}>
+                <div style={{ marginTop: 6, fontSize: 10.5, color: "#e57373", position: "relative", zIndex: 1 }}>
                   {(genMutation.error as Error).message}
                 </div>
+
               )}
             </div>
           ) : (
