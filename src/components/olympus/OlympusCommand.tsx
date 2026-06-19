@@ -168,21 +168,13 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
               >
                 SOURCES
               </button>
-              <button
-                onClick={() => setLeftTab("documents")}
-                className={leftTab === "documents" ? "text-white/90" : "text-white/40 hover:text-white/70"}
-              >
-                DOCUMENTS
-              </button>
             </div>
           }
         >
           {leftTab === "taxonomy" ? (
             <TaxonomyBrowser selectedNodeId={selectedNodeId} onSelect={setSelectedNodeId} />
-          ) : leftTab === "sources" ? (
-            <SourcesPanel />
           ) : (
-            <DocumentsTab missionId={missionId} />
+            <SourcesPanel />
           )}
         </Column>
         <Column title="INTEL REVIEW QUEUE" borderX>
