@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
-import { Zap, RefreshCw, AlertTriangle, Info } from "lucide-react";
+import { Zap, RefreshCw, AlertTriangle, Info, LifeBuoy } from "lucide-react";
 import { generateIrisAlerts, type IrisAlert } from "@/lib/iris-alerts.functions";
 import { AlertsSkeleton, IrisHealthyCard, IrisOrientingCard } from "./AtcEmptyStates";
+import { supabase } from "@/integrations/supabase/client";
+import { AssignSmeModal } from "./AssignSmeModal";
 
 function relTime(iso: string | null | undefined) {
   if (!iso) return "—";
@@ -19,12 +22,63 @@ export function IrisAlertsPanel({ missionId, bare = false, onCountChange, missio
   const qc = useQueryClient();
   const navigate = useNavigate();
   const fn = useServerFn(generateIrisAlerts);
+  const [assignFor, setAssignFor] = useState<{ qid: string; qNum: string } | null>(null);
 
   const q = useQuery({
     queryKey: ["iris-alerts", missionId],
     queryFn: () => fn({ data: { missionId } }),
-    refetchInterval: 15 * 60_000, // 15 min auto-refresh
+    refetchInterval: 15 * 60_000,
     staleTime: 60_000,
+  });
+
+  // Deterministic SOS alerts — anything with sos_raised and no later sos_acknowledged
+  const sosQ = useQuery({
+    queryKey: ["war-room-sos", missionId],
+    queryFn: async () => {
+      const [{ data: events }, { data: questions }] = await Promise.all([
+        supabase
+          .from("mission_assist_events")
+          .select("question_id, event_type, user_id, created_at, metadata")
+          .eq("mission_id", missionId)
+          .in("event_type", ["sos_raised", "sos_acknowledged"])
+          .order("created_at", { ascending: true }),
+        supabase
+          .from("mission_questions")
+          .select("id, question_number, question_text")
+          .eq("mission_id", missionId),
+      ]);
+      const lastByQid = new Map<string, any>();
+      for (const ev of (events ?? []) as any[]) {
+        if (!ev.question_id) continue;
+        lastByQid.set(ev.question_id, ev);
+      }
+      const qMap = new Map<string, any>((questions ?? []).map((qq: any) => [qq.id, qq]));
+      const writerIds = Array.from(new Set(
+        Array.from(lastByQid.values())
+          .filter((ev) => ev.event_type === "sos_raised")
+          .map((ev) => ev.user_id)
+          .filter(Boolean),
+      ));
+      const { data: profs } = writerIds.length
+        ? await supabase.from("profiles").select("id, display_name, email").in("id", writerIds as string[])
+        : { data: [] as any[] };
+      const profMap = new Map<string, any>((profs ?? []).map((p: any) => [p.id, p]));
+      const out: { qid: string; qNum: string; qText: string; writerName: string }[] = [];
+      lastByQid.forEach((ev, qid) => {
+        if (ev.event_type !== "sos_raised") return;
+        const qq = qMap.get(qid);
+        if (!qq) return;
+        const p = profMap.get(ev.user_id);
+        out.push({
+          qid,
+          qNum: String(qq.question_number ?? "?"),
+          qText: String(qq.question_text ?? "").slice(0, 50),
+          writerName: p?.display_name || p?.email?.split("@")[0] || "A writer",
+        });
+      });
+      return out;
+    },
+    refetchInterval: 60_000,
   });
 
   const handleAction = (target: string) => {
@@ -49,15 +103,45 @@ export function IrisAlertsPanel({ missionId, bare = false, onCountChange, missio
 
   const isRefreshing = q.isFetching;
   const alerts = q.data?.alerts ?? [];
+  const sosAlerts = sosQ.data ?? [];
   const errMsg = q.data?.error ?? (q.error ? (q.error as Error).message : null);
 
   if (onCountChange) {
     // best-effort: notify parent of alert count for header chip
-    queueMicrotask(() => onCountChange(alerts.length));
+    queueMicrotask(() => onCountChange(alerts.length + sosAlerts.length));
   }
 
   const body = (
     <>
+      {sosAlerts.length > 0 && (
+        <ul className="space-y-1.5 mb-2">
+          {sosAlerts.map((s) => (
+            <li
+              key={s.qid}
+              className={bare ? "py-2.5 px-3 hover:bg-white/[0.02]" : "rounded border border-white/10 bg-red-500/[0.05] p-3"}
+              style={{ borderLeft: "3px solid #ef4444" }}
+            >
+              <div className="flex items-start gap-2">
+                <LifeBuoy className="w-4 h-4 mt-0.5 shrink-0 text-red-400" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] text-white/90 leading-snug">
+                    <span className="font-semibold">{s.writerName}</span> needs an SME on{" "}
+                    <span style={{ color: GOLD }}>Q{s.qNum}</span> — {s.qText}
+                  </div>
+                  <div className="mt-1.5">
+                    <button
+                      onClick={() => setAssignFor({ qid: s.qid, qNum: s.qNum })}
+                      className="text-[11px] font-medium hover:underline text-red-400"
+                    >
+                      Assign SME →
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
       {q.isLoading ? (
         <AlertsSkeleton count={3} />
       ) : errMsg && alerts.length === 0 ? (
@@ -65,11 +149,11 @@ export function IrisAlertsPanel({ missionId, bare = false, onCountChange, missio
           <Info className="w-3.5 h-3.5 text-sky-400 mt-0.5 shrink-0" />
           <span>IRIS could not generate alerts right now. Check back shortly.</span>
         </div>
-      ) : alerts.length === 0 && missionTooNew ? (
+      ) : alerts.length === 0 && sosAlerts.length === 0 && missionTooNew ? (
         <IrisOrientingCard />
-      ) : alerts.length === 0 ? (
+      ) : alerts.length === 0 && sosAlerts.length === 0 ? (
         <IrisHealthyCard generatedAt={q.data?.generatedAt} />
-      ) : (
+      ) : alerts.length === 0 ? null : (
         <ul className="space-y-1.5">
           {alerts.map((a: IrisAlert, i: number) => (
             <AlertCard
@@ -81,6 +165,14 @@ export function IrisAlertsPanel({ missionId, bare = false, onCountChange, missio
             />
           ))}
         </ul>
+      )}
+      {assignFor && (
+        <AssignSmeModal
+          missionId={missionId}
+          questionId={assignFor.qid}
+          questionNumber={assignFor.qNum}
+          onClose={() => setAssignFor(null)}
+        />
       )}
     </>
   );

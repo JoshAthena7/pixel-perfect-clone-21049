@@ -744,7 +744,11 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
 
                 {/* Compact signal grid — 4 always-visible fields */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <SignalRow label="Status" value={q.progress_status.replace(/_/g, " ")} />
+                  <StatusDropdown
+                    current={q.progress_status}
+                    pensDown={!!cockpit?.pensDown}
+                    onChange={(next) => handleStatusChange(q, next)}
+                  />
                   <SignalRow label="Confidence" value={q.writer_confidence || "Not set"} />
                   <SignalRow label="Last Activity" value={relTime(q.last_activity_at)} />
                   <SignalRow label="Brief Status" value={q.iris_brief_status ? `${q.iris_brief_status}${briefAge != null ? ` · ${briefAge}d old` : ""}` : "—"} />
@@ -950,6 +954,50 @@ function SignalRow({ label, value }: { label: string; value: string }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
       <span style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>{label}</span>
       <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.85)" }}>{value}</span>
+    </div>
+  );
+}
+
+function StatusDropdown({
+  current, pensDown, onChange,
+}: { current: string; pensDown: boolean; onChange: (next: ProgressStatus) => void }) {
+  const options = nextStatuses(current, pensDown);
+  function handleSelect(e: React.ChangeEvent<HTMLSelectElement>) {
+    const next = e.target.value as ProgressStatus;
+    if (!next) return;
+    if (next === "finalized") {
+      const ok = window.confirm("Mark this question as Finalized? This signals to your lead that your response is complete.");
+      if (!ok) { e.target.value = ""; return; }
+    }
+    onChange(next);
+    e.target.value = "";
+  }
+  const displayCurrent = (current ?? "not_started").replace(/_/g, " ");
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <span style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>Status</span>
+      {options.length === 0 ? (
+        <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.85)" }}>{displayCurrent}</span>
+      ) : (
+        <select
+          defaultValue=""
+          onChange={handleSelect}
+          title="Advance status"
+          style={{
+            fontSize: 11.5, color: "rgba(255,255,255,0.95)",
+            background: "rgba(196,154,43,0.08)",
+            border: "1px solid rgba(196,154,43,0.3)", borderRadius: 4,
+            padding: "2px 4px", cursor: "pointer",
+          }}
+        >
+          <option value="" disabled>{displayCurrent} ▾</option>
+          {options.map((opt) => (
+            <option key={opt} value={opt} style={{ background: "#0a1828" }}>
+              → {opt.replace(/_/g, " ")}
+            </option>
+          ))}
+        </select>
+      )}
     </div>
   );
 }
