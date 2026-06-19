@@ -26,8 +26,8 @@ const LABEL_IN_AT = 4200; // ATLAS begins fading in after the sky fills + lines 
 const LABEL_FADE_MS = 1800;
 const HOLD_AT = 6200;     // beat where everything sits, fully visible
 const COLLAPSE_AT = 7000;
-const GONE_AT = 7700;
-const DONE_AT = 8000;
+const GONE_AT = 9200;     // long, dramatic dim
+const DONE_AT = 10000;
 
 type Pos = { x: number; y: number; delay: number; r: number; twinkleDur: number; twinkleDelay: number };
 
@@ -110,7 +110,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
         zIndex: 9999,
         background: "#000",
         opacity: overlayOpacity,
-        transition: "opacity 150ms ease-out",
+        transition: "opacity 800ms ease-out",
         pointerEvents: "none",
         overflow: "hidden",
       }}
@@ -149,7 +149,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               style={{
                 opacity: collapsing ? 0 : 1,
                 transition: collapsing
-                  ? "opacity 500ms ease-out, stroke-dashoffset 500ms ease-out"
+                  ? "opacity 1600ms ease-out, stroke-dashoffset 1800ms ease-out"
                   : `stroke-dashoffset 1600ms cubic-bezier(0.4,0,0.2,1) ${l.delay}ms, opacity 800ms ease-out ${l.delay}ms`,
               }}
             />
@@ -162,7 +162,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               transformOrigin: "0 0",
               opacity: collapsing ? 0 : 1,
               transition: collapsing
-                ? "opacity 600ms ease-in"
+                ? "opacity 1800ms ease-in"
                 : `opacity 1400ms ease-out ${p.delay}ms`,
             }}
           >
@@ -180,7 +180,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
                   ? "none"
                   : `atlasTwinkle ${p.twinkleDur}ms ease-in-out ${p.twinkleDelay}ms infinite`,
                 transition: collapsing
-                  ? "cx 600ms ease-in, cy 600ms ease-in"
+                  ? "cx 1800ms ease-in, cy 1800ms ease-in"
                   : `cx 2000ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms, cy 2000ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms`,
               }}
             />
@@ -192,7 +192,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
               fill="rgba(255,243,210,0.98)"
               style={{
                 transition: collapsing
-                  ? "cx 600ms ease-in, cy 600ms ease-in"
+                  ? "cx 1800ms ease-in, cy 1800ms ease-in"
                   : `cx 2000ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms, cy 2000ms cubic-bezier(0.16,0.84,0.3,1) ${p.delay}ms`,
               }}
             />
@@ -206,7 +206,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           fill="rgba(196,154,43,0.95)"
           style={{
             opacity: phase === "out" ? 1 : 0,
-            transition: "opacity 300ms ease-out",
+            transition: "opacity 1200ms ease-out",
           }}
         />
       </svg>
@@ -235,7 +235,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             transform: labelsIn && !collapsing ? "translateY(0)" : "translateY(6px)",
             textShadow: "0 0 24px rgba(196,154,43,0.25)",
             transition: collapsing
-              ? "opacity 500ms ease-out"
+              ? "opacity 1600ms ease-out"
               : `opacity ${LABEL_FADE_MS}ms ease-out, transform ${LABEL_FADE_MS}ms ease-out`,
           }}
         >
@@ -251,7 +251,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             color: "rgba(196,154,43,0.75)",
             opacity: collapsing ? 0 : labelsIn ? 1 : 0,
             transition: collapsing
-              ? "opacity 500ms ease-out"
+              ? "opacity 1600ms ease-out"
               : `opacity ${LABEL_FADE_MS}ms ease-out 600ms`,
           }}
         >
