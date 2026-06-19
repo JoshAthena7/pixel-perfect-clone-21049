@@ -21,6 +21,13 @@ export function AtlasLoginPage() {
 
   useEffect(() => {
     let cancelled = false;
+    // Dev Tools previews this page inside an iframe with ?preview=1.
+    // Skip the auto-redirect so admins can see the actual login UI even
+    // while signed in. Real sign-in flows are unaffected.
+    const isPreview =
+      typeof window !== "undefined" &&
+      (window.location.search.includes("preview=1") || window.self !== window.top);
+    if (isPreview) return;
     supabase.auth.getUser().then(({ data }) => {
       if (!cancelled && data.user) routeAfterAuth(data.user.id);
     });
