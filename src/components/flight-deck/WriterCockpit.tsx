@@ -1034,9 +1034,12 @@ function CoordinationCards({ cockpit, onFlag, onOpenNotes }: { cockpit: any; onF
   }
   // Conflicts first, then alignment, then shared
   cards.sort((a, b) => (a.kind === "conflict" ? 0 : a.kind === "alignment" ? 1 : 2) - (b.kind === "conflict" ? 0 : b.kind === "alignment" ? 1 : 2));
-  const shown = cards.slice(0, 5);
+  const [expanded, setExpanded] = useState(false);
+  const MAX_COLLAPSED = 3;
+  const shown = expanded ? cards : cards.slice(0, MAX_COLLAPSED);
+  const hiddenCount = Math.max(0, cards.length - MAX_COLLAPSED);
 
-  if (!shown.length) {
+  if (!cards.length) {
     return (
       <div style={{ padding: 14, textAlign: "center", color: "rgba(255,255,255,0.4)", fontSize: 11 }}>
         No coordination signals yet.<br/>IRIS will surface connections as the mission intelligence builds.
