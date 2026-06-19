@@ -12,6 +12,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import atlasWordmark from "@/assets/atlas-wordmark-optical.png";
+import athenaMark from "@/assets/athena-mark-v3.png.asset.json";
 
 const DOT_COUNT = 110;
 const FIELD_W = 1800; // viewBox width — fills the sky
@@ -27,8 +28,9 @@ const LABEL_IN_AT = 4200; // ATLAS begins fading in after the sky fills + lines 
 const LABEL_FADE_MS = 1800;
 const HOLD_AT = 6200;     // beat where everything sits, fully visible
 const COLLAPSE_AT = 7000;
-const GONE_AT = 10200;    // long, dramatic dim — ATLAS fades over ~2.8s
-const DONE_AT = 11000;
+const LOGO_GROW_AT = 8200; // the last star blooms into the Athena mark
+const GONE_AT = 11800;    // long, dramatic dim — ATLAS fades, logo lingers
+const DONE_AT = 12800;
 
 type Pos = { x: number; y: number; delay: number; r: number; twinkleDur: number; twinkleDelay: number };
 
@@ -77,6 +79,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
   // 'in' = expanding outward, 'out' = collapsing back, 'gone' = faded.
   const [phase, setPhase] = useState<"in" | "out" | "gone">("in");
   const [labelsIn, setLabelsIn] = useState(false);
+  const [logoIn, setLogoIn] = useState(false);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -85,6 +88,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
     });
     const t1 = setTimeout(() => setLabelsIn(true), LABEL_IN_AT);
     const t2 = setTimeout(() => setPhase("out"), COLLAPSE_AT);
+    const tLogo = setTimeout(() => setLogoIn(true), LOGO_GROW_AT);
     const t3 = setTimeout(() => setPhase("gone"), GONE_AT);
     const t4 = setTimeout(() => onDone(), DONE_AT);
     // touch HOLD_AT so lints don't complain about unused constant
@@ -93,6 +97,7 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       clearTimeout(t1);
       clearTimeout(t2);
+      clearTimeout(tLogo);
       clearTimeout(t3);
       clearTimeout(t4);
     };
@@ -199,18 +204,51 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
             />
           </g>
         ))}
-        {/* Final lingering core dot */}
+        {/* Final lingering core dot — seeds the Athena logo bloom */}
         <circle
           cx={0}
           cy={0}
           r={2.5}
-          fill="rgba(196,154,43,0.95)"
+          fill="rgba(255,236,180,1)"
           style={{
-            opacity: phase === "out" ? 1 : 0,
-            transition: "opacity 1200ms ease-out",
+            opacity: phase === "out" && !logoIn ? 1 : 0,
+            transition: "opacity 700ms ease-out",
+            filter: "drop-shadow(0 0 8px rgba(229,189,90,0.9))",
           }}
         />
       </svg>
+
+      {/* Athena mark — grows out of the last remaining star */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          pointerEvents: "none",
+        }}
+      >
+        <img
+          src={athenaMark.url}
+          alt="Athena"
+          draggable={false}
+          style={{
+            height: 140,
+            width: 140,
+            objectFit: "contain",
+            userSelect: "none",
+            filter: "drop-shadow(0 0 32px rgba(229,189,90,0.55))",
+            opacity: phase === "gone" ? 0 : logoIn ? 1 : 0,
+            transform: logoIn && phase !== "gone" ? "scale(1)" : "scale(0.02)",
+            transition:
+              phase === "gone"
+                ? "opacity 900ms ease-out, transform 900ms ease-out"
+                : "opacity 1600ms ease-out, transform 1800ms cubic-bezier(0.16,0.84,0.3,1)",
+          }}
+        />
+      </div>
+
 
 
       <div
