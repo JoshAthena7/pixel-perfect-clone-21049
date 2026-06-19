@@ -719,7 +719,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                     color: healthColor(q.health_status),
                     textTransform: "uppercase", letterSpacing: "0.04em",
                   }}>
-                    {q.health_status === "at_risk" ? "At Risk" : q.health_status === "watch" ? "Watch" : "On Track"}
+                    {q.health_status === "at_risk" ? "At Risk" : q.health_status === "watch" ? "Priority" : "On Track"}
                   </span>
                   {dRem !== null && (
                     <span style={{ fontSize: 13, color: dRem < 7 ? RED : dRem < 14 ? AMBER : GREEN, fontWeight: 600 }}>
@@ -728,24 +728,26 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                   )}
                 </div>
 
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
-                  Status:{" "}
-                  <span style={{ color: STATUS_COLORS[q.progress_status] || "white", fontWeight: 600 }}>
-                    {q.progress_status.replace(/_/g, " ")}
-                  </span>
+                {/* Compact signal grid — 4 always-visible fields */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <SignalRow label="Status" value={q.progress_status.replace(/_/g, " ")} />
+                  <SignalRow label="Confidence" value={q.writer_confidence || "Not set"} />
+                  <SignalRow label="Last Activity" value={relTime(q.last_activity_at)} />
+                  <SignalRow label="Brief Status" value={q.iris_brief_status ? `${q.iris_brief_status}${briefAge != null ? ` · ${briefAge}d old` : ""}` : "—"} />
                 </div>
 
-                {/* Compact signal grid */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <SignalRow label="Brief Status" value={q.iris_brief_status ? `${q.iris_brief_status}${briefAge != null ? ` · ${briefAge}d old` : ""}` : "—"} />
-                  <SignalRow label="Brief Exported" value={q.brief_exported_at ? new Date(q.brief_exported_at).toLocaleDateString() : "Not yet exported"} />
-                  <SignalRow label="Last Activity" value={relTime(q.last_activity_at)} />
-                  <SignalRow label="Mock Score" value={q.mock_score != null ? `${q.mock_score} / ${q.max_score ?? 100}` : "Not yet scored"} />
-                  <SignalRow label="Confidence" value={q.writer_confidence || "Not set"} />
-                  <SignalRow label="Internal Due" value={q.internal_due_date ? new Date(q.internal_due_date).toLocaleDateString() : "Not set"} />
-                  <SignalRow label="Coherence" value={q.coherence_status || "Unreviewed"} />
-                  <SignalRow label="Weight / Pages" value={`${q.evaluation_weight ?? "—"}% · ${q.page_limit ?? "—"}p`} />
-                </div>
+                <details style={{ marginTop: -4 }}>
+                  <summary style={{ cursor: "pointer", fontSize: 10.5, color: "rgba(255,255,255,0.55)", letterSpacing: "0.06em", padding: "4px 0" }}>
+                    More details ↓
+                  </summary>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
+                    <SignalRow label="Draft Score" value={q.mock_score != null ? `${q.mock_score} / ${q.max_score ?? 100}` : "Not yet scored"} />
+                    <SignalRow label="Internal Due" value={q.internal_due_date ? new Date(q.internal_due_date).toLocaleDateString() : "Not set"} />
+                    <SignalRow label="Narrative Alignment" value={q.coherence_status || "Unreviewed"} />
+                    <SignalRow label="Section Weight" value={`${q.evaluation_weight ?? "—"}% · ${q.page_limit ?? "—"}p`} />
+                    <SignalRow label="Brief Exported" value={q.brief_exported_at ? new Date(q.brief_exported_at).toLocaleDateString() : "Not yet exported"} />
+                  </div>
+                </details>
 
                 {/* 4-button assist bar — Check-In / Score Me / Sticky Notes / Mission Pulse */}
                 <div
