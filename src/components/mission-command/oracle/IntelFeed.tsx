@@ -547,7 +547,7 @@ function AddIntelDialog({
     >
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Add Intel</DialogTitle>
+          <DialogTitle>Add Single Item</DialogTitle>
           <DialogDescription>
             Add an entry to the Intelligence Feed for this mission.
           </DialogDescription>
