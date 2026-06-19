@@ -286,6 +286,7 @@ export function FlightDeckLayout({
         questionText={activeQ?.question_text ?? null}
         dueDate={activeAsg?.due_date ?? activeQ?.due_date ?? null}
         confidence={activeAsg?.writer_confidence ?? null}
+        progressId={(activeAsg as any)?.progress_id ?? (activeQ as any)?.progress_id ?? null}
         threadOpen={threadOpen}
         onThreadOpenChange={setThreadOpen}
         pulseOpen={pulseOpen}
