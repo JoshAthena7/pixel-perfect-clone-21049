@@ -174,7 +174,15 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
           }
         >
           {leftTab === "taxonomy" ? (
-            <TaxonomyBrowser selectedNodeId={selectedNodeId} onSelect={setSelectedNodeId} />
+            missionId ? (
+              <OracleLeftColumn
+                missionId={missionId}
+                selectedNodeId={selectedNodeId}
+                onSelect={setSelectedNodeId}
+              />
+            ) : (
+              <TaxonomyBrowser selectedNodeId={selectedNodeId} onSelect={setSelectedNodeId} />
+            )
           ) : (
             <SourcesPanel />
           )}
