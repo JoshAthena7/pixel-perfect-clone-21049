@@ -48,6 +48,13 @@ const groupIdFor = (raw: string | null | undefined): string => {
 export function IntelSources({ missionId }: { missionId: string }) {
   const [showAdd, setShowAdd] = useState(false);
   const qc = useQueryClient();
+  const listOracleSourcesFn = useServerFn(listOracleSourcesForMission);
+
+  const { data: oracleSources = [] } = useQuery({
+    queryKey: ["oracle-source-registry", missionId],
+    queryFn: () => listOracleSourcesFn({ data: { missionId } }),
+    staleTime: 30_000,
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["intel-sources", missionId],
