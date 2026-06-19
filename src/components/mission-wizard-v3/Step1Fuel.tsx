@@ -146,13 +146,15 @@ export function Step1Fuel({
               purpose: (d.document_purpose as DocumentPurpose | null) ?? guessPurpose(d.title ?? ""),
               isStyleGuide: !!d.is_style_guide,
               isPrimaryRfp: d.document_type === "primary_rfp",
+              userTagged: !!d.document_purpose,
             })),
       );
     })();
   }, [missionId]);
 
   const hasAnyDone = rows.some((r) => r.status === "done");
-  const canAnalyze = name.trim().length > 0 && hasAnyDone && !analyzing;
+  const allTagged = rows.filter((r) => r.status === "done").every((r) => r.userTagged);
+  const canAnalyze = name.trim().length > 0 && hasAnyDone && allTagged && !analyzing;
 
   const saveName = async (v: string) => {
     setName(v);
