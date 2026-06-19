@@ -60,6 +60,18 @@ export function ScoreMeDialog({
     items: { text: string; critical?: boolean }[];
     planned: number[];
   } | null>(null);
+  // Scan-line pass counter — re-mounts the scan element so the CSS animation restarts.
+  const [scanPass, setScanPass] = useState(0);
+  useEffect(() => {
+    if (!loading) {
+      setScanPass(0);
+      return;
+    }
+    setScanPass(1);
+    const id = window.setInterval(() => setScanPass((p) => p + 1), 3000);
+    return () => window.clearInterval(id);
+  }, [loading]);
+
 
   useEffect(() => {
     if (!open) {
