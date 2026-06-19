@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Users, Radar as RadarIcon, Zap, Clipboard, Clock, CheckCircle2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const GOLD = "#c9a84c";
 
