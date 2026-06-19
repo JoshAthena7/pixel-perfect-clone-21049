@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { GlobalSearch } from "@/components/nav/GlobalSearch";
 import { PulseBar } from "@/components/nav/PulseBar";
 import { SplashGate } from "@/components/splash/SplashScreen";
+import { DevToolsPanel } from "@/components/dev/DevToolsPanel";
 
 function NotFoundComponent() {
   return (
