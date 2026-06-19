@@ -105,6 +105,26 @@ export function AtlasAssistBar({
 
   if (!missionId || !questionId) return null;
 
+  const hasAnyCache = questionId
+    ? TOOLS.some((t) => cache[`${questionId}:${t.id}`] !== undefined)
+    : false;
+
+  if (!generated && !hasAnyCache) {
+    return (
+      <div className="rounded-lg p-4 flex flex-col items-center gap-2" style={{ background: "rgba(127,119,221,0.04)", border: "1px solid rgba(127,119,221,0.18)" }}>
+        <div className="text-[11px] uppercase tracking-wider" style={{ color: GOLD }}>IRIS Brief</div>
+        <button
+          onClick={() => { setGenerated(true); fetchTool("decode", "initial"); }}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-md py-2 text-[12.5px] font-semibold"
+          style={{ background: GOLD, color: "#1a1408" }}
+        >
+          <Zap className="h-4 w-4" /> Generate Brief
+        </button>
+        <div className="text-[10.5px] text-white/45 italic text-center">IRIS will decode the intent, surface the win angle, summon evidence, and flag risks.</div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-lg p-3" style={{ background: "rgba(127,119,221,0.04)", border: "1px solid rgba(127,119,221,0.18)" }}>
       <div className="flex flex-wrap items-center gap-1.5">
@@ -113,7 +133,7 @@ export function AtlasAssistBar({
           return (
             <button
               key={t.id}
-              onClick={() => setActive(t.id)}
+              onClick={() => { setGenerated(true); setActive(t.id); }}
               className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors"
               style={{
                 background: isActive ? "rgba(196,154,43,0.12)" : "rgba(255,255,255,0.04)",
