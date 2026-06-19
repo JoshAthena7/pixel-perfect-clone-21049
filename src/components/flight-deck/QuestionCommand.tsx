@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -107,8 +107,51 @@ export function QuestionCommand({ missionId }: { missionId: string }) {
     return { total, assigned, awaiting };
   }, [questions]);
 
+  // Pre-warm ORACLE for the first 3 questions (fire-and-forget).
+  // Warms the Postgres query cache so the server-fn brief generation is faster.
+  const prewarmedOracle = useRef<Record<string, any>>({});
+  const [prewarmState, setPrewarmState] = useState<Record<string, "loading" | "ready">>({});
+  const prewarmedKey = useRef<string>("");
+  useEffect(() => {
+    const first3 = questions.slice(0, 3);
+    const key = first3.map((q) => q.id).join("|");
+    if (!key || key === prewarmedKey.current) return;
+    prewarmedKey.current = key;
+    const branches = ["INTENT", "PAINS", "WIN_LEVERS", "WHAT_CHANGED", "RISK"];
+    setPrewarmState((s) => {
+      const next = { ...s };
+      for (const q of first3) if (!prewarmedOracle.current[q.id]) next[q.id] = "loading";
+      return next;
+    });
+    first3.forEach(async (q) => {
+      if (prewarmedOracle.current[q.id]) return;
+      try {
+        const { data } = await supabase.rpc("query_oracle" as any, {
+          p_mission_id: missionId,
+          p_question_id: q.id,
+          p_taxonomy_codes: branches,
+          p_limit_per_branch: 3,
+        });
+        prewarmedOracle.current[q.id] = data ?? null;
+        if (import.meta.env.DEV) {
+          console.log(`Pre-warmed ORACLE for Q${q.question_number ?? q.id.slice(0, 6)}.`);
+        }
+      } catch {
+        // silent
+      } finally {
+        setPrewarmState((s) => ({ ...s, [q.id]: "ready" }));
+      }
+    });
+  }, [questions, missionId]);
+
+  const [briefStage, setBriefStage] = useState<"oracle" | "assemble" | null>(null);
   const handleGenerateBrief = async (q: QuestionRow) => {
     setGeneratingId(q.id);
+    const prewarmed = !!prewarmedOracle.current[q.id];
+    setBriefStage(prewarmed ? "assemble" : "oracle");
+    const stageTimer = prewarmed
+      ? null
+      : window.setTimeout(() => setBriefStage("assemble"), 3000);
     try {
       await generateBrief({ data: { missionId, questionId: q.id } });
       toast.success("IRIS brief ready.");
@@ -117,6 +160,8 @@ export function QuestionCommand({ missionId }: { missionId: string }) {
       toast.error("Brief generation failed.", { description: e?.message });
       refetchQ();
     } finally {
+      if (stageTimer) window.clearTimeout(stageTimer);
+      setBriefStage(null);
       setGeneratingId(null);
     }
   };
@@ -179,6 +224,8 @@ export function QuestionCommand({ missionId }: { missionId: string }) {
           onGenerate={handleGenerateBrief}
           onView={(q) => setBriefTarget(q)}
           generatingId={generatingId}
+          briefStage={briefStage}
+          prewarmState={prewarmState}
         />
       ) : (
         <AddQuestionsPanel missionId={missionId} onAdded={() => refetchQ()} />
@@ -236,12 +283,16 @@ function AllQuestionsList({
   onGenerate,
   onView,
   generatingId,
+  briefStage,
+  prewarmState,
 }: {
   questions: QuestionRow[];
   onAssign: (q: QuestionRow) => void;
   onGenerate: (q: QuestionRow) => void;
   onView: (q: QuestionRow) => void;
   generatingId: string | null;
+  briefStage: "oracle" | "assemble" | null;
+  prewarmState: Record<string, "loading" | "ready">;
 }) {
   if (questions.length === 0) {
     return (
@@ -260,7 +311,7 @@ function AllQuestionsList({
   }
   return (
     <div className="space-y-2">
-      {questions.map((q) => (
+      {questions.map((q, idx) => (
         <QuestionRowItem
           key={q.id}
           q={q}
@@ -268,6 +319,8 @@ function AllQuestionsList({
           onGenerate={() => onGenerate(q)}
           onView={() => onView(q)}
           isGenerating={generatingId === q.id}
+          briefStage={generatingId === q.id ? briefStage : null}
+          prewarm={idx < 3 ? prewarmState[q.id] ?? null : null}
         />
       ))}
     </div>
@@ -333,17 +386,31 @@ function QuestionRowItem({
   onGenerate,
   onView,
   isGenerating,
+  briefStage,
+  prewarm,
 }: {
   q: QuestionRow;
   onAssign: () => void;
   onGenerate: () => void;
   onView: () => void;
   isGenerating: boolean;
+  briefStage?: "oracle" | "assemble" | null;
+  prewarm?: "loading" | "ready" | null;
 }) {
   const text = q.question_text ?? "";
   const truncated = text.length > 80 ? text.slice(0, 80) + "…" : text;
   const sm = statusMeta[q.status ?? "not_started"] ?? statusMeta.not_started;
   const assigneeCount = q.assignees.length;
+  const [glow, setGlow] = useState(false);
+  const prevPrewarm = useRef<typeof prewarm>(null);
+  useEffect(() => {
+    if (prevPrewarm.current === "loading" && prewarm === "ready") {
+      setGlow(true);
+      const t = setTimeout(() => setGlow(false), 1000);
+      return () => clearTimeout(t);
+    }
+    prevPrewarm.current = prewarm ?? null;
+  }, [prewarm]);
 
   return (
     <div
@@ -353,14 +420,35 @@ function QuestionRowItem({
       <span
         className="rounded px-2 py-0.5 shrink-0"
         style={{
+          position: "relative",
           fontSize: 11,
           fontWeight: 700,
           color: GOLD,
           background: `${GOLD}1a`,
           border: `1px solid ${GOLD}55`,
+          boxShadow: glow ? "0 0 6px rgba(196,154,43,0.4)" : "none",
+          transition: "box-shadow 1s ease-out",
         }}
       >
         {q.question_number ?? "—"}
+        {prewarm === "loading" && (
+          <span
+            aria-hidden
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              width: 4,
+              height: 4,
+              marginTop: -2,
+              marginLeft: -2,
+              borderRadius: "50%",
+              background: "rgba(196,154,43,0.6)",
+              animation: "qc-orbit 3s linear infinite",
+              pointerEvents: "none",
+            }}
+          />
+        )}
       </span>
       <div className="min-w-0 flex-1">
         <div style={{ fontSize: 13, color: "white" }} className="truncate">
@@ -451,7 +539,14 @@ function QuestionRowItem({
               opacity: 0.7,
             }}
           >
-            <Loader2 size={12} className="animate-spin" /> Generating…
+            <Loader2 size={12} className="animate-spin" />
+            <span style={{ fontStyle: "italic", fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
+              {briefStage === "assemble"
+                ? "IRIS is assembling your brief…"
+                : briefStage === "oracle"
+                ? "Querying ORACLE…"
+                : "Generating…"}
+            </span>
           </button>
         ) : q.iris_brief_status === "queued" ? (
           <button
