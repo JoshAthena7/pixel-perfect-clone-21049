@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
 import { MissionHealthSummaryCard } from "@/components/mission-command/MissionHealthSummaryCard";
+import { IntelStatusWidget } from "@/components/briefing-room/IntelStatusWidget";
 import { useMissionAccess } from "@/hooks/useAccess";
 import { useServerFn } from "@tanstack/react-start";
 import { getEvaluatorPriorities, generateEvaluatorPriorities } from "@/lib/evaluator-priorities.functions";
