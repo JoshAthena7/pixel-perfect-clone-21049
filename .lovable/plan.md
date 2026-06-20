@@ -1,79 +1,80 @@
-# Intelligence Page Command Center Reorganization
+# Mission invite emails + onboarding wizard
 
-Rewrite `OracleTab.tsx` into a single scrollable page. Keep all existing data and sub-components — only change order, grouping, and presentation. No schema changes, no new queries beyond gap detection and "last visit" delta.
+## What already exists
 
-## Scope
+- Email template `mission-invite.tsx` (subject "Your Mission Awaits — {missionName}", CTA → `acceptUrl`)
+- Send route `/lovable/email/transactional/send` with the `mission-invite` template registered
+- `atlas_invites` (has `mission_id`) and `atlas_invite_tokens` (14-day expiry)
+- `/welcome/$token` page that validates the token and routes signed-in users to `/welcome` or `/home`
+- Mission Setup → Team Assignments tab with an "Invite" button (currently just flips a status flag — no email)
+- Email domain `notify.athenacommandcenter.com` verified
 
-**Modified:**
-- `src/components/mission-command/oracle/OracleTab.tsx` — gut and rebuild as scrollable layout
-- `src/routes/_authenticated/missions.$missionId.intelligence.tsx` — pass through sidebar layout
+## Gaps to close
 
-**New:**
-- `src/components/mission-command/oracle/sections/ExecutiveSummary.tsx` — North Star + Top Signal + Coverage band
-- `src/components/mission-command/oracle/sections/JumpNav.tsx` — sticky pill nav with scroll-spy hook
-- `src/components/mission-command/oracle/sections/KeySignals.tsx` — top 3 elevated signal cards + collapsible rest
-- `src/components/mission-command/oracle/sections/StakeholderIntel.tsx` — wraps existing People/Orgs into 4 buckets
-- `src/components/mission-command/oracle/sections/CompetitiveIntel.tsx` — filtered oracle_signals
-- `src/components/mission-command/oracle/sections/EvidenceBase.tsx` — filtered oracle_signals with PRIMARY badges
-- `src/components/mission-command/oracle/sections/SourceNetwork.tsx` — collapsed wrapper around IntelSources + legacy scans
-- `src/components/mission-command/oracle/sections/IntelligenceGaps.tsx` — taxonomy leaf nodes with zero signals
-- `src/components/mission-command/oracle/sections/AnalysisTools.tsx` — collapsed Graph/StoryMap/GraphHealth
-- `src/components/mission-command/oracle/sections/IntelSidebar.tsx` — simplified left rail
+1. The "Invite" button doesn't generate a token, doesn't include mission context, doesn't send an email.
+2. The sender is currently `noreply@athenacommandcenter.com`. You want `IRIS <iris@athenacommandcenter.com>`.
+3. There is no `/welcome` (no-token) onboarding wizard — `welcome.$token` assumes one exists.
 
-**Unchanged components (reused as-is):**
-IntelFeed cards, IntelPeople, IntelOrganizations, IntelSources, OracleGraph, StoryMapTab, GraphHealthTab, AskIrisButton, RequestChangeButton, IntelLoadBanner (removed from render, not deleted), WriterIntelView.
+## Plan
 
-## Layout
+### 1. Sender identity
+Update `src/routes/lovable/email/transactional/send.ts` so the queued `from` reads `IRIS <iris@athenacommandcenter.com>`.
 
-```text
-┌─ Sidebar (sticky) ──┐ ┌─ Main column ────────────────────────────────┐
-│ ORACLE HEALTH       │ │ [Sticky jump-nav: Summary·Signals·...]       │
-│   42% + sentence    │ │                                              │
-│                     │ │ #summary    Executive Summary band           │
-│ QUICK ACTIONS       │ │ #signals    Key Signals (top 3 + more)       │
-│   Add Single Item   │ │ #stakeholders  Stakeholder Intel (4 buckets) │
-│   Setup Wizard      │ │ #competitive   Competitive Intel             │
-│   Refresh IRIS      │ │ #evidence   Evidence Base                    │
-│                     │ │ #sources    Source Network (collapsed)       │
-│ SECTION NAV         │ │ #gaps       Intelligence Gaps                │
-│   • Summary         │ │             Analysis Tools (collapsed)       │
-│   • Signals         │ │                                              │
-│   • ...             │ │                                              │
-│                     │ │                                              │
-│ IRIS config→Olympus │ │                                              │
-└─────────────────────┘ └──────────────────────────────────────────────┘
-```
+### 2. New server function: `sendMissionInvite`
+File: `src/lib/mission-invite.functions.ts` (auth-gated, mission lead / admin only).
 
-## Data sources (all existing)
+Inputs: `{ missionId, memberId }`.
 
-- `missions.north_star` — North Star text
-- `oracle_signals` — filtered by status/tier/category for each section
-- `oracle_source_registry` — Source Network
-- `oracle_taxonomy` (is_leaf=true) LEFT JOIN `oracle_signals` — gap detection
-- `intel_people` / `intel_organizations` — existing Stakeholder components
-- `localStorage['atlas_intel_last_visit:<missionId>']` — "since last visit" delta
+Does:
+- Look up the team member's email, name, role on the mission
+- Look up mission name, engagement lead name, expected start date
+- Upsert `atlas_invites` row with `mission_id`
+- Invalidate prior unused tokens, mint a fresh 32-byte token, hash + insert into `atlas_invite_tokens` (14-day expiry)
+- POST to `/lovable/email/transactional/send` with `templateName: 'mission-invite'`, `recipientEmail`, `idempotencyKey: mission-invite-<inviteId>-<tokenHash>`, and `templateData: { recipientName, missionName, role, engagementLeadName, expectedStartDate, acceptUrl: https://athenacommandcenter.com/welcome/<rawToken> }`
+- Update `atlas_team_members.atlas_invite_status = 'invite_sent'` + write `atlas_activity_log`
 
-## Key implementation notes
+### 3. Wire the Invite button
+`src/components/mission-command/TeamAssignmentsTab.tsx` → replace the current `sendInvite` (which only flips a flag) with a `useServerFn(sendMissionInvite)` call. Toast on success ("Invite emailed to {email}") and error.
 
-- **Scroll-spy**: single `IntersectionObserver` in JumpNav watching the 6 section anchors; active pill = section with greatest intersection ratio.
-- **Filter pills** (All/Signals/Risks/...): lift state into KeySignals; remove from IntelFeed top-level.
-- **Legacy EXTRACTION items** (`ingestion_source='automated_feed' AND title ILIKE 'Initial scan:%'`): excluded from Key Signals query, surfaced in Source Network's "LEGACY FEED ITEMS" sub-section.
-- **Stakeholder bucketing**: client-side classify via `topic_tags`/`source_name` includes-match; bucket priority STATE→ADVOCACY→PROVIDERS→FEDERAL→OTHER (first match wins); hide empty buckets; collapse >5.
-- **Coverage sentence**: shared helper imported by ExecutiveSummary + IntelSidebar.
-- **Writer role**: unchanged — still renders `WriterIntelView` early-return.
-- **Admin/Lead gating**: Story Map (lead) + Graph Health (admin) tabs render inside collapsed AnalysisTools when permitted.
+### 4. New onboarding wizard at `/welcome`
+File: `src/routes/welcome.tsx` (auth-gated; if no user → redirect to `/auth`).
 
-## What's removed
+Four steps with a progress bar at top, IRIS-voice copy throughout, dark Athena UI:
 
-- Top-level tab bar (replaced by jump-nav)
-- `IntelLoadBanner` from render (Executive Summary supersedes it; component file stays)
-- Top header stats strip (Completeness/Feed/People/Orgs/Sources) — info moves to sidebar + summary band
-- Sidebar tab buttons, separate count pills
+1. **Welcome / mission context** — "IRIS here. You've been brought onto {missionName}. Here's what matters." Shows mission name, client, role, submission deadline, days remaining, team size, at-risk question count (already returned by `lookupWelcomeInvite`). Continue.
+2. **Profile basics** — first name, last name, job title, phone (optional). Writes to `profiles` + `atlas_team_members`.
+3. **Expertise tags** — multi-select chips from a fixed taxonomy (clinical operations, Medicaid policy, behavioral health, IT/data, finance, compliance, etc.) plus a free-text "Other expertise" field. Writes to `user_expertise`.
+4. **Communication prefs** — daily brief email yes/no, Slack handle (optional), preferred contact time. Writes to `profiles`.
 
-## Risks / confirmations
+On final step → set `profiles.has_onboarded = true`, redirect to the mission they were invited to (`/mission/{id}` or `/home` if no mission on the invite).
 
-1. `missions.north_star` column — need to verify it exists; if not, fall back to placeholder string described in spec.
-2. Gap query (taxonomy leaf nodes with zero linked signals) needs a join pattern that matches existing Olympus gap-map logic — will mirror that exact query.
-3. Sticky sidebar on small screens collapses below main content (single-column under `lg`).
+A "Skip for now" link at every step writes whatever's there and lets them in. Their pending steps remain accessible from a banner on `/home`.
 
-Proceed?
+### 5. Backend touch-ups
+- `profiles` already has the fields needed (`has_onboarded`, `first_name`, `last_name`, `job_title`, `phone`). No schema change.
+- Add a tiny server fn `completeOnboardingStep(step, data)` that writes the per-step data and conditionally sets `has_onboarded`.
+
+## Out of scope (separate ask if you want them)
+
+- Bulk invite (multiple writers at once)
+- Reminder emails for un-accepted invites
+- An admin view showing who's onboarded vs pending across all missions
+- Custom welcome video / personal note from the Engagement Lead
+
+## Files touched
+
+Created:
+- `src/lib/mission-invite.functions.ts`
+- `src/lib/onboarding.functions.ts`
+- `src/routes/welcome.tsx`
+
+Edited:
+- `src/routes/lovable/email/transactional/send.ts` (sender)
+- `src/components/mission-command/TeamAssignmentsTab.tsx` (wire Invite button)
+- `src/lib/email-templates/mission-invite.tsx` (subject + IRIS-voice copy tweak so it sounds like it's from IRIS, not generic Athena ops)
+
+## Confirm before I build
+
+- Sender exact string: **`IRIS <iris@athenacommandcenter.com>`** — ok?
+- Onboarding fields above — anything to add/remove (e.g. years of proposal experience, security clearance, time zone)?
+- After onboarding, drop them on the **specific mission** they were invited to, not `/home`?

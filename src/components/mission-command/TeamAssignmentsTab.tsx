@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { sendMissionInvite } from "@/lib/mission-invite.functions";
 import { toast } from "sonner";
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { Plus, Trash2, X, CalendarIcon } from "lucide-react";
@@ -139,14 +141,15 @@ function TeamSub({ missionId }: { missionId: string }) {
     qc.invalidateQueries({ queryKey: ["mt-team", missionId] });
   };
 
+  const sendInviteFn = useServerFn(sendMissionInvite);
   const sendInvite = async (memberId: string) => {
-    const { error } = await supabase
-      .from("atlas_team_members")
-      .update({ atlas_invite_status: "invited", atlas_invite_sent_at: new Date().toISOString() })
-      .eq("id", memberId);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Invite sent.");
-    qc.invalidateQueries({ queryKey: ["mt-team", missionId] });
+    try {
+      const res = await sendInviteFn({ data: { missionId, memberId } });
+      toast.success(`Invite emailed to ${res.email}`);
+      qc.invalidateQueries({ queryKey: ["mt-team", missionId] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to send invite");
+    }
   };
 
   if (isError) return <ErrorState message="Couldn't load mission team." onRetry={() => refetch()} />;

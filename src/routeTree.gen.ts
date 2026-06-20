@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -102,6 +103,11 @@ import { Route as AuthenticatedAdminMissionsMissionIdRouteImport } from './route
 import { Route as AuthenticatedOlympusMissionsMissionIdIndexRouteImport } from './routes/_authenticated/olympus.missions.$missionId.index'
 import { Route as AuthenticatedOlympusMissionsMissionIdWizardRouteImport } from './routes/_authenticated/olympus.missions.$missionId.wizard'
 
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
   path: '/unsubscribe',
@@ -122,9 +128,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const WelcomeTokenRoute = WelcomeTokenRouteImport.update({
-  id: '/welcome/$token',
-  path: '/welcome/$token',
-  getParentRoute: () => rootRouteImport,
+  id: '/$token',
+  path: '/$token',
+  getParentRoute: () => WelcomeRoute,
 } as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
@@ -633,6 +639,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/welcome': typeof AuthenticatedWelcomeRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/help': typeof AuthenticatedHelpRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -642,7 +649,6 @@ export interface FileRoutesByFullPath {
   '/portfolio': typeof AuthenticatedPortfolioRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/team': typeof AuthenticatedTeamRoute
-  '/welcome': typeof AuthenticatedWelcomeRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -726,6 +732,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/welcome': typeof AuthenticatedWelcomeRoute
   '/help': typeof AuthenticatedHelpRoute
   '/home': typeof AuthenticatedHomeRoute
   '/my-work': typeof AuthenticatedMyWorkRoute
@@ -733,7 +740,6 @@ export interface FileRoutesByTo {
   '/portfolio': typeof AuthenticatedPortfolioRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/team': typeof AuthenticatedTeamRoute
-  '/welcome': typeof AuthenticatedWelcomeRoute
   '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
@@ -818,6 +824,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/unsubscribe': typeof UnsubscribeRoute
+  '/welcome': typeof WelcomeRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/help': typeof AuthenticatedHelpRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
@@ -913,6 +920,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/unsubscribe'
+    | '/welcome'
     | '/admin'
     | '/help'
     | '/home'
@@ -922,7 +930,6 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/reports'
     | '/team'
-    | '/welcome'
     | '/api/iris-voice'
     | '/checkin/$token'
     | '/email/unsubscribe'
@@ -1006,6 +1013,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/unsubscribe'
+    | '/welcome'
     | '/help'
     | '/home'
     | '/my-work'
@@ -1013,7 +1021,6 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/reports'
     | '/team'
-    | '/welcome'
     | '/api/iris-voice'
     | '/checkin/$token'
     | '/email/unsubscribe'
@@ -1097,6 +1104,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/unsubscribe'
+    | '/welcome'
     | '/_authenticated/admin'
     | '/_authenticated/help'
     | '/_authenticated/home'
@@ -1192,10 +1200,10 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
+  WelcomeRoute: typeof WelcomeRouteWithChildren
   ApiIrisVoiceRoute: typeof ApiIrisVoiceRoute
   CheckinTokenRoute: typeof CheckinTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
-  WelcomeTokenRoute: typeof WelcomeTokenRoute
   ApiChatIrisRoute: typeof ApiChatIrisRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiPublicHooksAtlasDailyFocusGeneratorRoute: typeof ApiPublicHooksAtlasDailyFocusGeneratorRoute
@@ -1223,6 +1231,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/unsubscribe': {
       id: '/unsubscribe'
       path: '/unsubscribe'
@@ -1253,10 +1268,10 @@ declare module '@tanstack/react-router' {
     }
     '/welcome/$token': {
       id: '/welcome/$token'
-      path: '/welcome/$token'
+      path: '/$token'
       fullPath: '/welcome/$token'
       preLoaderRoute: typeof WelcomeTokenRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof WelcomeRoute
     }
     '/email/unsubscribe': {
       id: '/email/unsubscribe'
@@ -2073,15 +2088,26 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface WelcomeRouteChildren {
+  WelcomeTokenRoute: typeof WelcomeTokenRoute
+}
+
+const WelcomeRouteChildren: WelcomeRouteChildren = {
+  WelcomeTokenRoute: WelcomeTokenRoute,
+}
+
+const WelcomeRouteWithChildren =
+  WelcomeRoute._addFileChildren(WelcomeRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   UnsubscribeRoute: UnsubscribeRoute,
+  WelcomeRoute: WelcomeRouteWithChildren,
   ApiIrisVoiceRoute: ApiIrisVoiceRoute,
   CheckinTokenRoute: CheckinTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
-  WelcomeTokenRoute: WelcomeTokenRoute,
   ApiChatIrisRoute: ApiChatIrisRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiPublicHooksAtlasDailyFocusGeneratorRoute:
