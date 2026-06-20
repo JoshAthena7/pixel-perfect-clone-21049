@@ -95,7 +95,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
       />
 
       <main className="min-w-0">
-        <OracleVisualization signals={signals as any[]} />
+        <ATLASCommandSurface missionId={missionId} signals={signals as any[]} />
         <JumpNav active={activeSection} />
 
         <div className="flex items-center justify-end gap-2 mb-3">
