@@ -1318,12 +1318,15 @@ function WhatChangedCard({ missionId }: { missionId: string }) {
     },
   });
 
+  if (events.length === 0) return null;
+
   return (
     <section style={glass}>
       <div className="flex items-center gap-2 mb-4" style={cardLabel}>
         <RefreshCw size={14} /> What Changed
       </div>
-      {events.length === 0 ? null : (
+      {(
+
         <>
           <ul className="space-y-3">
             {events.map((ev: any) => {
