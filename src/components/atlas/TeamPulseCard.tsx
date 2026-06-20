@@ -559,15 +559,27 @@ function LeaderboardPanel({ missionId, onClose }: { missionId: string; onClose: 
   const showPinned = myRow && myRankIdx >= 20;
 
   return (
-    <div
-      className="fixed top-0 right-0 h-full z-50 flex flex-col animate-in slide-in-from-right"
-      style={{
-        width: 320,
-        background: "#0a1420",
-        borderLeft: "1px solid rgba(255,255,255,0.08)",
-        boxShadow: "-8px 0 24px rgba(0,0,0,0.5)",
-      }}
-    >
+    <>
+      {/* Backdrop — dims & isolates the page behind the panel, click to close */}
+      <div
+        onClick={onClose}
+        aria-hidden
+        className="fixed inset-0 z-40 animate-in fade-in"
+        style={{ background: "rgba(2,6,14,0.55)", backdropFilter: "blur(2px)" }}
+      />
+      <div
+        role="dialog"
+        aria-label="Trivia Leaderboard"
+        className="fixed top-0 right-0 h-full z-50 flex flex-col animate-in slide-in-from-right"
+        style={{
+          width: 320,
+          maxWidth: "92vw",
+          background: "#0a1420",
+          borderLeft: "1px solid rgba(255,255,255,0.08)",
+          boxShadow: "-8px 0 24px rgba(0,0,0,0.5)",
+        }}
+      >
+
       <div className="flex items-start justify-between px-4 py-3 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
         <div>
           <div className="text-[14px] font-medium text-white flex items-center gap-1.5">
@@ -626,7 +638,8 @@ function LeaderboardPanel({ missionId, onClose }: { missionId: string; onClose: 
           </>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
