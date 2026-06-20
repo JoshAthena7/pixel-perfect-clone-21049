@@ -202,7 +202,6 @@ function ATLASCommandSurfaceInner({
   const [width, setWidth] = useState(0);
   const HEADER_H = 32;
   const LEDGER_H = 86;
-  const SCROLLBAR_GUTTER_H = 18;
   const TOTAL_H = 540;
   const TERRAIN_H = TOTAL_H - HEADER_H - LEDGER_H; // pure terrain above the ledger
 
@@ -404,8 +403,8 @@ function ATLASCommandSurfaceInner({
   return (
     <div
       ref={containerRef}
-      className="relative w-full rounded-lg overflow-x-auto overflow-y-hidden mb-6"
-      style={{ height: TOTAL_H + SCROLLBAR_GUTTER_H, background: "#000308", border: `1px solid rgba(${GOLD},0.18)` }}
+      className="relative w-full rounded-lg overflow-hidden mb-6"
+      style={{ height: TOTAL_H, background: "#000308", border: `1px solid rgba(${GOLD},0.18)` }}
     >
       {/* scoped styles */}
       <style>{`
@@ -868,11 +867,10 @@ function ATLASCommandSurfaceInner({
 
       {/* ============ LEDGER ============ */}
       <div
-        className="relative grid grid-cols-5 w-full"
+        className="relative grid w-full"
         style={{
           height: LEDGER_H,
-          marginBottom: SCROLLBAR_GUTTER_H,
-          minWidth: 900,
+          gridTemplateColumns: "minmax(150px, 1.05fr) minmax(190px, 1.35fr) minmax(150px, 1fr) minmax(180px, 1.25fr) minmax(160px, 1.1fr)",
           background: "rgba(0,0,0,0.8)",
           borderTop: `1px solid rgba(${GOLD},0.12)`,
           fontFamily: "ui-monospace, SFMono-Regular, monospace",
