@@ -32,6 +32,7 @@ import {
   getChecklistItemById,
   matchDocumentToChecklist,
   type ChecklistItem,
+  type ChecklistUrgency,
 } from "./oracle-checklist-spec";
 
 const BUCKET = "atlas-rfp-documents";
