@@ -281,7 +281,28 @@ export const getWarRoomData = createServerFn({ method: "POST" })
     const totalQuestions = questionsRes.data?.length ?? 0;
     const healthyCount = (questionsRes.data ?? []).filter((q: any) => q.health_status === "healthy").length;
     const watchCount = (questionsRes.data ?? []).filter((q: any) => q.health_status === "watch").length;
-    const atRiskCount = (questionsRes.data ?? []).filter((q: any) => q.health_status === "at_risk").length;
+    // Reclassify at_risk: only count as at_risk when actually assigned + flagged/stalled.
+    // Otherwise it's "unstarted".
+    const progressByQ: Record<string, any> = {};
+    for (const p of progressRes.data ?? []) {
+      const cur = progressByQ[p.question_id];
+      if (!cur || (p.assignee_id && !cur.assignee_id)) progressByQ[p.question_id] = p;
+    }
+    let atRiskCount = 0;
+    let unstartedCount = 0;
+    for (const q of questionsRes.data ?? []) {
+      const isRisk = q.health_status === "at_risk";
+      const isUnscored = !q.health_status || q.health_status === "unstarted" || q.health_status === "not_started";
+      if (!isRisk && !isUnscored) continue;
+      const p = progressByQ[q.id];
+      const hasFlag = p?.acceptance_status === "need_help" || p?.acceptance_status === "need_sme";
+      const stalled = p?.assignee_id && p?.last_activity_at && (now - new Date(p.last_activity_at).getTime()) / 3600_000 > 48;
+      if (isRisk && (hasFlag || stalled)) atRiskCount++;
+      else if (isRisk || isUnscored) {
+        if (hasFlag || stalled) atRiskCount++;
+        else unstartedCount++;
+      }
+    }
     const writersActiveToday = writers.filter((w: any) =>
       w.hoursSinceActivity != null && w.hoursSinceActivity < 24,
     ).length;
