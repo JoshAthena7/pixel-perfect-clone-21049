@@ -142,13 +142,20 @@ function TeamSub({ missionId }: { missionId: string }) {
   };
 
   const sendInviteFn = useServerFn(sendMissionInvite);
-  const sendInvite = async (memberId: string) => {
+  const [inviteTarget, setInviteTarget] = useState<{ memberId: string; name: string; email: string } | null>(null);
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const confirmInvite = async () => {
+    if (!inviteTarget) return;
+    setInviteBusy(true);
     try {
-      const res = await sendInviteFn({ data: { missionId, memberId } });
+      const res = await sendInviteFn({ data: { missionId, memberId: inviteTarget.memberId } });
       toast.success(`Invite emailed to ${res.email}`);
       qc.invalidateQueries({ queryKey: ["mt-team", missionId] });
+      setInviteTarget(null);
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to send invite");
+    } finally {
+      setInviteBusy(false);
     }
   };
 
