@@ -9,6 +9,7 @@ const SubmitInput = z.object({
   correctAnswer: z.string().min(1),
   isCorrect: z.boolean(),
   secondsToAnswer: z.number().min(0),
+  timeout: z.boolean().optional().default(false),
 });
 
 function todayUTC(): string {
