@@ -58,9 +58,9 @@ const CATEGORIES: Category[] = [
     label: "Auth & Onboarding",
     cards: [
       { id: "login", name: "Login Screen", description: "First screen new users see", kind: "iframe", href: "/login?preview=1" },
-      { id: "welcome", name: "Welcome Screen", description: "Post-auth landing", kind: "navigate", href: "/welcome" },
-      { id: "onboarding", name: "Onboarding", description: "New user setup", kind: "navigate", href: "/onboarding" },
-      { id: "new-user", name: "New User Experience", description: "Writer with no assignments, first visit", kind: "simulate", flag: "atlas_sim_new_user" },
+      { id: "welcome", name: "Welcome Screen", description: "Post-auth landing (forces replay)", kind: "navigate", href: "/welcome?iris-demo=1" },
+      { id: "onboarding", name: "Onboarding", description: "New user setup (forces replay)", kind: "navigate", href: "/welcome?iris-demo=1" },
+      { id: "new-user", name: "New User Experience", description: "Writer with no assignments, first visit", kind: "navigate", href: "/welcome?iris-demo=1" },
     ],
   },
   {
