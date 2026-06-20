@@ -485,24 +485,46 @@ CONTENT RULES:
         })
         .eq("id", data.questionId);
 
-      // 6) Upsert question_intel_links (best-effort; never block)
-      if (uniqueNodes.length > 0) {
-        const rows = uniqueNodes.map((n) => ({
-          question_id: data.questionId,
-          signal_id: n.id,
-          mission_id: data.missionId,
-          relevance_score: (() => {
-            const v = n.boosted_score ?? n.oracle_score ?? null;
-            if (v == null) return null;
-            return Math.max(0, Math.min(100, Math.round(v)));
-          })(),
-          briefing_layer: n._branch,
-          // CHECK constraint requires one of: iris_suggested | admin_added | leader_added
-          added_by: "iris_suggested" as const,
-        }));
+      // 6) Upsert question_intel_links — merge taxonomy nodes with hybrid-search hits.
+      const taxonomyRows = uniqueNodes.map((n) => ({
+        question_id: data.questionId,
+        signal_id: n.id,
+        mission_id: data.missionId,
+        relevance_score: (() => {
+          const v = n.boosted_score ?? n.oracle_score ?? null;
+          if (v == null) return null;
+          return Math.max(0, Math.min(100, Math.round(v)));
+        })(),
+        briefing_layer: n._branch,
+        added_by: "iris_suggested" as const,
+      }));
+      const taxonomyIds = new Set(uniqueNodes.map((n) => n.id));
+      const hybridLayered: Array<{ row: HybridSignalRow; layer: string }> = [
+        ...hybridDecode.map((r) => ({ row: r, layer: "hybrid_decode" })),
+        ...hybridWinAngle.map((r) => ({ row: r, layer: "hybrid_win_angle" })),
+        ...hybridEvidence.map((r) => ({ row: r, layer: "hybrid_evidence" })),
+        ...hybridRisk.map((r) => ({ row: r, layer: "hybrid_risk" })),
+      ];
+      const hybridDedup = new Map<string, { row: HybridSignalRow; layer: string }>();
+      for (const item of hybridLayered) {
+        if (!item.row?.id || taxonomyIds.has(item.row.id)) continue;
+        if (!hybridDedup.has(item.row.id)) hybridDedup.set(item.row.id, item);
+      }
+      const hybridRows = Array.from(hybridDedup.values()).map(({ row, layer }) => ({
+        question_id: data.questionId,
+        signal_id: row.id,
+        mission_id: data.missionId,
+        relevance_score: row.relevance_score != null
+          ? Math.max(0, Math.min(100, Math.round(row.relevance_score)))
+          : 75,
+        briefing_layer: layer,
+        added_by: "iris_suggested" as const,
+      }));
+      const allRows = [...taxonomyRows, ...hybridRows];
+      if (allRows.length > 0) {
         const { error: linkErr } = await supabase
           .from("question_intel_links")
-          .upsert(rows, { onConflict: "question_id,signal_id", ignoreDuplicates: false });
+          .upsert(allRows, { onConflict: "question_id,signal_id", ignoreDuplicates: false });
         if (linkErr) {
           console.warn("[iris-brief] question_intel_links upsert failed", linkErr.message);
         }
