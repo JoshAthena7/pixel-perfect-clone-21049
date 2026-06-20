@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { refreshIrisAllForMission } from "@/lib/iris-refresh-all-for-mission.functions";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 import { getIrisPipelineStatus, getIrisWiringSnapshot } from "@/lib/iris-health.functions";
+import { backfillSignalEmbeddings } from "@/lib/embeddings-backfill.functions";
 import {
   RefreshCw,
   Loader2,
@@ -15,6 +16,7 @@ import {
   Activity,
   AlertTriangle,
   AlertCircle,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -348,6 +350,9 @@ function IrisControlPage() {
       <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
         <HealthDashboard />
       </div>
+
+      <BackfillEmbeddingsPanel />
+
 
       <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-4">
         <div>
