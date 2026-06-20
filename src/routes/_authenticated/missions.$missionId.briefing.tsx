@@ -25,7 +25,13 @@ import {
   Zap,
   AlertCircle,
   Pencil,
+  MessageSquare,
+  AlertOctagon,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
 import { MissionHealthSummaryCard } from "@/components/mission-command/MissionHealthSummaryCard";
 import { MissionClock } from "@/components/briefing/MissionClock";
