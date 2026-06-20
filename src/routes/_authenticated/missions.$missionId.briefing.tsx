@@ -27,6 +27,7 @@ import {
   Pencil,
   MessageSquare,
   AlertOctagon,
+  ChevronDown,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
