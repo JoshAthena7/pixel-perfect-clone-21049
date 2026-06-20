@@ -46,8 +46,8 @@ function MyProfilePage() {
 function ProfilePlaceholder({ title = "Profile" }: { title?: string }) {
   return (
     <div className="mx-auto max-w-3xl px-8 py-12">
-      <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
-      <p className="mt-3 text-sm text-muted-foreground">This area is being rebuilt after the legacy cleanup.</p>
+      <h1 className="text-3xl font-medium tracking-tight">{title}</h1>
+      <p className="mt-3 text-[14px] text-muted-foreground">This area is being rebuilt after the legacy cleanup.</p>
     </div>
   );
 }
@@ -55,11 +55,11 @@ function ProfilePlaceholder({ title = "Profile" }: { title?: string }) {
 function HelpPanel() {
   return (
     <div className="mx-auto max-w-3xl px-8 py-12">
-      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.28em] text-cyan-400/90">
+      <div className="flex items-center gap-2 text-[11px] font-medium tracking-[0.28em] text-cyan-400/90">
         <LifeBuoy className="h-3.5 w-3.5" />
         Support
       </div>
-      <h1 className="mt-3 text-3xl font-semibold tracking-tight">Need a hand?</h1>
+      <h1 className="mt-3 text-3xl font-medium tracking-tight">Need a hand?</h1>
       <p className="mt-3 text-base text-muted-foreground leading-relaxed max-w-2xl">
         Ping the Atlas team directly from here. We respond inside the platform — no
         ticket queues, no email loops.
@@ -73,7 +73,7 @@ function HelpPanel() {
         >
           <MessageSquare className="mt-0.5 h-4 w-4 text-cyan-400" />
           <div>
-            <div className="text-[13px] font-semibold text-foreground/95">
+            <div className="text-[14px] font-medium text-foreground/95">
               Open support chat
             </div>
             <p className="mt-1 text-[12px] text-muted-foreground leading-relaxed">
@@ -86,7 +86,7 @@ function HelpPanel() {
         <div className="flex items-start gap-3 rounded-[12px] border border-white/10 bg-white/[0.02] px-5 py-4">
           <HelpCircle className="mt-0.5 h-4 w-4 text-muted-foreground" />
           <div>
-            <div className="text-[13px] font-semibold text-foreground/95">
+            <div className="text-[14px] font-medium text-foreground/95">
               Email
             </div>
             <p className="mt-1 text-[12px] text-muted-foreground leading-relaxed">
@@ -101,7 +101,7 @@ function HelpPanel() {
         </div>
       </div>
 
-      <p className="mt-8 text-[11px] text-muted-foreground/70">
+      <p className="mt-8 text-[12px] text-muted-foreground/70">
         Typical response time during business hours: under 2 hours.
       </p>
     </div>

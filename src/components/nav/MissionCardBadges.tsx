@@ -91,7 +91,7 @@ function Chip({
   return (
     <span
       title={title}
-      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-medium ${tones[tone]}`}
+      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[11px] font-medium ${tones[tone]}`}
     >
       {icon} {label}
     </span>

@@ -91,7 +91,7 @@ export function OpenNotesWidget({ missionId }: { missionId: string }) {
             fontSize: 11,
             fontWeight: 600,
             letterSpacing: 0.5,
-            textTransform: "uppercase",
+            textTransform: "",
           }}
         >
           Open Notes

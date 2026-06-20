@@ -73,9 +73,9 @@ export function FindSMEDialog({
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-          {isLoading && <p className="text-xs text-muted-foreground">Searching…</p>}
+          {isLoading && <p className="text-[12px] text-muted-foreground">Searching…</p>}
           {!isLoading && smes.length === 0 && (
-            <p className="text-xs text-muted-foreground italic">
+            <p className="text-[12px] text-muted-foreground italic">
               IRIS hasn't matched any SMEs for this mission yet.
             </p>
           )}
@@ -85,8 +85,8 @@ export function FindSMEDialog({
               className="rounded-lg border border-border bg-background/40 p-3 flex items-start justify-between gap-3"
             >
               <div className="min-w-0">
-                <div className="text-sm font-medium text-foreground">{s.name}</div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">
+                <div className="text-[14px] font-medium text-foreground">{s.name}</div>
+                <div className="text-[11px] text-muted-foreground mt-0.5">
                   {s.source === "stakeholder" ? "Stakeholder" : "Mission SME"}
                 </div>
                 {s.expertise.length > 0 && (
@@ -94,7 +94,7 @@ export function FindSMEDialog({
                     {s.expertise.slice(0, 6).map((tag) => (
                       <span
                         key={tag}
-                        className="text-[10px] px-2 py-0.5 rounded-full bg-surface text-muted-foreground border border-border"
+                        className="text-[11px] px-2 py-0.5 rounded-full bg-surface text-muted-foreground border border-border"
                       >
                         {tag}
                       </span>

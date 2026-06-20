@@ -322,9 +322,9 @@ function FlightDeckHeader({ name, status }: { name: string; status: string | nul
     : "bg-slate-500/15 text-slate-300 border-slate-500/40";
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <h1 className="text-2xl font-bold text-foreground">{name || "Flight Deck"}</h1>
+      <h1 className="text-2xl font-medium text-foreground">{name || "Flight Deck"}</h1>
       {status && (
-        <span className={cn("rounded-full border px-2.5 py-0.5 text-xs font-medium uppercase tracking-wider", tone)}>
+        <span className={cn("rounded-full border px-2.5 py-0.5 text-[12px] font-medium  ", tone)}>
           {status.replace(/_/g, " ")}
         </span>
       )}
@@ -343,7 +343,7 @@ function NoAssignmentState({ missionId }: { missionId: string | null }) {
           <div className="mt-4 text-[16px] font-medium text-white">
             You're viewing the Flight Deck as an admin.
           </div>
-          <div className="mt-2 text-[13px] text-muted-foreground" style={{ lineHeight: 1.6 }}>
+          <div className="mt-2 text-[14px] text-muted-foreground" style={{ lineHeight: 1.6 }}>
             Writers see their assigned questions here. To see the team at work, visit ATC.
           </div>
           <Link
@@ -367,7 +367,7 @@ function NoAssignmentState({ missionId }: { missionId: string | null }) {
         <Eye className="h-8 w-8" style={{ color: "#C8C3FF" }} />
         <div className="mt-4 text-[16px] font-medium text-white">No questions assigned yet.</div>
         <div
-          className="mt-2 text-[13px] text-muted-foreground"
+          className="mt-2 text-[14px] text-muted-foreground"
           style={{ lineHeight: 1.6 }}
         >
           Check back once your Engagement Lead assigns your questions.
@@ -421,12 +421,12 @@ function NavStrip({
           to="/missions/$missionId/briefing"
           params={{ missionId }}
           hash="my-assignments"
-          className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-3 w-3" /> All Questions
         </Link>
       ) : (
-        <Link to="/my-work" className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground">
+        <Link to="/my-work" className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3 w-3" /> All Questions
         </Link>
       )}
@@ -434,16 +434,16 @@ function NavStrip({
       {activeQ && (
         <>
           <span style={{ display: "inline-flex", alignItems: "center" }}>
-            <span className="font-mono text-[11px] text-[color:var(--athena-gold)]">{activeQ.question_number}</span>
+            <span className="font-mono text-[12px] text-[color:var(--athena-gold)]">{activeQ.question_number}</span>
             <NavStripNoteBadge missionId={missionId} questionId={activeQ.id} />
           </span>
           <span className="text-[12px] font-medium text-foreground truncate max-w-[40ch]">{activeQ.question_text}</span>
-          <span className={cn("rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider", badge.cls)}>
+          <span className={cn("rounded-full border px-2 py-0.5 text-[11px] font-medium  ", badge.cls)}>
             {badge.label}
           </span>
           {isAdminView && (
             <span
-              className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium"
+              className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium"
               style={{
                 background: assignedWriterName ? "rgba(196,154,43,0.1)" : "rgba(127,119,221,0.1)",
                 borderColor: assignedWriterName ? "rgba(196,154,43,0.35)" : "rgba(127,119,221,0.3)",
@@ -455,7 +455,7 @@ function NavStrip({
             </span>
           )}
           {dueDate && (
-            <span className="text-[10px] text-muted-foreground">Due {format(new Date(dueDate), "MMM d")}</span>
+            <span className="text-[11px] text-muted-foreground">Due {format(new Date(dueDate), "MMM d")}</span>
           )}
         </>
       )}
@@ -463,7 +463,7 @@ function NavStrip({
         {prevQ && (
           <button
             onClick={() => onSelect(prevQ.id)}
-            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground rounded px-2 py-1 hover:bg-surface/50"
+            className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground rounded px-2 py-1 hover:bg-surface/50"
           >
             <ChevronLeft className="h-3 w-3" /> prev
           </button>
@@ -471,7 +471,7 @@ function NavStrip({
         {nextQ && (
           <button
             onClick={() => onSelect(nextQ.id)}
-            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground rounded px-2 py-1 hover:bg-surface/50"
+            className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground rounded px-2 py-1 hover:bg-surface/50"
           >
             next <ChevronRight className="h-3 w-3" />
           </button>
@@ -612,19 +612,19 @@ function IntelligenceColumn({
   return (
     <div className="space-y-3">
       <div>
-        <div className="text-[9px] uppercase tracking-[0.07em] text-muted-foreground font-semibold">INTELLIGENCE</div>
-        <div className="text-[8px] text-muted-foreground/60 italic mt-0.5">Updated by IRIS</div>
+        <div className="text-[11px] tracking-[0.07em] text-muted-foreground font-medium">INTELLIGENCE</div>
+        <div className="text-[11px] text-muted-foreground/60 italic mt-0.5">Updated by IRIS</div>
       </div>
 
       {/* Athena */}
       {athena ? (
         <div className="rounded-lg p-3" style={{ background: "rgba(196,154,43,0.06)", border: "1px solid rgba(196,154,43,0.3)" }}>
-          <div className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: "#C49A2B" }}>✦ ATHENA STRATEGY</div>
-          <div className="mt-2 text-[13px] italic text-white" style={{ lineHeight: 1.6 }}>
+          <div className="text-[11px] font-medium" style={{ color: "#C49A2B" }}>✦ ATHENA STRATEGY</div>
+          <div className="mt-2 text-[14px] italic text-white" style={{ lineHeight: 1.6 }}>
             {athena.strategic_quote || athena.quote || athena.title}
           </div>
           {athena.writers_note && (
-            <div className="mt-2 pl-2 text-[11px] italic text-muted-foreground" style={{ borderLeft: "2px solid #C49A2B" }}>
+            <div className="mt-2 pl-2 text-[12px] italic text-muted-foreground" style={{ borderLeft: "2px solid #C49A2B" }}>
               {athena.writers_note}
             </div>
           )}
@@ -635,13 +635,13 @@ function IntelligenceColumn({
 
       {/* IRIS Brief */}
       <div className="rounded-lg p-3" style={{ background: "rgba(127,119,221,0.06)", border: "0.5px solid rgba(127,119,221,0.2)" }}>
-        <div className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: "#C8C3FF" }}>IRIS BRIEF</div>
+        <div className="text-[11px] font-medium" style={{ color: "#C8C3FF" }}>IRIS BRIEF</div>
         {brief?.refined_brief || brief?.content ? (
-          <div className="mt-2 text-[11px]" style={{ color: "rgba(255,255,255,0.75)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+          <div className="mt-2 text-[12px]" style={{ color: "rgba(255,255,255,0.75)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
             {String(brief.refined_brief || brief.content)}
           </div>
         ) : (
-          <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+          <div className="mt-2 flex items-center gap-2 text-[12px] text-muted-foreground">
             <Eye className="h-3 w-3 animate-pulse" style={{ color: "#C8C3FF" }} />
             IRIS is preparing your brief...
           </div>
@@ -650,7 +650,7 @@ function IntelligenceColumn({
 
       {/* How They Are Thinking */}
       <div className="rounded-lg p-3" style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
-        <div className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground">HOW THEY ARE THINKING</div>
+        <div className="text-[11px] font-medium text-muted-foreground">HOW THEY ARE THINKING</div>
         {evaluator ? (
           <div className="mt-2 space-y-2">
             {evaluator.oneThing && (
@@ -659,13 +659,13 @@ function IntelligenceColumn({
               </div>
             )}
             {(evaluator.fears as unknown[]).map((f, i) => (
-              <div key={`f${i}`} className="flex items-start gap-2 text-[10px] text-muted-foreground">
+              <div key={`f${i}`} className="flex items-start gap-2 text-[11px] text-muted-foreground">
                 <span className="mt-1 h-1.5 w-1.5 rounded-full shrink-0" style={{ background: "#E04A4A" }} />
                 <span>{String(f)}</span>
               </div>
             ))}
             {(evaluator.needs as unknown[]).map((n, i) => (
-              <div key={`n${i}`} className="flex items-start gap-2 text-[10px] text-muted-foreground">
+              <div key={`n${i}`} className="flex items-start gap-2 text-[11px] text-muted-foreground">
                 <span className="mt-1 h-1.5 w-1.5 rounded-full shrink-0" style={{ background: "#C49A2B" }} />
                 <span>{String(n)}</span>
               </div>
@@ -676,7 +676,7 @@ function IntelligenceColumn({
                 to="/missions/$missionId/oracle"
                 params={{ missionId }}
                 
-                className="inline-block text-[10px] font-medium hover:underline"
+                className="inline-block text-[11px] font-medium hover:underline"
                 style={{ color: "#C49A2B" }}
               >
                 Full Evaluator Picture →
@@ -684,7 +684,7 @@ function IntelligenceColumn({
             )}
           </div>
         ) : (
-          <div className="mt-2 text-[11px] italic text-muted-foreground">
+          <div className="mt-2 text-[12px] italic text-muted-foreground">
             Evaluator Picture not yet built. It appears after BLAST OFF.
           </div>
         )}
@@ -692,13 +692,13 @@ function IntelligenceColumn({
 
       {/* Requirements */}
       <div className="rounded-lg p-3" style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
-        <div className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground">KEY REQUIREMENTS</div>
+        <div className="text-[11px] font-medium text-muted-foreground">KEY REQUIREMENTS</div>
         {reqs && reqs.length > 0 ? (
           <ul className="mt-2 space-y-1.5">
             {reqs.map((r: any) => {
               const dot = r.is_high_risk ? "#E04A4A" : r.status === "in_progress" ? "#EF9F27" : "rgba(255,255,255,0.4)";
               return (
-                <li key={r.id} className="flex items-start gap-2 text-[11px]" style={{ color: "rgba(255,255,255,0.65)" }}>
+                <li key={r.id} className="flex items-start gap-2 text-[12px]" style={{ color: "rgba(255,255,255,0.65)" }}>
                   <span className="mt-1.5 h-1.5 w-1.5 rounded-full shrink-0" style={{ background: dot }} />
                   <span>{r.requirement}</span>
                 </li>
@@ -706,7 +706,7 @@ function IntelligenceColumn({
             })}
           </ul>
         ) : (
-          <div className="mt-2 text-[11px] italic text-muted-foreground">
+          <div className="mt-2 text-[12px] italic text-muted-foreground">
             No compliance requirements linked to this section. Check the Compliance section in the sidebar.
           </div>
         )}
@@ -719,7 +719,7 @@ function PurplePlaceholder({ text }: { text: string }) {
   return (
     <div className="rounded-lg p-3 flex items-center gap-2" style={{ background: "rgba(127,119,221,0.06)", border: "0.5px solid rgba(127,119,221,0.2)" }}>
       <Eye className="h-3 w-3 animate-pulse" style={{ color: "#C8C3FF" }} />
-      <span className="text-[11px] italic" style={{ color: "rgba(200,195,255,0.8)" }}>{text}</span>
+      <span className="text-[12px] italic" style={{ color: "rgba(200,195,255,0.8)" }}>{text}</span>
     </div>
   );
 }
@@ -774,9 +774,9 @@ function MyWorkColumn({
       {/* The Question */}
       <div className="rounded-lg p-3 border border-border bg-background/40">
         {sectionName && (
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{sectionName}</div>
+          <div className="text-[11px] text-muted-foreground font-medium">{sectionName}</div>
         )}
-        <div className="mt-1 text-[13px] text-white" style={{ lineHeight: 1.7 }}>
+        <div className="mt-1 text-[14px] text-white" style={{ lineHeight: 1.7 }}>
           {questionText}
         </div>
       </div>
@@ -789,7 +789,7 @@ function MyWorkColumn({
 
       {/* Confidence */}
       <div className="rounded-lg p-3 border border-border bg-background/40">
-        <div className="text-[10px] text-muted-foreground">My confidence</div>
+        <div className="text-[11px] text-muted-foreground">My confidence</div>
         <div className="mt-2 grid grid-cols-3 gap-2">
           {(["low", "medium", "high"] as const).map((c) => {
             const active = confidence === c;
@@ -803,7 +803,7 @@ function MyWorkColumn({
               <button
                 key={c}
                 onClick={() => pickConfidence(c)}
-                className="rounded-md py-2.5 text-[12px] font-semibold capitalize flex items-center justify-center gap-1.5"
+                className="rounded-md py-2.5 text-[12px] font-medium capitalize flex items-center justify-center gap-1.5"
                 style={{
                   background: active ? map.bg : "rgba(255,255,255,0.03)",
                   border: `1px solid ${active ? map.border : "rgba(255,255,255,0.08)"}`,
@@ -824,17 +824,17 @@ function MyWorkColumn({
           className="w-full text-left rounded-lg p-3"
           style={{ background: "rgba(196,154,43,0.06)", border: "1px solid rgba(196,154,43,0.4)" }}
         >
-          <div className="flex items-center gap-2 text-[13px] font-medium" style={{ color: "#C49A2B" }}>
+          <div className="flex items-center gap-2 text-[14px] font-medium" style={{ color: "#C49A2B" }}>
             <Target className="h-3.5 w-3.5" /> Score My Response
           </div>
-          <div className="mt-1 text-[11px] text-muted-foreground">
+          <div className="mt-1 text-[12px] text-muted-foreground">
             Paste your draft from the client environment — IRIS coaches it before anyone else sees it.
           </div>
         </button>
         <button
           onClick={() => setStuckOpen(true)}
           title="IRIS can unstick you"
-          className="rounded-lg px-3 py-2 text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 self-start"
+          className="rounded-lg px-3 py-2 text-[12px] font-medium inline-flex items-center justify-center gap-1.5 self-start"
           style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.75)" }}
         >
           🧱 Stuck?

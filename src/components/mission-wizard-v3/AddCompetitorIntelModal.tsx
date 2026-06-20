@@ -71,7 +71,7 @@ export function AddCompetitorIntelModal({
 
         <div className="space-y-3">
           <label className="block">
-            <span className="text-[11px] uppercase tracking-[0.14em] text-white/55 mb-1 block">
+            <span className="text-[12px] tracking-[0.14em] text-white/55 mb-1 block">
               What do you know?
             </span>
             <textarea
@@ -85,7 +85,7 @@ export function AddCompetitorIntelModal({
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="text-[11px] uppercase tracking-[0.14em] text-white/55 mb-1 block">
+              <span className="text-[12px] tracking-[0.14em] text-white/55 mb-1 block">
                 Source (optional)
               </span>
               <input
@@ -96,7 +96,7 @@ export function AddCompetitorIntelModal({
               />
             </label>
             <label className="block">
-              <span className="text-[11px] uppercase tracking-[0.14em] text-white/55 mb-1 block">
+              <span className="text-[12px] tracking-[0.14em] text-white/55 mb-1 block">
                 Confidence
               </span>
               <select
@@ -116,14 +116,14 @@ export function AddCompetitorIntelModal({
           <div className="flex justify-end gap-2 pt-2">
             <button
               onClick={onClose}
-              className="text-[13px] px-3 py-1.5 rounded border border-white/15 text-white/70 hover:bg-white/5"
+              className="text-[14px] px-3 py-1.5 rounded border border-white/15 text-white/70 hover:bg-white/5"
             >
               Cancel
             </button>
             <button
               onClick={save}
               disabled={saving}
-              className="inline-flex items-center gap-2 text-[13px] px-4 py-1.5 rounded font-medium disabled:opacity-50"
+              className="inline-flex items-center gap-2 text-[14px] px-4 py-1.5 rounded font-medium disabled:opacity-50"
               style={{ background: "#C49A2B", color: "#0D1B3E" }}
             >
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}

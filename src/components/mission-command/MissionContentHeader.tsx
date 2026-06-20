@@ -61,7 +61,7 @@ export function MissionContentHeader({
       <div className="min-w-0">
         <h1 className="text-white text-[20px] font-medium leading-tight">{heading}</h1>
         {subtitle && (
-          <p className="text-[13px] mt-1" style={{ color: "rgba(255,255,255,0.45)" }}>
+          <p className="text-[14px] mt-1" style={{ color: "rgba(255,255,255,0.45)" }}>
             {subtitle}
           </p>
         )}

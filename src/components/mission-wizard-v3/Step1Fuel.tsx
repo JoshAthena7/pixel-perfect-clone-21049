@@ -455,7 +455,7 @@ export function Step1Fuel({
 
       <div className="space-y-6">
         <div>
-          <label className="text-[12px] uppercase tracking-[0.14em] text-white/55 mb-2 block">
+          <label className="text-[12px] tracking-[0.14em] text-white/55 mb-2 block">
             Mission Name *
           </label>
           <Input
@@ -479,7 +479,7 @@ export function Step1Fuel({
           >
             <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#C49A2B" }} />
             <div className="flex-1">
-              <p className="text-[13.5px] font-semibold text-white">RFP text not saved</p>
+              <p className="text-[13.5px] font-medium text-white">RFP text not saved</p>
               <p className="text-[12px] text-white/65 mt-0.5">
                 {missingTextDocCount} previously uploaded document{missingTextDocCount === 1 ? "" : "s"} {missingTextDocCount === 1 ? "is" : "are"} missing the raw extracted text. IRIS cannot extract questions or build briefs without it. Re-upload your primary RFP through the dropzone above to fix this.
               </p>
@@ -504,7 +504,7 @@ export function Step1Fuel({
         >
           <UploadCloud className="h-10 w-10" style={{ color: "#c9a84c" }} strokeWidth={1.4} />
           <div>
-            <p className="text-[15px] font-medium text-white">Drop documents here</p>
+            <p className="text-[14px] font-medium text-white">Drop documents here</p>
             <p className="text-[12.5px] text-white/45 mt-0.5">
               RFP · Addenda · Past proposals · State plans · Win/loss reviews · Anything relevant
             </p>
@@ -523,7 +523,7 @@ export function Step1Fuel({
         </button>
 
         {error && (
-          <div className="flex items-center gap-2 text-[13px] text-amber-400">
+          <div className="flex items-center gap-2 text-[14px] text-amber-400">
             <AlertCircle className="h-4 w-4" /> {error}
           </div>
         )}
@@ -549,11 +549,11 @@ export function Step1Fuel({
                     <FileText className="h-4 w-4 text-white/45 shrink-0" />
                     <span className="text-[13.5px] text-white truncate flex-1">{r.name}</span>
                     {r.status === "uploading" && (
-                      <span className="text-[11px] text-white/45">Uploading {r.progress}%</span>
+                      <span className="text-[12px] text-white/45">Uploading {r.progress}%</span>
                     )}
-                    {r.status === "done" && <span className="text-[11px] text-emerald-400">Ready</span>}
+                    {r.status === "done" && <span className="text-[12px] text-emerald-400">Ready</span>}
                     {r.status === "error" && (
-                      <span className="text-[11px] text-red-400">{r.error}</span>
+                      <span className="text-[12px] text-red-400">{r.error}</span>
                     )}
                   </div>
                   {r.status === "done" && (
@@ -565,7 +565,7 @@ export function Step1Fuel({
                             <button
                               key={opt.value}
                               onClick={() => setRowPurpose(r.uid, opt.value)}
-                              className="px-2 py-0.5 rounded-full text-[11px] transition-colors"
+                              className="px-2 py-0.5 rounded-full text-[12px] transition-colors"
                               style={{
                                 border: selected ? "1px solid #C49A2B" : "1px solid rgba(255,255,255,0.08)",
                                 color: selected ? "#fff" : "rgba(255,255,255,0.45)",
@@ -578,10 +578,10 @@ export function Step1Fuel({
                         })}
                       </div>
                       {purposeDesc && (
-                        <p className="mt-1.5 text-[11px] text-white/45">{purposeDesc}</p>
+                        <p className="mt-1.5 text-[12px] text-white/45">{purposeDesc}</p>
                       )}
                       {purpose === "procurement" && (
-                        <label className="mt-1.5 flex items-center gap-1.5 text-[11px] text-white/65 cursor-pointer">
+                        <label className="mt-1.5 flex items-center gap-1.5 text-[12px] text-white/65 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={!!r.isPrimaryRfp}
@@ -592,7 +592,7 @@ export function Step1Fuel({
                         </label>
                       )}
                       {purpose === "writing_standards" && (
-                        <label className="mt-1.5 flex items-center gap-1.5 text-[11px] text-white/65 cursor-pointer">
+                        <label className="mt-1.5 flex items-center gap-1.5 text-[12px] text-white/65 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={!!r.isStyleGuide}
@@ -631,7 +631,7 @@ export function Step1Fuel({
             <button
               disabled={!canAnalyze}
               onClick={analyze}
-              className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+              className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-md text-[14px] font-medium disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ background: "#C49A2B", color: "#0D1B3E" }}
             >
               {analyzing ? (
@@ -642,7 +642,7 @@ export function Step1Fuel({
               {analyzing ? "Analyzing…" : analyzeResult ? "Re-analyze" : "Analyze with IRIS"}
             </button>
             {hasAnyDone && !allTagged && !analyzing && (
-              <p className="mt-2 text-[11px] italic text-white/45">
+              <p className="mt-2 text-[12px] italic text-white/45">
                 Tag each document above so IRIS knows how to read it.
               </p>
             )}

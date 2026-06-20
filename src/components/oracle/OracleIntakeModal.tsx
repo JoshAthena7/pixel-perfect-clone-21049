@@ -350,8 +350,8 @@ export function OracleIntakeModal({
                     <div className="flex items-start gap-2">
                       <c.Icon className="h-4 w-4 mt-0.5" style={{ color: active ? GOLD : "rgba(255,255,255,0.55)" }} />
                       <div className="min-w-0">
-                        <div className="text-[12px] font-semibold text-white">{c.label}</div>
-                        <div className="text-[10px] text-white/55 mt-0.5">{c.desc}</div>
+                        <div className="text-[12px] font-medium text-white">{c.label}</div>
+                        <div className="text-[11px] text-white/55 mt-0.5">{c.desc}</div>
                       </div>
                     </div>
                   </button>
@@ -534,12 +534,12 @@ export function OracleIntakeModal({
               <div className="space-y-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span style={{ fontSize: 10, color: GOLD, textTransform: "uppercase", letterSpacing: "0.06em" }}>IRIS suggests</span>
+                    <span style={{ fontSize: 10, color: GOLD, textTransform: "", letterSpacing: "0.06em" }}>IRIS suggests</span>
                     {suggesting && <Loader2 className="h-3 w-3 animate-spin" style={{ color: GOLD }} />}
-                    <button type="button" onClick={runSuggestion} className="ml-auto text-[10px] text-white/40 hover:text-white">re-suggest</button>
+                    <button type="button" onClick={runSuggestion} className="ml-auto text-[11px] text-white/40 hover:text-white">re-suggest</button>
                   </div>
                   {suggested.length === 0 && !suggesting && (
-                    <div className="text-[11px] text-white/40">Fill title + summary; suggestions appear when you tab out.</div>
+                    <div className="text-[12px] text-white/40">Fill title + summary; suggestions appear when you tab out.</div>
                   )}
                   <div className="flex flex-wrap gap-1.5">
                     {suggested.map((code) => {
@@ -550,7 +550,7 @@ export function OracleIntakeModal({
                           key={code}
                           type="button"
                           onClick={() => setSelectedCodes((a) => (a.includes(code) ? a.filter((c) => c !== code) : [...a, code]))}
-                          className="rounded-full px-2 py-0.5 text-[11px]"
+                          className="rounded-full px-2 py-0.5 text-[12px]"
                           style={{
                             background: active ? `${GOLD}33` : "rgba(196,154,43,0.06)",
                             color: active ? "white" : GOLD,
@@ -611,7 +611,7 @@ export function OracleIntakeModal({
                             key={t.id}
                             type="button"
                             onClick={() => setWinThemes((a) => (a.includes(t.text) ? a.filter((x) => x !== t.text) : [...a, t.text]))}
-                            className="rounded-full px-2 py-0.5 text-[11px]"
+                            className="rounded-full px-2 py-0.5 text-[12px]"
                             style={{
                               background: active ? "rgba(196,154,43,0.25)" : "rgba(255,255,255,0.04)",
                               color: active ? "white" : "rgba(255,255,255,0.6)",
@@ -629,7 +629,7 @@ export function OracleIntakeModal({
                 <Field label="JPB variables">
                   <div className="grid grid-cols-2 gap-1.5">
                     {JPB_VARS.map((v) => (
-                      <label key={v} className="flex items-center gap-2 text-[11px] text-white/70">
+                      <label key={v} className="flex items-center gap-2 text-[12px] text-white/70">
                         <Checkbox
                           checked={jpb.includes(v)}
                           onCheckedChange={(c) => setJpb((arr) => (c ? [...arr, v] : arr.filter((x) => x !== v)))}
@@ -665,8 +665,8 @@ export function OracleIntakeModal({
 function Section({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="text-[11px] font-semibold uppercase tracking-wider text-white/55 mb-1.5">{title}</div>
-      {sub && <div className="text-[10px] text-white/40 mb-2">{sub}</div>}
+      <div className="text-[12px] font-medium text-white/55 mb-1.5">{title}</div>
+      {sub && <div className="text-[11px] text-white/40 mb-2">{sub}</div>}
       {children}
     </div>
   );
@@ -675,7 +675,7 @@ function Section({ title, sub, children }: { title: string; sub?: string; childr
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <Label className="text-[10px] uppercase tracking-wider text-white/50">
+      <Label className="text-[11px] text-white/50">
         {label} {required && <span style={{ color: GOLD }}>*</span>}
       </Label>
       {children}
@@ -695,8 +695,8 @@ function TierPill({ active, color, label, sub, onClick, title }: { active: boole
         border: `1.5px solid ${active ? color : "rgba(255,255,255,0.08)"}`,
       }}
     >
-      <div className="text-[12px] font-semibold text-white">{label}</div>
-      <div className="text-[10px] text-white/55 mt-0.5">{sub}</div>
+      <div className="text-[12px] font-medium text-white">{label}</div>
+      <div className="text-[11px] text-white/55 mt-0.5">{sub}</div>
     </button>
   );
 }

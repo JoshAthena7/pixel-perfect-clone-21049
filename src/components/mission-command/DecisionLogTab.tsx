@@ -159,7 +159,7 @@ export function DecisionLogTab({ missionId, missionName }: { missionId: string; 
       </div>
 
 
-      <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">
+      <div className="rounded-lg border bg-muted/30 p-3 text-[14px] text-muted-foreground">
         Decisions are append-only. Once saved they cannot be edited or deleted. This is by design — it creates an honest and auditable record of how the mission evolved.
       </div>
 
@@ -197,19 +197,19 @@ export function DecisionLogTab({ missionId, missionName }: { missionId: string; 
           {filtered.map((d) => (
             <div key={d.id} className="rounded-xl border border-border bg-card p-5 space-y-2">
               <div className="flex items-start justify-between gap-4">
-                <div className="text-xs font-medium text-primary uppercase tracking-wide">
+                <div className="text-[12px] font-medium text-primary tracking-wide">
                   {format(new Date(d.decided_at ?? d.created_at), "MMMM d, yyyy")}
                 </div>
                 <Badge className={STATUS_COLORS[d.status] ?? ""} variant="outline">
                   {d.status.charAt(0).toUpperCase() + d.status.slice(1)}
                 </Badge>
               </div>
-              <p className="font-semibold text-base">{d.title}</p>
+              <p className="font-medium text-base">{d.title}</p>
               {d.owner && (
-                <p className="text-sm text-muted-foreground">Decision by {d.owner}</p>
+                <p className="text-[14px] text-muted-foreground">Decision by {d.owner}</p>
               )}
               {d.rationale && (
-                <p className="text-sm">
+                <p className="text-[14px]">
                   <span className="text-muted-foreground font-medium">Why: </span>
                   {d.rationale}
                 </p>
@@ -226,7 +226,7 @@ export function DecisionLogTab({ missionId, missionName }: { missionId: string; 
                   </Button>
                 )}
               </div>
-              <p className="text-[10px] text-muted-foreground/60 italic">
+              <p className="text-[11px] text-muted-foreground/60 italic">
                 Decisions are permanent records and cannot be modified.
               </p>
             </div>
@@ -304,7 +304,7 @@ function AddDecisionDialog({
             </Popover>
           </div>
           <div>
-            <Label>Decision * <span className="text-xs text-muted-foreground">(min 20 chars)</span></Label>
+            <Label>Decision * <span className="text-[12px] text-muted-foreground">(min 20 chars)</span></Label>
             <Textarea rows={3} value={decision} onChange={(e) => setDecision(e.target.value)} />
           </div>
           <div>

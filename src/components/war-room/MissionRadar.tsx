@@ -66,7 +66,7 @@ export function MissionRadar({ missionId, bare = false }: { missionId: string; b
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            className={`text-[9px] px-1.5 py-0.5 rounded-full border transition ${
+            className={`text-[11px] px-1.5 py-0.5 rounded-full border transition ${
               active
                 ? "bg-amber-500/20 border-amber-400/40 text-amber-100"
                 : "bg-white/[0.03] border-white/10 text-white/55 hover:bg-white/10"
@@ -113,12 +113,12 @@ export function MissionRadar({ missionId, bare = false }: { missionId: string; b
                   {it.summary}
                 </div>
                 <span
-                  className="shrink-0 text-[10px] text-white/40 group-hover:hidden"
+                  className="shrink-0 text-[11px] text-white/40 group-hover:hidden"
                   style={{ fontFamily: "'Courier New', monospace" }}
                 >
                   {relTime(it.created_at)}
                 </span>
-                <span className="shrink-0 text-[10px] text-amber-300 hidden group-hover:inline">→ View</span>
+                <span className="shrink-0 text-[11px] text-amber-300 hidden group-hover:inline">→ View</span>
               </li>
             );
           })}
@@ -140,10 +140,10 @@ export function MissionRadar({ missionId, bare = false }: { missionId: string; b
     <section className="rounded-lg border border-white/10 bg-white/[0.015] p-4">
       <header className="flex items-start justify-between gap-3 mb-2">
         <div>
-          <h2 className="text-[13px] font-semibold text-white">Mission Radar</h2>
-          <p className="text-[11px] text-white/45 mt-0.5">Everything happening on this mission, newest first</p>
+          <h2 className="text-[14px] font-medium text-white">Mission Radar</h2>
+          <p className="text-[12px] text-white/45 mt-0.5">Everything happening on this mission, newest first</p>
         </div>
-        <span className="flex items-center gap-1.5 text-[10px] text-white/45">
+        <span className="flex items-center gap-1.5 text-[11px] text-white/45">
           <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> Live
         </span>
       </header>

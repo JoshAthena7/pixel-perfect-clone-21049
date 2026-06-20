@@ -127,13 +127,13 @@ export function IrisAlertsPanel({ missionId, bare = false, onCountChange, missio
                 <LifeBuoy className="w-4 h-4 mt-0.5 shrink-0 text-red-400" />
                 <div className="flex-1 min-w-0">
                   <div className="text-[12px] text-white/90 leading-snug">
-                    <span className="font-semibold">{s.writerName}</span> needs an SME on{" "}
+                    <span className="font-medium">{s.writerName}</span> needs an SME on{" "}
                     <span style={{ color: GOLD }}>Q{s.qNum}</span> — {s.qText}
                   </div>
                   <div className="mt-1.5">
                     <button
                       onClick={() => setAssignFor({ qid: s.qid, qNum: s.qNum })}
-                      className="text-[11px] font-medium hover:underline text-red-400"
+                      className="text-[12px] font-medium hover:underline text-red-400"
                     >
                       Assign SME →
                     </button>
@@ -147,7 +147,7 @@ export function IrisAlertsPanel({ missionId, bare = false, onCountChange, missio
       {q.isLoading ? (
         <AlertsSkeleton count={3} />
       ) : errMsg && alerts.length === 0 ? (
-        <div className="rounded bg-white/[0.02] p-3 text-xs text-white/55 flex items-start gap-2">
+        <div className="rounded bg-white/[0.02] p-3 text-[12px] text-white/55 flex items-start gap-2">
           <Info className="w-3.5 h-3.5 text-sky-400 mt-0.5 shrink-0" />
           <span>IRIS could not generate alerts right now. Check back shortly.</span>
         </div>
@@ -183,7 +183,7 @@ export function IrisAlertsPanel({ missionId, bare = false, onCountChange, missio
     return (
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-white/[0.04] bg-[#050d18] sticky top-0 z-[1]">
-          <span className="text-[10px] text-white/35">
+          <span className="text-[11px] text-white/35">
             {q.data?.generatedAt ? `Updated ${relTime(q.data.generatedAt)}` : "—"}
           </span>
           <button
@@ -205,13 +205,13 @@ export function IrisAlertsPanel({ missionId, bare = false, onCountChange, missio
       <header className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex items-center gap-2">
           <Zap className="w-4 h-4" style={{ color: GOLD }} />
-          <h2 className="text-[13px] font-semibold text-white">IRIS Alerts</h2>
+          <h2 className="text-[14px] font-medium text-white">IRIS Alerts</h2>
           {isRefreshing && q.isFetched && (
-            <span className="text-[10px] text-white/45">Refreshing…</span>
+            <span className="text-[11px] text-white/45">Refreshing…</span>
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[10px] text-white/35">
+          <span className="text-[11px] text-white/35">
             {q.data?.generatedAt ? `Updated ${relTime(q.data.generatedAt)}` : "—"}
           </span>
           <button
@@ -253,12 +253,12 @@ function AlertCard({
           <div className="flex items-center gap-3 mt-1.5">
             <button
               onClick={onAction}
-              className="text-[11px] font-medium hover:underline"
+              className="text-[12px] font-medium hover:underline"
               style={{ color }}
             >
               {alert.action_label} →
             </button>
-            <span className="text-[10px] text-white/35 ml-auto">{relTime(generatedAt)}</span>
+            <span className="text-[11px] text-white/35 ml-auto">{relTime(generatedAt)}</span>
           </div>
         </div>
       </div>

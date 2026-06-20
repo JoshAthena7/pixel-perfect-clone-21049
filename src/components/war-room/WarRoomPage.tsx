@@ -303,7 +303,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
               value={teamSearch}
               onChange={(e) => setTeamSearch(e.target.value)}
               placeholder="Search team…"
-              className="w-full text-[11px] px-2 py-1.5 rounded bg-white/[0.04] border border-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-white/25"
+              className="w-full text-[12px] px-2 py-1.5 rounded bg-white/[0.04] border border-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-white/25"
             />
           </div>
           {(() => {
@@ -314,7 +314,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                   String(w.role ?? "").toLowerCase().includes(q))
               : d.writers;
             if (rows.length === 0) {
-              return <div className="text-center text-xs py-6 text-white/40">No matches.</div>;
+              return <div className="text-center text-[12px] py-6 text-white/40">No matches.</div>;
             }
             return rows.map(renderWriterRow);
           })()}
@@ -328,7 +328,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
     <ColumnShell
       header="MISSION RADAR"
       headerAccent={
-        <span className="flex items-center gap-1.5 text-[10px] text-white/60">
+        <span className="flex items-center gap-1.5 text-[11px] text-white/60">
           <span
             className="w-1.5 h-1.5 rounded-full bg-green-400"
             style={{ animation: "atc-pulse 2s ease-in-out infinite" }}
@@ -344,7 +344,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         <div className="border-t border-white/[0.06]">
           <button
             onClick={() => setStatsOpen((v) => !v)}
-            className="w-full px-3 py-2 text-[10px] uppercase tracking-wider text-white/50 hover:text-white/80 hover:bg-white/[0.03] inline-flex items-center justify-center gap-1.5"
+            className="w-full px-3 py-2 text-[11px] text-white/50 hover:text-white/80 hover:bg-white/[0.03] inline-flex items-center justify-center gap-1.5"
           >
             {statsOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             {statsOpen ? "Hide mission stats" : "Show mission stats"}
@@ -352,9 +352,9 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
           {statsOpen && (
             <div className="px-3 pb-3 space-y-3">
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-white/45 mb-2">Health Over Time</div>
+                <div className="text-[11px] text-white/45 mb-2">Health Over Time</div>
                 {!trendQ.data || !trendQ.data.hasHistory ? (
-                  <div className="py-3 text-center text-xs text-white/50">
+                  <div className="py-3 text-center text-[12px] text-white/50">
                     Health tracking started today.
                   </div>
                 ) : null}
@@ -373,13 +373,13 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                 </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-white/45 mb-2">Brief Pipeline</div>
+                <div className="text-[11px] text-white/45 mb-2">Brief Pipeline</div>
                 <PipelineBar pipeline={d.pipeline} total={d.stats.totalQuestions} onSegment={setFilterStatus} active={filterStatus} />
                 {d.pipeline.error > 0 && (
                   <button
                     onClick={() => bulkResetMut.mutate()}
                     disabled={bulkResetMut.isPending}
-                    className="w-full mt-2 px-3 py-1.5 rounded bg-red-500/15 border border-red-500/30 text-red-300 text-[11px] inline-flex items-center justify-center gap-2 hover:bg-red-500/25"
+                    className="w-full mt-2 px-3 py-1.5 rounded bg-red-500/15 border border-red-500/30 text-red-300 text-[12px] inline-flex items-center justify-center gap-2 hover:bg-red-500/25"
                   >
                     <RotateCcw className="w-3 h-3" /> Reset {d.pipeline.error} brief error{d.pipeline.error > 1 ? "s" : ""}
                   </button>
@@ -422,7 +422,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         </div>
         {/* Unified intel stream — no tabs */}
         <div style={{ flex: "1 1 auto", minHeight: 0 }} className="flex flex-col">
-          <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-white/40 bg-[#050d18] border-b border-white/[0.06]">
+          <div className="px-3 py-1.5 text-[11px] font-medium text-white/40 bg-[#050d18] border-b border-white/[0.06]">
             Intel Stream
           </div>
           <div className="flex-1 overflow-y-auto p-3">
@@ -431,12 +431,12 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
             ) : (
               <ul className="space-y-2">
                 {mergedIntel.map((item) => (
-                  <li key={item.id} className="flex items-start gap-2 text-xs">
+                  <li key={item.id} className="flex items-start gap-2 text-[12px]">
                     <span className="shrink-0">{digestIcon(item.kind)}</span>
                     <div className="flex-1 min-w-0">
                       <div className="text-white/90 line-clamp-2">{item.title}</div>
-                      {item.summary && <div className="text-white/45 text-[11px] line-clamp-2">{item.summary}</div>}
-                      <div className="text-[10px] text-white/35 mt-0.5" style={{ fontFamily: "'Courier New', monospace" }}>
+                      {item.summary && <div className="text-white/45 text-[12px] line-clamp-2">{item.summary}</div>}
+                      <div className="text-[11px] text-white/35 mt-0.5" style={{ fontFamily: "'Courier New', monospace" }}>
                         {item.source && <span className="mr-1.5">{item.source}</span>}· {relTime(item.ts)}
                       </div>
                     </div>
@@ -469,9 +469,9 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         {/* LEFT — mission identity only */}
         <div className="flex items-center gap-3 shrink-0 min-w-0">
           <Radar className="w-4 h-4" style={{ color: GOLD }} />
-          <span className="font-semibold truncate" style={{ color: GOLD, fontSize: 13 }}>{missionName}</span>
+          <span className="font-medium truncate" style={{ color: GOLD, fontSize: 13 }}>{missionName}</span>
           {daysToDeadline != null && (
-            <span className={`text-[11px] whitespace-nowrap ${daysToDeadline < 14 ? "text-amber-300" : "text-white/60"}`}>
+            <span className={`text-[12px] whitespace-nowrap ${daysToDeadline < 14 ? "text-amber-300" : "text-white/60"}`}>
               {daysToDeadline < 0 ? `${Math.abs(daysToDeadline)}d overdue` : `${daysToDeadline}d to submission`}
             </span>
           )}
@@ -502,7 +502,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                   navigate({ to: "/missions/$missionId/flight-deck", params: { missionId }, hash: first.question_id });
                 }
               }}
-              className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded"
+              className="inline-flex items-center gap-1.5 text-[12px] font-medium px-2.5 py-1 rounded"
               style={{
                 background: "rgba(239,68,68,0.2)",
                 color: "#fca5a5",
@@ -526,7 +526,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
       >
         <div className="flex items-baseline gap-4 flex-wrap">
           <span
-            className="font-semibold tracking-tight"
+            className="font-medium tracking-tight"
             style={{
               fontSize: 26,
               lineHeight: 1.1,
@@ -542,7 +542,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
               ? `${d.stats.watchCount ?? 0} item${(d.stats.watchCount ?? 0) === 1 ? "" : "s"} worth watching`
               : "All systems nominal"}
           </span>
-          <span className="ml-auto text-[10px] text-white/35 whitespace-nowrap" style={{ fontFamily: "'Courier New', monospace" }}>
+          <span className="ml-auto text-[11px] text-white/35 whitespace-nowrap" style={{ fontFamily: "'Courier New', monospace" }}>
             IRIS · {relTime(d.lastIrisRun)}
           </span>
         </div>
@@ -552,16 +552,16 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
       {filteredSos.length > 0 && (
         <div className="shrink-0 px-5 py-3 border-b border-white/[0.06] max-h-[260px] overflow-y-auto">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-[10px] uppercase tracking-wider text-white/55 font-semibold">
+            <span className="text-[11px] text-white/55 font-medium">
               Needs attention
             </span>
-            <span className="text-[10px] text-white/40">· {filteredSos.length}</span>
+            <span className="text-[11px] text-white/40">· {filteredSos.length}</span>
           </div>
           <ul className="space-y-1.5">
             {filteredSos.slice(0, 5).map((s: any) => (
               <li key={s.questionId} className="group rounded border border-white/[0.06] hover:border-white/15 bg-white/[0.015] px-3 py-2 transition-colors">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-white/40 font-mono text-[11px] shrink-0">{s.questionNumber}</span>
+                  <span className="text-white/40 font-mono text-[12px] shrink-0">{s.questionNumber}</span>
                   <span className="text-[12.5px] text-white/90 truncate flex-1">{s.questionTitle}</span>
                   <span className="text-[10.5px] text-white/45 shrink-0">{s.writerName}</span>
                 </div>
@@ -570,34 +570,34 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                 </div>
                 <div className="flex flex-wrap gap-1 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={() => flagMut.mutate({ qid: s.questionId, reason: s.reasons[0] })}
-                    className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 inline-flex items-center gap-1">
+                    className="text-[11px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 inline-flex items-center gap-1">
                     <Flag className="w-3 h-3" /> Flag
                   </button>
                   <button onClick={() => navigate({ to: "/missions/$missionId/flight-deck", params: { missionId }, hash: s.questionId })}
-                    className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10">
+                    className="text-[11px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10">
                     Open
                   </button>
                   <button onClick={() => briefMut.mutate(s.questionId)}
                     disabled={briefMut.isPending}
-                    className="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-200 hover:bg-amber-500/25 inline-flex items-center gap-1">
+                    className="text-[11px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-200 hover:bg-amber-500/25 inline-flex items-center gap-1">
                     <Zap className="w-3 h-3" /> Brief
                   </button>
                   <button onClick={() => setReassignFor(s.questionId)}
-                    className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10">
+                    className="text-[11px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10">
                     Reassign
                   </button>
                 </div>
                 {reassignFor === s.questionId && (
                   <div className="mt-1.5 flex gap-1.5">
                     <Select onValueChange={(v) => reassignMut.mutate({ qid: s.questionId, writerId: v })}>
-                      <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Pick writer…" /></SelectTrigger>
+                      <SelectTrigger className="h-7 text-[12px]"><SelectValue placeholder="Pick writer…" /></SelectTrigger>
                       <SelectContent>
                         {d.writers.filter((w: any) => w.userId !== s.writerId).map((w: any) => (
                           <SelectItem key={w.userId} value={w.userId}>{w.name} ({formatRoleLabel(w.role)})</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => setReassignFor(null)}>Cancel</Button>
+                    <Button size="sm" variant="ghost" className="h-7 text-[12px]" onClick={() => setReassignFor(null)}>Cancel</Button>
                   </div>
                 )}
               </li>
@@ -678,7 +678,7 @@ function ColumnShell({ header, headerAccent, children }: {
         className="shrink-0 flex items-center justify-between gap-2 px-3 border-b border-white/[0.06]"
         style={{ height: 36, background: "#050d18" }}
       >
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-white/85">{header}</span>
+        <span className="text-[12px] font-medium text-white/85">{header}</span>
         {headerAccent}
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto">{children}</div>
@@ -743,15 +743,15 @@ function WriterRow({
       className={`flex items-center gap-3 px-3 py-2 border-b border-white/[0.04] transition-colors ${highlighted ? "bg-amber-400/20" : "hover:bg-white/[0.03]"}`}
       style={{ minHeight: 64, borderLeft: `4px solid ${live.color}` }}
     >
-      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[11px] font-semibold shrink-0">
+      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[12px] font-medium shrink-0">
         {initials(w.name)}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-[12px] font-medium text-white truncate">{w.name}</span>
-          <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-white/55 tracking-wide shrink-0">{formatRoleLabel(w.role)}</span>
+          <span className="text-[11px] px-1.5 py-0.5 rounded bg-white/5 text-white/55 tracking-wide shrink-0">{formatRoleLabel(w.role)}</span>
         </div>
-        <div className="text-[10px] text-white/45 mt-0.5 truncate" style={{ fontFamily: "'Courier New', monospace" }}>
+        <div className="text-[11px] text-white/45 mt-0.5 truncate" style={{ fontFamily: "'Courier New', monospace" }}>
           {noQuestions
             ? <span className="italic text-white/40">— {isLeadRole(w.role) ? "No questions assigned" : "Unassigned"} · <span style={{ color: !w.lastActivity ? "#f87171" : undefined }}>{lastSeen}</span></span>
             : <>
@@ -768,7 +768,7 @@ function WriterRow({
           onClick={onNudge}
           disabled={readOnly}
           title={readOnly ? "Mission is closed — read-only" : undefined}
-          className="text-[9px] px-1.5 py-0.5 rounded border border-white/15 text-white/65 hover:bg-white/5 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="text-[11px] px-1.5 py-0.5 rounded border border-white/15 text-white/65 hover:bg-white/5 inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <MessageSquare className="w-2.5 h-2.5" /> Nudge
         </button>
@@ -776,7 +776,7 @@ function WriterRow({
           onClick={onFilter}
           disabled={noQuestions}
           title={noQuestions ? "No questions assigned to this writer yet." : undefined}
-          className={`text-[9px] px-1.5 py-0.5 rounded border inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed ${filterActive
+          className={`text-[11px] px-1.5 py-0.5 rounded border inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed ${filterActive
             ? "bg-amber-500/20 border-amber-400/40 text-amber-200"
             : "border-white/15 text-white/65 hover:bg-white/5"}`}
         >
@@ -788,7 +788,7 @@ function WriterRow({
 }
 
 function Empty({ children }: { children: React.ReactNode }) {
-  return <div className="text-center text-xs py-6 text-white/40">{children}</div>;
+  return <div className="text-center text-[12px] py-6 text-white/40">{children}</div>;
 }
 
 function digestIcon(kind: string) {
@@ -825,7 +825,7 @@ function PipelineBar({ pipeline, total, onSegment, active }: {
               key={s.key}
               onClick={() => onSegment(active === s.key ? null : s.key)}
               style={{ width: `${pct}%`, background: s.color, opacity: isActive ? 1 : 0.85 }}
-              className="text-[9px] text-black font-medium hover:opacity-100 transition"
+              className="text-[11px] text-black font-medium hover:opacity-100 transition"
               title={`${s.label}: ${s.count}`}
             >
               {pct > 8 ? `${s.count}` : ""}
@@ -835,7 +835,7 @@ function PipelineBar({ pipeline, total, onSegment, active }: {
       </div>
       <div className="flex flex-wrap gap-x-2 gap-y-1 mt-1.5">
         {segs.map((s) => (
-          <span key={s.key} className="inline-flex items-center gap-1 text-[9px] text-white/55">
+          <span key={s.key} className="inline-flex items-center gap-1 text-[11px] text-white/55">
             <span className="w-1.5 h-1.5 rounded-sm" style={{ background: s.color }} /> {s.label}: <span className="text-white">{s.count}</span>
           </span>
         ))}

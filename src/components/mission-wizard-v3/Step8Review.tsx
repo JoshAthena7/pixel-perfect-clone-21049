@@ -606,7 +606,7 @@ export function Step8Review({
         <div className="flex items-start gap-2.5">
           <Sparkles className="h-4 w-4 text-amber-300 mt-0.5 shrink-0" />
           <div>
-            <p className="text-[13px] text-white font-medium">Enrich this brief with live, cited intelligence</p>
+            <p className="text-[14px] text-white font-medium">Enrich this brief with live, cited intelligence</p>
             <p className="text-[12px] text-white/55 mt-0.5">
               IRIS will pull state landscape, incumbent flight risks, and population evidence — all with sources.
             </p>
@@ -630,7 +630,7 @@ export function Step8Review({
           return (
             <div key={stepNum} className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[14px] font-semibold text-white">{group.title}</h3>
+                <h3 className="text-[14px] font-medium text-white">{group.title}</h3>
                 <button
                   onClick={() => onJump(stepNum)}
                   className="inline-flex items-center gap-1 text-[12px] text-white/55 hover:text-white"
@@ -643,11 +643,11 @@ export function Step8Review({
                   const v = resolveDisplay(k);
                   return (
                     <div key={k}>
-                      <dt className="text-[11px] uppercase tracking-[0.12em] text-white/40">{k.replace(/_/g, " ")}</dt>
-                      <dd className="text-[13px] text-white mt-0.5 whitespace-pre-wrap line-clamp-4">
+                      <dt className="text-[12px] tracking-[0.12em] text-white/40">{k.replace(/_/g, " ")}</dt>
+                      <dd className="text-[14px] text-white mt-0.5 whitespace-pre-wrap line-clamp-4">
                         {v?.value || <span className="text-white/35 italic">Not set</span>}
                         {v?.value && !v.confirmed && (
-                          <span className="ml-1.5 inline-block text-[10px] px-1.5 py-0.5 rounded bg-amber-400/15 text-amber-300">
+                          <span className="ml-1.5 inline-block text-[11px] px-1.5 py-0.5 rounded bg-amber-400/15 text-amber-300">
                             Unconfirmed
                           </span>
                         )}
@@ -666,7 +666,7 @@ export function Step8Review({
           <div className="flex items-start gap-2">
             <AlertCircle className="h-4 w-4 text-amber-300 shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-[13px] text-amber-100">
+              <p className="text-[14px] text-amber-100">
                 {unconfirmedCount} field{unconfirmedCount === 1 ? "" : "s"} from IRIS{" "}
                 {unconfirmedCount === 1 ? "is" : "are"} not yet confirmed. You can still launch —
                 IRIS values are used until you override them.
@@ -701,7 +701,7 @@ export function Step8Review({
       {/* IRIS Pre-Launch Checklist */}
       <div className="mt-8">
         <div className="mb-3">
-          <h3 className="text-[12px] uppercase tracking-[0.14em] text-white/60 font-semibold">IRIS Pre-Launch Checklist</h3>
+          <h3 className="text-[12px] tracking-[0.14em] text-white/60 font-medium">IRIS Pre-Launch Checklist</h3>
           <p className="text-[12px] text-white/45 mt-0.5">Every item must be green before BLAST OFF.</p>
         </div>
 
@@ -722,11 +722,11 @@ export function Step8Review({
               style={allChecksPass ? { boxShadow: "0 0 0 1px rgba(196,154,43,0.25)" } : undefined}
             >
               {allChecksPass ? (
-                <p className="text-[13px] text-emerald-200 font-medium">
+                <p className="text-[14px] text-emerald-200 font-medium">
                   ✅ Mission is ready for BLAST OFF. All systems go.
                 </p>
               ) : (
-                <p className="text-[13px] text-amber-100">
+                <p className="text-[14px] text-amber-100">
                   ⚠ {failedCount} item{failedCount === 1 ? "" : "s"} need attention before BLAST OFF.
                 </p>
               )}
@@ -744,7 +744,7 @@ export function Step8Review({
                     <XCircle className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-[13px] ${c.ok ? "text-white" : "text-white/85"}`}>
+                    <p className={`text-[14px] ${c.ok ? "text-white" : "text-white/85"}`}>
                       {c.ok ? c.pass : c.fail}
                     </p>
                   </div>
@@ -763,10 +763,10 @@ export function Step8Review({
         )}
       </div>
 
-      {error && <div className="mt-4 text-[13px] text-red-400">{error}</div>}
+      {error && <div className="mt-4 text-[14px] text-red-400">{error}</div>}
 
       <div className="mt-8 pt-6 flex items-center justify-between" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-        <button onClick={onBack} className="text-[13px] text-white/55 hover:text-white">
+        <button onClick={onBack} className="text-[14px] text-white/55 hover:text-white">
           ← Back
         </button>
         <button

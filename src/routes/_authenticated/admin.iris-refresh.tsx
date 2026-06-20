@@ -248,9 +248,9 @@ function IrisRefreshPage() {
           >
             <Zap className="h-5 w-5" />
           </div>
-          <h1 className="text-[20px] font-semibold text-white">Master IRIS Refresh</h1>
+          <h1 className="text-[20px] font-medium text-white">Master IRIS Refresh</h1>
         </div>
-        <p className="text-[13px] text-white/55">
+        <p className="text-[14px] text-white/55">
           Force-runs the full IRIS pipeline for a single mission. Refreshes derived
           intelligence (extracted questions, graph nodes, territory intel, question briefs,
           engagement config). Preserves user-confirmed data (win themes, north star,
@@ -264,7 +264,7 @@ function IrisRefreshPage() {
           value={missionId}
           onChange={(e) => setMissionId(e.target.value)}
           disabled={running}
-          className="w-full bg-white/5 border border-white/15 rounded-md px-3 py-2 text-[13px] text-white focus:outline-none focus:border-amber-400/60 disabled:opacity-40"
+          className="w-full bg-white/5 border border-white/15 rounded-md px-3 py-2 text-[14px] text-white focus:outline-none focus:border-amber-400/60 disabled:opacity-40"
         >
           <option value="" className="bg-[#0D1B3E]">— Pick a mission —</option>
           {missions.map((m: any) => (
@@ -278,7 +278,7 @@ function IrisRefreshPage() {
           <button
             disabled={!missionId || running}
             onClick={() => setConfirming(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-semibold disabled:opacity-40"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-[14px] font-medium disabled:opacity-40"
             style={{ background: GOLD, color: NAVY }}
           >
             <Sparkles className="h-4 w-4" />
@@ -291,13 +291,13 @@ function IrisRefreshPage() {
         <div className="rounded-lg border border-white/10 bg-[#0B1224] p-5 mb-4">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-4 w-4" style={{ color: GOLD }} />
-            <h2 className="text-[14px] font-semibold text-white">Pipeline progress</h2>
+            <h2 className="text-[14px] font-medium text-white">Pipeline progress</h2>
           </div>
           <ul className="space-y-2 mb-3">
             {lines.map((l) => (
               <li
                 key={l.id}
-                className={`text-[13px] ${
+                className={`text-[14px] ${
                   l.state === "done"
                     ? "text-emerald-300"
                     : l.state === "error"
@@ -328,11 +328,11 @@ function IrisRefreshPage() {
           {fatal && (
             <div className="rounded-md border border-red-500/40 bg-red-500/10 p-3 mt-2 flex items-start gap-2">
               <AlertCircle className="h-4 w-4 text-red-300 mt-0.5 shrink-0" />
-              <p className="text-[13px] text-red-200">{fatal}</p>
+              <p className="text-[14px] text-red-200">{fatal}</p>
             </div>
           )}
           {done && (
-            <div className="mt-2 flex items-center gap-2 text-[13px] text-emerald-300">
+            <div className="mt-2 flex items-center gap-2 text-[14px] text-emerald-300">
               <CheckCircle2 className="h-4 w-4" /> Refresh complete.
             </div>
           )}
@@ -342,7 +342,7 @@ function IrisRefreshPage() {
       {confirming && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4">
           <div className="w-full max-w-md rounded-xl border border-white/10 bg-[#0B1224] p-6 shadow-2xl">
-            <h3 className="text-[15px] font-semibold text-white mb-2">
+            <h3 className="text-[14px] font-medium text-white mb-2">
               Refresh IRIS for "{selectedMission?.name ?? selectedMission?.id.slice(0, 8)}"?
             </h3>
             <div className="text-[12.5px] text-white/65 space-y-2 mb-4">
@@ -363,13 +363,13 @@ function IrisRefreshPage() {
             <div className="flex items-center justify-end gap-2">
               <button
                 onClick={() => setConfirming(false)}
-                className="px-4 py-2 rounded-md text-[13px] font-medium border border-white/15 text-white/80 hover:bg-white/[0.04]"
+                className="px-4 py-2 rounded-md text-[14px] font-medium border border-white/15 text-white/80 hover:bg-white/[0.04]"
               >
                 Cancel
               </button>
               <button
                 onClick={run}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-semibold"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-[14px] font-medium"
                 style={{ background: GOLD, color: NAVY }}
               >
                 <Zap className="h-4 w-4" /> Run Refresh

@@ -68,17 +68,17 @@ export function MissionBriefArtifact({ missionId }: { missionId: string }) {
       <header className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-3">
           <Sparkles className="h-5 w-5" style={{ color: GOLD }} />
-          <h2 className="text-lg md:text-xl font-semibold tracking-tight">Mission Brief</h2>
+          <h2 className="text-lg md:text-xl font-medium tracking-tight">Mission Brief</h2>
           <Badge
             variant="outline"
             style={{ background: meta.bg, color: meta.fg, borderColor: meta.border }}
-            className="text-[10px] uppercase tracking-wider"
+            className="text-[11px]"
           >
             {isApproved && <CheckCircle2 className="h-3 w-3 mr-1 inline" />}
             {meta.label}
           </Badge>
           {status?.brief_version ? (
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            <span className="text-[11px] text-muted-foreground">
               v{status.brief_version}
             </span>
           ) : null}
@@ -109,12 +109,12 @@ export function MissionBriefArtifact({ missionId }: { missionId: string }) {
       </header>
 
       {isApproved && status?.brief_approved_at ? (
-        <p className="text-xs text-muted-foreground mb-3">
+        <p className="text-[12px] text-muted-foreground mb-3">
           Approved {new Date(status.brief_approved_at).toLocaleString()}
           {status.approver_name ? ` by ${status.approver_name}` : ""}. Canvas fields are read-only.
         </p>
       ) : (
-        <p className="text-xs text-muted-foreground mb-3">
+        <p className="text-[12px] text-muted-foreground mb-3">
           IRIS synthesizes this brief from the mission canvas, intelligence graph, and expert inputs. Supporting materials below.
         </p>
       )}
@@ -171,15 +171,15 @@ function IntelligenceSourcesFooter({ missionId }: { missionId: string }) {
 
   return (
     <details className="mt-4 group">
-      <summary className="cursor-pointer text-[11px] uppercase tracking-wider text-muted-foreground hover:text-foreground">
+      <summary className="cursor-pointer text-[12px] text-muted-foreground hover:text-foreground">
         Intelligence Sources Used
         {total > 0 ? (
-          <span className="ml-2 normal-case tracking-normal text-[11px] text-muted-foreground">
+          <span className="ml-2 normal-case tracking-normal text-[12px] text-muted-foreground">
             ({total} record{total === 1 ? "" : "s"})
           </span>
         ) : null}
       </summary>
-      <div className="mt-2 text-xs text-muted-foreground space-y-1">
+      <div className="mt-2 text-[12px] text-muted-foreground space-y-1">
         {total === 0 ? (
           <p>No stakeholder, executive, or expert intelligence captured yet for this mission.</p>
         ) : (
@@ -192,7 +192,7 @@ function IntelligenceSourcesFooter({ missionId }: { missionId: string }) {
             <span className="text-foreground">{insightCount}</span> stakeholder insight{insightCount === 1 ? "" : "s"}.
           </p>
         )}
-        <p className="text-[10px] text-muted-foreground/70">
+        <p className="text-[11px] text-muted-foreground/70">
           Refreshed {new Date(data.freshness.generated_at).toLocaleTimeString()}.
         </p>
       </div>

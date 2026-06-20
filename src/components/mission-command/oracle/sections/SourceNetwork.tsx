@@ -52,7 +52,7 @@ export function SourceNetwork({
               <div
                 style={{
                   fontSize: 9,
-                  textTransform: "uppercase",
+                  textTransform: "",
                   letterSpacing: "0.1em",
                   color: "rgba(255,255,255,0.4)",
                   marginBottom: 8,

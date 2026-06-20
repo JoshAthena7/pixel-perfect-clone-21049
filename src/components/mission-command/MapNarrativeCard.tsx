@@ -86,7 +86,7 @@ export function MapNarrativeCard({ missionId }: { missionId: string }) {
         <div className="flex items-start gap-3 min-w-0">
           <MapIcon className="h-5 w-5 mt-0.5 shrink-0" style={{ color: GOLD }} />
           <div className="min-w-0">
-            <p className="text-[14px] font-semibold">Map Story Structure</p>
+            <p className="text-[14px] font-medium">Map Story Structure</p>
             <p className="text-[12.5px] opacity-70 mt-0.5">
               IRIS will tag every question with its win theme, evaluator fear, and
               narrative role — building one connected story across the proposal.
@@ -97,7 +97,7 @@ export function MapNarrativeCard({ missionId }: { missionId: string }) {
           type="button"
           onClick={run}
           disabled={running}
-          className="shrink-0 inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-[12.5px] font-semibold"
+          className="shrink-0 inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-[12.5px] font-medium"
           style={{
             background: "transparent",
             color: GOLD,

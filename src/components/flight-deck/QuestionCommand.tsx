@@ -30,7 +30,7 @@ const BORDER = "#2a2a3a";
 
 const sectionLabel: React.CSSProperties = {
   fontSize: 10,
-  textTransform: "uppercase",
+  textTransform: "",
   letterSpacing: "0.18em",
   color: "rgba(255,255,255,0.45)",
   fontWeight: 600,
@@ -173,7 +173,7 @@ export function QuestionCommand({ missionId }: { missionId: string }) {
       <div className="flex items-baseline justify-between mb-4">
         <div>
           <div style={sectionLabel}>Question Command</div>
-          <h2 className="mt-1 font-bold" style={{ fontSize: 22 }}>
+          <h2 className="mt-1 font-medium" style={{ fontSize: 22 }}>
             Lead the response
           </h2>
         </div>
@@ -269,7 +269,7 @@ function Stat({ label, value, color }: { label: string; value: number; color: st
       }}
     >
       <div style={{ ...sectionLabel, fontSize: 9 }}>{label}</div>
-      <div className="mt-0.5 font-bold" style={{ fontSize: 20, color }}>
+      <div className="mt-0.5 font-medium" style={{ fontSize: 20, color }}>
         {value}
       </div>
     </div>
@@ -300,7 +300,7 @@ function AllQuestionsList({
         className="rounded-xl p-8"
         style={{ background: CARD, border: `1px solid ${BORDER}` }}
       >
-        <h3 className="font-bold" style={{ fontSize: 16 }}>
+        <h3 className="font-medium" style={{ fontSize: 16 }}>
           No questions yet
         </h3>
         <p className="mt-2" style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>
@@ -677,7 +677,7 @@ function AssignDialog({
         >
           <div className="min-w-0">
             <div style={sectionLabel}>Assign Question</div>
-            <div className="mt-1 font-bold" style={{ fontSize: 14 }}>
+            <div className="mt-1 font-medium" style={{ fontSize: 14 }}>
               {question.question_number ?? "—"}
             </div>
             <div className="mt-1" style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>
@@ -1093,7 +1093,7 @@ function BriefViewerDialog({
         >
           <div className="min-w-0">
             <div style={sectionLabel}>IRIS Brief</div>
-            <div className="mt-1 font-bold" style={{ fontSize: 16, color: "white" }}>
+            <div className="mt-1 font-medium" style={{ fontSize: 16, color: "white" }}>
               {questionNumber ? `${questionNumber} · ` : ""}
               {questionText.length > 90 ? questionText.slice(0, 90) + "…" : questionText}
             </div>
@@ -1356,7 +1356,7 @@ function OracleSourcesFooter({ sources }: { sources: OracleSource[] }) {
           cursor: "pointer",
           fontSize: 10,
           letterSpacing: "0.18em",
-          textTransform: "uppercase",
+          textTransform: "",
           color: GOLD,
           fontWeight: 600,
         }}
@@ -1372,7 +1372,7 @@ function OracleSourcesFooter({ sources }: { sources: OracleSource[] }) {
                 style={{
                   fontSize: 9,
                   letterSpacing: "0.15em",
-                  textTransform: "uppercase",
+                  textTransform: "",
                   color: "rgba(255,255,255,0.45)",
                   marginBottom: 4,
                 }}

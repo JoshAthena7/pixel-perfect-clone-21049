@@ -155,7 +155,7 @@ function EmailTemplatesPage() {
             </Field>
 
             <div style={{ marginTop: 16, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
-              <div style={{ marginBottom: 6, letterSpacing: "0.12em", textTransform: "uppercase", color: "#c9a84c" }}>
+              <div style={{ marginBottom: 6, letterSpacing: "0.12em", textTransform: "", color: "#c9a84c" }}>
                 Available tokens
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -184,7 +184,7 @@ function EmailTemplatesPage() {
 
           {/* Live preview */}
           <div>
-            <div style={{ fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: "#9CA3AF", marginBottom: 8 }}>
+            <div style={{ fontSize: 11, letterSpacing: "0.16em", textTransform: "", color: "#9CA3AF", marginBottom: 8 }}>
               Live preview (sample data)
             </div>
             <div style={{ background: "#fff", padding: 24, borderRadius: 6 }}>
@@ -259,7 +259,7 @@ function EmailTemplatesPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label style={{ display: "block", marginBottom: 14 }}>
-      <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "#9CA3AF", marginBottom: 6 }}>
+      <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "", color: "#9CA3AF", marginBottom: 6 }}>
         {label}
       </div>
       {children}

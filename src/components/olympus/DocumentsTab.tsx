@@ -187,14 +187,14 @@ export function DocumentsTab({ missionId }: { missionId: string | null }) {
   }
 
   if (!missionId) {
-    return <div className="text-[11px] text-white/40 py-6 text-center">Select a mission.</div>;
+    return <div className="text-[12px] text-white/40 py-6 text-center">Select a mission.</div>;
   }
   if (documentsQ.isLoading) {
-    return <div className="text-[11px] text-white/40 py-6 text-center">Loading documents…</div>;
+    return <div className="text-[12px] text-white/40 py-6 text-center">Loading documents…</div>;
   }
   if (docs.length === 0) {
     return (
-      <div className="text-[11px] text-white/40 py-6 text-center">
+      <div className="text-[12px] text-white/40 py-6 text-center">
         No documents uploaded for this mission.
       </div>
     );
@@ -204,7 +204,7 @@ export function DocumentsTab({ missionId }: { missionId: string | null }) {
     <div className="space-y-2">
       {rfp && !rfpProcessed && (
         <div
-          className="rounded p-3 text-[11px] mb-3"
+          className="rounded p-3 text-[12px] mb-3"
           style={{
             background: "rgba(196,154,43,0.12)",
             border: "1px solid rgba(196,154,43,0.3)",
@@ -221,7 +221,7 @@ export function DocumentsTab({ missionId }: { missionId: string | null }) {
               <button
                 onClick={() => processDoc(rfp, true)}
                 disabled={!!activeId}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[10px] font-medium disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-[11px] font-medium disabled:opacity-50"
                 style={{ background: "#d4af37", color: "#0a0a0a" }}
               >
                 {activeId === rfp.id ? (
@@ -238,7 +238,7 @@ export function DocumentsTab({ missionId }: { missionId: string | null }) {
 
       {rfp && rfpProcessed && (
         <div
-          className="rounded p-2 text-[10px] mb-3 flex items-center gap-2"
+          className="rounded p-2 text-[11px] mb-3 flex items-center gap-2"
           style={{
             background: "rgba(16,185,129,0.08)",
             border: "1px solid rgba(16,185,129,0.25)",
@@ -263,7 +263,7 @@ export function DocumentsTab({ missionId }: { missionId: string | null }) {
       ))}
 
       <div
-        className="mt-4 pt-3 text-[10px] text-white/50 border-t"
+        className="mt-4 pt-3 text-[11px] text-white/50 border-t"
         style={{ borderColor: "rgba(255,255,255,0.06)" }}
       >
         {totalProcessed} of {docs.length} documents processed · {totalItems} total intel items extracted
@@ -315,7 +315,7 @@ function DocCard({
         <div className="text-white text-[12px] font-medium truncate" title={doc.title}>
           {doc.title}
         </div>
-        <div className="flex items-center gap-2 mt-1 text-[9px] text-white/40 flex-wrap">
+        <div className="flex items-center gap-2 mt-1 text-[11px] text-white/40 flex-wrap">
           <span
             className="px-1.5 py-0.5 rounded"
             style={{ border: `1px solid ${typeColor}55`, color: typeColor }}
@@ -326,14 +326,14 @@ function DocCard({
           <StatusBadge status={status} itemsExtracted={doc.items_extracted ?? 0} />
         </div>
         {processing && phase && (
-          <div className="text-[9px] text-amber-300/80 mt-1 truncate">{phase}</div>
+          <div className="text-[11px] text-amber-300/80 mt-1 truncate">{phase}</div>
         )}
         {isProcessing && !processing && (
-          <div className="text-[9px] text-amber-300/80 mt-1">{status.replace(/_/g, " ")}</div>
+          <div className="text-[11px] text-amber-300/80 mt-1">{status.replace(/_/g, " ")}</div>
         )}
         {isError && doc.processing_error && (
           <div
-            className="text-[9px] text-red-300/80 mt-1 truncate"
+            className="text-[11px] text-red-300/80 mt-1 truncate"
             title={doc.processing_error}
           >
             {doc.processing_error}
@@ -344,7 +344,7 @@ function DocCard({
       <button
         onClick={onProcess}
         disabled={disabled || isProcessing || processing}
-        className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded text-[10px] font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+        className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded text-[11px] font-medium disabled:opacity-40 disabled:cursor-not-allowed"
         style={{
           border: isProcessed
             ? "1px solid rgba(255,255,255,0.15)"

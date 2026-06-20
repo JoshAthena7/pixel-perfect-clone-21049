@@ -69,10 +69,10 @@ function IrisHealthPage() {
     <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <h1 className="text-3xl font-medium flex items-center gap-2">
             <Activity className="h-7 w-7 text-primary" /> IRIS Health
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-[14px] text-muted-foreground">
             Status, recent runs, and manual triggers for every IRIS pipeline cron job. Auto-refreshes every 30s.
           </p>
         </div>
@@ -83,13 +83,13 @@ function IrisHealthPage() {
       </div>
 
       {error && (
-        <div className="rounded border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300">
+        <div className="rounded border border-red-500/40 bg-red-500/10 p-4 text-[14px] text-red-300">
           {(error as Error).message}
         </div>
       )}
 
       {isLoading ? (
-        <div className="text-sm text-muted-foreground">Loading pipeline status…</div>
+        <div className="text-[14px] text-muted-foreground">Loading pipeline status…</div>
       ) : (
         <div className="space-y-3">
           {(data?.jobs ?? []).map((job) => (
@@ -101,7 +101,7 @@ function IrisHealthPage() {
             />
           ))}
           {(data?.jobs ?? []).length === 0 && (
-            <p className="text-sm text-muted-foreground">No IRIS pipelines found in cron.job.</p>
+            <p className="text-[14px] text-muted-foreground">No IRIS pipelines found in cron.job.</p>
           )}
         </div>
       )}
@@ -137,18 +137,18 @@ function PipelineCard({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <code className="text-sm font-semibold text-foreground">{job.jobname}</code>
-            <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border ${badge.cls}`}>
+            <code className="text-[14px] font-medium text-foreground">{job.jobname}</code>
+            <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border ${badge.cls}`}>
               <Icon className="h-3 w-3" />
               {last?.status ?? "no runs"}
             </span>
             {!job.active && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400">
+              <span className="text-[11px] px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400">
                 inactive
               </span>
             )}
           </div>
-          <div className="mt-1 text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
+          <div className="mt-1 text-[12px] text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
             <span>schedule: <code className="text-foreground/80">{job.schedule}</code></span>
             <span>last run: {fmtAgo(last?.start_time)}</span>
             <span>last success: {fmtAgo(lastSuccess?.start_time)}</span>
@@ -174,18 +174,18 @@ function PipelineCard({
 
       {open && (
         <div className="border-t bg-background/40 px-4 py-3">
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
+          <p className="text-[12px] text-muted-foreground mb-2">
             Last {job.runs.length} runs
           </p>
           {job.runs.length === 0 ? (
-            <p className="text-xs text-muted-foreground italic">No run history yet.</p>
+            <p className="text-[12px] text-muted-foreground italic">No run history yet.</p>
           ) : (
             <ul className="space-y-1.5">
               {job.runs.map((r) => {
                 const b = statusBadge(r.status);
                 const Bi = b.icon;
                 return (
-                  <li key={r.runid} className="text-xs flex items-start gap-2 font-mono">
+                  <li key={r.runid} className="text-[12px] flex items-start gap-2 font-mono">
                     <span className={`inline-flex items-center gap-1 px-1.5 rounded border ${b.cls} shrink-0`}>
                       <Bi className="h-3 w-3" />
                       {r.status}

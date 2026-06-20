@@ -501,7 +501,7 @@ function TimelineRow({
                 borderRadius: 3,
                 fontWeight: 600,
                 letterSpacing: "0.05em",
-                textTransform: "uppercase",
+                textTransform: "",
               }}
             >
               {meta.label}

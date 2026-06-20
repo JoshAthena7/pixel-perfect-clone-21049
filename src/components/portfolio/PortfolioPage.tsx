@@ -103,7 +103,7 @@ export function PortfolioPage({ onOpenIris }: Props) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-white text-[22px] font-medium">Portfolio</h1>
-          <p className="text-white/50 text-[13px] mt-0.5">{format(new Date(), "EEEE, MMMM d, yyyy")}</p>
+          <p className="text-white/50 text-[14px] mt-0.5">{format(new Date(), "EEEE, MMMM d, yyyy")}</p>
         </div>
 
       </div>
@@ -153,7 +153,7 @@ export function PortfolioPage({ onOpenIris }: Props) {
           <button
             type="button"
             onClick={() => refetchBrief()}
-            className="text-[11px] text-white/40 hover:text-white/60"
+            className="text-[12px] text-white/40 hover:text-white/60"
           >
             {briefLoading ? "Refreshing…" : "Refresh"}
           </button>
@@ -161,12 +161,12 @@ export function PortfolioPage({ onOpenIris }: Props) {
         {briefLoading && !brief ? (
           <Skeleton className="h-16" />
         ) : (
-          <p className="text-white italic text-[13px] leading-relaxed">
+          <p className="text-white italic text-[14px] leading-relaxed">
             {brief?.brief ?? "Brief will appear here."}
           </p>
         )}
         {brief?.generatedAt && (
-          <p className="text-[11px] text-white/40 mt-2">
+          <p className="text-[12px] text-white/40 mt-2">
             Brief generated {formatDistanceToNow(new Date(brief.generatedAt), { addSuffix: true })}
           </p>
         )}
@@ -273,12 +273,12 @@ function MissionHealthCard({
           style={{ width: `${pct}%`, background: pct < 50 ? "#f0b440" : "#7dcf7d" }}
         />
       </div>
-      <p className="text-white/45 text-[11px] mt-1.5">
+      <p className="text-white/45 text-[12px] mt-1.5">
         {pct}% complete · {atRiskCount} at risk · {total - complete} open
       </p>
       {decisionCount > 0 && (
         <div
-          className="mt-2 rounded px-2 py-1 text-[11px] text-amber-300 flex items-center gap-1.5"
+          className="mt-2 rounded px-2 py-1 text-[12px] text-amber-300 flex items-center gap-1.5"
           style={{ background: "rgba(239,159,39,0.08)" }}
         >
           <AlertTriangle className="h-3 w-3" />
@@ -288,7 +288,7 @@ function MissionHealthCard({
       )}
       {atRiskCount > 0 && (
         <div
-          className="mt-1 rounded px-2 py-1 text-[11px] text-red-300 flex items-center gap-1.5"
+          className="mt-1 rounded px-2 py-1 text-[12px] text-red-300 flex items-center gap-1.5"
           style={{ background: "rgba(224,74,74,0.08)" }}
         >
           <AlertTriangle className="h-3 w-3" />

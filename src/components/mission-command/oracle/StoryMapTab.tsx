@@ -230,7 +230,7 @@ export function StoryMapTab({ missionId }: { missionId: string }) {
     <div style={{ padding: "24px 8px", color: "rgba(255,255,255,0.92)" }}>
       {/* HEADER */}
       <div style={{ textAlign: "center", marginBottom: 28 }}>
-        <div style={{ fontSize: 10, letterSpacing: "0.18em", color: GOLD, textTransform: "uppercase", marginBottom: 8 }}>
+        <div style={{ fontSize: 10, letterSpacing: "0.18em", color: GOLD, textTransform: "", marginBottom: 8 }}>
           The One Story
         </div>
         <div
@@ -287,7 +287,7 @@ export function StoryMapTab({ missionId }: { missionId: string }) {
 
       {/* THREAD ANALYSIS */}
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 11, letterSpacing: "0.14em", color: GOLD, textTransform: "uppercase", marginBottom: 4 }}>
+        <div style={{ fontSize: 11, letterSpacing: "0.14em", color: GOLD, textTransform: "", marginBottom: 4 }}>
           Thread Analysis
         </div>
         <div style={{ fontSize: 12, color: STEEL, marginBottom: 14 }}>
@@ -367,7 +367,7 @@ function ThemeColumn({
         style={{
           fontSize: 9,
           letterSpacing: "0.1em",
-          textTransform: "uppercase",
+          textTransform: "",
           color: STEEL,
           marginBottom: 12,
         }}
@@ -570,7 +570,7 @@ function ThreadTable({ columns }: { columns: { theme: WinTheme; questions: Quest
           padding: "10px 14px",
           fontSize: 9,
           letterSpacing: "0.12em",
-          textTransform: "uppercase",
+          textTransform: "",
           color: STEEL,
           background: "rgba(255,255,255,0.03)",
         }}

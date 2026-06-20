@@ -832,7 +832,7 @@ function NoteCard(props: {
             fontSize: 8,
             fontWeight: 600,
             letterSpacing: 0.5,
-            textTransform: "uppercase",
+            textTransform: "",
           }}
         >
           {t.label}

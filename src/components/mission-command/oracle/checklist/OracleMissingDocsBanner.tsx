@@ -72,10 +72,10 @@ export function OracleMissingDocsBanner({
         borderBottom: "1px solid rgba(251,191,36,0.2)",
       }}
     >
-      <div className="flex items-center gap-2 text-[11px] text-amber-200/90">
+      <div className="flex items-center gap-2 text-[12px] text-amber-200/90">
         <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
         <span>
-          <span className="font-semibold text-amber-200">ORACLE is missing critical documents</span>{" "}
+          <span className="font-medium text-amber-200">ORACLE is missing critical documents</span>{" "}
           — IRIS briefs may be incomplete.{" "}
           <span className="text-amber-200/70">
             {missing.map((m) => m.label).slice(0, 2).join(" · ")}

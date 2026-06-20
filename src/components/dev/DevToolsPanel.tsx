@@ -601,7 +601,7 @@ export function DevToolsPanel() {
                         fontSize: 9,
                         letterSpacing: "0.22em",
                         color: "rgba(255,255,255,0.55)",
-                        textTransform: "uppercase",
+                        textTransform: "",
                         background: "transparent",
                         border: 0,
                         padding: "4px 0",
@@ -801,7 +801,7 @@ export function DevToolsPanel() {
 function Section({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div>
-      <div style={{ fontSize: 9, letterSpacing: "0.22em", color: "rgba(255,255,255,0.5)", textTransform: "uppercase" }}>
+      <div style={{ fontSize: 9, letterSpacing: "0.22em", color: "rgba(255,255,255,0.5)", textTransform: "" }}>
         {label}
       </div>
       {hint && <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", marginTop: 4, marginBottom: 8 }}>{hint}</div>}

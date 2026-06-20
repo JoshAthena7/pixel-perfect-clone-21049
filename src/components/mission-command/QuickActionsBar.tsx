@@ -17,13 +17,13 @@ export function QuickActionsBar({ missionId }: { missionId: string }) {
   };
 
   const btn =
-    "inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-surface/60 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-surface transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
+    "inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-surface/60 px-3 py-1.5 text-[12px] font-medium text-foreground hover:bg-surface transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 
   return (
     <div className="border-b border-border bg-surface/20">
       <MissionEditPanel missionId={missionId} open={editOpen} onOpenChange={setEditOpen} />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-2 flex flex-wrap items-center gap-2">
-        <span className="text-xs uppercase tracking-wider text-muted-foreground mr-1">
+        <span className="text-[12px] text-muted-foreground mr-1">
           Quick actions
         </span>
         <button type="button" className={btn} onClick={() => setEditOpen(true)}>

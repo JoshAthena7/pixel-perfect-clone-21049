@@ -91,8 +91,8 @@ function OraclePipelinePage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">ORACLE Pipeline</h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <h1 className="text-2xl font-medium tracking-tight">ORACLE Pipeline</h1>
+        <p className="text-[14px] text-muted-foreground mt-1">
           Manually trigger the automated ingestion pipeline and inspect queue depth + source health.
           Cron runs: scraper every 4h, classifier every 30m, promoter at :15/:45.
         </p>
@@ -102,15 +102,15 @@ function OraclePipelinePage() {
       <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-semibold">Manual run</h2>
-            <p className="text-xs text-muted-foreground mt-1">
+            <h2 className="font-medium">Manual run</h2>
+            <p className="text-[12px] text-muted-foreground mt-1">
               Run all three stages in sequence, or trigger one stage individually.
             </p>
           </div>
           <button
             onClick={runAll}
             disabled={runningAll}
-            className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-[14px] font-medium disabled:opacity-50"
             style={{ background: GOLD, color: "#0a0a0a" }}
           >
             {runningAll ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
@@ -133,17 +133,17 @@ function OraclePipelinePage() {
       {/* Pipeline status */}
       <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold">Pipeline status</h2>
+          <h2 className="font-medium">Pipeline status</h2>
           <button
             onClick={() => qc.invalidateQueries({ queryKey: ["oracle-pipeline-status"] })}
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground"
           >
             <RefreshCw className="h-3 w-3" /> Refresh
           </button>
         </div>
 
         {isLoading || !status ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" /> Loading…
           </div>
         ) : (
@@ -167,9 +167,9 @@ function OraclePipelinePage() {
 
       {/* Source registry */}
       <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-3">
-        <h2 className="font-semibold">Sources</h2>
+        <h2 className="font-medium">Sources</h2>
         {!status ? null : status.sources.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No sources configured.</p>
+          <p className="text-[12px] text-muted-foreground">No sources configured.</p>
         ) : (
           <div className="space-y-1.5">
             {status.sources.map((src) => {
@@ -177,21 +177,21 @@ function OraclePipelinePage() {
               return (
                 <div
                   key={src.id}
-                  className="flex items-center justify-between rounded-md border border-white/5 bg-white/[0.01] px-3 py-2 text-sm"
+                  className="flex items-center justify-between rounded-md border border-white/5 bg-white/[0.01] px-3 py-2 text-[14px]"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{src.source_name}</div>
-                    <div className="text-[10px] text-muted-foreground mt-0.5">
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
                       {src.source_type} · {src.state_code ?? "platform"} · last checked {relativeTime(src.last_checked_at)}
                     </div>
                     {src.error_message ? (
-                      <div className="text-[10px] text-red-400 mt-0.5 truncate" title={src.error_message}>
+                      <div className="text-[11px] text-red-400 mt-0.5 truncate" title={src.error_message}>
                         {src.error_message}
                       </div>
                     ) : null}
                   </div>
                   <span
-                    className="ml-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                    className="ml-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
                     style={{ background: `${pill.color}22`, color: pill.color }}
                   >
                     {pill.label}
@@ -225,7 +225,7 @@ function StageButton({
       disabled={disabled || state === "running"}
       className="flex flex-col items-start gap-1 rounded-md border border-white/10 bg-white/[0.02] px-3 py-3 text-left hover:bg-white/[0.04] disabled:opacity-50"
     >
-      <div className="flex items-center gap-2 text-sm font-medium">
+      <div className="flex items-center gap-2 text-[14px] font-medium">
         {state === "running" ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : state === "done" ? (
@@ -237,7 +237,7 @@ function StageButton({
         )}
         {label}
       </div>
-      <span className="text-[10px] text-muted-foreground capitalize">{state}</span>
+      <span className="text-[11px] text-muted-foreground capitalize">{state}</span>
     </button>
   );
 }
@@ -245,10 +245,10 @@ function StageButton({
 function StatCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
   return (
     <div className="rounded-md border border-white/5 bg-white/[0.02] px-3 py-2.5">
-      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-[11px] tracking-wide text-muted-foreground">
         <span className="[&>svg]:h-3 [&>svg]:w-3">{icon}</span> {label}
       </div>
-      <div className="mt-1 text-sm font-semibold">{value}</div>
+      <div className="mt-1 text-[14px] font-medium">{value}</div>
     </div>
   );
 }
@@ -259,10 +259,10 @@ function QueueCount({ label, value, color }: { label: string; value: number; col
       className="rounded-md border px-3 py-2"
       style={{ borderColor: `${color}33`, background: `${color}0a` }}
     >
-      <div className="text-[10px] uppercase tracking-wide" style={{ color }}>
+      <div className="text-[11px] tracking-wide" style={{ color }}>
         {label}
       </div>
-      <div className="mt-0.5 text-xl font-semibold tabular-nums">{value}</div>
+      <div className="mt-0.5 text-xl font-medium tabular-nums">{value}</div>
     </div>
   );
 }

@@ -153,7 +153,7 @@ export function MissionClock({ missionId, startDate, submissionDate }: Props) {
           <div style={{ color: "#fff", fontWeight: 700, fontSize: numFontSize, lineHeight: 1 }}>
             {daysRemaining}
           </div>
-          <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 2 }}>
+          <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 9, textTransform: "", letterSpacing: "0.1em", marginTop: 2 }}>
             days
           </div>
         </div>

@@ -25,7 +25,7 @@ const glass: React.CSSProperties = {
 const cardLabel: React.CSSProperties = {
   fontSize: 11,
   letterSpacing: "0.18em",
-  textTransform: "uppercase",
+  textTransform: "",
   color: GOLD,
   fontWeight: 700,
 };
@@ -211,7 +211,7 @@ function Stat({
         style={{
           fontSize: 10,
           letterSpacing: "0.12em",
-          textTransform: "uppercase",
+          textTransform: "",
           color,
           fontWeight: 700,
         }}

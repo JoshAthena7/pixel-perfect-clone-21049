@@ -53,7 +53,7 @@ export function IntelligencePanel(props: Props) {
     >
       <header className="flex items-center gap-2 px-4 py-3 border-b border-border/40">
         <Eye className="h-4 w-4" style={{ color: IRIS_PURPLE }} />
-        <h2 className="text-[15px] font-medium text-foreground">
+        <h2 className="text-[14px] font-medium text-foreground">
           {props.questionId ? "Intelligence" : "Intelligence Panel"}
         </h2>
       </header>
@@ -73,7 +73,7 @@ function DefaultState({ missionId }: { missionId: string | null }) {
     <div className="p-4 space-y-4">
       <div className="rounded-lg border border-dashed border-border/60 p-6 text-center">
         <ArrowLeft className="h-5 w-5 mx-auto text-muted-foreground/60 mb-2" />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[12px] text-muted-foreground">
           Select a question from your workspace to see targeted intelligence.
         </p>
       </div>
@@ -109,9 +109,9 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
         header={
           <>
             <Network className="h-3.5 w-3.5" style={{ color: IRIS_PURPLE }} />
-            <span className="text-xs font-medium text-foreground">Mission Ecosystem</span>
+            <span className="text-[12px] font-medium text-foreground">Mission Ecosystem</span>
             <span
-              className="ml-auto text-[10px] uppercase tracking-wider font-semibold"
+              className="ml-auto text-[11px] font-medium"
               style={{ color: IRIS_PURPLE }}
             >
               IRIS Graph
@@ -138,9 +138,9 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
         header={
           <>
             <Compass className="h-3.5 w-3.5" style={{ color: GOLD }} />
-            <span className="text-xs font-medium text-foreground">Athena Insight</span>
+            <span className="text-[12px] font-medium text-foreground">Athena Insight</span>
             <span
-              className="ml-auto text-[10px] uppercase tracking-wider font-semibold"
+              className="ml-auto text-[11px] font-medium"
               style={{ color: GOLD }}
             >
               From Athena
@@ -162,9 +162,9 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
         header={
           <>
             <Eye className="h-3.5 w-3.5" style={{ color: IRIS_PURPLE }} />
-            <span className="text-xs font-medium text-foreground">IRIS Brief</span>
+            <span className="text-[12px] font-medium text-foreground">IRIS Brief</span>
             <span
-              className="ml-auto text-[10px] uppercase tracking-wider font-semibold"
+              className="ml-auto text-[11px] font-medium"
               style={{ color: IRIS_PURPLE }}
             >
               From IRIS
@@ -173,7 +173,7 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
         }
       >
         {props.missionId && (
-          <div className="text-[13px] [&_*]:!leading-relaxed">
+          <div className="text-[14px] [&_*]:!leading-relaxed">
             <IrisIntelligenceBrief
               missionId={props.missionId}
               sectionId={props.sectionId}
@@ -192,9 +192,9 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
           header={
             <>
               <GitBranch className="h-3.5 w-3.5" style={{ color: IRIS_PURPLE }} />
-              <span className="text-xs font-medium text-foreground">Line of Sight</span>
+              <span className="text-[12px] font-medium text-foreground">Line of Sight</span>
               <span
-                className="ml-auto text-[9px] uppercase tracking-wider italic"
+                className="ml-auto text-[11px] italic"
                 style={{ color: "rgba(255,255,255,0.45)" }}
               >
                 Decisions · Intelligence · Alignment
@@ -233,9 +233,9 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
         header={
           <>
             <Search className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-xs font-medium text-foreground">How They're Thinking</span>
+            <span className="text-[12px] font-medium text-foreground">How They're Thinking</span>
             <span
-              className="ml-auto text-[10px] uppercase tracking-wider font-semibold text-muted-foreground"
+              className="ml-auto text-[11px] font-medium text-muted-foreground"
             >
               Evaluator Picture
             </span>
@@ -253,7 +253,7 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
         header={
           <>
             <CheckSquare className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-xs font-medium text-foreground">Key Requirements</span>
+            <span className="text-[12px] font-medium text-foreground">Key Requirements</span>
           </>
         }
       >
@@ -267,7 +267,7 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
         header={
           <>
             <Star className="h-3.5 w-3.5" style={{ color: GOLD }} />
-            <span className="text-xs font-medium text-foreground">Win Themes</span>
+            <span className="text-[12px] font-medium text-foreground">Win Themes</span>
           </>
         }
       >
@@ -281,7 +281,7 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
         header={
           <>
             <Activity className="h-3.5 w-3.5 text-amber-400" />
-            <span className="text-xs font-medium text-foreground">Live Intel</span>
+            <span className="text-[12px] font-medium text-foreground">Live Intel</span>
             <LiveCountBadge missionId={props.missionId} />
           </>
         }
@@ -374,7 +374,7 @@ function AthenaInsightBlock({
   if (isLoading) {
     return (
       <div className="rounded-md border border-border/40 p-3.5">
-        <p className="text-xs text-muted-foreground italic">Loading insight…</p>
+        <p className="text-[12px] text-muted-foreground italic">Loading insight…</p>
       </div>
     );
   }
@@ -384,11 +384,11 @@ function AthenaInsightBlock({
       <div className="rounded-md border border-[color:var(--athena-gold)]/20 bg-[color:var(--athena-gold)]/[0.04] p-3.5">
         <div className="flex items-center gap-2 mb-1.5">
           <Sparkles className="h-3 w-3" style={{ color: GOLD }} />
-          <span className="text-[10px] uppercase tracking-wider" style={{ color: GOLD }}>
+          <span className="text-[11px]" style={{ color: GOLD }}>
             ✦ Daily
           </span>
         </div>
-        <p className="text-xs text-muted-foreground italic leading-relaxed">
+        <p className="text-[12px] text-muted-foreground italic leading-relaxed">
           {dailyOnly
             ? "No Daily Insight set for this mission yet."
             : "No Athena Insight mapped to this question."}
@@ -412,16 +412,16 @@ function AthenaInsightBlock({
       }}
     >
       <div className="flex items-center gap-2 mb-1.5">
-        <span className="text-[10px] uppercase tracking-wider" style={{ color: borderColor }}>
+        <span className="text-[11px]" style={{ color: borderColor }}>
           {isAtRisk ? "⚠ At Risk" : isDaily ? "✦ Today" : "✦ Section"}
         </span>
         {insight.is_iris_generated && (
-          <span className="text-[9px]" style={{ color: IRIS_PURPLE }}>Generated by IRIS</span>
+          <span className="text-[11px]" style={{ color: IRIS_PURPLE }}>Generated by IRIS</span>
         )}
       </div>
-      <p className="text-[13px] leading-snug text-foreground font-medium">{quote}</p>
+      <p className="text-[14px] leading-snug text-foreground font-medium">{quote}</p>
       {insight.writers_note && (
-        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{insight.writers_note}</p>
+        <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">{insight.writers_note}</p>
       )}
     </div>
   );
@@ -448,12 +448,12 @@ function KeyRequirementsBlock({
   });
 
   if (!sectionId) {
-    return <p className="text-xs text-muted-foreground">No section linked to this question.</p>;
+    return <p className="text-[12px] text-muted-foreground">No section linked to this question.</p>;
   }
   if (isLoading) return <div className="space-y-2"><Sk /><Sk /><Sk /></div>;
   const rows = (data ?? []).slice().sort((a: any, b: any) => (b.is_high_risk ? 1 : 0) - (a.is_high_risk ? 1 : 0));
   if (!rows.length) {
-    return <p className="text-xs text-muted-foreground">No compliance requirements mapped to this section.</p>;
+    return <p className="text-[12px] text-muted-foreground">No compliance requirements mapped to this section.</p>;
   }
   const top = rows.slice(0, 8);
   return (
@@ -461,7 +461,7 @@ function KeyRequirementsBlock({
       {top.map((r: any) => <RequirementRow key={r.id} r={r} />)}
       {rows.length > 8 && (
         <li className="pt-1">
-          <span className="text-[11px] text-[color:var(--athena-gold)] hover:underline cursor-pointer">
+          <span className="text-[12px] text-[color:var(--athena-gold)] hover:underline cursor-pointer">
             View all {rows.length} requirements →
           </span>
         </li>
@@ -484,19 +484,19 @@ function RequirementRow({ r }: { r: any }) {
       <CheckSquare className={cn("h-3.5 w-3.5 mt-0.5 shrink-0", color)} />
       <div className="min-w-0 flex-1">
         <button
-          className="text-left text-xs text-foreground leading-snug"
+          className="text-left text-[12px] text-foreground leading-snug"
           onClick={() => setExpanded((v) => !v)}
         >
           {truncated}
         </button>
         <div className="flex gap-1 mt-0.5">
           {r.is_high_risk && (
-            <span className="text-[9px] uppercase rounded px-1 py-px bg-red-500/15 text-red-400 border border-red-500/30">
+            <span className="text-[11px] rounded px-1 py-px bg-red-500/15 text-red-400 border border-red-500/30">
               High Risk
             </span>
           )}
           {r.iris_extracted && (
-            <span className="text-[9px] uppercase rounded px-1 py-px" style={{ background: "rgba(201,165,92,0.15)", color: GOLD, border: `1px solid ${GOLD}30` }}>
+            <span className="text-[11px] rounded px-1 py-px" style={{ background: "rgba(201,165,92,0.15)", color: GOLD, border: `1px solid ${GOLD}30` }}>
               IRIS
             </span>
           )}
@@ -556,12 +556,12 @@ function WinThemesBlock({ missionId }: { missionId: string | null }) {
   });
 
   if (isLoading) return <Sk />;
-  if (!data) return <p className="text-xs text-muted-foreground">Win Strategy not set.</p>;
+  if (!data) return <p className="text-[12px] text-muted-foreground">Win Strategy not set.</p>;
   const themes = data.themes;
   return (
     <div className="space-y-2">
       {themes.length === 0 ? (
-        <p className="text-xs text-muted-foreground">No win themes captured yet.</p>
+        <p className="text-[12px] text-muted-foreground">No win themes captured yet.</p>
       ) : (
         themes.map((t, i) => (
           <div
@@ -575,14 +575,14 @@ function WinThemesBlock({ missionId }: { missionId: string | null }) {
               borderBottom: "1px solid rgba(196,154,43,0.12)",
             }}
           >
-            <p className="text-[13px] text-foreground leading-snug">{t}</p>
+            <p className="text-[14px] text-foreground leading-snug">{t}</p>
           </div>
         ))
       )}
       {data.north_star_message && (
         <div className="pt-2 flex items-start gap-1.5">
           <Sparkles className="h-3 w-3 mt-0.5 shrink-0" style={{ color: GOLD }} />
-          <p className="italic text-xs leading-relaxed" style={{ color: GOLD }}>
+          <p className="italic text-[12px] leading-relaxed" style={{ color: GOLD }}>
             {data.north_star_message}
           </p>
         </div>
@@ -620,7 +620,7 @@ function LiveCountBadge({ missionId }: { missionId: string | null }) {
   });
   if (!data) return null;
   return (
-    <span className="ml-auto text-[10px] rounded-full px-1.5 py-px bg-amber-500/15 text-amber-400 border border-amber-500/30 font-semibold">
+    <span className="ml-auto text-[11px] rounded-full px-1.5 py-px bg-amber-500/15 text-amber-400 border border-amber-500/30 font-medium">
       {data}
     </span>
   );
@@ -657,7 +657,7 @@ function LiveIntelBlock({ missionId }: { missionId: string | null }) {
   const items = data?.items ?? [];
   if (!items.length) {
     return (
-      <p className="text-xs text-muted-foreground">
+      <p className="text-[12px] text-muted-foreground">
         No new intelligence items. IRIS is monitoring {data?.feedCount ?? 0} feeds.
       </p>
     );
@@ -670,13 +670,13 @@ function LiveIntelBlock({ missionId }: { missionId: string | null }) {
           className="border-l-2 rounded-md p-2 bg-background/40 border-border/40"
           style={{ borderLeftColor: catColor(it.category) }}
         >
-          <p className="text-xs font-medium text-foreground leading-snug">{it.headline}</p>
+          <p className="text-[12px] font-medium text-foreground leading-snug">{it.headline}</p>
           {it.iris_assessment && (
-            <p className="italic mt-0.5 text-[11px] leading-snug" style={{ color: "rgba(255,255,255,0.55)" }}>
+            <p className="italic mt-0.5 text-[12px] leading-snug" style={{ color: "rgba(255,255,255,0.55)" }}>
               {String(it.iris_assessment).slice(0, 100)}{String(it.iris_assessment).length > 100 ? "…" : ""}
             </p>
           )}
-          <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
+          <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
             <span className="truncate">{it.source_name ?? "—"}</span>
             {it.created_at && <span>· {formatDistanceToNow(new Date(it.created_at), { addSuffix: true })}</span>}
             <span className="ml-auto flex items-center gap-1.5">
@@ -701,7 +701,7 @@ function LiveIntelBlock({ missionId }: { missionId: string | null }) {
           to="/olympus/missions/$missionId"
           params={{ missionId }}
           search={{ tab: "oracle", sub: "feed" } as any}
-          className="block text-[11px] hover:underline pt-1"
+          className="block text-[12px] hover:underline pt-1"
           style={{ color: GOLD }}
         >
           View all intelligence in IRIS →

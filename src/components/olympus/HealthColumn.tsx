@@ -119,7 +119,7 @@ export function HealthColumn({
 
   if (!missionId) {
     return (
-      <div className="h-full flex items-center justify-center text-[11px] text-white/40 p-6 text-center">
+      <div className="h-full flex items-center justify-center text-[12px] text-white/40 p-6 text-center">
         Select a mission.
       </div>
     );
@@ -129,15 +129,15 @@ export function HealthColumn({
     return (
       <div className="h-full flex flex-col items-center justify-center text-center p-6 gap-3">
         <DatabaseZap className="h-8 w-8 text-white/30" />
-        <div className="text-[13px] text-white/80">ORACLE has no intelligence yet.</div>
-        <div className="text-[11px] text-white/50 max-w-[260px]">
+        <div className="text-[14px] text-white/80">ORACLE has no intelligence yet.</div>
+        <div className="text-[12px] text-white/50 max-w-[260px]">
           Run the pipeline to ingest from monitored sources, or add intelligence manually using Add Intel in the Intelligence page.
         </div>
         <div className="flex items-center gap-2 pt-1">
           <button
             onClick={() => pipeline.mutate()}
             disabled={pipeline.isPending}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border text-[10px] text-white/90 hover:bg-white/5 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border text-[11px] text-white/90 hover:bg-white/5 disabled:opacity-50"
             style={{ borderColor: "#d4af37" }}
           >
             {pipeline.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" style={{ color: "#d4af37" }} />}
@@ -145,7 +145,7 @@ export function HealthColumn({
           </button>
           <a
             href={`/missions/${missionId}/intelligence`}
-            className="px-2.5 py-1 rounded border border-white/10 text-[10px] text-white/80 hover:bg-white/5"
+            className="px-2.5 py-1 rounded border border-white/10 text-[11px] text-white/80 hover:bg-white/5"
           >
             Go to Intelligence
           </a>
@@ -189,7 +189,7 @@ export function HealthColumn({
           <button
             onClick={() => pipeline.mutate()}
             disabled={pipeline.isPending}
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] text-white/90 hover:bg-white/5 disabled:opacity-50"
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded border text-[11px] text-white/90 hover:bg-white/5 disabled:opacity-50"
             style={{ borderColor: "#d4af37" }}
           >
             {pipeline.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
@@ -203,7 +203,7 @@ export function HealthColumn({
         heightPct={20}
         title="IRIS Usage"
         right={
-          <span className="text-[10px] text-white/50">
+          <span className="text-[11px] text-white/50">
             {usageQ.data?.briefsThisWeek ?? 0} briefs this week
           </span>
         }
@@ -213,7 +213,7 @@ export function HealthColumn({
       <Panel
         heightPct={30}
         title="Top Intelligence"
-        right={<span className="text-[10px] text-white/50">by relevance</span>}
+        right={<span className="text-[11px] text-white/50">by relevance</span>}
       >
         <TopIntel
           data={topQ.data}
@@ -248,7 +248,7 @@ function Panel({
           borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}
       >
-        <span className="text-[12px] text-white font-semibold">{title}</span>
+        <span className="text-[12px] text-white font-medium">{title}</span>
         {right}
       </div>
       <div className="flex-1 overflow-y-auto relative">{children}</div>
@@ -257,11 +257,11 @@ function Panel({
 }
 
 function CoverageSummary({ q }: { q: { totals: { covered: number; total: number } } | undefined }) {
-  if (!q || q.totals.total === 0) return <span className="text-[10px] text-white/40">—</span>;
+  if (!q || q.totals.total === 0) return <span className="text-[11px] text-white/40">—</span>;
   const ratio = q.totals.covered / q.totals.total;
   const color = ratio > 0.8 ? "#34d399" : ratio >= 0.4 ? "#fbbf24" : "#ef4444";
   return (
-    <span className="text-[10px]" style={{ color }}>
+    <span className="text-[11px]" style={{ color }}>
       {q.totals.covered} of {q.totals.total} questions covered
     </span>
   );
@@ -280,7 +280,7 @@ function CoverageList({
   if (loading) return <Skeleton />;
   if (!data || data.questions.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-[11px] text-white/40 text-center p-4">
+      <div className="h-full flex items-center justify-center text-[12px] text-white/40 text-center p-4">
         No questions loaded. Add questions via mission setup.
       </div>
     );
@@ -353,7 +353,7 @@ function PipelineStats({
   if (!data) return <Skeleton />;
   const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
     <div
-      className="flex items-center px-3 text-[10px]"
+      className="flex items-center px-3 text-[11px]"
       style={{ height: 20 }}
     >
       <span className="text-white/60" style={{ width: 90 }}>{label}</span>
@@ -378,7 +378,7 @@ function PipelineStats({
       {data.failingSources > 0 && (
         <button
           onClick={onSourcesClick}
-          className="mx-3 mt-1 w-[calc(100%-24px)] text-left px-2 py-1 rounded text-[10px] text-red-300"
+          className="mx-3 mt-1 w-[calc(100%-24px)] text-left px-2 py-1 rounded text-[11px] text-red-300"
           style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)" }}
         >
           ⚠ {data.failingSources} source(s) failing — check Sources tab
@@ -392,7 +392,7 @@ function UsageBars({ data }: { data: Awaited<ReturnType<typeof getIrisUsage>> | 
   if (!data) return <Skeleton />;
   if (data.totalLinks === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-[11px] text-white/40 text-center p-4">
+      <div className="h-full flex items-center justify-center text-[12px] text-white/40 text-center p-4">
         No IRIS briefs generated yet. Open a question in the Flight Deck to generate the first brief.
       </div>
     );
@@ -411,7 +411,7 @@ function UsageBars({ data }: { data: Awaited<ReturnType<typeof getIrisUsage>> | 
         const n = data.perLayer[l.key];
         const pct = Math.round((n / total) * 100);
         return (
-          <div key={l.key} className="flex items-center gap-2 text-[10px]">
+          <div key={l.key} className="flex items-center gap-2 text-[11px]">
             <span className="text-white/70" style={{ width: 72 }}>{l.label}</span>
             <div
               className="flex-1 rounded-full overflow-hidden"
@@ -432,7 +432,7 @@ function UsageBars({ data }: { data: Awaited<ReturnType<typeof getIrisUsage>> | 
           </div>
         );
       })}
-      <div className="pt-2 space-y-0.5 text-[10px] text-white/50">
+      <div className="pt-2 space-y-0.5 text-[11px] text-white/50">
         <div>Total ORACLE nodes used: {data.distinctSignals}</div>
         <div>Avg nodes per brief: {avg}</div>
       </div>
@@ -454,12 +454,12 @@ function TopIntel({
   if (data.signals.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center gap-2 text-center p-4">
-        <div className="text-[11px] text-white/50">
+        <div className="text-[12px] text-white/50">
           No approved intelligence yet. Review and approve items in the queue.
         </div>
         <button
           onClick={onSwitchToReview}
-          className="px-2 py-1 rounded border border-white/10 text-[10px] text-white/80 hover:bg-white/5"
+          className="px-2 py-1 rounded border border-white/10 text-[11px] text-white/80 hover:bg-white/5"
         >
           Go to queue
         </button>
@@ -515,9 +515,9 @@ function TopIntel({
           {open && (
             <>
               <SheetHeader>
-                <SheetTitle className="text-white text-sm">{open.title}</SheetTitle>
+                <SheetTitle className="text-white text-[14px]">{open.title}</SheetTitle>
               </SheetHeader>
-              <div className="mt-4 space-y-3 text-[11px] text-white/80">
+              <div className="mt-4 space-y-3 text-[12px] text-white/80">
                 <div className="flex items-center gap-3 text-white/50">
                   <span>Relevance {open.relevance_score}</span>
                   <span>· {open.status}</span>

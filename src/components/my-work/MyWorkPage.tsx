@@ -225,12 +225,12 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
       >
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-white text-[15px] font-medium">My Work</span>
+            <span className="text-white text-[14px] font-medium">My Work</span>
             {currentMission && missionsInPlay.length > 1 ? (
               <select
                 value={currentMission.id}
                 onChange={(e) => setActiveMissionIdState(e.target.value)}
-                className="text-[11px] bg-transparent text-white/60 border-none focus:outline-none cursor-pointer"
+                className="text-[12px] bg-transparent text-white/60 border-none focus:outline-none cursor-pointer"
               >
                 {missionsInPlay.map((m) => (
                   <option key={m.id} value={m.id} className="bg-[#070f1c]">
@@ -239,7 +239,7 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
                 ))}
               </select>
             ) : currentMission ? (
-              <span className="text-[11px] text-white/50">· {currentMission.name}</span>
+              <span className="text-[12px] text-white/50">· {currentMission.name}</span>
             ) : null}
           </div>
         </div>
@@ -247,7 +247,7 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
           <button
             type="button"
             onClick={() => setScoreOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-md text-[13px] font-medium"
+            className="inline-flex items-center gap-1.5 rounded-md text-[14px] font-medium"
             style={{
               background: "rgba(196,154,43,0.15)",
               border: "1px solid rgba(196,154,43,0.4)",
@@ -270,7 +270,7 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
         {/* Left — assignments */}
         <div className="overflow-y-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[13px] text-white font-medium">My Assignments</span>
+            <span className="text-[14px] text-white font-medium">My Assignments</span>
             <span className="text-[12px] text-white/45">
               {sorted.length} assignment{sorted.length === 1 ? "" : "s"} ·{" "}
               {missionsInPlay.length} mission{missionsInPlay.length === 1 ? "" : "s"}
@@ -291,7 +291,7 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
           )}
 
           {sorted.length === 0 ? (
-            <div className="rounded-md py-12 text-center text-white/45 text-sm">
+            <div className="rounded-md py-12 text-center text-white/45 text-[14px]">
               No assignments yet. Your Engagement Lead will assign questions to you.
             </div>
           ) : (
@@ -335,14 +335,14 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
           }}
         >
           {!selected ? (
-            <div className="text-white/45 text-sm pt-12 text-center">
+            <div className="text-white/45 text-[14px] pt-12 text-center">
               Select an assignment on the left to see intelligence for that question.
             </div>
           ) : (
             <div className="space-y-5">
               {/* Question header */}
               <div className="pb-3 border-b" style={{ borderColor: "rgba(196,154,43,0.3)" }}>
-                <div className="text-[13px] font-medium" style={{ color: GOLD }}>
+                <div className="text-[14px] font-medium" style={{ color: GOLD }}>
                   {selected.question?.question_number ?? "—"}
                 </div>
                 <h2 className="text-white text-[14px] font-medium mt-1 line-clamp-2">
@@ -375,7 +375,7 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
                   }}
                 >
                   <div
-                    className="text-[10px] uppercase tracking-wider mb-2"
+                    className="text-[11px] mb-2"
                     style={{ color: GOLD }}
                   >
                     ✦ Athena Strategy
@@ -405,7 +405,7 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
                     >
                       IRIS
                     </span>
-                    <span className="text-[11px] text-white/40">For this question</span>
+                    <span className="text-[12px] text-white/40">For this question</span>
                   </div>
                   <IrisIntelligenceBrief
                     missionId={selected.mission_id}
@@ -452,7 +452,7 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
                   padding: "14px 16px",
                 }}
               >
-                <div className="text-white text-[13px] font-medium">
+                <div className="text-white text-[14px] font-medium">
                   Ready to score your draft?
                 </div>
                 <div className="text-[12px] mt-1 mb-3" style={{ color: "rgba(255,255,255,0.55)" }}>
@@ -460,7 +460,7 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
                 </div>
                 <button
                   onClick={() => setScoreOpen(true)}
-                  className="w-full rounded-md text-[13px] font-medium"
+                  className="w-full rounded-md text-[14px] font-medium"
                   style={{ background: GOLD, color: "#0D1B3E", padding: "8px 14px" }}
                 >
                   <Target className="h-3.5 w-3.5 inline mr-1.5" />
@@ -570,11 +570,11 @@ function AssignmentCard({
       }}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[13px] font-medium" style={{ color: GOLD }}>
+        <span className="text-[14px] font-medium" style={{ color: GOLD }}>
           {data.question?.question_number ?? "—"}
         </span>
         <span
-          className="text-[10px] font-semibold uppercase tracking-wider"
+          className="text-[11px] font-medium"
           style={{ color: statusColor }}
         >
           {statusLabel}
@@ -584,9 +584,9 @@ function AssignmentCard({
         {(data.question?.question_text ?? "").slice(0, 80)}
       </p>
       <div className="flex items-center justify-between mt-1.5">
-        <span className="text-[11px] text-white/45">{data.sectionName}</span>
+        <span className="text-[12px] text-white/45">{data.sectionName}</span>
         {due && (
-          <span className={cn("text-[11px] tabular-nums", dueColor)}>
+          <span className={cn("text-[12px] tabular-nums", dueColor)}>
             Due {format(new Date(due), "MMM d")}
           </span>
         )}
@@ -599,7 +599,7 @@ function AssignmentCard({
           }}
           role="button"
           tabIndex={0}
-          className="mt-2 -mx-3 -mb-2.5 px-3 py-1.5 text-[11px] text-amber-200 cursor-pointer hover:bg-amber-500/10"
+          className="mt-2 -mx-3 -mb-2.5 px-3 py-1.5 text-[12px] text-amber-200 cursor-pointer hover:bg-amber-500/10"
           style={{ borderTop: "1px solid rgba(239,159,39,0.2)" }}
         >
           Tap to accept this assignment →
@@ -744,7 +744,7 @@ function RecentScoresSection({
                     {trend === "up" && <ArrowUp className="h-3 w-3" style={{ color: "#7dcf7d" }} />}
                     {trend === "down" && <ArrowDown className="h-3 w-3" style={{ color: "#f08080" }} />}
                     {trend === "same" && <Minus className="h-3 w-3 text-white/30" />}
-                    <span className="flex-1 text-[11px] text-white/40 text-right truncate">
+                    <span className="flex-1 text-[12px] text-white/40 text-right truncate">
                       {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
                     </span>
                   </button>

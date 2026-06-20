@@ -82,7 +82,7 @@ export function IrisIntelligenceBrief({ missionId, sectionId = null, questionId 
       >
         {loading && !brief ? <Skeleton className="h-16 w-full" /> :
          error && !brief ? <ErrText message={error} /> :
-         <p className="italic text-sm text-foreground/90 leading-relaxed">{brief?.whats_asked || "—"}</p>}
+         <p className="italic text-[14px] text-foreground/90 leading-relaxed">{brief?.whats_asked || "—"}</p>}
       </Section>
 
       {(!brief || brief.has_evaluators) && (
@@ -94,8 +94,8 @@ export function IrisIntelligenceBrief({ missionId, sectionId = null, questionId 
           onToggle={() => toggle("eval")}
         >
           {loading && !brief ? <Skeleton className="h-20 w-full" /> :
-           !brief?.evaluator_intel.length ? <p className="text-xs text-muted-foreground">No evaluator profiles for this mission yet.</p> :
-           <ul className="space-y-2 text-sm">
+           !brief?.evaluator_intel.length ? <p className="text-[12px] text-muted-foreground">No evaluator profiles for this mission yet.</p> :
+           <ul className="space-y-2 text-[14px]">
              {brief.evaluator_intel.map((b, i) => (
                <li key={i} className="flex gap-2"><UserCheck className="h-3 w-3 mt-1 shrink-0" style={{ color: GOLD }} /><span>{b}</span></li>
              ))}
@@ -111,7 +111,7 @@ export function IrisIntelligenceBrief({ missionId, sectionId = null, questionId 
         onToggle={() => toggle("policy")}
       >
         {loading && !brief ? <Skeleton className="h-16 w-full" /> :
-         <p className="text-sm leading-relaxed">{brief?.policy_context || "—"}</p>}
+         <p className="text-[14px] leading-relaxed">{brief?.policy_context || "—"}</p>}
       </Section>
 
       <Section
@@ -122,15 +122,15 @@ export function IrisIntelligenceBrief({ missionId, sectionId = null, questionId 
         onToggle={() => toggle("research")}
       >
         {loading && !brief ? <Skeleton className="h-24 w-full" /> :
-         !brief?.research_evidence.length ? <p className="text-xs text-muted-foreground">No supporting research available yet.</p> :
-         <ul className="space-y-2 text-sm">
+         !brief?.research_evidence.length ? <p className="text-[12px] text-muted-foreground">No supporting research available yet.</p> :
+         <ul className="space-y-2 text-[14px]">
            {brief.research_evidence.map((r, i) => (
              <li key={i} className="leading-relaxed">
-               <span className="font-semibold" style={{ color: GOLD }}>{r.source}</span>
+               <span className="font-medium" style={{ color: GOLD }}>{r.source}</span>
                {r.year ? <span className="text-muted-foreground"> ({r.year})</span> : null}
                <span> — {r.finding}</span>
                {r.source_url && (
-                 <a href={r.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 ml-2 text-xs underline" style={{ color: GOLD }}>
+                 <a href={r.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 ml-2 text-[12px] underline" style={{ color: GOLD }}>
                    View Source <ExternalLink className="h-3 w-3" />
                  </a>
                )}
@@ -148,25 +148,25 @@ export function IrisIntelligenceBrief({ missionId, sectionId = null, questionId 
           onToggle={() => toggle("comp")}
         >
           {!canSeeCompetitive ? (
-            <p className="text-xs text-muted-foreground flex items-center gap-2">
+            <p className="text-[12px] text-muted-foreground flex items-center gap-2">
               <Lock className="h-3 w-3" /> Competitive intelligence is visible to Engagement Leads and Admins.
             </p>
           ) : loading && !brief ? <Skeleton className="h-16 w-full" /> :
-             !brief?.competitive ? <p className="text-xs text-muted-foreground">No competitor data yet.</p> :
-             <p className="text-sm leading-relaxed">{brief.competitive}</p>}
+             !brief?.competitive ? <p className="text-[12px] text-muted-foreground">No competitor data yet.</p> :
+             <p className="text-[14px] leading-relaxed">{brief.competitive}</p>}
         </Section>
       )}
 
       <div className="rounded-lg border-l-4 p-4" style={{ borderLeftColor: GOLD, background: "rgba(201,165,92,0.06)" }}>
         <button onClick={() => toggle("rec")} className="w-full flex items-center justify-between mb-2">
-          <span className="flex items-center gap-2 text-base font-semibold" style={{ color: GOLD }}>
+          <span className="flex items-center gap-2 text-base font-medium" style={{ color: GOLD }}>
             <Sparkles className="h-4 w-4" /> IRIS Recommends
           </span>
           <ChevronDown className={`h-4 w-4 transition-transform ${open.rec ? "" : "-rotate-90"}`} style={{ color: GOLD }} />
         </button>
         {open.rec && (
           loading && !brief ? (
-            <p className="text-sm italic text-muted-foreground">IRIS is formulating her recommendation…</p>
+            <p className="text-[14px] italic text-muted-foreground">IRIS is formulating her recommendation…</p>
           ) : (
             <p className="text-[18px] leading-relaxed text-foreground">{brief?.iris_recommends || "—"}</p>
           )
@@ -182,7 +182,7 @@ function Section({ id, icon, title, open, onToggle, children }: {
   return (
     <div className="rounded-lg border bg-card p-4">
       <button onClick={onToggle} className="w-full flex items-center justify-between mb-2" aria-expanded={open} aria-controls={`brief-${id}`}>
-        <span className="flex items-center gap-2 text-sm font-semibold">{icon}{title}</span>
+        <span className="flex items-center gap-2 text-[14px] font-medium">{icon}{title}</span>
         <ChevronDown className={`h-4 w-4 transition-transform ${open ? "" : "-rotate-90"}`} style={{ color: GOLD }} />
       </button>
       {open && <div id={`brief-${id}`}>{children}</div>}
@@ -191,7 +191,7 @@ function Section({ id, icon, title, open, onToggle, children }: {
 }
 
 function ErrText({ message }: { message: string }) {
-  return <p className="text-xs text-destructive">{message}</p>;
+  return <p className="text-[12px] text-destructive">{message}</p>;
 }
 
 /** Useful helper for callers needing to reset cached briefs. */

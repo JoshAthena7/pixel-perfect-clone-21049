@@ -41,7 +41,7 @@ export function EvaluatorPicturePanel({
 
   if (!picture) {
     return (
-      <div className="text-[11px] italic text-muted-foreground py-2">
+      <div className="text-[12px] italic text-muted-foreground py-2">
         Evaluator Picture not yet built. It will appear after IRIS processes the intelligence.
       </div>
     );
@@ -70,7 +70,7 @@ export function EvaluatorPicturePanel({
           {fears.map((f, i) => (
             <li key={`fear-${i}`} className="flex items-start gap-2">
               <span className="mt-1.5 inline-block rounded-full" style={{ width: 5, height: 5, background: "#ef4444" }} />
-              <span className="text-[11px] text-muted-foreground leading-snug">{f.fear ?? f.pressure}</span>
+              <span className="text-[12px] text-muted-foreground leading-snug">{f.fear ?? f.pressure}</span>
             </li>
           ))}
         </ul>
@@ -80,7 +80,7 @@ export function EvaluatorPicturePanel({
           {needs.map((n, i) => (
             <li key={`need-${i}`} className="flex items-start gap-2">
               <span className="mt-1.5 inline-block rounded-full" style={{ width: 5, height: 5, background: GOLD }} />
-              <span className="text-[11px] text-muted-foreground leading-snug">{n.need ?? n.pressure}</span>
+              <span className="text-[12px] text-muted-foreground leading-snug">{n.need ?? n.pressure}</span>
             </li>
           ))}
         </ul>
@@ -88,7 +88,7 @@ export function EvaluatorPicturePanel({
       <Link
         to="/missions/$missionId/oracle"
         params={{ missionId }}
-        className="inline-block text-[11px] hover:underline"
+        className="inline-block text-[12px] hover:underline"
         style={{ color: GOLD }}
       >
         Full Evaluator Picture →

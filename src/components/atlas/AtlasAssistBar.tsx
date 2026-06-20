@@ -114,10 +114,10 @@ export function AtlasAssistBar({
   if (!generated && !hasAnyCache) {
     return (
       <div className="rounded-lg p-4 flex flex-col items-center gap-2" style={{ background: "rgba(127,119,221,0.04)", border: "1px solid rgba(127,119,221,0.18)" }}>
-        <div className="text-[11px] uppercase tracking-wider" style={{ color: GOLD }}>IRIS Brief</div>
+        <div className="text-[12px]" style={{ color: GOLD }}>IRIS Brief</div>
         <button
           onClick={() => { setGenerated(true); fetchTool("decode", "initial"); }}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-md py-2 text-[12.5px] font-semibold"
+          className="w-full inline-flex items-center justify-center gap-2 rounded-md py-2 text-[12.5px] font-medium"
           style={{ background: GOLD, color: "#1a1408" }}
         >
           <Zap className="h-4 w-4" /> Generate Brief
@@ -136,7 +136,7 @@ export function AtlasAssistBar({
             <button
               key={t.id}
               onClick={() => { setGenerated(true); setActive(t.id); }}
-              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors"
               style={{
                 background: isActive ? "rgba(196,154,43,0.12)" : "rgba(255,255,255,0.04)",
                 border: `1px solid ${isActive ? GOLD : "rgba(255,255,255,0.08)"}`,
@@ -150,7 +150,7 @@ export function AtlasAssistBar({
       </div>
 
       <div className="mt-3 rounded-md px-3 py-2.5" style={{ background: "rgba(255,255,255,0.02)", borderLeft: `3px solid ${GOLD}` }}>
-        <div className="text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1" style={{ color: GOLD }}>
+        <div className="text-[11px] font-medium flex items-center gap-1" style={{ color: GOLD }}>
           <Zap className="h-3 w-3" /> IRIS · {headerLabel}
         </div>
         {loading === active ? (
@@ -176,21 +176,21 @@ export function AtlasAssistBar({
                 fireEvent("assist_acknowledged").catch(() => {});
                 toast.success("Copied to clipboard ✓", { duration: 2000 });
               }}
-              className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-medium"
+              className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[12px] font-medium"
               style={{ background: "rgba(196,154,43,0.12)", border: `1px solid ${GOLD}`, color: GOLD }}
             >
               <Copy className="h-3 w-3" /> Copy to brief notes
             </button>
             <button
               onClick={() => fetchTool(active, "regenerate")}
-              className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] text-muted-foreground hover:text-white"
+              className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[12px] text-muted-foreground hover:text-white"
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
             >
               <RefreshCcw className="h-3 w-3" /> Regenerate
             </button>
             <button
               onClick={() => fetchTool(active, "go_deeper")}
-              className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] text-muted-foreground hover:text-white"
+              className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[12px] text-muted-foreground hover:text-white"
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
             >
               <ArrowDownToLine className="h-3 w-3" /> Go deeper
@@ -287,7 +287,7 @@ function TacticalGhostText({
     >
       <div style={{
         fontSize: 8,
-        textTransform: "uppercase",
+        textTransform: "",
         letterSpacing: "0.08em",
         color: "rgba(196,154,43,0.4)",
         fontWeight: 600,

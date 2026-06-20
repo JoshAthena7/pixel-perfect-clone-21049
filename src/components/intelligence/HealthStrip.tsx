@@ -16,7 +16,7 @@ function CoverageBar({ label, value }: { label: string; value: number }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "rgba(255,255,255,0.55)" }}>
-        <span style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</span>
+        <span style={{ textTransform: "", letterSpacing: "0.04em" }}>{label}</span>
         <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>{value}%</span>
       </div>
       <div style={{ height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden" }}>
@@ -128,7 +128,7 @@ export function HealthStrip({ missionId }: { missionId: string }) {
           style={{
             fontSize: 10,
             color: "rgba(255,255,255,0.5)",
-            textTransform: "uppercase",
+            textTransform: "",
             letterSpacing: "0.08em",
           }}
         >

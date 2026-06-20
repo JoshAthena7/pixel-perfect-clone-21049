@@ -95,7 +95,7 @@ export function SectionMissionMap({ missionId, isAdmin }: { missionId: string; i
                       <div style={{ color: "white", fontSize: 11, fontWeight: 500 }}>
                         {q.number ? `Q${q.number} — ` : ""}{String(q.text ?? "").slice(0, 100)}
                       </div>
-                      <div className="flex flex-wrap gap-3 text-xs" style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>
+                      <div className="flex flex-wrap gap-3 text-[12px]" style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>
                         <div>Writer: <span style={{ color: "rgba(255,255,255,0.75)" }}>{q.writer ?? "—"}</span></div>
                         <div>SME: <span style={{ color: "rgba(255,255,255,0.75)" }}>{q.sme ?? "—"}</span></div>
                       </div>
@@ -117,7 +117,7 @@ export function SectionMissionMap({ missionId, isAdmin }: { missionId: string; i
         <div className="overflow-x-auto">
           <table className="w-full" style={{ fontSize: 11 }}>
             <thead>
-              <tr style={{ color: "rgba(255,255,255,0.35)", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <tr style={{ color: "rgba(255,255,255,0.35)", fontSize: 9, textTransform: "", letterSpacing: "0.05em" }}>
                 <th className="text-left py-1.5 pl-3 font-medium">Question</th>
                 <th className="text-left py-1.5 px-2 font-medium">Writer</th>
                 <th className="text-left py-1.5 px-2 font-medium">SME</th>

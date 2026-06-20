@@ -99,7 +99,7 @@ export function SaveAsInsightDialog({ open, onOpenChange, initialContent, missio
         </DialogHeader>
         <div className="space-y-3">
           <div>
-            <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Content</label>
+            <label className="text-[12px] tracking-wide text-muted-foreground">Content</label>
             <Textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -108,7 +108,7 @@ export function SaveAsInsightDialog({ open, onOpenChange, initialContent, missio
             />
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Insight Type</label>
+            <label className="text-[12px] tracking-wide text-muted-foreground">Insight Type</label>
             <Select value={type} onValueChange={setType}>
               <SelectTrigger className="mt-1">
                 <SelectValue />
@@ -123,7 +123,7 @@ export function SaveAsInsightDialog({ open, onOpenChange, initialContent, missio
             </Select>
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wide text-muted-foreground">Tags (optional, comma-separated)</label>
+            <label className="text-[12px] tracking-wide text-muted-foreground">Tags (optional, comma-separated)</label>
             <Input
               value={tags}
               onChange={(e) => setTags(e.target.value)}

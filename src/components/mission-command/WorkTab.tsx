@@ -63,8 +63,8 @@ function InsightsPlaceholder() {
         color: "rgba(255,255,255,0.55)",
       }}
     >
-      <div className="text-sm">Athena Insights coming soon.</div>
-      <div className="text-xs mt-2" style={{ color: "rgba(255,255,255,0.4)" }}>
+      <div className="text-[14px]">Athena Insights coming soon.</div>
+      <div className="text-[12px] mt-2" style={{ color: "rgba(255,255,255,0.4)" }}>
         Daily insights and writer's notes from Athena strategists will appear here.
       </div>
     </div>

@@ -120,7 +120,7 @@ function AdminMissionDetail() {
         className="sticky z-10 px-6 py-3 flex items-center gap-4"
         style={{ top: 88, background: "#0a121f", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
       >
-        <div className="text-white font-medium text-sm truncate flex-1">
+        <div className="text-white font-medium text-[14px] truncate flex-1">
           {form.name ?? "Mission"}
         </div>
         {dirty && (
@@ -128,7 +128,7 @@ function AdminMissionDetail() {
             type="button"
             onClick={save}
             disabled={saving}
-            className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-opacity disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium transition-opacity disabled:opacity-50"
             style={{ background: "#c9a84c", color: "#080c14" }}
           >
             <Save className="h-3.5 w-3.5" />
@@ -138,7 +138,7 @@ function AdminMissionDetail() {
         <Link
           to="/missions/$missionId"
           params={{ missionId }}
-          className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold"
+          className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium"
           style={{ background: "#c9a84c", color: "#080c14" }}
         >
           <BookOpen className="h-3.5 w-3.5" />
@@ -146,7 +146,7 @@ function AdminMissionDetail() {
         </Link>
         {cascaded && (
           <span
-            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold transition-opacity duration-700"
+            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-medium transition-opacity duration-700"
             style={{
               background: "rgba(34,197,94,0.15)",
               border: "1px solid rgba(34,197,94,0.4)",
@@ -168,7 +168,7 @@ function AdminMissionDetail() {
               borderBottom: active ? "2px solid #c9a84c" : "2px solid transparent",
               marginBottom: -1,
             };
-            const className = "px-4 py-2.5 text-xs font-medium transition-colors relative";
+            const className = "px-4 py-2.5 text-[12px] font-medium transition-colors relative";
             if (t.id === "wizard") {
               return (
                 <Link
@@ -201,7 +201,7 @@ function AdminMissionDetail() {
       <div className="mx-auto max-w-4xl px-6 py-8">
         {tab === "overview" && dirty && (
           <div
-            className="mb-5 rounded-md px-4 py-3 text-xs flex items-start gap-2"
+            className="mb-5 rounded-md px-4 py-3 text-[12px] flex items-start gap-2"
             style={{
               background: "rgba(59,130,246,0.08)",
               border: "1px solid rgba(59,130,246,0.3)",
@@ -229,7 +229,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <div className="text-[11px] font-medium uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+      <div className="text-[12px] font-medium mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>
         {label}
       </div>
       {children}
@@ -332,7 +332,7 @@ function OverviewTab({
                 return (
                   <label
                     key={opt.value}
-                    className="inline-flex items-center gap-2 cursor-pointer rounded-md px-3 py-1.5 text-xs transition-colors"
+                    className="inline-flex items-center gap-2 cursor-pointer rounded-md px-3 py-1.5 text-[12px] transition-colors"
                     style={{
                       background: active ? "rgba(201,168,76,0.12)" : "rgba(255,255,255,0.03)",
                       border: active
@@ -393,7 +393,7 @@ function SectionCard({ title, children }: { title: string; children: React.React
         border: "1px solid rgba(255,255,255,0.06)",
       }}
     >
-      <div className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "#c9a84c" }}>
+      <div className="text-[12px] font-medium mb-4" style={{ color: "#c9a84c" }}>
         {title}
       </div>
       {children}
@@ -538,7 +538,7 @@ function TeamTab({ missionId }: { missionId: string }) {
     <div className="space-y-5">
       {/* Header row */}
       <div className="flex items-center justify-between">
-        <div className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+        <div className="text-[14px]" style={{ color: "rgba(255,255,255,0.6)" }}>
           Assign and manage staff for this mission
         </div>
         <button
@@ -548,7 +548,7 @@ function TeamTab({ missionId }: { missionId: string }) {
             if (first) addMember(first.id);
             else toast.info("No available staff to add");
           }}
-          className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold"
+          className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium"
           style={{ background: "#c9a84c", color: "#080c14" }}
         >
           <Plus className="h-3.5 w-3.5" />
@@ -578,7 +578,7 @@ function TeamTab({ missionId }: { missionId: string }) {
       {/* Assigned list */}
       <SectionCard title={`Assigned (${assignedFiltered.length})`}>
         {assignedFiltered.length === 0 ? (
-          <div className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
+          <div className="text-[14px]" style={{ color: "rgba(255,255,255,0.4)" }}>
             No staff assigned yet — add members from the list below.
           </div>
         ) : (
@@ -593,15 +593,15 @@ function TeamTab({ missionId }: { missionId: string }) {
                   style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
                 >
                   <div
-                    className="h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-semibold text-white shrink-0"
+                    className="h-8 w-8 rounded-full flex items-center justify-center text-[12px] font-medium text-white shrink-0"
                     style={{ background: colorFor(row.member_id) }}
                   >
                     {initialsOf(s?.first_name, s?.last_name, s?.email)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm text-white/90 truncate">{name}</div>
+                    <div className="text-[14px] text-white/90 truncate">{name}</div>
                     {s?.job_title && (
-                      <div className="text-xs truncate" style={{ color: "rgba(255,255,255,0.45)" }}>
+                      <div className="text-[12px] truncate" style={{ color: "rgba(255,255,255,0.45)" }}>
                         {s.job_title}
                       </div>
                     )}
@@ -643,7 +643,7 @@ function TeamTab({ missionId }: { missionId: string }) {
       {/* Available */}
       <SectionCard title={`Available staff (${available.length})`}>
         {available.length === 0 ? (
-          <div className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
+          <div className="text-[14px]" style={{ color: "rgba(255,255,255,0.4)" }}>
             All matching staff are already assigned.
           </div>
         ) : (
@@ -657,15 +657,15 @@ function TeamTab({ missionId }: { missionId: string }) {
                   style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.08)" }}
                 >
                   <div
-                    className="h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-semibold text-white shrink-0"
+                    className="h-8 w-8 rounded-full flex items-center justify-center text-[12px] font-medium text-white shrink-0"
                     style={{ background: colorFor(s.id) }}
                   >
                     {initialsOf(s.first_name, s.last_name, s.email)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm text-white/80 truncate">{name}</div>
+                    <div className="text-[14px] text-white/80 truncate">{name}</div>
                     {s.job_title && (
-                      <div className="text-xs truncate" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <div className="text-[12px] truncate" style={{ color: "rgba(255,255,255,0.4)" }}>
                         {s.job_title}
                       </div>
                     )}
@@ -673,7 +673,7 @@ function TeamTab({ missionId }: { missionId: string }) {
                   <button
                     type="button"
                     onClick={() => addMember(s.id)}
-                    className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium"
+                    className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[12px] font-medium"
                     style={{
                       background: "rgba(201,168,76,0.1)",
                       border: "1px solid rgba(201,168,76,0.3)",
@@ -699,8 +699,8 @@ function TeamTab({ missionId }: { missionId: string }) {
         }}
       >
         <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "#c9a84c" }} />
-        <div className="flex-1 text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.8)" }}>
-          <div className="font-semibold mb-0.5" style={{ color: "#c9a84c" }}>
+        <div className="flex-1 text-[12px] leading-relaxed" style={{ color: "rgba(255,255,255,0.8)" }}>
+          <div className="font-medium mb-0.5" style={{ color: "#c9a84c" }}>
             IRIS coverage
           </div>
           <span className="text-white/90">{qStats?.assignedCount ?? 0}</span> of {totalQ} questions assigned ·{" "}
@@ -709,7 +709,7 @@ function TeamTab({ missionId }: { missionId: string }) {
         </div>
         <button
           type="button"
-          className="text-xs font-medium underline-offset-2 hover:underline shrink-0"
+          className="text-[12px] font-medium underline-offset-2 hover:underline shrink-0"
           style={{ color: "#c9a84c" }}
           onClick={() => toast.info("Coverage gaps view coming soon")}
         >
@@ -880,7 +880,7 @@ function JourneyTab({
 
   return (
     <div className="space-y-4">
-      <div className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+      <div className="text-[14px]" style={{ color: "rgba(255,255,255,0.6)" }}>
         Mission journey milestones — drag to reorder, click the dot to cycle status.
       </div>
 
@@ -1014,7 +1014,7 @@ function JourneyTab({
       <button
         type="button"
         onClick={add}
-        className="w-full rounded-md py-3 text-xs font-medium transition-colors hover:bg-white/[0.03]"
+        className="w-full rounded-md py-3 text-[12px] font-medium transition-colors hover:bg-white/[0.03]"
         style={{
           border: "1px dashed rgba(201,168,76,0.4)",
           color: "#c9a84c",
@@ -1155,7 +1155,7 @@ function ComplianceTab({ missionId }: { missionId: string }) {
 
   return (
     <div className="space-y-4 relative">
-      <div className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+      <div className="text-[14px]" style={{ color: "rgba(255,255,255,0.6)" }}>
         Compliance requirements for this mission — click any card for the staff breakdown.
       </div>
 
@@ -1188,10 +1188,10 @@ function ComplianceTab({ missionId }: { missionId: string }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <div className="text-sm font-semibold text-white truncate">{r.name}</div>
+                    <div className="text-[14px] font-medium text-white truncate">{r.name}</div>
                     {!r.required && (
                       <span
-                        className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded"
+                        className="text-[11px] px-1.5 py-0.5 rounded"
                         style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.5)" }}
                       >
                         Optional
@@ -1199,17 +1199,17 @@ function ComplianceTab({ missionId }: { missionId: string }) {
                     )}
                   </div>
                   <div
-                    className="text-xs mt-0.5 leading-relaxed"
+                    className="text-[12px] mt-0.5 leading-relaxed"
                     style={{ color: "rgba(255,255,255,0.55)" }}
                   >
                     {r.description}
                   </div>
-                  <div className="mt-2 text-[11px]" style={{ color: "rgba(255,255,255,0.45)" }}>
+                  <div className="mt-2 text-[12px]" style={{ color: "rgba(255,255,255,0.45)" }}>
                     {done} of {total || "—"} staff complete
                   </div>
                 </div>
                 <span
-                  className="text-[11px] font-semibold px-2 py-1 rounded shrink-0"
+                  className="text-[12px] font-medium px-2 py-1 rounded shrink-0"
                   style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}` }}
                 >
                   {s.label}
@@ -1223,7 +1223,7 @@ function ComplianceTab({ missionId }: { missionId: string }) {
       <button
         type="button"
         onClick={addReq}
-        className="w-full rounded-md py-3 text-xs font-medium transition-colors hover:bg-white/[0.03]"
+        className="w-full rounded-md py-3 text-[12px] font-medium transition-colors hover:bg-white/[0.03]"
         style={{
           border: "1px dashed rgba(201,168,76,0.4)",
           color: "#c9a84c",
@@ -1301,8 +1301,8 @@ function CompliancePanel({
             <Icon className="h-4 w-4" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold text-white truncate">{req.name}</div>
-            <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <div className="text-[14px] font-medium text-white truncate">{req.name}</div>
+            <div className="text-[12px]" style={{ color: "rgba(255,255,255,0.5)" }}>
               {done.length} complete · {pending.length} pending
             </div>
           </div>
@@ -1318,20 +1318,20 @@ function CompliancePanel({
         </div>
 
         <div className="p-5 space-y-5">
-          <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
+          <p className="text-[12px] leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
             {req.description}
           </p>
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <div className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#fbbf24" }}>
+              <div className="text-[12px] font-medium" style={{ color: "#fbbf24" }}>
                 Pending ({pending.length})
               </div>
               {pending.length > 0 && (
                 <button
                   type="button"
                   onClick={() => toast.success(`Reminder sent to ${pending.length} staff`)}
-                  className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold"
+                  className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-medium"
                   style={{ background: "#c9a84c", color: "#080c14" }}
                 >
                   <Send className="h-3 w-3" />
@@ -1341,7 +1341,7 @@ function CompliancePanel({
             </div>
             <ul className="space-y-1.5">
               {pending.length === 0 ? (
-                <li className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <li className="text-[12px]" style={{ color: "rgba(255,255,255,0.4)" }}>
                   All assigned staff have completed this requirement.
                 </li>
               ) : (
@@ -1359,12 +1359,12 @@ function CompliancePanel({
           </div>
 
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: "#4ade80" }}>
+            <div className="text-[12px] font-medium mb-2" style={{ color: "#4ade80" }}>
               Complete ({done.length})
             </div>
             <ul className="space-y-1.5">
               {done.length === 0 ? (
-                <li className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <li className="text-[12px]" style={{ color: "rgba(255,255,255,0.4)" }}>
                   No completions yet.
                 </li>
               ) : (
@@ -1384,7 +1384,7 @@ function CompliancePanel({
           <button
             type="button"
             onClick={onDelete}
-            className="w-full rounded-md py-2 text-xs font-medium transition-colors"
+            className="w-full rounded-md py-2 text-[12px] font-medium transition-colors"
             style={{
               border: "1px solid rgba(239,68,68,0.3)",
               color: "#f87171",
@@ -1419,16 +1419,16 @@ function StaffPanelRow({
       style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}
     >
       <div
-        className="h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-semibold text-white shrink-0"
+        className="h-6 w-6 rounded-full flex items-center justify-center text-[11px] font-medium text-white shrink-0"
         style={{ background: colorFor(memberId) }}
       >
         {initialsOf(staff?.first_name, staff?.last_name, staff?.email)}
       </div>
-      <span className="text-xs text-white/85 flex-1 truncate">{name}</span>
+      <span className="text-[12px] text-white/85 flex-1 truncate">{name}</span>
       <button
         type="button"
         onClick={onToggle}
-        className="text-[10px] px-1.5 py-0.5 rounded"
+        className="text-[11px] px-1.5 py-0.5 rounded"
         style={{
           background: done ? "rgba(34,197,94,0.12)" : "rgba(255,255,255,0.05)",
           color: done ? "#4ade80" : "rgba(255,255,255,0.55)",
@@ -1473,7 +1473,7 @@ function ReportsTab({ missionId }: { missionId: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+      <div className="text-[14px]" style={{ color: "rgba(255,255,255,0.6)" }}>
         Generate snapshot reports for this mission, or schedule a recurring digest.
       </div>
 
@@ -1500,14 +1500,14 @@ function ReportsTab({ missionId }: { missionId: string }) {
               >
                 <Icon className="h-5 w-5" />
               </div>
-              <div className="text-sm font-semibold text-white">{c.title}</div>
-              <div className="text-xs mt-0.5 mb-4 flex-1" style={{ color: "rgba(255,255,255,0.55)" }}>
+              <div className="text-[14px] font-medium text-white">{c.title}</div>
+              <div className="text-[12px] mt-0.5 mb-4 flex-1" style={{ color: "rgba(255,255,255,0.55)" }}>
                 {c.subtitle}
               </div>
               <button
                 type="button"
                 onClick={() => pull(c.id, c.title)}
-                className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold w-full"
+                className="inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-[12px] font-medium w-full"
                 style={{ background: "#c9a84c", color: "#080c14" }}
               >
                 <FileDown className="h-3.5 w-3.5" />
@@ -1528,10 +1528,10 @@ function ReportsTab({ missionId }: { missionId: string }) {
       >
         <div className="flex items-center justify-between mb-4">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#c9a84c" }}>
+            <div className="text-[12px] font-medium" style={{ color: "#c9a84c" }}>
               Scheduled Reports
             </div>
-            <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.55)" }}>
+            <div className="text-[12px] mt-1" style={{ color: "rgba(255,255,255,0.55)" }}>
               Email a weekly digest of mission status to your team.
             </div>
           </div>
@@ -1571,13 +1571,13 @@ function ReportsTab({ missionId }: { missionId: string }) {
             </div>
           </Field>
           <div className="flex items-center justify-between mt-4">
-            <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <div className="text-[12px]" style={{ color: "rgba(255,255,255,0.4)" }}>
               Sent every Monday at 9:00 AM in recipient's local time.
             </div>
             <button
               type="button"
               onClick={saveSchedule}
-              className="rounded-md px-3 py-1.5 text-xs font-semibold"
+              className="rounded-md px-3 py-1.5 text-[12px] font-medium"
               style={{
                 background: "rgba(201,168,76,0.1)",
                 border: "1px solid rgba(201,168,76,0.4)",

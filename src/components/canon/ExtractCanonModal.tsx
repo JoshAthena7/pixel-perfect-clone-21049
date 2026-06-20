@@ -118,30 +118,30 @@ export function ExtractCanonModal({ onClose }: { onClose: () => void }) {
         <div className="flex-1 overflow-y-auto p-4">
           {stage === "input" || stage === "extracting" ? (
             <div className="space-y-3">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[12px] text-muted-foreground">
                 Upload a PDF, DOCX, TXT, or MD. IRIS will read it and propose short Canon entries you can review,
                 edit, and save. The full document is not stored as Canon — only the curated entries you approve.
               </p>
 
               <label className="block space-y-1">
-                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <span className="text-[12px] font-medium tracking-wide text-muted-foreground">
                   Document
                 </span>
                 <input
                   type="file"
                   accept=".pdf,.docx,.txt,.md,application/pdf,text/plain,text/markdown"
                   onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                  className="block w-full rounded-md border border-border bg-surface/50 p-2 text-xs"
+                  className="block w-full rounded-md border border-border bg-surface/50 p-2 text-[12px]"
                 />
                 {file && (
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-[12px] text-muted-foreground">
                     {file.name} · {(file.size / 1024).toFixed(0)} KB
                   </span>
                 )}
               </label>
 
               <label className="block space-y-1">
-                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <span className="text-[12px] font-medium tracking-wide text-muted-foreground">
                   Source URL (optional)
                 </span>
                 <input
@@ -149,18 +149,18 @@ export function ExtractCanonModal({ onClose }: { onClose: () => void }) {
                   value={sourceUrl}
                   onChange={(e) => setSourceUrl(e.target.value)}
                   placeholder="https://www.cms.gov/…"
-                  className="w-full rounded-md border border-border bg-surface/50 p-2 text-xs"
+                  className="w-full rounded-md border border-border bg-surface/50 p-2 text-[12px]"
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <span className="text-[12px] font-medium tracking-wide text-muted-foreground">
                   Default Category
                 </span>
                 <select
                   value={defaultCategory}
                   onChange={(e) => setDefaultCategory(e.target.value)}
-                  className="w-full rounded-md border border-border bg-surface/50 p-2 text-xs"
+                  className="w-full rounded-md border border-border bg-surface/50 p-2 text-[12px]"
                 >
                   {CATEGORIES.map((c) => (
                     <option key={c} value={c}>
@@ -173,7 +173,7 @@ export function ExtractCanonModal({ onClose }: { onClose: () => void }) {
               <button
                 onClick={handleExtract}
                 disabled={!file || stage === "extracting"}
-                className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-xs font-medium disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-[12px] font-medium disabled:opacity-50"
                 style={{ background: "#C49A22", color: "#0b0b0b" }}
               >
                 {stage === "extracting" ? (
@@ -189,7 +189,7 @@ export function ExtractCanonModal({ onClose }: { onClose: () => void }) {
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="text-xs text-muted-foreground">
+              <div className="text-[12px] text-muted-foreground">
                 Review IRIS's proposed Canon entries. Edit anything inline. Uncheck to skip. Click Save to commit
                 only the checked entries.
               </div>
@@ -207,7 +207,7 @@ export function ExtractCanonModal({ onClose }: { onClose: () => void }) {
                     <input
                       value={e.topic}
                       onChange={(ev) => updateEntry(i, { topic: ev.target.value })}
-                      className="flex-1 rounded border border-border bg-background/40 px-2 py-1 text-sm font-medium"
+                      className="flex-1 rounded border border-border bg-background/40 px-2 py-1 text-[14px] font-medium"
                     />
                     <button
                       onClick={() => setEntries(entries.filter((_, idx) => idx !== i))}
@@ -221,7 +221,7 @@ export function ExtractCanonModal({ onClose }: { onClose: () => void }) {
                     <select
                       value={e.category}
                       onChange={(ev) => updateEntry(i, { category: ev.target.value })}
-                      className="rounded border border-border bg-background/40 px-2 py-1 text-xs"
+                      className="rounded border border-border bg-background/40 px-2 py-1 text-[12px]"
                     >
                       {CATEGORIES.map((c) => (
                         <option key={c} value={c}>
@@ -233,12 +233,12 @@ export function ExtractCanonModal({ onClose }: { onClose: () => void }) {
                       value={e.citation ?? ""}
                       onChange={(ev) => updateEntry(i, { citation: ev.target.value })}
                       placeholder="Citation"
-                      className="rounded border border-border bg-background/40 px-2 py-1 text-xs"
+                      className="rounded border border-border bg-background/40 px-2 py-1 text-[12px]"
                     />
                     <select
                       value={e.priority ?? 3}
                       onChange={(ev) => updateEntry(i, { priority: Number(ev.target.value) })}
-                      className="rounded border border-border bg-background/40 px-2 py-1 text-xs"
+                      className="rounded border border-border bg-background/40 px-2 py-1 text-[12px]"
                     >
                       {[1, 2, 3, 4, 5].map((p) => (
                         <option key={p} value={p}>
@@ -251,7 +251,7 @@ export function ExtractCanonModal({ onClose }: { onClose: () => void }) {
                     value={e.content}
                     onChange={(ev) => updateEntry(i, { content: ev.target.value })}
                     rows={4}
-                    className="mt-2 w-full rounded border border-border bg-background/40 px-2 py-1 font-mono text-[11px]"
+                    className="mt-2 w-full rounded border border-border bg-background/40 px-2 py-1 font-mono text-[12px]"
                   />
                   <input
                     value={(e.tags ?? []).join(", ")}
@@ -264,7 +264,7 @@ export function ExtractCanonModal({ onClose }: { onClose: () => void }) {
                       })
                     }
                     placeholder="tags, comma-separated"
-                    className="mt-2 w-full rounded border border-border bg-background/40 px-2 py-1 text-xs"
+                    className="mt-2 w-full rounded border border-border bg-background/40 px-2 py-1 text-[12px]"
                   />
                 </div>
               ))}
@@ -274,20 +274,20 @@ export function ExtractCanonModal({ onClose }: { onClose: () => void }) {
 
         {stage === "review" || stage === "saving" ? (
           <div className="flex items-center justify-between border-t border-border p-4">
-            <div className="text-xs text-muted-foreground">
+            <div className="text-[12px] text-muted-foreground">
               {Object.values(picked).filter(Boolean).length} of {entries.length} selected
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setStage("input")}
-                className="rounded-md border border-border px-3 py-2 text-xs hover:bg-surface-hover"
+                className="rounded-md border border-border px-3 py-2 text-[12px] hover:bg-surface-hover"
               >
                 ← Re-upload
               </button>
               <button
                 onClick={handleSave}
                 disabled={stage === "saving"}
-                className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-[12px] font-medium disabled:opacity-50"
                 style={{ background: "#C49A22", color: "#0b0b0b" }}
               >
                 {stage === "saving" && <Loader2 size={12} className="animate-spin" />}

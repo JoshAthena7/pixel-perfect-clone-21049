@@ -127,11 +127,11 @@ function StaffPage() {
       <div className="mx-auto max-w-5xl px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <div className="uppercase tracking-[0.16em] text-[10px] mb-1" style={{ color: "#c9a84c" }}>
+            <div className="tracking-[0.16em] text-[11px] mb-1" style={{ color: "#c9a84c" }}>
               ADMIN · STAFF
             </div>
-            <h1 className="text-2xl font-semibold text-white">Staff Directory</h1>
-            <p className="mt-1 text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <h1 className="text-2xl font-medium text-white">Staff Directory</h1>
+            <p className="mt-1 text-[14px]" style={{ color: "rgba(255,255,255,0.45)" }}>
               {staff.length} member{staff.length === 1 ? "" : "s"} across ATLAS · roles, missions, and availability.
             </p>
           </div>
@@ -139,7 +139,7 @@ function StaffPage() {
             <button
               type="button"
               onClick={() => setImportOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium transition-colors hover:bg-white/5"
+              className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-[14px] font-medium transition-colors hover:bg-white/5"
               style={{ border: "1px solid rgba(255,255,255,0.12)", color: "white" }}
             >
               <Upload className="h-4 w-4" />
@@ -148,7 +148,7 @@ function StaffPage() {
             <button
               type="button"
               onClick={() => setAddOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+              className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-[14px] font-medium transition-opacity hover:opacity-90"
               style={{ background: "#c9a84c", color: "#080c14" }}
             >
               <Plus className="h-4 w-4" />
@@ -168,7 +168,7 @@ function StaffPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name, role, or clearance level…"
-            className="w-full rounded-md pl-9 pr-3 py-2.5 text-sm outline-none focus:border-[#c9a84c]/60 transition-colors"
+            className="w-full rounded-md pl-9 pr-3 py-2.5 text-[14px] outline-none focus:border-[#c9a84c]/60 transition-colors"
             style={{
               background: "rgba(255,255,255,0.03)",
               border: "1px solid rgba(255,255,255,0.08)",
@@ -180,12 +180,12 @@ function StaffPage() {
         {/* Cards */}
         <div className="space-y-2">
           {isLoading && (
-            <div className="rounded-lg p-6 text-sm" style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}>
+            <div className="rounded-lg p-6 text-[14px]" style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}>
               Loading staff…
             </div>
           )}
           {!isLoading && filtered.length === 0 && (
-            <div className="rounded-lg p-6 text-sm text-center" style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.45)" }}>
+            <div className="rounded-lg p-6 text-[14px] text-center" style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.45)" }}>
               No staff match “{query}”.
             </div>
           )}
@@ -244,19 +244,19 @@ function StaffCard({
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; }}
     >
       <div
-        className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 text-sm font-semibold text-white"
+        className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 text-[14px] font-medium text-white"
         style={{ background: colorFor(staff.id) }}
       >
         {initialsOf(staff)}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-white font-medium text-sm truncate">{fullName(staff)}</div>
-        <div className="text-xs mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.45)" }}>
+        <div className="text-white font-medium text-[14px] truncate">{fullName(staff)}</div>
+        <div className="text-[12px] mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.45)" }}>
           {roleLabel(staff.atlas_role)}
         </div>
       </div>
       <span
-        className="rounded-full text-[10px] font-semibold uppercase tracking-wider shrink-0"
+        className="rounded-full text-[11px] font-medium shrink-0"
         style={{
           padding: "3px 9px",
           background: cc.bg,
@@ -266,7 +266,7 @@ function StaffCard({
       >
         {c}
       </span>
-      <div className="hidden sm:flex items-center text-xs shrink-0 tabular-nums" style={{ color: "rgba(255,255,255,0.5)" }}>
+      <div className="hidden sm:flex items-center text-[12px] shrink-0 tabular-nums" style={{ color: "rgba(255,255,255,0.5)" }}>
         {missionCount} {missionCount === 1 ? "mission" : "missions"}
       </div>
       <span
@@ -325,7 +325,7 @@ function StaffDetailPanel({
           className="flex items-center justify-between px-5 py-4"
           style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
         >
-          <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#c9a84c" }}>
+          <div className="text-[12px] font-medium" style={{ color: "#c9a84c" }}>
             Staff profile
           </div>
           <button
@@ -342,14 +342,14 @@ function StaffDetailPanel({
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
           <div className="flex items-center gap-4">
             <div
-              className="h-14 w-14 rounded-full flex items-center justify-center text-base font-semibold text-white"
+              className="h-14 w-14 rounded-full flex items-center justify-center text-base font-medium text-white"
               style={{ background: colorFor(staff.id) }}
             >
               {initialsOf(staff)}
             </div>
             <div className="min-w-0">
-              <div className="text-white font-semibold">{fullName(staff)}</div>
-              <div className="text-xs mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.5)" }}>
+              <div className="text-white font-medium">{fullName(staff)}</div>
+              <div className="text-[12px] mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.5)" }}>
                 {staff.email}
               </div>
             </div>
@@ -364,11 +364,11 @@ function StaffDetailPanel({
           </DetailRow>
 
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <div className="text-[12px] font-medium mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>
               Missions assigned ({missions.length || missionCount})
             </div>
             {missions.length === 0 ? (
-              <div className="text-sm rounded-md px-3 py-2.5" style={{ background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.45)" }}>
+              <div className="text-[14px] rounded-md px-3 py-2.5" style={{ background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.45)" }}>
                 Not assigned to any missions yet.
               </div>
             ) : (
@@ -380,13 +380,13 @@ function StaffDetailPanel({
                     style={{ background: "rgba(255,255,255,0.03)" }}
                   >
                     <div className="min-w-0">
-                      <div className="text-sm text-white truncate">{m.name}</div>
-                      <div className="text-[10px] mt-0.5 uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <div className="text-[14px] text-white truncate">{m.name}</div>
+                      <div className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
                         {m.status ?? "—"}
                       </div>
                     </div>
                     <span
-                      className="text-xs rounded shrink-0 ml-3"
+                      className="text-[12px] rounded shrink-0 ml-3"
                       style={{
                         background: "rgba(201,168,76,0.12)",
                         color: "#c9a84c",
@@ -409,7 +409,7 @@ function StaffDetailPanel({
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 text-xs rounded-md hover:bg-white/[0.05]"
+            className="px-3 py-1.5 text-[12px] rounded-md hover:bg-white/[0.05]"
             style={{ color: "rgba(255,255,255,0.6)" }}
           >
             Close
@@ -417,7 +417,7 @@ function StaffDetailPanel({
           <button
             type="button"
             onClick={() => navigate({ to: "/admin/team/$memberId", params: { memberId: staff.id } })}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium"
             style={{ background: "#c9a84c", color: "#080c14" }}
           >
             Edit
@@ -431,10 +431,10 @@ function StaffDetailPanel({
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+      <div className="text-[12px] font-medium mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
         {label}
       </div>
-      <div className="text-sm text-white">{children}</div>
+      <div className="text-[14px] text-white">{children}</div>
     </div>
   );
 }
@@ -472,7 +472,7 @@ function AddStaffDialog({ onClose }: { onClose: () => void }) {
         style={{ background: "#0a121f", border: "1px solid rgba(255,255,255,0.1)" }}
       >
         <div className="flex items-center justify-between mb-4">
-          <div className="text-sm font-semibold text-white">Add staff member</div>
+          <div className="text-[14px] font-medium text-white">Add staff member</div>
           <button onClick={onClose} className="p-1 rounded hover:bg-white/[0.05]" style={{ color: "rgba(255,255,255,0.5)" }}>
             <X className="h-4 w-4" />
           </button>
@@ -486,14 +486,14 @@ function AddStaffDialog({ onClose }: { onClose: () => void }) {
           <Input label="Job title" value={title} onChange={setTitle} />
         </div>
         <div className="mt-5 flex items-center justify-end gap-2">
-          <button onClick={onClose} className="px-3 py-1.5 text-xs rounded-md hover:bg-white/[0.05]" style={{ color: "rgba(255,255,255,0.6)" }}>
+          <button onClick={onClose} className="px-3 py-1.5 text-[12px] rounded-md hover:bg-white/[0.05]" style={{ color: "rgba(255,255,255,0.6)" }}>
             Cancel
           </button>
           <button
             type="button"
             onClick={() => m.mutate()}
             disabled={!email.trim() || !first.trim() || !last.trim() || m.isPending}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium disabled:opacity-50"
             style={{ background: "#c9a84c", color: "#080c14" }}
           >
             {m.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
@@ -520,7 +520,7 @@ function Input({
 }) {
   return (
     <label className="block">
-      <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+      <div className="text-[12px] font-medium mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
         {label}
       </div>
       <div className="relative">
@@ -533,7 +533,7 @@ function Input({
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-md py-2 text-sm outline-none focus:border-[#c9a84c]/60"
+          className="w-full rounded-md py-2 text-[14px] outline-none focus:border-[#c9a84c]/60"
           style={{
             background: "rgba(255,255,255,0.03)",
             border: "1px solid rgba(255,255,255,0.08)",

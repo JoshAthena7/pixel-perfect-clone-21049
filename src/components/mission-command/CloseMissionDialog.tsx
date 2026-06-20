@@ -123,7 +123,7 @@ export function CloseMissionDialog({
                   className="flex items-center gap-2 rounded-md border border-border/60 px-3 py-2 cursor-pointer hover:bg-surface/60"
                 >
                   <RadioGroupItem value={o.value} id={`out-${o.value}`} />
-                  <span className="text-sm">{o.label}</span>
+                  <span className="text-[14px]">{o.label}</span>
                 </label>
               ))}
             </RadioGroup>

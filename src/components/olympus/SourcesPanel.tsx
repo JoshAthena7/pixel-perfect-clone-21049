@@ -64,9 +64,9 @@ export function SourcesPanel() {
   return (
     <div className="space-y-2">
       {q.isLoading ? (
-        <div className="text-[11px] text-white/40 py-4">Loading sources…</div>
+        <div className="text-[12px] text-white/40 py-4">Loading sources…</div>
       ) : sources.length === 0 ? (
-        <div className="text-[11px] text-white/40 py-4">No sources registered.</div>
+        <div className="text-[12px] text-white/40 py-4">No sources registered.</div>
       ) : (
         <div className="divide-y divide-white/5">
           {sources.map((s) => (
@@ -84,7 +84,7 @@ export function SourcesPanel() {
 
       <button
         onClick={() => setShowAdd((v) => !v)}
-        className="w-full text-[10px] uppercase tracking-wider border border-white/20 rounded py-1.5 text-white/70 hover:bg-white/5"
+        className="w-full text-[11px] border border-white/20 rounded py-1.5 text-white/70 hover:bg-white/5"
       >
         {showAdd ? "Cancel" : "+ Add Source"}
       </button>
@@ -116,23 +116,23 @@ function SourceRow({
     <div className="py-2 px-1">
       <div className="flex items-center gap-2 mb-1">
         <span className={`h-2 w-2 rounded-full ${dot}`} />
-        <span className="text-[11px] text-white/90 truncate flex-1">{s.source_name}</span>
-        <span className={`text-[9px] px-1 py-0.5 rounded border ${tierBadge}`}>{s.tier}</span>
+        <span className="text-[12px] text-white/90 truncate flex-1">{s.source_name}</span>
+        <span className={`text-[11px] px-1 py-0.5 rounded border ${tierBadge}`}>{s.tier}</span>
       </div>
-      <div className="text-[10px] text-white/40 mb-1.5">
+      <div className="text-[11px] text-white/40 mb-1.5">
         Checked {relative(s.last_checked_at)} · every {s.check_frequency_hours}h
         {s.error_count > 0 && <span className="text-red-400 ml-1">· {s.error_count} errors</span>}
       </div>
       <div className="flex gap-1">
         <button
           onClick={onToggle}
-          className="text-[9px] uppercase tracking-wider border border-white/20 rounded px-2 py-0.5 text-white/70 hover:bg-white/5"
+          className="text-[11px] border border-white/20 rounded px-2 py-0.5 text-white/70 hover:bg-white/5"
         >
           {s.status === "active" ? "Pause" : "Resume"}
         </button>
         <button
           onClick={onCheck}
-          className="text-[9px] uppercase tracking-wider border border-white/20 rounded px-2 py-0.5 text-white/70 hover:bg-white/5"
+          className="text-[11px] border border-white/20 rounded px-2 py-0.5 text-white/70 hover:bg-white/5"
         >
           Check Now
         </button>
@@ -174,7 +174,7 @@ function AddSourceForm({ onDone }: { onDone: () => void }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const input = "w-full bg-transparent border border-white/15 rounded px-2 py-1 text-[11px] text-white/90";
+  const input = "w-full bg-transparent border border-white/15 rounded px-2 py-1 text-[12px] text-white/90";
 
   return (
     <div className="space-y-2 p-2 border border-white/10 rounded">
@@ -209,7 +209,7 @@ function AddSourceForm({ onDone }: { onDone: () => void }) {
       <button
         onClick={() => m.mutate()}
         disabled={m.isPending || !form.source_name || !form.source_url}
-        className="w-full text-[10px] uppercase tracking-wider border border-amber-400/60 text-amber-300 rounded py-1.5 hover:bg-amber-400/10 disabled:opacity-50"
+        className="w-full text-[11px] border border-amber-400/60 text-amber-300 rounded py-1.5 hover:bg-amber-400/10 disabled:opacity-50"
       >
         {m.isPending ? "Saving…" : "Save Source"}
       </button>

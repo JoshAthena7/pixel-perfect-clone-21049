@@ -28,7 +28,7 @@ export function PensDownCountdown({
 }) {
   const days = daysUntil(date);
   if (days === null) {
-    return <span className={`text-muted-foreground text-xs ${className}`}>—</span>;
+    return <span className={`text-muted-foreground text-[12px] ${className}`}>—</span>;
   }
 
   let label: string;
@@ -38,15 +38,15 @@ export function PensDownCountdown({
   if (days < 0) {
     label = "Overdue";
     style.color = "var(--red)";
-    weight = "font-semibold";
+    weight = "font-medium";
   } else if (days === 0) {
     label = "Today";
     style.color = "var(--red)";
-    weight = "font-semibold";
+    weight = "font-medium";
   } else if (days < 7) {
     label = `${days} day${days === 1 ? "" : "s"}`;
     style.color = "var(--red)";
-    weight = "font-semibold";
+    weight = "font-medium";
   } else if (days <= 14) {
     label = `${days} days`;
     style.color = "var(--yellow)";
@@ -58,7 +58,7 @@ export function PensDownCountdown({
   return (
     <span
       title={`Pens Down: ${fullDate(date)}`}
-      className={`text-xs tabular-nums ${weight} ${className}`}
+      className={`text-[12px] tabular-nums ${weight} ${className}`}
       style={style}
     >
       {label}
@@ -77,15 +77,15 @@ export function SubmissionCountdown({ date }: { date: string | null | undefined 
 
   if (days < 0) {
     style.color = "var(--red)";
-    weight = "font-semibold";
+    weight = "font-medium";
     pulse = true;
   } else if (days < 7) {
     style.color = "var(--red)";
-    weight = "font-semibold";
+    weight = "font-medium";
     pulse = true;
   } else if (days < 15) {
     style.color = "var(--red)";
-    weight = "font-semibold";
+    weight = "font-medium";
   } else if (days <= 30) {
     style.color = "var(--yellow)";
   } else {
@@ -102,7 +102,7 @@ export function SubmissionCountdown({ date }: { date: string | null | undefined 
   return (
     <span
       title={`Submission: ${fullDate(date)}`}
-      className={`text-xs tabular-nums ${weight} ${pulse ? "animate-pulse" : ""}`}
+      className={`text-[12px] tabular-nums ${weight} ${pulse ? "animate-pulse" : ""}`}
       style={style}
     >
       {label}

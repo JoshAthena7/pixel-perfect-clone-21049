@@ -81,7 +81,7 @@ export function NarrativeBriefSection({
           fontWeight: 700,
           letterSpacing: "0.14em",
           color: GOLD,
-          textTransform: "uppercase",
+          textTransform: "",
         }}
       >
         📖 Your Place in the Story
@@ -190,7 +190,7 @@ function Block({ label, children }: { label: string; children: React.ReactNode }
           fontWeight: 700,
           letterSpacing: "0.14em",
           color: STEEL,
-          textTransform: "uppercase",
+          textTransform: "",
           marginBottom: 4,
         }}
       >

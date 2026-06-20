@@ -63,7 +63,7 @@ export function NodeDetailDrawer({ node, onClose }: { node: any | null; onClose:
             <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, lineHeight: 1.2 }}>{node.label}</h3>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", textTransform: "", letterSpacing: "0.06em" }}>
                 {statusLabel}
               </span>
             </div>
@@ -96,7 +96,7 @@ export function NodeDetailDrawer({ node, onClose }: { node: any | null; onClose:
             }}
           >
             <div style={{ fontSize: 22, fontWeight: 700 }}>{node.signal_count}</div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", textTransform: "", letterSpacing: "0.06em" }}>
               signals detected
             </div>
           </div>
@@ -109,7 +109,7 @@ export function NodeDetailDrawer({ node, onClose }: { node: any | null; onClose:
             }}
           >
             <div style={{ fontSize: 22, fontWeight: 700, color }}>{node.confidence}%</div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", textTransform: "", letterSpacing: "0.06em" }}>
               confidence
             </div>
           </div>
@@ -117,7 +117,7 @@ export function NodeDetailDrawer({ node, onClose }: { node: any | null; onClose:
 
         {/* Coverage bar */}
         <div style={{ marginTop: 20 }}>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", textTransform: "", letterSpacing: "0.06em", marginBottom: 6 }}>
             Coverage
           </div>
           <div style={{ height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
@@ -130,7 +130,7 @@ export function NodeDetailDrawer({ node, onClose }: { node: any | null; onClose:
 
         {/* Summary */}
         <div style={{ marginTop: 24 }}>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", textTransform: "", letterSpacing: "0.06em", marginBottom: 8 }}>
             IRIS Intelligence
           </div>
           <p style={{ fontSize: 14, lineHeight: 1.6, color: "rgba(255,255,255,0.85)", margin: 0 }}>

@@ -45,12 +45,12 @@ export function StateIntelDetail({ stateCode }: { stateCode: string }) {
   ).length;
 
   if (isLoading) {
-    return <div className="px-6 py-6 text-white/55 text-sm">Loading…</div>;
+    return <div className="px-6 py-6 text-white/55 text-[14px]">Loading…</div>;
   }
   if (!data?.pack) {
     return (
       <div className="px-6 py-6">
-        <Link to="/admin/state-intel" className="text-sm text-white/60 hover:text-white inline-flex items-center gap-1">
+        <Link to="/admin/state-intel" className="text-[14px] text-white/60 hover:text-white inline-flex items-center gap-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </Link>
         <div className="mt-6 text-white/60">State pack not found.</div>
@@ -62,17 +62,17 @@ export function StateIntelDetail({ stateCode }: { stateCode: string }) {
 
   return (
     <div className="px-6 py-6 max-w-7xl mx-auto">
-      <Link to="/admin/state-intel" className="text-xs text-white/55 hover:text-white inline-flex items-center gap-1">
+      <Link to="/admin/state-intel" className="text-[12px] text-white/55 hover:text-white inline-flex items-center gap-1">
         <ArrowLeft className="w-3.5 h-3.5" /> All states
       </Link>
 
       <div className="flex items-start justify-between mt-3 mb-6">
         <div>
           <div className="flex items-center gap-3">
-            <span className="text-xs font-mono text-[#c9a84c]">{pack.state_code}</span>
-            <h1 className="text-xl font-semibold text-white">{pack.state_name}</h1>
+            <span className="text-[12px] font-mono text-[#c9a84c]">{pack.state_code}</span>
+            <h1 className="text-xl font-medium text-white">{pack.state_name}</h1>
           </div>
-          <div className="text-sm text-white/55 mt-1">
+          <div className="text-[14px] text-white/55 mt-1">
             {filledCount} of {TOTAL_CATEGORIES} categories with current documents
             {pack.last_reviewed_at && (
               <> · reviewed {new Date(pack.last_reviewed_at).toLocaleDateString()}</>
@@ -104,11 +104,11 @@ export function StateIntelDetail({ stateCode }: { stateCode: string }) {
 
         <aside className="space-y-4">
           <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
-            <h3 className="text-xs font-semibold text-white/55 uppercase tracking-wide mb-2">
+            <h3 className="text-[12px] font-medium text-white/55 tracking-wide mb-2">
               Missions inheriting this pack
             </h3>
             {data.missions.length === 0 ? (
-              <p className="text-xs text-white/45">No active missions in this state.</p>
+              <p className="text-[12px] text-white/45">No active missions in this state.</p>
             ) : (
               <ul className="space-y-2">
                 {data.missions.map((m: any) => (
@@ -116,10 +116,10 @@ export function StateIntelDetail({ stateCode }: { stateCode: string }) {
                     <Link
                       to="/missions/$missionId"
                       params={{ missionId: m.id }}
-                      className="text-sm text-white/80 hover:text-white block truncate"
+                      className="text-[14px] text-white/80 hover:text-white block truncate"
                     >
                       {m.name}
-                      <span className="text-[10px] text-white/40 ml-2 uppercase">{m.status}</span>
+                      <span className="text-[11px] text-white/40 ml-2">{m.status}</span>
                     </Link>
                   </li>
                 ))}

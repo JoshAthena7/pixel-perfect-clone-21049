@@ -479,7 +479,7 @@ export function Step8Journey({
               <FileText className="h-4 w-4 text-white/60" />
               <div className="flex-1 min-w-0 truncate">
                 <div className="text-white truncate">{fileMeta.name}</div>
-                <div className="text-white/45 text-[11px]">{(fileMeta.size / 1024).toFixed(1)} KB</div>
+                <div className="text-white/45 text-[12px]">{(fileMeta.size / 1024).toFixed(1)} KB</div>
               </div>
               {uploading ? (
                 <Loader2 className="h-4 w-4 animate-spin text-amber-400" />
@@ -502,7 +502,7 @@ export function Step8Journey({
             >
               <Upload className="h-5 w-5 mx-auto mb-1.5 text-white/55" />
               <div className="text-[12.5px] text-white">Drag a file here or click to upload</div>
-              <div className="text-[11px] text-white/45 mt-1">
+              <div className="text-[12px] text-white/45 mt-1">
                 ICS calendar export · Word doc · PDF procurement schedule · Plain text date list
               </div>
             </button>
@@ -523,7 +523,7 @@ export function Step8Journey({
             <FileText className="h-4 w-4 text-white/55" />
             <h3 className="text-[13.5px] font-medium text-white/85">📄 IRIS Will Also Read Your RFP</h3>
           </div>
-          <div className="text-[11px] text-white/45 mb-2">Already uploaded in Step 1</div>
+          <div className="text-[12px] text-white/45 mb-2">Already uploaded in Step 1</div>
           <div className="space-y-1 max-h-28 overflow-y-auto text-[12px] text-white/70 mb-3">
             {docs?.length ? (
               docs.map((d) => (
@@ -564,7 +564,7 @@ export function Step8Journey({
           <div className="overflow-x-auto">
             <table className="w-full text-[12.5px]" style={{ tableLayout: "fixed" }}>
               <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wider text-white/45 border-b border-white/10">
+                <tr className="text-left text-[12px] text-white/45 border-b border-white/10">
                   <th className="px-3 py-2 w-[130px]">Type</th>
                   <th className="px-3 py-2">Title</th>
                   <th className="px-3 py-2 w-[150px]">Date</th>
@@ -636,7 +636,7 @@ export function Step8Journey({
                       </td>
                       <td className="px-3 py-2">
                         <span
-                          className="inline-block rounded-full px-2 py-0.5 text-[10.5px] uppercase tracking-wider"
+                          className="inline-block rounded-full px-2 py-0.5 text-[10.5px]"
                           style={{
                             background: "rgba(255,255,255,0.06)",
                             color: "rgba(255,255,255,0.6)",
@@ -736,7 +736,7 @@ export function Step8Journey({
 
       {/* Footer (inline to keep save behavior local) */}
       <div className="mt-10 pt-6 flex items-center justify-between gap-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-        <button onClick={onBack} className="text-[13px] text-white/55 hover:text-white flex items-center gap-1">
+        <button onClick={onBack} className="text-[14px] text-white/55 hover:text-white flex items-center gap-1">
           <ArrowLeft className="h-3.5 w-3.5" /> Back
         </button>
         <span className="text-[12px] text-white/40">Step 7 of 8</span>

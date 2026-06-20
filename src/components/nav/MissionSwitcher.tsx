@@ -82,7 +82,7 @@ export function MissionSwitcher() {
 
   if (!insideMission) {
     return (
-      <span className="text-sm text-white/60 font-medium tracking-wide">
+      <span className="text-[14px] text-white/60 font-medium tracking-wide">
         Athena Strategy Group
       </span>
     );
@@ -94,7 +94,7 @@ export function MissionSwitcher() {
         ref={btnRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 text-white font-semibold text-sm hover:text-[var(--athena-gold)] transition-colors"
+        className="flex items-center gap-2 text-white font-medium text-[14px] hover:text-[var(--athena-gold)] transition-colors"
       >
         <span className="truncate max-w-[280px]">
           {current?.name ?? "Loading…"}
@@ -107,15 +107,15 @@ export function MissionSwitcher() {
           ref={popRef}
           className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-80 rounded-lg border border-[var(--athena-gold)]/60 bg-[#0D1B3E] shadow-xl z-[60] overflow-hidden"
         >
-          <div className="px-4 py-2 text-[10px] uppercase tracking-widest text-[var(--athena-gold)] font-bold border-b border-white/10">
+          <div className="px-4 py-2 text-[11px] text-[var(--athena-gold)] font-medium border-b border-white/10">
             Active Missions
           </div>
           <div className="max-h-80 overflow-y-auto">
             {!missions && (
-              <div className="px-4 py-6 text-xs text-white/50">Loading…</div>
+              <div className="px-4 py-6 text-[12px] text-white/50">Loading…</div>
             )}
             {missions && missions.length === 0 && (
-              <div className="px-4 py-6 text-xs text-white/50">No active missions.</div>
+              <div className="px-4 py-6 text-[12px] text-white/50">No active missions.</div>
             )}
             {missions?.map((m) => {
               const isCurrent = m.id === currentMissionId;
@@ -142,12 +142,12 @@ export function MissionSwitcher() {
                   )}
                 >
                   <span className={cn("h-2 w-2 rounded-full shrink-0", dot)} />
-                  <span className="flex-1 min-w-0 text-sm text-white truncate">{m.name}</span>
+                  <span className="flex-1 min-w-0 text-[14px] text-white truncate">{m.name}</span>
                   {m.at_risk_count > 0 && (
                     <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
                   )}
                   {days !== null && (
-                    <span className={cn("text-xs shrink-0", dayColor)}>
+                    <span className={cn("text-[12px] shrink-0", dayColor)}>
                       {days < 0 ? `${Math.abs(days)}d past` : `${days}d`}
                     </span>
                   )}
@@ -159,14 +159,14 @@ export function MissionSwitcher() {
             <Link
               to="/olympus/missions"
               onClick={() => setOpen(false)}
-              className="block px-4 py-2 text-xs text-white/70 hover:text-white hover:bg-white/5"
+              className="block px-4 py-2 text-[12px] text-white/70 hover:text-white hover:bg-white/5"
             >
               View All Missions
             </Link>
             <Link
               to="/olympus/missions/new"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 px-4 py-2 text-xs text-[var(--athena-gold)] hover:bg-white/5"
+              className="flex items-center gap-2 px-4 py-2 text-[12px] text-[var(--athena-gold)] hover:bg-white/5"
             >
               <Plus className="h-3.5 w-3.5" /> Create New Mission
             </Link>

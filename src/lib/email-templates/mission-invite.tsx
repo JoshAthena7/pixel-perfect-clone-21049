@@ -174,7 +174,7 @@ const detailLabel = {
   color: '#9CA3AF',
   fontSize: '11px',
   letterSpacing: '0.16em',
-  textTransform: 'uppercase' as const,
+  textTransform: '' as const,
   fontWeight: 600,
 }
 const ctaWrap = { textAlign: 'center' as const, margin: '32px 0 16px' }

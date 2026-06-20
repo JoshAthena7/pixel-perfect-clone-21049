@@ -174,25 +174,25 @@ export function WriterDrawer({
         >
           <div className="flex items-start gap-3">
             <div
-              className="w-10 h-10 rounded-full flex items-center justify-center text-[12px] font-semibold shrink-0 text-white"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-[12px] font-medium shrink-0 text-white"
               style={{ background: "rgba(255,255,255,0.08)", border: `2px solid ${live.color}` }}
             >
               {initials(target.name)}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[14px] font-semibold text-white truncate">{target.name}</div>
-              <span className="inline-block mt-0.5 text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/55 uppercase tracking-wide">
+              <div className="text-[14px] font-medium text-white truncate">{target.name}</div>
+              <span className="inline-block mt-0.5 text-[11px] px-1.5 py-0.5 rounded bg-white/5 text-white/55 tracking-wide">
                 {target.role || "Member"}
               </span>
             </div>
             <div className="text-right shrink-0">
               <div
-                className="text-[11px] font-semibold px-2 py-0.5 rounded"
+                className="text-[12px] font-medium px-2 py-0.5 rounded"
                 style={{ background: `${live.color}22`, color: live.color, border: `1px solid ${live.color}55` }}
               >
                 {live.label}
               </div>
-              <div className="text-[10px] text-white/40 mt-1" style={{ fontFamily: "'Courier New', monospace" }}>
+              <div className="text-[11px] text-white/40 mt-1" style={{ fontFamily: "'Courier New', monospace" }}>
                 Last seen {relTime(target.lastActivity)}
               </div>
             </div>
@@ -208,11 +208,11 @@ export function WriterDrawer({
             {irisQ.isLoading || !irisQ.data ? (
               <div className="h-3 w-3/4 rounded bg-white/5 animate-pulse" />
             ) : irisQ.data.sentence ? (
-              <div className="text-[11px] italic" style={{ color: GOLD }}>
+              <div className="text-[12px] italic" style={{ color: GOLD }}>
                 {irisQ.data.sentence}
               </div>
             ) : (
-              <div className="text-[11px] italic text-white/30">IRIS is quiet for now.</div>
+              <div className="text-[12px] italic text-white/30">IRIS is quiet for now.</div>
             )}
           </div>
         </div>
@@ -221,7 +221,7 @@ export function WriterDrawer({
         <div className="flex-1 min-h-0 relative">
           <div className="absolute inset-0 overflow-y-auto">
             {drillQ.isLoading ? (
-              <div className="p-6 text-center text-xs text-white/40">Loading questions…</div>
+              <div className="p-6 text-center text-[12px] text-white/40">Loading questions…</div>
             ) : drillQ.data && drillQ.data.questions.length === 0 ? (
               <WriterDrawerNoQuestions firstName={writerFirst} />
             ) : (
@@ -261,13 +261,13 @@ export function WriterDrawer({
             onClick={() => { onClose(); setTimeout(() => onNudge(target.userId), 220); }}
             disabled={readOnly}
             title={readOnly ? "Mission is closed — read-only" : undefined}
-            className="flex-1 text-[11px] py-1.5 rounded border border-white/15 text-white hover:bg-white/5 inline-flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1 text-[12px] py-1.5 rounded border border-white/15 text-white hover:bg-white/5 inline-flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <MessageSquare className="w-3 h-3" /> Nudge {writerFirst}
           </button>
           <button
             onClick={() => onOpenFlightDeck(target.userId)}
-            className="flex-1 text-[11px] py-1.5 rounded border border-white/15 text-white/85 hover:bg-white/5 inline-flex items-center justify-center gap-1.5"
+            className="flex-1 text-[12px] py-1.5 rounded border border-white/15 text-white/85 hover:bg-white/5 inline-flex items-center justify-center gap-1.5"
           >
             <Compass className="w-3 h-3" /> Flight Deck
           </button>
@@ -275,7 +275,7 @@ export function WriterDrawer({
             onClick={handleFlag}
             disabled={flagging || readOnly}
             title={readOnly ? "Mission is closed — read-only" : undefined}
-            className="flex-1 text-[11px] py-1.5 rounded border inline-flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1 text-[12px] py-1.5 rounded border inline-flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ borderColor: "rgba(245,158,11,0.5)", color: "#fbbf24", background: "rgba(245,158,11,0.05)" }}
           >
             <Flag className="w-3 h-3" /> Flag for Review
@@ -309,14 +309,14 @@ function QuestionRow({
     >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-[11px] font-semibold font-mono shrink-0" style={{ color: GOLD }}>
+          <span className="text-[12px] font-medium font-mono shrink-0" style={{ color: GOLD }}>
             Q{q.questionNumber ?? "?"}
           </span>
           <span className="text-[12px] text-white truncate">{q.questionTitle.slice(0, 55)}{q.questionTitle.length > 55 ? "…" : ""}</span>
         </div>
-        <div className="flex items-center gap-2 mt-0.5 text-[10px] text-white/55 flex-wrap">
+        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-white/55 flex-wrap">
           <span
-            className="px-1.5 py-0.5 rounded text-[9px] font-semibold"
+            className="px-1.5 py-0.5 rounded text-[11px] font-medium"
             style={{ background: `${statusColor}22`, color: statusColor }}
           >
             {statusLabel}
@@ -326,7 +326,7 @@ function QuestionRow({
             <span style={{ fontFamily: "'Courier New', monospace" }}>· Due {q.internalDueDate}</span>
           )}
         </div>
-        <div className="text-[10px] text-white/40 italic mt-0.5 truncate">
+        <div className="text-[11px] text-white/40 italic mt-0.5 truncate">
           {q.lastCheckIn
             ? `Checked in ${relTime(q.lastCheckIn.at)}: ${q.lastCheckIn.status ?? "—"}${q.lastCheckIn.note ? ` — ${q.lastCheckIn.note}` : ""}`
             : "No check-ins yet"}
@@ -388,19 +388,19 @@ function NotesOverlay({
       >
         <button
           onClick={onBack}
-          className="text-[11px] text-white/65 hover:text-white inline-flex items-center gap-1 px-1.5 py-1 rounded hover:bg-white/5"
+          className="text-[12px] text-white/65 hover:text-white inline-flex items-center gap-1 px-1.5 py-1 rounded hover:bg-white/5"
         >
           <ArrowLeft className="w-3 h-3" /> Questions
         </button>
         <div className="ml-2 min-w-0 flex items-center gap-2">
-          <span className="text-[11px] font-mono shrink-0" style={{ color: GOLD }}>Q{question.number ?? "?"}</span>
+          <span className="text-[12px] font-mono shrink-0" style={{ color: GOLD }}>Q{question.number ?? "?"}</span>
           <span className="text-[12px] text-white/85 truncate">{question.title.slice(0, 40)}{question.title.length > 40 ? "…" : ""}</span>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4" style={{ background: "#080f1c" }}>
         {notesQ.isLoading ? (
-          <div className="text-xs text-white/40 text-center py-6">Loading notes…</div>
+          <div className="text-[12px] text-white/40 text-center py-6">Loading notes…</div>
         ) : (notesQ.data ?? []).length === 0 ? (
           <StickyNotesEmptyCard />
         ) : (
@@ -420,8 +420,8 @@ function NotesOverlay({
                     minHeight: 90,
                   }}
                 >
-                  <div className="text-[13px] leading-snug whitespace-pre-wrap">{n.content}</div>
-                  <div className="mt-2 text-[10px] text-black/55 flex items-center justify-between">
+                  <div className="text-[14px] leading-snug whitespace-pre-wrap">{n.content}</div>
+                  <div className="mt-2 text-[11px] text-black/55 flex items-center justify-between">
                     <span>— {author}</span>
                     <span style={{ fontFamily: "'Courier New', monospace" }}>{relTime(n.created_at)}</span>
                   </div>
@@ -432,7 +432,7 @@ function NotesOverlay({
         )}
       </div>
 
-      <div className="shrink-0 px-4 py-2 text-[10px] text-white/40 italic text-center border-t border-white/[0.06]" style={{ background: "#050d18" }}>
+      <div className="shrink-0 px-4 py-2 text-[11px] text-white/40 italic text-center border-t border-white/[0.06]" style={{ background: "#050d18" }}>
         Post notes from the Flight Deck.
       </div>
     </div>

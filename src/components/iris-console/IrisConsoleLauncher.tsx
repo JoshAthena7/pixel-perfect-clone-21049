@@ -119,7 +119,7 @@ export function IrisConsoleLauncher() {
           }}
           onClick={() => setState("open")}
         >
-          <span style={{ color: GOLD, fontSize: 9, letterSpacing: "0.15em", fontFamily: "'Courier New', monospace", textTransform: "uppercase", fontWeight: 600 }}>
+          <span style={{ color: GOLD, fontSize: 9, letterSpacing: "0.15em", fontFamily: "'Courier New', monospace", textTransform: "", fontWeight: 600 }}>
             ⚡ IRIS QUICK INTEL
           </span>
           <span style={{ fontSize: 9, color: "rgba(255,255,255,0.45)" }}>Click to reopen</span>

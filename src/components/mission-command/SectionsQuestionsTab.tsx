@@ -252,7 +252,7 @@ export function SectionsQuestionsTab({
         {filtersActive && (
           <button
             onClick={clearFilters}
-            className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+            className="text-[12px] text-primary hover:underline inline-flex items-center gap-1"
           >
             <X className="h-3 w-3" /> Clear filters
           </button>
@@ -263,7 +263,7 @@ export function SectionsQuestionsTab({
         <EmptyState
           title="No questions match your filters"
           action={
-            <button onClick={clearFilters} className="text-primary hover:underline text-sm">
+            <button onClick={clearFilters} className="text-primary hover:underline text-[14px]">
               Clear filters
             </button>
           }
@@ -293,8 +293,8 @@ export function SectionsQuestionsTab({
               className="w-full flex items-center gap-2 bg-background px-4 py-3 text-left hover:bg-surface/60"
             >
               {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              <span className="font-bold text-foreground">{vol.name}</span>
-              <span className="ml-auto text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">{vol.name}</span>
+              <span className="ml-auto text-[12px] text-muted-foreground">
                 {volSections.length} sections · {volQCount} questions
               </span>
             </button>
@@ -390,7 +390,7 @@ function SectionNode(props: {
               {section.section_number ? `${section.section_number} · ` : ""}
               {section.name}
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[12px] text-muted-foreground">
               {section.page_limit ? `${section.page_limit}pp` : ""}
               {section.evaluation_weight ? ` · ${section.evaluation_weight}%` : ""}
               {questions.length > 0 && ` · ${questions.length}q`}
@@ -592,18 +592,18 @@ function QuestionRow({
   return (
     <div
       className={cn(
-        "border-t border-border bg-background px-4 py-3 text-sm",
+        "border-t border-border bg-background px-4 py-3 text-[14px]",
         isWithdrawn && "opacity-50 line-through",
       )}
     >
       <div className="flex flex-wrap items-start gap-3">
-        <span className="font-mono text-xs text-primary shrink-0">{question.question_number}</span>
+        <span className="font-mono text-[12px] text-primary shrink-0">{question.question_number}</span>
         <div className="min-w-0 flex-1">
           <p className="text-foreground">{shown}</p>
           {text.length > 100 && (
             <button
               onClick={() => setExpanded((e) => !e)}
-              className="text-xs text-primary hover:underline mt-1"
+              className="text-[12px] text-primary hover:underline mt-1"
             >
               {expanded ? "Show less" : "Show more"}
             </button>
@@ -613,7 +613,7 @@ function QuestionRow({
           {/* Writer */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="text-xs px-2 py-1 rounded bg-surface hover:bg-surface-hover">
+              <button className="text-[12px] px-2 py-1 rounded bg-surface hover:bg-surface-hover">
                 {writer ?? "Unassigned"}
               </button>
             </DropdownMenuTrigger>
@@ -636,7 +636,7 @@ function QuestionRow({
           {/* Due date */}
           <Popover>
             <PopoverTrigger asChild>
-              <button className="text-xs px-2 py-1 rounded bg-surface hover:bg-surface-hover">
+              <button className="text-[12px] px-2 py-1 rounded bg-surface hover:bg-surface-hover">
                 {question.due_date
                   ? format(new Date(question.due_date), "MMM d")
                   : "No due date"}
@@ -667,7 +667,7 @@ function QuestionRow({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <div className="px-2 py-1 text-[10px] uppercase text-muted-foreground">
+              <div className="px-2 py-1 text-[11px] text-muted-foreground">
                 Reassign Writer
               </div>
               {writers.map((w) => {
@@ -714,7 +714,7 @@ function HealthBadge({ value }: { value: string | null }) {
     at_risk: "bg-red-500/20 text-red-400",
   };
   return (
-    <span className={cn("text-[10px] px-1.5 py-0.5 rounded uppercase", map[value] ?? "bg-muted")}>
+    <span className={cn("text-[11px] px-1.5 py-0.5 rounded ", map[value] ?? "bg-muted")}>
       {value.replace("_", " ")}
     </span>
   );
@@ -722,7 +722,7 @@ function HealthBadge({ value }: { value: string | null }) {
 function StatusBadge({ value }: { value: string | null }) {
   if (!value) return null;
   return (
-    <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-hover text-muted-foreground uppercase">
+    <span className="text-[11px] px-1.5 py-0.5 rounded bg-surface-hover text-muted-foreground">
       {value.replace(/_/g, " ")}
     </span>
   );
@@ -736,7 +736,7 @@ function AcceptanceBadge({ value }: { value: string | null }) {
     capacity_concern: "bg-red-500/20 text-red-400",
   };
   return (
-    <span className={cn("text-[10px] px-1.5 py-0.5 rounded uppercase", map[value] ?? "bg-muted")}>
+    <span className={cn("text-[11px] px-1.5 py-0.5 rounded ", map[value] ?? "bg-muted")}>
       {value.replace(/_/g, " ")}
     </span>
   );

@@ -73,7 +73,7 @@ export function Breadcrumbs() {
   const mobileCrumbs = crumbs.length > 1 ? crumbs.slice(-2) : crumbs;
 
   const render = (list: Crumb[], extraClass: string) => (
-    <nav className={`flex items-center gap-1.5 text-xs text-muted-foreground ${extraClass}`}>
+    <nav className={`flex items-center gap-1.5 text-[12px] text-muted-foreground ${extraClass}`}>
       {list.map((c, i) => {
         const last = i === list.length - 1;
         return (

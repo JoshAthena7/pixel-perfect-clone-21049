@@ -63,7 +63,7 @@ export function MissionHeader({
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="truncate text-2xl sm:text-3xl font-bold text-foreground">
+              <h1 className="truncate text-2xl sm:text-3xl font-medium text-foreground">
                 {mission.name}
               </h1>
               <button
@@ -77,7 +77,7 @@ export function MissionHeader({
               </button>
               <span
                 className={cn(
-                  "shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-medium uppercase tracking-wide",
+                  "shrink-0 rounded-full border px-2.5 py-0.5 text-[12px] font-medium  tracking-wide",
                   statusClass,
                 )}
               >
@@ -85,7 +85,7 @@ export function MissionHeader({
               </span>
             </div>
             {mission.client_name && (
-              <p className="mt-1 text-sm text-muted-foreground truncate">
+              <p className="mt-1 text-[14px] text-muted-foreground truncate">
                 {mission.client_name}
               </p>
             )}
@@ -94,25 +94,25 @@ export function MissionHeader({
             <div className="text-right">
               {daysLeft !== null ? (
                 <>
-                  <div className={cn("text-lg font-semibold", countdownColor)}>
+                  <div className={cn("text-lg font-medium", countdownColor)}>
                     {daysLeft < 0
                       ? `${Math.abs(daysLeft)} days past`
                       : `${daysLeft} days to submission`}
                   </div>
                   {deadline && (
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-[12px] text-muted-foreground">
                       {deadline.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}
                     </div>
                   )}
                 </>
               ) : (
-                <div className="text-sm text-muted-foreground">No deadline set</div>
+                <div className="text-[14px] text-muted-foreground">No deadline set</div>
               )}
             </div>
             <IntelligenceCompletenessChip missionId={mission.id} />
             <Link
               to="/olympus/flight-deck"
-              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--athena-gold)]/40 bg-[var(--athena-gold)]/10 px-3 py-1.5 text-xs font-medium text-[var(--athena-gold)] hover:bg-[var(--athena-gold)]/20 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--athena-gold)]/40 bg-[var(--athena-gold)]/10 px-3 py-1.5 text-[12px] font-medium text-[var(--athena-gold)] hover:bg-[var(--athena-gold)]/20 transition-colors"
             >
               <Plane className="h-3.5 w-3.5" />
               Flight Deck

@@ -49,7 +49,7 @@ function ActionBtn({ label, icon, onClick }: { label: string; icon: React.ReactN
       style={{ background: "rgba(201,165,92,0.12)", color: GOLD }}
     >
       {icon}
-      <span className="absolute left-14 hidden group-hover:inline-block px-2 py-1 rounded text-xs bg-card text-foreground border whitespace-nowrap">
+      <span className="absolute left-14 hidden group-hover:inline-block px-2 py-1 rounded text-[12px] bg-card text-foreground border whitespace-nowrap">
         {label}
       </span>
     </button>
@@ -114,11 +114,11 @@ function AnnouncementDialog({ open, onOpenChange }: { open: boolean; onOpenChang
         </DialogHeader>
         <div className="space-y-3">
           <div>
-            <label className="text-xs text-muted-foreground">From</label>
+            <label className="text-[12px] text-muted-foreground">From</label>
             <Input value={fromName} onChange={(e) => setFromName(e.target.value)} placeholder="Athena Leadership" />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground">Message</label>
+            <label className="text-[12px] text-muted-foreground">Message</label>
             <Textarea
               value={text}
               onChange={(e) => setText(e.target.value)}

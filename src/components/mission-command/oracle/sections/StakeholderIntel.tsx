@@ -94,7 +94,7 @@ export function StakeholderIntel({
           style={{
             cursor: "pointer",
             fontSize: 10,
-            textTransform: "uppercase",
+            textTransform: "",
             letterSpacing: "0.08em",
             color: "rgba(255,255,255,0.4)",
             marginBottom: 8,
@@ -120,7 +120,7 @@ function Bucket({ label, items }: { label: Bucket; items: any[] }) {
       <div
         style={{
           fontSize: 9,
-          textTransform: "uppercase",
+          textTransform: "",
           letterSpacing: "0.1em",
           color: "rgba(255,255,255,0.45)",
           marginBottom: 6,

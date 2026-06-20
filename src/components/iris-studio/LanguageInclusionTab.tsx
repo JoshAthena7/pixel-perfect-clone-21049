@@ -186,7 +186,7 @@ export function LanguageInclusionTab({
             <FieldLabel>PERSON-FIRST LANGUAGE PAIRS</FieldLabel>
             <FieldDesc>IRIS never uses these terms. Every occurrence is automatically replaced in all outputs.</FieldDesc>
           </div>
-          <div className="flex gap-2 text-[9px]">
+          <div className="flex gap-2 text-[11px]">
             <button type="button" className="text-white/50 hover:text-white"
               onClick={() => setPairs(pairs.map((p) => ({ ...p, active: true })))}>Activate all</button>
             <span className="text-white/20">·</span>
@@ -198,7 +198,7 @@ export function LanguageInclusionTab({
         <div className="flex flex-wrap gap-1.5 mb-3">
           {CATS.map((c) => (
             <button type="button" key={c} onClick={() => setFilter(c)}
-              className="text-[9px] px-2 py-1 rounded uppercase tracking-[0.06em]"
+              className="text-[11px] px-2 py-1 rounded tracking-[0.06em]"
               style={{
                 background: filter === c ? "rgba(196,154,43,0.15)" : "rgba(255,255,255,0.04)",
                 color: filter === c ? GOLD : "rgba(255,255,255,0.6)",
@@ -210,9 +210,9 @@ export function LanguageInclusionTab({
         </div>
 
         <div className="rounded border border-white/10 overflow-hidden">
-          <table className="w-full text-[11px]">
+          <table className="w-full text-[12px]">
             <thead>
-              <tr className="text-left text-[9px] uppercase tracking-[0.1em] text-white/40">
+              <tr className="text-left text-[11px] tracking-[0.1em] text-white/40">
                 <th className="px-3 py-2">Avoid</th>
                 <th className="px-3 py-2">Use Instead</th>
                 <th className="px-3 py-2 w-32">Category</th>
@@ -228,7 +228,7 @@ export function LanguageInclusionTab({
                     <td className="px-3 py-2" style={{ color: "rgba(248,113,113,0.85)" }}>{p.term}</td>
                     <td className="px-3 py-2" style={{ color: "rgba(74,222,128,0.9)" }}>{p.replacement}</td>
                     <td className="px-3 py-2">
-                      <span className="text-[8px] uppercase tracking-[0.08em] px-1.5 py-0.5 rounded"
+                      <span className="text-[11px] tracking-[0.08em] px-1.5 py-0.5 rounded"
                         style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.6)" }}>
                         {PERSON_FIRST_CATEGORY_LABEL[p.category]}
                       </span>
@@ -245,29 +245,29 @@ export function LanguageInclusionTab({
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={5} className="px-3 py-6 text-center text-[10px] text-white/40">No pairs in this category.</td></tr>
+                <tr><td colSpan={5} className="px-3 py-6 text-center text-[11px] text-white/40">No pairs in this category.</td></tr>
               )}
             </tbody>
           </table>
         </div>
 
         {!addOpen ? (
-          <button type="button" className="mt-3 text-[10px]" style={{ color: GOLD }}
+          <button type="button" className="mt-3 text-[11px]" style={{ color: GOLD }}
             onClick={() => setAddOpen(true)}>+ Add pair</button>
         ) : (
           <div className="mt-3 flex flex-wrap gap-2 items-center">
-            <input className="bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[11px] text-white flex-1 min-w-[140px]"
+            <input className="bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[12px] text-white flex-1 min-w-[140px]"
               placeholder="Avoid" value={addRow.term}
               onChange={(e) => setAddRow({ ...addRow, term: e.target.value })} />
-            <input className="bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[11px] text-white flex-1 min-w-[140px]"
+            <input className="bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[12px] text-white flex-1 min-w-[140px]"
               placeholder="Use instead" value={addRow.replacement}
               onChange={(e) => setAddRow({ ...addRow, replacement: e.target.value })} />
-            <select className="bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[11px] text-white"
+            <select className="bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[12px] text-white"
               value={addRow.category}
               onChange={(e) => setAddRow({ ...addRow, category: e.target.value as PersonFirstCategory })}>
               {Object.entries(PERSON_FIRST_CATEGORY_LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
             </select>
-            <button type="button" className="px-3 py-1.5 rounded text-[11px] text-black" style={{ background: GOLD }}
+            <button type="button" className="px-3 py-1.5 rounded text-[12px] text-black" style={{ background: GOLD }}
               onClick={() => {
                 if (addRow.term.trim() && addRow.replacement.trim()) {
                   setPairs([...pairs, addRow]);
@@ -275,7 +275,7 @@ export function LanguageInclusionTab({
                   setAddOpen(false);
                 }
               }}>Add</button>
-            <button type="button" className="text-[11px] text-white/50" onClick={() => setAddOpen(false)}>cancel</button>
+            <button type="button" className="text-[12px] text-white/50" onClick={() => setAddOpen(false)}>cancel</button>
           </div>
         )}
       </div>
@@ -289,8 +289,8 @@ export function LanguageInclusionTab({
             <div key={s.key} className="flex items-start gap-3">
               <div className="pt-0.5"><Switch checked={standards.includes(s.key)} onCheckedChange={() => toggleStandard(s.key)} /></div>
               <div>
-                <div className="text-[11px] text-white">{s.label}</div>
-                <div className="text-[9px] text-white/50 mt-0.5">{s.description}</div>
+                <div className="text-[12px] text-white">{s.label}</div>
+                <div className="text-[11px] text-white/50 mt-0.5">{s.description}</div>
               </div>
             </div>
           ))}
@@ -302,9 +302,9 @@ export function LanguageInclusionTab({
         <FieldLabel>STATE-PREFERRED TERMINOLOGY</FieldLabel>
         <FieldDesc>State-specific terms IRIS uses instead of generic equivalents.</FieldDesc>
         <div className="rounded border border-white/10 overflow-hidden">
-          <table className="w-full text-[11px]">
+          <table className="w-full text-[12px]">
             <thead>
-              <tr className="text-left text-[9px] uppercase tracking-[0.1em] text-white/40">
+              <tr className="text-left text-[11px] tracking-[0.1em] text-white/40">
                 <th className="px-3 py-2">Term</th>
                 <th className="px-3 py-2">Preferred</th>
                 <th className="px-3 py-2">Context</th>
@@ -316,7 +316,7 @@ export function LanguageInclusionTab({
                 <tr key={idx} className="border-t border-white/5">
                   <td className="px-3 py-2 text-white/70">"{t.term}"</td>
                   <td className="px-3 py-2" style={{ color: GOLD }}>→ "{t.preferred}"</td>
-                  <td className="px-3 py-2 text-white/50 text-[10px]">{t.context}</td>
+                  <td className="px-3 py-2 text-white/50 text-[11px]">{t.context}</td>
                   <td className="px-2 py-2">
                     <button type="button" onClick={() => setStateTerms(stateTerms.filter((_, i) => i !== idx))}
                       className="text-white/30 hover:text-white">
@@ -326,22 +326,22 @@ export function LanguageInclusionTab({
                 </tr>
               ))}
               {stateTerms.length === 0 && (
-                <tr><td colSpan={4} className="px-3 py-6 text-center text-[10px] text-white/40">No state-specific terms.</td></tr>
+                <tr><td colSpan={4} className="px-3 py-6 text-center text-[11px] text-white/40">No state-specific terms.</td></tr>
               )}
             </tbody>
           </table>
         </div>
         {!stateOpen ? (
-          <button type="button" className="mt-3 text-[10px]" style={{ color: GOLD }} onClick={() => setStateOpen(true)}>+ Add term</button>
+          <button type="button" className="mt-3 text-[11px]" style={{ color: GOLD }} onClick={() => setStateOpen(true)}>+ Add term</button>
         ) : (
           <div className="mt-3 flex flex-wrap gap-2 items-center">
-            <input className="bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[11px] text-white"
+            <input className="bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[12px] text-white"
               placeholder="Term" value={stateAdd.term} onChange={(e) => setStateAdd({ ...stateAdd, term: e.target.value })} />
-            <input className="bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[11px] text-white"
+            <input className="bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[12px] text-white"
               placeholder="Preferred" value={stateAdd.preferred} onChange={(e) => setStateAdd({ ...stateAdd, preferred: e.target.value })} />
-            <input className="bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[11px] text-white flex-1 min-w-[160px]"
+            <input className="bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[12px] text-white flex-1 min-w-[160px]"
               placeholder="Context" value={stateAdd.context} onChange={(e) => setStateAdd({ ...stateAdd, context: e.target.value })} />
-            <button type="button" className="px-3 py-1.5 rounded text-[11px] text-black" style={{ background: GOLD }}
+            <button type="button" className="px-3 py-1.5 rounded text-[12px] text-black" style={{ background: GOLD }}
               onClick={() => {
                 if (stateAdd.term.trim() && stateAdd.preferred.trim()) {
                   setStateTerms([...stateTerms, { ...stateAdd }]);
@@ -349,7 +349,7 @@ export function LanguageInclusionTab({
                   setStateOpen(false);
                 }
               }}>Add</button>
-            <button type="button" className="text-[11px] text-white/50" onClick={() => setStateOpen(false)}>cancel</button>
+            <button type="button" className="text-[12px] text-white/50" onClick={() => setStateOpen(false)}>cancel</button>
           </div>
         )}
       </div>
@@ -358,7 +358,7 @@ export function LanguageInclusionTab({
       <div className={STUDIO_CARD}>
         <FieldLabel>LANGUAGE AUDIT</FieldLabel>
         <FieldDesc>Scan existing IRIS outputs for person-first violations.</FieldDesc>
-        <div className="text-[10px] text-white/55 space-y-0.5 mb-3">
+        <div className="text-[11px] text-white/55 space-y-0.5 mb-3">
           <div>Scans: oracle_signals titles &amp; summaries</div>
           <div>· IRIS brief outputs in question_progress</div>
           <div>· oracle_engagement_config text fields</div>
@@ -373,7 +373,7 @@ export function LanguageInclusionTab({
         {auditResults && (
           <div className="mt-4 rounded border border-white/10 bg-black/40 p-4">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-[11px] font-semibold">
+              <div className="text-[12px] font-medium">
                 Audit Results — <span className={auditResults.length > 0 ? "text-amber-400" : "text-emerald-400"}>
                   {auditResults.length > 0 ? `${auditResults.length} items flagged` : "✓ No violations found"}
                 </span>
@@ -381,19 +381,19 @@ export function LanguageInclusionTab({
               <div className="flex gap-2">
                 {auditResults.length > 0 && (
                   <button type="button" onClick={exportCsv}
-                    className="text-[10px] flex items-center gap-1 text-white/70 hover:text-white">
+                    className="text-[11px] flex items-center gap-1 text-white/70 hover:text-white">
                     <Download className="w-3 h-3" /> Export CSV
                   </button>
                 )}
                 <button type="button" onClick={() => setAuditResults(null)}
-                  className="text-[10px] text-white/50 hover:text-white">Dismiss</button>
+                  className="text-[11px] text-white/50 hover:text-white">Dismiss</button>
               </div>
             </div>
             <div className="space-y-2 max-h-[320px] overflow-y-auto">
               {auditResults.map((v, i) => (
                 <div key={i} className="rounded border border-white/5 bg-white/[0.02] p-2">
-                  <div className="text-[9px] uppercase tracking-[0.08em] text-white/40">{v.table} · {v.field}</div>
-                  <div className="text-[11px] mt-1 text-white/80">
+                  <div className="text-[11px] tracking-[0.08em] text-white/40">{v.table} · {v.field}</div>
+                  <div className="text-[12px] mt-1 text-white/80">
                     {v.excerpt.split(v.foundTerm).map((chunk, ci, arr) => (
                       <span key={ci}>
                         {chunk}
@@ -401,7 +401,7 @@ export function LanguageInclusionTab({
                       </span>
                     ))}
                   </div>
-                  <div className="text-[10px] mt-1" style={{ color: "rgba(74,222,128,0.9)" }}>→ {v.suggestedReplacement}</div>
+                  <div className="text-[11px] mt-1" style={{ color: "rgba(74,222,128,0.9)" }}>→ {v.suggestedReplacement}</div>
                 </div>
               ))}
             </div>

@@ -174,7 +174,7 @@ export function IrisScorePredictor({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5" style={{ color: GOLD }}>
           <Target size={12} />
-          <span style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700 }}>
+          <span style={{ fontSize: 9, textTransform: "", letterSpacing: "0.1em", fontWeight: 700 }}>
             Score Predictor
           </span>
         </div>
@@ -261,7 +261,7 @@ export function IrisScorePredictor({
                   <span
                     style={{
                       fontSize: 8,
-                      textTransform: "uppercase",
+                      textTransform: "",
                       letterSpacing: "0.08em",
                       padding: "2px 6px",
                       borderRadius: 999,

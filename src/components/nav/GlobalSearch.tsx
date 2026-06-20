@@ -281,7 +281,7 @@ function SearchModal({ onClose }: { onClose: () => void }) {
         <div style={{ maxHeight: "60vh", overflowY: "auto", padding: 8 }}>
           {!enabled && (
             <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: 1, color: "rgba(255,255,255,0.4)" }}>Try</div>
+              <div style={{ fontSize: 9, textTransform: "", letterSpacing: 1, color: "rgba(255,255,255,0.4)" }}>Try</div>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>
                 "check in" · "score me" · "find Q4.16" · "who owns section 4" · "atc" · "oracle" · "deadline"
               </div>
@@ -290,7 +290,7 @@ function SearchModal({ onClose }: { onClose: () => void }) {
 
           {intent && (
             <div style={{ padding: "6px 4px" }}>
-              <div style={{ fontSize: 8, textTransform: "uppercase", letterSpacing: 1.2, color: GOLD, padding: "6px 12px", fontWeight: 700 }}>
+              <div style={{ fontSize: 8, textTransform: "", letterSpacing: 1.2, color: GOLD, padding: "6px 12px", fontWeight: 700 }}>
                 Quick Action
               </div>
               <IntentRow
@@ -325,7 +325,7 @@ function SearchModal({ onClose }: { onClose: () => void }) {
                     onClick={() => go(`/missions/${missionId}/flight-deck?q=${qu.id}`)}>
                     <span style={{ color: GOLD, fontFamily: "monospace", fontSize: 12, marginRight: 8 }}>Q{qu.question_number}</span>
                     <span style={{ color: "white", fontSize: 13 }}>{String(qu.question_text ?? "").slice(0, 60)}</span>
-                    <span style={{ marginLeft: "auto", fontSize: 10, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" }}>{qu.status ?? "—"}</span>
+                    <span style={{ marginLeft: "auto", fontSize: 10, color: "rgba(255,255,255,0.5)", textTransform: "" }}>{qu.status ?? "—"}</span>
                   </ResultRow>
                 );
               })}
@@ -343,7 +343,7 @@ function SearchModal({ onClose }: { onClose: () => void }) {
                       {(m.name[0] ?? "?").toUpperCase()}
                     </span>
                     <span style={{ color: "white", fontSize: 13 }}>{m.name}</span>
-                    <span style={{ marginLeft: "auto", fontSize: 10, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" }}>{m.role}</span>
+                    <span style={{ marginLeft: "auto", fontSize: 10, color: "rgba(255,255,255,0.5)", textTransform: "" }}>{m.role}</span>
                   </ResultRow>
                 );
               })}
@@ -357,7 +357,7 @@ function SearchModal({ onClose }: { onClose: () => void }) {
                 return (
                   <ResultRow key={s.id} highlighted={highlight === i} onHover={() => setHighlight(i)}
                     onClick={() => go(missionId ? `/missions/${missionId}/intelligence?signal=${s.id}` : "/home")}>
-                    <span style={{ fontSize: 9, fontWeight: 600, color: GOLD, background: "rgba(196,154,43,0.12)", border: "1px solid rgba(196,154,43,0.3)", padding: "2px 6px", borderRadius: 3, marginRight: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>ORACLE</span>
+                    <span style={{ fontSize: 9, fontWeight: 600, color: GOLD, background: "rgba(196,154,43,0.12)", border: "1px solid rgba(196,154,43,0.3)", padding: "2px 6px", borderRadius: 3, marginRight: 8, textTransform: "", letterSpacing: 0.5 }}>ORACLE</span>
                     <span style={{ color: "white", fontSize: 13 }}>{String(s.title ?? "").slice(0, 55)}</span>
                     <span style={{ marginLeft: "auto", fontSize: 10, color: "rgba(255,255,255,0.5)" }}>{s.category ?? ""} · {s.source_name ?? ""}</span>
                   </ResultRow>
@@ -374,7 +374,7 @@ function SearchModal({ onClose }: { onClose: () => void }) {
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ padding: "6px 4px" }}>
-      <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: 1, color: "rgba(255,255,255,0.4)", padding: "6px 12px" }}>{label}</div>
+      <div style={{ fontSize: 9, textTransform: "", letterSpacing: 1, color: "rgba(255,255,255,0.4)", padding: "6px 12px" }}>{label}</div>
       <div>{children}</div>
     </div>
   );

@@ -256,7 +256,7 @@ function SignalsStrip({ eng }: { eng: any }) {
             border: "0.5px solid rgba(255,255,255,0.06)",
           }}
         >
-          <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
+          <div style={{ fontSize: 9, textTransform: "", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
             {it.label}
           </div>
           <div style={{ fontSize: 12, fontWeight: 500, color: it.color, marginTop: 4 }}>{it.value}</div>
@@ -286,7 +286,7 @@ function IntelCard({ node }: { node: Node }) {
       }}
     >
       <div className="flex-1" style={{ padding: "14px 16px 12px" }}>
-        <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.1em", color: t.color, fontWeight: 600 }}>
+        <div style={{ fontSize: 10, textTransform: "", letterSpacing: "0.1em", color: t.color, fontWeight: 600 }}>
           {t.typeLabel}
         </div>
         <h3 className="text-white" style={{ fontSize: 14, fontWeight: 600, marginTop: 6, lineHeight: 1.3 }}>
@@ -346,7 +346,7 @@ function FeaturedCard({ node }: { node: Node }) {
       }}
     >
       <div style={{ padding: "18px 22px" }}>
-        <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.12em", color: t.color, fontWeight: 600 }}>
+        <div style={{ fontSize: 10, textTransform: "", letterSpacing: "0.12em", color: t.color, fontWeight: 600 }}>
           Featured · {t.typeLabel}
         </div>
         <h2 className="text-white" style={{ fontSize: 18, fontWeight: 600, marginTop: 8, lineHeight: 1.25 }}>
@@ -383,7 +383,7 @@ function FeaturedCard({ node }: { node: Node }) {
           <div className="text-center px-4">
             <div style={{ fontSize: 44, fontWeight: 700, color: t.color, lineHeight: 1 }}>{num.value}</div>
             {num.label ? (
-              <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)", marginTop: 6 }}>
+              <div style={{ fontSize: 10, textTransform: "", letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)", marginTop: 6 }}>
                 {num.label}
               </div>
             ) : null}

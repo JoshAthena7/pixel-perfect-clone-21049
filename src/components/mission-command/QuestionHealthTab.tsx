@@ -387,7 +387,7 @@ export function QuestionHealthTab({
             onClick={() => setHealthFilter(healthFilter === "at_risk" ? "all" : "at_risk")}
           />
         </div>
-        <div className="text-xs text-muted-foreground inline-flex items-center gap-2 shrink-0">
+        <div className="text-[12px] text-muted-foreground inline-flex items-center gap-2 shrink-0">
           {recalculating ? (
             <>
               <Loader2 className="h-3 w-3 animate-spin" /> Recalculating health…
@@ -421,7 +421,7 @@ export function QuestionHealthTab({
               key={h}
               onClick={() => setHealthFilter(h)}
               className={cn(
-                "px-3 py-1.5 text-xs border-b-2",
+                "px-3 py-1.5 text-[12px] border-b-2",
                 healthFilter === h
                   ? "border-primary text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground",
@@ -474,7 +474,7 @@ export function QuestionHealthTab({
           <button
             onClick={() => setWatchOnly((v) => !v)}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-md border px-3 h-9 text-xs transition-colors",
+              "inline-flex items-center gap-1.5 rounded-md border px-3 h-9 text-[12px] transition-colors",
               watchOnly
                 ? "border-amber-500/60 bg-amber-500/15 text-amber-300"
                 : "border-border bg-surface/40 text-muted-foreground hover:text-foreground",
@@ -484,21 +484,21 @@ export function QuestionHealthTab({
             <Bookmark className="h-3.5 w-3.5" />
             My Watch List
             {activeFlagByQ.size > 0 && (
-              <span className="ml-1 rounded-full bg-amber-500/30 px-1.5 py-0.5 text-[10px] font-semibold">
+              <span className="ml-1 rounded-full bg-amber-500/30 px-1.5 py-0.5 text-[11px] font-medium">
                 {activeFlagByQ.size}
               </span>
             )}
           </button>
         )}
         {filtersActive && (
-          <button onClick={clearFilters} className="text-xs text-primary hover:underline">
+          <button onClick={clearFilters} className="text-[12px] text-primary hover:underline">
             Clear all filters
           </button>
         )}
       </div>
 
       {sorted.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
+        <div className="rounded-xl border border-dashed border-border p-10 text-center text-[14px] text-muted-foreground">
           No questions match your filters.{" "}
           <button onClick={clearFilters} className="text-primary hover:underline">
             Clear filters
@@ -595,8 +595,8 @@ function StatCard({
         active && "ring-2 ring-offset-2 ring-offset-background ring-primary",
       )}
     >
-      <div className="text-3xl font-bold">{value}</div>
-      <div className="text-xs uppercase tracking-wide mt-1">{label}</div>
+      <div className="text-3xl font-medium">{value}</div>
+      <div className="text-[12px] tracking-wide mt-1">{label}</div>
     </button>
   );
 }
@@ -747,15 +747,15 @@ function HealthCard({
         onToggle();
       }}
     >
-      <div className="flex flex-wrap items-center gap-2 text-xs">
+      <div className="flex flex-wrap items-center gap-2 text-[12px]">
         <HealthBadge value={h} />
         {overrideActive && (
-          <span className="px-1.5 py-0.5 rounded uppercase font-semibold bg-primary/15 text-primary border border-primary/40">
+          <span className="px-1.5 py-0.5 rounded font-medium bg-primary/15 text-primary border border-primary/40">
             Manually set
           </span>
         )}
         {managerFlag && (
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded uppercase font-semibold bg-amber-500/20 text-amber-300">
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-medium bg-amber-500/20 text-amber-300">
             <Flag className="h-3 w-3" /> Flagged
           </span>
         )}
@@ -768,8 +768,8 @@ function HealthCard({
             : "No due date"}
         </span>
       </div>
-      <p className="mt-2 text-sm text-foreground">{expanded ? text : truncated}</p>
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+      <p className="mt-2 text-[14px] text-foreground">{expanded ? text : truncated}</p>
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px]">
         <span className="text-foreground">{writerLabel ?? "Unassigned"}</span>
         {a?.acceptance_status && <AcceptanceBadge value={a.acceptance_status} />}
         <ConfidenceBadge value={a?.writer_confidence ?? null} />
@@ -780,7 +780,7 @@ function HealthCard({
         )}
       </div>
       {flag && (
-        <div className="mt-2 flex items-start gap-2 text-xs text-amber-400 bg-amber-500/10 rounded p-2">
+        <div className="mt-2 flex items-start gap-2 text-[12px] text-amber-400 bg-amber-500/10 rounded p-2">
           <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
           <span>
             {isAdmin ? `Trip wire: ${flag.flag_text ?? flag.reason ?? "—"}` : flag.flag_text ?? flag.reason ?? "IRIS has flagged this question."}
@@ -788,14 +788,14 @@ function HealthCard({
         </div>
       )}
       {expanded && (
-        <div className="mt-3 border-t border-border pt-3 space-y-3 text-sm">
+        <div className="mt-3 border-t border-border pt-3 space-y-3 text-[14px]">
           <div>
-            <div className="text-xs uppercase text-muted-foreground mb-1">Assigned SMEs</div>
+            <div className="text-[12px] text-muted-foreground mb-1">Assigned SMEs</div>
             <div>{smes.length ? smes.join(", ") : <span className="text-muted-foreground">None</span>}</div>
           </div>
           {q.evaluation_criteria && (
             <div>
-              <div className="text-xs uppercase text-muted-foreground mb-1">Evaluation Criteria</div>
+              <div className="text-[12px] text-muted-foreground mb-1">Evaluation Criteria</div>
               <p>{q.evaluation_criteria}</p>
             </div>
           )}
@@ -805,12 +805,12 @@ function HealthCard({
             <div className="flex flex-wrap items-center gap-2" data-no-toggle>
               {managerFlag ? (
                 <>
-                  <span className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/15 px-2.5 py-1.5 text-xs text-amber-300">
+                  <span className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/15 px-2.5 py-1.5 text-[12px] text-amber-300">
                     <Flag className="h-3.5 w-3.5" /> Flagged
                   </span>
                   <button
                     onClick={onResolveFlag}
-                    className="text-xs text-primary hover:underline"
+                    className="text-[12px] text-primary hover:underline"
                   >
                     Resolve
                   </button>
@@ -832,8 +832,8 @@ function HealthCard({
 
           <div className="flex items-center gap-4">
             <div>
-              <div className="text-xs uppercase text-muted-foreground">Days until due</div>
-              <div className={cn("text-3xl font-bold", dueColor)}>
+              <div className="text-[12px] text-muted-foreground">Days until due</div>
+              <div className={cn("text-3xl font-medium", dueColor)}>
                 {days === null ? "—" : days < 0 ? `${Math.abs(days)} overdue` : days}
               </div>
             </div>
@@ -850,7 +850,7 @@ function HealthCard({
           {/* Admin private note — only admins see this section */}
           {isAdmin && latestOverride && (
             <div data-no-toggle className="rounded-md border border-border bg-background/40 p-3">
-              <div className="flex items-center gap-1.5 mb-2 text-[11px] uppercase tracking-wide text-muted-foreground">
+              <div className="flex items-center gap-1.5 mb-2 text-[12px] tracking-wide text-muted-foreground">
                 <Lock className="h-3 w-3" /> Admin Note — not visible to team
                 {noteSaved && <span className="ml-auto text-green-400 normal-case">Saved</span>}
               </div>
@@ -867,7 +867,7 @@ function HealthCard({
       )}
       <div className="mt-2 text-right" data-no-toggle>
         <button
-          className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+          className="text-[12px] text-primary hover:underline inline-flex items-center gap-1"
           onClick={onGoToSection}
         >
           View in Sections & Questions <Eye className="h-3 w-3" />
@@ -888,7 +888,7 @@ function FlagPopover({ onConfirm }: { onConfirm: (reason: string | null) => void
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72 space-y-2" onClick={(e) => e.stopPropagation()}>
-        <div className="text-xs font-semibold">Flag for Review</div>
+        <div className="text-[12px] font-medium">Flag for Review</div>
         <Input
           value={reason}
           onChange={(e) => setReason(e.target.value.slice(0, 100))}
@@ -931,13 +931,13 @@ function OverridePopover({
       <PopoverTrigger asChild>
         <button
           data-no-toggle
-          className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+          className="inline-flex items-center gap-1 text-[12px] text-primary hover:underline"
         >
           <ShieldAlert className="h-3.5 w-3.5" /> Override
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-80 space-y-2" onClick={(e) => e.stopPropagation()}>
-        <div className="text-xs font-semibold">Health Override (admin)</div>
+        <div className="text-[12px] font-medium">Health Override (admin)</div>
         <Select value={state} onValueChange={(v) => setState(v as HealthState)}>
           <SelectTrigger className="h-9">
             <SelectValue />
@@ -983,7 +983,7 @@ function HealthBadge({ value }: { value: string }) {
     at_risk: "bg-red-500/20 text-red-400",
   };
   return (
-    <span className={cn("px-1.5 py-0.5 rounded uppercase font-semibold", map[value] ?? "bg-muted")}>
+    <span className={cn("px-1.5 py-0.5 rounded  font-medium", map[value] ?? "bg-muted")}>
       {value.replace("_", " ")}
     </span>
   );
@@ -996,7 +996,7 @@ function AcceptanceBadge({ value }: { value: string }) {
     capacity_concern: "bg-red-500/20 text-red-400",
   };
   return (
-    <span className={cn("px-1.5 py-0.5 rounded uppercase", map[value] ?? "bg-muted")}>
+    <span className={cn("px-1.5 py-0.5 rounded ", map[value] ?? "bg-muted")}>
       {value.replace(/_/g, " ")}
     </span>
   );
@@ -1011,7 +1011,7 @@ function ConfidenceBadge({ value }: { value: string | null }) {
     not_set: "bg-muted text-muted-foreground",
   };
   return (
-    <span className={cn("px-1.5 py-0.5 rounded uppercase", map[v] ?? "bg-muted")}>
+    <span className={cn("px-1.5 py-0.5 rounded ", map[v] ?? "bg-muted")}>
       {label}
     </span>
   );
@@ -1023,7 +1023,7 @@ function ScorePill({ score }: { score: number }) {
   return (
     <span
       title={`Latest draft score: ${score}/100`}
-      className="rounded-full px-1.5 py-0.5 font-semibold tabular-nums"
+      className="rounded-full px-1.5 py-0.5 font-medium tabular-nums"
       style={{
         background: `${color}22`,
         color,

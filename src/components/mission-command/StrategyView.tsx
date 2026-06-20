@@ -148,7 +148,7 @@ export function StrategyView({ missionId, missionName }: { missionId: string; mi
             style={{
               color: GOLD,
               fontSize: 9,
-              textTransform: "uppercase",
+              textTransform: "",
               letterSpacing: "0.08em",
               fontWeight: 600,
             }}
@@ -168,7 +168,7 @@ export function StrategyView({ missionId, missionName }: { missionId: string; mi
             style={{
               color: GOLD,
               fontSize: 9,
-              textTransform: "uppercase",
+              textTransform: "",
               letterSpacing: "0.08em",
               fontWeight: 600,
             }}
@@ -188,7 +188,7 @@ export function StrategyView({ missionId, missionName }: { missionId: string; mi
 
       {bannerOn && (
         <div className="rounded-lg bg-primary/15 border border-primary/40 p-3 flex items-center justify-between">
-          <span className="text-sm">Win Strategy updated. IRIS has been informed.</span>
+          <span className="text-[14px]">Win Strategy updated. IRIS has been informed.</span>
           <Button size="sm" onClick={notifyTeam}>
             Notify Team
           </Button>
@@ -224,7 +224,7 @@ export function StrategyView({ missionId, missionName }: { missionId: string; mi
                   set("win_themes", next);
                 }}
                 placeholder="Theme title"
-                className="font-semibold bg-transparent border-0 px-0 h-auto py-0 focus-visible:ring-0"
+                className="font-medium bg-transparent border-0 px-0 h-auto py-0 focus-visible:ring-0"
                 style={{ fontSize: 13, color: "white" }}
               />
               <Textarea
@@ -373,7 +373,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       style={{
         color: "rgba(255,255,255,0.55)",
         fontSize: 10,
-        textTransform: "uppercase",
+        textTransform: "",
         letterSpacing: "0.08em",
         fontWeight: 600,
       }}

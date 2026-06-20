@@ -328,7 +328,7 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
           <span className="absolute inset-0 rounded-full animate-ping opacity-25" style={{ background: IRIS_BRAND, animationDuration: "3s" }} />
           {hasUnread && <span className="absolute top-0 right-0 h-3 w-3 rounded-full" style={{ background: IRIS_BRAND, boxShadow: "0 0 0 2px #0F1A2E" }} />}
         </span>
-        <span className="absolute right-16 bottom-3 hidden group-hover:inline-block px-2 py-1 rounded text-xs bg-card text-foreground border whitespace-nowrap">
+        <span className="absolute right-16 bottom-3 hidden group-hover:inline-block px-2 py-1 rounded text-[12px] bg-card text-foreground border whitespace-nowrap">
           Ask IRIS
         </span>
       </button>
@@ -340,7 +340,7 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
     return (
       <button
         onClick={() => setMinimized(false)}
-        className="fixed bottom-5 right-5 z-50 rounded-full shadow-lg px-4 py-2 text-sm font-semibold text-white"
+        className="fixed bottom-5 right-5 z-50 rounded-full shadow-lg px-4 py-2 text-[14px] font-medium text-white"
         style={{ background: `linear-gradient(135deg, ${IRIS_BRAND}, ${IRIS_BRAND_DEEP})` }}
       >
         <IrisMark className="inline h-4 w-4 mr-1 align-[-2px]" /> IRIS
@@ -358,8 +358,8 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
         <div className="flex-1 min-w-0 flex items-center gap-2">
           <IrisMark className="h-5 w-5 shrink-0" />
           <div className="min-w-0">
-            <div className="text-sm font-bold" style={{ color: IRIS_BRAND }}>IRIS</div>
-            <div className="text-[10px] text-white/60 truncate">{contextLine}</div>
+            <div className="text-[14px] font-medium" style={{ color: IRIS_BRAND }}>IRIS</div>
+            <div className="text-[11px] text-white/60 truncate">{contextLine}</div>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -369,9 +369,9 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
       </div>
 
       {/* Conversation */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-3 text-sm">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-3 text-[14px]">
         {messages.length === 0 && (
-          <div className="text-white/70 text-xs italic">
+          <div className="text-white/70 text-[12px] italic">
             Ask me anything about this mission. I can brief you, draft responses, score your work, or surface what needs attention.
           </div>
         )}
@@ -401,7 +401,7 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
             key={c}
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (streaming) { toast("IRIS is still answering — one sec…"); return; } send(c); }}
-            className="text-[11px] px-2 py-1 rounded-full border border-white/15 text-white/85 hover:bg-white/10 cursor-pointer"
+            className="text-[12px] px-2 py-1 rounded-full border border-white/15 text-white/85 hover:bg-white/10 cursor-pointer"
           >
             {c}
           </button>
@@ -417,7 +417,7 @@ export function IrisDock({ prefillSignal, openSignal }: Props) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
           placeholder="Ask IRIS anything about this mission..."
-          className="flex-1 bg-white/5 text-white placeholder:text-white/40 rounded px-2 py-1 text-sm border border-white/10 focus:outline-none focus:border-white/30 resize-none max-h-32"
+          className="flex-1 bg-white/5 text-white placeholder:text-white/40 rounded px-2 py-1 text-[14px] border border-white/10 focus:outline-none focus:border-white/30 resize-none max-h-32"
           disabled={streaming}
         />
         <Button size="icon" variant="ghost" className="h-8 w-8 text-white/70" onClick={() => toast("Voice input coming soon")} title="Voice input"><Mic className="h-4 w-4" /></Button>
@@ -439,7 +439,7 @@ function MessageRow({ m, onOpenInThread, onNavigate }: {
       <div className="flex justify-end">
         <div className="rounded-lg px-3 py-2 max-w-[85%] text-white" style={{ background: "rgba(255,255,255,0.08)" }}>
           <div className="whitespace-pre-wrap break-words">{m.text}</div>
-          <div className="text-[9px] text-white/40 mt-1 text-right">{new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+          <div className="text-[11px] text-white/40 mt-1 text-right">{new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
         </div>
       </div>
     );
@@ -455,7 +455,7 @@ function MessageRow({ m, onOpenInThread, onNavigate }: {
         {m.card?.kind === "score" && <ScoreCardView card={m.card} />}
         {m.card?.kind === "risks" && <RiskCardView card={m.card} onNavigate={onNavigate} />}
         {m.card?.kind === "intel" && <IntelCardView card={m.card} onNavigate={onNavigate} />}
-        <div className="text-[9px] text-white/40 mt-1">{new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+        <div className="text-[11px] text-white/40 mt-1">{new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
       </div>
     </div>
   );
@@ -464,13 +464,13 @@ function MessageRow({ m, onOpenInThread, onNavigate }: {
 function DraftCardView({ card, onOpenInThread }: { card: DraftCard; onOpenInThread: (draft: string) => void }) {
   return (
     <div className="mt-2 rounded border-2 p-3" style={{ borderColor: IRIS_BRAND, background: "rgba(167,139,250,0.07)" }}>
-      <div className="text-[11px] uppercase tracking-wider mb-2" style={{ color: IRIS_BRAND }}><Sparkles className="inline h-3 w-3 mr-1" />Draft</div>
-      <div className="whitespace-pre-wrap text-white text-sm max-h-40 overflow-y-auto">{card.draft}</div>
+      <div className="text-[12px] mb-2" style={{ color: IRIS_BRAND }}><Sparkles className="inline h-3 w-3 mr-1" />Draft</div>
+      <div className="whitespace-pre-wrap text-white text-[14px] max-h-40 overflow-y-auto">{card.draft}</div>
       <div className="flex gap-2 mt-2">
-        <Button size="sm" variant="outline" className="text-xs" onClick={() => { navigator.clipboard.writeText(card.draft); toast.success("Copied to clipboard"); }}>
+        <Button size="sm" variant="outline" className="text-[12px]" onClick={() => { navigator.clipboard.writeText(card.draft); toast.success("Copied to clipboard"); }}>
           <Copy className="h-3 w-3 mr-1" /> Copy
         </Button>
-        <Button size="sm" className="text-xs" style={{ background: IRIS_BRAND, color: "#0F1A2E" }} onClick={() => onOpenInThread(card.draft)}>
+        <Button size="sm" className="text-[12px]" style={{ background: IRIS_BRAND, color: "#0F1A2E" }} onClick={() => onOpenInThread(card.draft)}>
           📌 Notes
         </Button>
       </div>
@@ -483,12 +483,12 @@ function ScoreCardView({ card }: { card: ScoreCard }) {
   return (
     <div className="mt-2 rounded border p-3" style={{ borderColor: IRIS_BRAND, background: "rgba(167,139,250,0.08)" }}>
       <div className="flex items-baseline justify-between">
-        <span className="text-[11px] uppercase tracking-wider" style={{ color: IRIS_BRAND }}>Score</span>
-        <span className="text-2xl font-bold" style={{ color: IRIS_BRAND }}>{card.total}<span className="text-sm text-white/60">/100</span></span>
+        <span className="text-[12px]" style={{ color: IRIS_BRAND }}>Score</span>
+        <span className="text-2xl font-medium" style={{ color: IRIS_BRAND }}>{card.total}<span className="text-[14px] text-white/60">/100</span></span>
       </div>
       <div className="mt-2 space-y-1">
         {card.breakdown.map((b) => (
-          <div key={b.label} className="flex items-center justify-between text-xs">
+          <div key={b.label} className="flex items-center justify-between text-[12px]">
             <span className="text-white/80">{b.label}</span>
             <span className="text-white/60">{b.score}/{b.max}</span>
           </div>
@@ -496,16 +496,16 @@ function ScoreCardView({ card }: { card: ScoreCard }) {
       </div>
       {card.gaps.length > 0 && (
         <div className="mt-2">
-          <div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: IRIS_BRAND }}>Gaps</div>
-          <ul className="text-xs text-white/80 space-y-1 list-disc pl-4">
+          <div className="text-[12px] mb-1" style={{ color: IRIS_BRAND }}>Gaps</div>
+          <ul className="text-[12px] text-white/80 space-y-1 list-disc pl-4">
             {card.gaps.map((g, i) => <li key={i}>{g}</li>)}
           </ul>
         </div>
       )}
-      <button className="mt-2 text-xs underline text-white/70" onClick={() => setExpanded((x) => !x)}>
+      <button className="mt-2 text-[12px] underline text-white/70" onClick={() => setExpanded((x) => !x)}>
         {expanded ? "Hide Detailed Report" : "Detailed Report"}
       </button>
-      {expanded && <p className="mt-2 text-xs text-white/80 leading-relaxed">{card.detail}</p>}
+      {expanded && <p className="mt-2 text-[12px] text-white/80 leading-relaxed">{card.detail}</p>}
     </div>
   );
 }
@@ -516,8 +516,8 @@ function RiskCardView({ card, onNavigate }: { card: RiskCard; onNavigate: (href:
     <ul className="mt-2 space-y-1">
       {card.items.map((it, i) => (
         <li key={i}>
-          <button onClick={() => onNavigate(it.href)} className="w-full text-left text-xs rounded px-2 py-1 hover:bg-white/5 border border-white/10">
-            <span className="font-semibold text-white">{it.label}</span>
+          <button onClick={() => onNavigate(it.href)} className="w-full text-left text-[12px] rounded px-2 py-1 hover:bg-white/5 border border-white/10">
+            <span className="font-medium text-white">{it.label}</span>
             <span className="text-white/60"> — {it.detail}</span>
           </button>
         </li>
@@ -531,8 +531,8 @@ function IntelCardView({ card, onNavigate }: { card: IntelCard; onNavigate: (hre
   return (
     <ul className="mt-2 space-y-1">
       {card.items.map((it, i) => (
-        <li key={i} className="text-xs rounded px-2 py-1 border border-white/10">
-          <div className="font-semibold text-white">{it.headline}</div>
+        <li key={i} className="text-[12px] rounded px-2 py-1 border border-white/10">
+          <div className="font-medium text-white">{it.headline}</div>
           {it.assessment && <div className="text-white/60 mt-0.5">{it.assessment}</div>}
           <div className="flex gap-2 mt-1">
             {it.url && <a href={it.url} target="_blank" rel="noreferrer" className="underline" style={{ color: IRIS_BRAND }}>Open <ExternalLink className="inline h-3 w-3" /></a>}

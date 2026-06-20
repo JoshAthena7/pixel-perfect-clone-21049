@@ -93,7 +93,7 @@ export function IntelOrganizations({ missionId }: { missionId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <div className="text-xs text-white/50">
+        <div className="text-[12px] text-white/50">
           {totalCount} {totalCount === 1 ? "organization" : "organizations"}
           {oracleEntries.length > 0 && legacyEntries.length > 0 && (
             <span className="ml-1 text-white/30">
@@ -103,7 +103,7 @@ export function IntelOrganizations({ missionId }: { missionId: string }) {
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          className="inline-flex items-center gap-1 rounded px-3 py-1.5 text-xs"
+          className="inline-flex items-center gap-1 rounded px-3 py-1.5 text-[12px]"
           style={{ background: "rgba(196,154,43,0.12)", color: GOLD, border: "0.5px solid rgba(196,154,43,0.3)" }}
         >
           <Plus className="h-3 w-3" /> Add Organization
@@ -118,7 +118,7 @@ export function IntelOrganizations({ missionId }: { missionId: string }) {
         <div className="space-y-6">
           {oracleEntries.length > 0 && (
             <section>
-              <div className="text-[10px] uppercase tracking-wider mb-2 pb-1" style={{ color: GOLD, borderBottom: `1px solid ${GOLD}33` }}>
+              <div className="text-[11px] mb-2 pb-1" style={{ color: GOLD, borderBottom: `1px solid ${GOLD}33` }}>
                 ORACLE Sources ({oracleEntries.length})
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -128,7 +128,7 @@ export function IntelOrganizations({ missionId }: { missionId: string }) {
           )}
           {legacyEntries.length > 0 && (
             <section>
-              <div className="text-[10px] uppercase tracking-wider mb-2 pb-1 text-white/55" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+              <div className="text-[11px] mb-2 pb-1 text-white/55" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
                 Manual Entries ({legacyEntries.length})
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -161,17 +161,17 @@ function SourceCard({ entry }: { entry: SourceEntry }) {
     <div className="rounded-lg p-3" style={{ background: "rgba(5,13,24,0.5)", border: `1px solid ${GOLD}33`, borderLeftWidth: 3, borderLeftColor: GOLD }}>
       <div className="flex justify-between items-start gap-2">
         <div className="min-w-0">
-          <div className="text-sm text-white font-medium flex items-center gap-1.5 min-w-0">
+          <div className="text-[14px] text-white font-medium flex items-center gap-1.5 min-w-0">
             <Building2 className="h-3 w-3 shrink-0" style={{ color: GOLD }} />
             <span className="truncate">{entry.name}</span>
           </div>
-          <div className="text-[10px] text-white/45 mt-0.5 uppercase tracking-wider">{entry.category.replace(/_/g, " ")}</div>
+          <div className="text-[11px] text-white/45 mt-0.5">{entry.category.replace(/_/g, " ")}</div>
         </div>
         <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 3, background: "rgba(196,154,43,0.15)", color: GOLD, border: `0.5px solid ${GOLD}55`, whiteSpace: "nowrap" }}>
           ORACLE
         </span>
       </div>
-      <div className="flex items-center justify-between mt-2 text-[10px] text-white/55">
+      <div className="flex items-center justify-between mt-2 text-[11px] text-white/55">
         <span>{entry.count} {entry.count === 1 ? "item" : "items"}</span>
         <span>Updated {dtLabel}</span>
       </div>
@@ -183,7 +183,7 @@ function LegacyOrgCard({ org }: { org: any }) {
   return (
     <div className="rounded-lg p-3" style={{ background: "rgba(5,13,24,0.5)", border: "1px solid rgba(255,255,255,0.08)", borderLeftWidth: 3, borderLeftColor: "rgba(255,255,255,0.2)" }}>
       <div className="flex justify-between items-start">
-        <div className="text-sm text-white font-medium truncate">{org.name || "Unnamed"}</div>
+        <div className="text-[14px] text-white font-medium truncate">{org.name || "Unnamed"}</div>
         {org.incumbency_status && org.incumbency_status !== "unknown" && (
           <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 3, background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.7)" }}>
             {org.incumbency_status}
@@ -191,16 +191,16 @@ function LegacyOrgCard({ org }: { org: any }) {
         )}
       </div>
       {org.known_strengths?.length > 0 && (
-        <div className="text-xs text-white/55 mt-1">
+        <div className="text-[12px] text-white/55 mt-1">
           <span className="text-emerald-400/70">Strengths:</span> {org.known_strengths.slice(0, 3).join(", ")}
         </div>
       )}
       {org.known_weaknesses?.length > 0 && (
-        <div className="text-xs text-white/55 mt-0.5">
+        <div className="text-[12px] text-white/55 mt-0.5">
           <span className="text-red-400/70">Weaknesses:</span> {org.known_weaknesses.slice(0, 3).join(", ")}
         </div>
       )}
-      {org.notes && <div className="text-xs text-white/50 mt-2 line-clamp-2">{org.notes}</div>}
+      {org.notes && <div className="text-[12px] text-white/50 mt-2 line-clamp-2">{org.notes}</div>}
     </div>
   );
 }
@@ -221,18 +221,18 @@ function EmptyState({ missionId, onAdd, onSeeded }: { missionId: string; onAdd: 
   };
   return (
     <div className="rounded-lg py-12 text-center" style={{ background: "rgba(5,13,24,0.4)", border: "1px dashed rgba(255,255,255,0.1)" }}>
-      <div className="text-sm text-white/60">No organizations or regulatory sources captured yet.</div>
+      <div className="text-[14px] text-white/60">No organizations or regulatory sources captured yet.</div>
       <div className="mt-3 flex items-center justify-center gap-3">
         <button
           onClick={generate}
           disabled={seeding}
-          className="inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-xs disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-[12px] disabled:opacity-50"
           style={{ background: "rgba(196,154,43,0.12)", color: GOLD, border: "0.5px solid rgba(196,154,43,0.3)" }}
         >
           {seeding ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
           {seeding ? "Generating…" : "Generate with IRIS"}
         </button>
-        <button onClick={onAdd} className="text-xs underline" style={{ color: GOLD }}>Add manually</button>
+        <button onClick={onAdd} className="text-[12px] underline" style={{ color: GOLD }}>Add manually</button>
       </div>
     </div>
   );
@@ -276,30 +276,30 @@ function AddOrgDialog({ missionId, onClose, onSaved }: { missionId: string; onCl
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)" }}>
       <div className="w-full max-w-md rounded-lg p-5" style={{ background: "#0a121e", border: "1px solid rgba(196,154,43,0.3)" }}>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-medium text-white">Add Organization</h3>
+          <h3 className="text-[14px] font-medium text-white">Add Organization</h3>
           <button onClick={onClose}><X className="h-4 w-4 text-white/60" /></button>
         </div>
         <div className="space-y-3">
-          <Field label="Name *"><input value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded px-2 py-1.5 text-sm text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }} /></Field>
+          <Field label="Name *"><input value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded px-2 py-1.5 text-[14px] text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }} /></Field>
           <Field label="Type">
-            <select value={orgType} onChange={(e) => setOrgType(e.target.value)} className="w-full rounded px-2 py-1.5 text-sm text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <select value={orgType} onChange={(e) => setOrgType(e.target.value)} className="w-full rounded px-2 py-1.5 text-[14px] text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
               {ORG_TYPE_OPTIONS.map((g) => <option key={g.value} value={g.value} style={{ background: "#0a121e" }}>{g.label}</option>)}
             </select>
           </Field>
           <Field label="Incumbency">
-            <select value={incumbency} onChange={(e) => setIncumbency(e.target.value)} className="w-full rounded px-2 py-1.5 text-sm text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <select value={incumbency} onChange={(e) => setIncumbency(e.target.value)} className="w-full rounded px-2 py-1.5 text-[14px] text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
               <option value="unknown" style={{ background: "#0a121e" }}>Unknown</option>
               <option value="incumbent" style={{ background: "#0a121e" }}>Incumbent</option>
               <option value="challenger" style={{ background: "#0a121e" }}>Challenger</option>
             </select>
           </Field>
           <Field label="Notes">
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="w-full rounded px-2 py-1.5 text-sm text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }} />
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="w-full rounded px-2 py-1.5 text-[14px] text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }} />
           </Field>
         </div>
         <div className="flex justify-end gap-2 mt-4">
-          <button onClick={onClose} className="px-3 py-1.5 text-xs text-white/60">Cancel</button>
-          <button onClick={submit} disabled={saving || !name.trim()} className="px-3 py-1.5 text-xs rounded" style={{ background: GOLD, color: "#000" }}>
+          <button onClick={onClose} className="px-3 py-1.5 text-[12px] text-white/60">Cancel</button>
+          <button onClick={submit} disabled={saving || !name.trim()} className="px-3 py-1.5 text-[12px] rounded" style={{ background: GOLD, color: "#000" }}>
             {saving ? "Saving..." : "Save"}
           </button>
         </div>
@@ -311,7 +311,7 @@ function AddOrgDialog({ missionId, onClose, onSaved }: { missionId: string; onCl
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="text-xs text-white/60 block mb-1">{label}</label>
+      <label className="text-[12px] text-white/60 block mb-1">{label}</label>
       {children}
     </div>
   );

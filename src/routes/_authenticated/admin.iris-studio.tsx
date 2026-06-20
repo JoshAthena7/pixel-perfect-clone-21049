@@ -94,11 +94,11 @@ function IrisStudioPage() {
       <div className="max-w-[1280px] mx-auto px-6 py-8">
         <div className="flex items-end justify-between mb-6">
           <div>
-            <div className="uppercase tracking-[0.16em] text-[10px]" style={{ color: GOLD }}>
+            <div className="tracking-[0.16em] text-[11px]" style={{ color: GOLD }}>
               IRIS STUDIO
             </div>
-            <h1 className="text-2xl font-semibold mt-1" title={headerFull}>IRIS Studio · {headerLabel}</h1>
-            <p className="text-[11px] mt-1 text-white/50">
+            <h1 className="text-2xl font-medium mt-1" title={headerFull}>IRIS Studio · {headerLabel}</h1>
+            <p className="text-[12px] mt-1 text-white/50">
               Per-mission IRIS voice, language, and behavior configuration.
             </p>
           </div>
@@ -129,9 +129,9 @@ function IrisStudioPage() {
 
           <div className="mt-6">
             {!missionId ? (
-              <div className="text-white/50 text-[13px]">Pick a mission to configure IRIS.</div>
+              <div className="text-white/50 text-[14px]">Pick a mission to configure IRIS.</div>
             ) : configQuery.isLoading || !config ? (
-              <div className="text-white/40 text-[13px]">Loading config…</div>
+              <div className="text-white/40 text-[14px]">Loading config…</div>
             ) : (
               <>
                 <TabsContent value="brief">

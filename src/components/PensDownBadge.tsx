@@ -34,7 +34,7 @@ export function PensDownBadge({ pensDownDate }: Props) {
 
   return (
     <span
-      className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+      className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium tracking-wide text-white"
       style={{ background: bg }}
       title={`Pens down: ${new Date(pensDownDate).toLocaleDateString()}`}
     >

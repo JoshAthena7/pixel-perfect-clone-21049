@@ -60,15 +60,15 @@ export function TeamAssignmentsTab({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-2xl font-semibold">Team & Assignments</h2>
+        <h2 className="text-2xl font-medium">Team & Assignments</h2>
       </div>
       <div className="flex gap-1 border-b border-border">
         <button onClick={() => setSub("team")}
-                className={`px-3 py-2 text-sm border-b-2 ${sub === "team" ? "border-primary text-foreground" : "border-transparent text-muted-foreground"}`}>
+                className={`px-3 py-2 text-[14px] border-b-2 ${sub === "team" ? "border-primary text-foreground" : "border-transparent text-muted-foreground"}`}>
           Team
         </button>
         <button onClick={() => setSub("assignments")}
-                className={`px-3 py-2 text-sm border-b-2 ${sub === "assignments" ? "border-primary text-foreground" : "border-transparent text-muted-foreground"}`}>
+                className={`px-3 py-2 text-[14px] border-b-2 ${sub === "assignments" ? "border-primary text-foreground" : "border-transparent text-muted-foreground"}`}>
           Assignments
         </button>
       </div>
@@ -165,15 +165,15 @@ function TeamSub({ missionId }: { missionId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold">Mission Team <span className="text-muted-foreground font-normal">({members?.length ?? 0})</span></h3>
+        <h3 className="font-medium">Mission Team <span className="text-muted-foreground font-normal">({members?.length ?? 0})</span></h3>
         <Button variant="outline" onClick={() => setAddOpen(true)}>
           <Plus className="size-4 mr-1" />Add Team Member
         </Button>
       </div>
 
       <div className="rounded-lg border overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+        <table className="w-full text-[14px]">
+          <thead className="bg-muted/40 text-[12px] text-muted-foreground">
             <tr>
               <th className="px-3 py-2 text-left">Member</th>
               <th className="px-3 py-2 text-left">Role</th>
@@ -192,18 +192,18 @@ function TeamSub({ missionId }: { missionId: string }) {
                 <tr key={m.id} className="border-t">
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2">
-                      <div className="size-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold">
+                      <div className="size-8 rounded-full bg-muted flex items-center justify-center text-[12px] font-medium">
                         {(a.first_name ?? "?").charAt(0)}{(a.last_name ?? "").charAt(0)}
                       </div>
                       <div>
                         <div className="font-medium">{a.first_name} {a.last_name}</div>
-                        <div className="text-xs text-muted-foreground">{a.job_title}</div>
+                        <div className="text-[12px] text-muted-foreground">{a.job_title}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-3 py-2">
                     <Select value={m.mission_role} onValueChange={(v) => updateRole(m.id, v)}>
-                      <SelectTrigger className="h-8 w-40 text-xs">
+                      <SelectTrigger className="h-8 w-40 text-[12px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -214,9 +214,9 @@ function TeamSub({ missionId }: { missionId: string }) {
                       <Badge variant="outline" className={cn("mt-1", roleMeta.color)}>{roleMeta.label}</Badge>
                     )}
                   </td>
-                  <td className="px-3 py-2 capitalize text-xs">{a.atlas_invite_status ?? "—"}</td>
+                  <td className="px-3 py-2 capitalize text-[12px]">{a.atlas_invite_status ?? "—"}</td>
                   <td className="px-3 py-2 text-center">{assignmentCounts?.get(m.member_id) ?? 0}</td>
-                  <td className="px-3 py-2 text-xs text-muted-foreground">
+                  <td className="px-3 py-2 text-[12px] text-muted-foreground">
                     {a.atlas_last_active_at ? formatDistanceToNowStrict(new Date(a.atlas_last_active_at), { addSuffix: true }) : "—"}
                   </td>
                   <td className="px-3 py-2">
@@ -265,8 +265,8 @@ function TeamSub({ missionId }: { missionId: string }) {
             <AlertDialogTitle>Send invite email?</AlertDialogTitle>
             <AlertDialogDescription>
               This will email <span className="font-medium text-foreground">{inviteTarget?.name}</span>
-              {inviteTarget?.email ? <> at <span className="font-mono text-xs">{inviteTarget.email}</span></> : null} from{" "}
-              <span className="font-mono text-xs">IRIS@athenacommandcenter.com</span> with a 14-day link to join this mission and start onboarding.
+              {inviteTarget?.email ? <> at <span className="font-mono text-[12px]">{inviteTarget.email}</span></> : null} from{" "}
+              <span className="font-mono text-[12px]">IRIS@athenacommandcenter.com</span> with a 14-day link to join this mission and start onboarding.
               Nothing is sent until you confirm.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -354,7 +354,7 @@ function AddMemberSheet({
                 Selected: {available?.find((m) => m.id === pending)?.first_name} {available?.find((m) => m.id === pending)?.last_name}
               </div>
               <div>
-                <label className="text-sm">Mission role</label>
+                <label className="text-[14px]">Mission role</label>
                 <Select value={role} onValueChange={setRole}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -376,10 +376,10 @@ function AddMemberSheet({
                   className="block w-full text-left p-2 rounded hover:bg-muted"
                 >
                   <div className="font-medium">{m.first_name} {m.last_name}</div>
-                  <div className="text-xs text-muted-foreground">{m.job_title}</div>
+                  <div className="text-[12px] text-muted-foreground">{m.job_title}</div>
                 </button>
               ))}
-              {!filtered.length && <p className="text-sm text-muted-foreground">No matches.</p>}
+              {!filtered.length && <p className="text-[14px] text-muted-foreground">No matches.</p>}
             </div>
           )}
         </div>
@@ -601,11 +601,11 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-semibold">
+          <h3 className="font-medium">
             Question Assignments
             <span className="text-muted-foreground font-normal"> ({assignedCount} of {totalCount} assigned)</span>
           </h3>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-[12px] text-muted-foreground mt-1">
             Olympus is the single source of truth for question assignments. Flight Deck and Threads show this read-only.
             {!canManage && " Assignments are managed in Olympus by mission admins."}
           </p>
@@ -633,7 +633,7 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
           </SelectContent>
         </Select>
         {canManage && selected.size > 0 && (
-          <div className="ml-auto flex items-center gap-2 text-sm">
+          <div className="ml-auto flex items-center gap-2 text-[14px]">
             <span>{selected.size} selected</span>
             <Button size="sm" variant="outline" onClick={() => setBulkOpen("writer")}>Bulk Reassign</Button>
             <Button size="sm" variant="outline" onClick={() => setBulkOpen("due")}>Bulk Due Date</Button>
@@ -645,8 +645,8 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
       </div>
 
       <div className="rounded-lg border overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+        <table className="w-full text-[14px]">
+          <thead className="bg-muted/40 text-[12px] text-muted-foreground">
             <tr>
               {canManage && <th className="px-2 py-2"></th>}
               <th className="px-2 py-2 text-left">Q#</th>
@@ -678,7 +678,7 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
                     </td>
                   )}
                   <td className="px-2 py-2 text-primary font-medium">{q?.question_number ?? "—"}</td>
-                  <td className="px-2 py-2 text-xs text-muted-foreground">
+                  <td className="px-2 py-2 text-[12px] text-muted-foreground">
                     {q?.mission_sections?.section_number} {q?.mission_sections?.name}
                   </td>
                   <td className="px-2 py-2 max-w-xs">{truncate(q?.question_text, 80)}</td>
@@ -688,7 +688,7 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
                         value={a.assigned_writer_id ?? "none"}
                         onValueChange={(v) => reassign(a.id, a.question_id, a.assigned_writer_id, v)}
                       >
-                        <SelectTrigger className="h-8 text-xs w-40"><SelectValue placeholder="Unassigned" /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-[12px] w-40"><SelectValue placeholder="Unassigned" /></SelectTrigger>
                         <SelectContent>
                           {(team ?? []).map((m: any) => (
                             <SelectItem key={m.member_id} value={m.member_id}>{teamName(m.member_id)}</SelectItem>
@@ -697,7 +697,7 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
                       </Select>
                     ) : (
                       a.assigned_writer_id
-                        ? <span className="text-xs">{teamName(a.assigned_writer_id)}</span>
+                        ? <span className="text-[12px]">{teamName(a.assigned_writer_id)}</span>
                         : <Badge variant="outline" className="bg-amber-500/15 text-amber-500 border-amber-500/30">Unassigned</Badge>
                     )}
                   </td>
@@ -705,19 +705,19 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
                     {canManage ? (
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button variant="outline" size="sm" className="h-8 text-xs w-40 justify-start">
+                          <Button variant="outline" size="sm" className="h-8 text-[12px] w-40 justify-start">
                             {smeIds.length === 0 ? "Add SMEs" : `${smeIds.length} SME${smeIds.length === 1 ? "" : "s"}`}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-64 p-2 pointer-events-auto" align="start">
                           <div className="max-h-64 overflow-y-auto space-y-1">
                             {(team ?? []).length === 0 && (
-                              <div className="text-xs text-muted-foreground p-2">No team members.</div>
+                              <div className="text-[12px] text-muted-foreground p-2">No team members.</div>
                             )}
                             {(team ?? []).map((m: any) => {
                               const checked = smeIds.includes(m.member_id);
                               return (
-                                <label key={m.member_id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted cursor-pointer text-sm">
+                                <label key={m.member_id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted cursor-pointer text-[14px]">
                                   <Checkbox
                                     checked={checked}
                                     onCheckedChange={(v) => {
@@ -737,9 +737,9 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
                     ) : (
                       <div className="flex flex-wrap gap-1">
                         {smeIds.length === 0
-                          ? <span className="text-xs text-muted-foreground">—</span>
+                          ? <span className="text-[12px] text-muted-foreground">—</span>
                           : smeIds.map((id) => (
-                              <Badge key={id} variant="outline" className="text-xs">{teamName(id)}</Badge>
+                              <Badge key={id} variant="outline" className="text-[12px]">{teamName(id)}</Badge>
                             ))}
                       </div>
                     )}
@@ -748,7 +748,7 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
                     {canManage ? (
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 text-xs">
+                          <Button variant="ghost" size="sm" className="h-8 text-[12px]">
                             <CalendarIcon className="size-3 mr-1" />
                             {a.due_date ? format(new Date(a.due_date), "MMM d") : "—"}
                           </Button>
@@ -759,7 +759,7 @@ function AssignmentsSub({ missionId, missionName }: { missionId: string; mission
                         </PopoverContent>
                       </Popover>
                     ) : (
-                      <span className="text-xs">{a.due_date ? format(new Date(a.due_date), "MMM d") : "—"}</span>
+                      <span className="text-[12px]">{a.due_date ? format(new Date(a.due_date), "MMM d") : "—"}</span>
                     )}
                   </td>
                   <td className="px-2 py-2">

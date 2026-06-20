@@ -48,7 +48,7 @@ function ConfidenceBadge({ confidence }: { confidence?: Confidence }) {
   const s = styles[c];
   return (
     <span
-      className="inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider border"
+      className="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium border"
       style={{ background: s.bg, color: s.color, borderColor: s.border }}
     >
       {c}
@@ -70,9 +70,9 @@ function PressureCard({
   const visible = items.slice(0, 4);
   return (
     <div className="rounded-md border border-white/10 bg-white/[0.02] p-4">
-      <h3 className="text-[13px] font-medium text-white mb-3">{title}</h3>
+      <h3 className="text-[14px] font-medium text-white mb-3">{title}</h3>
       {visible.length === 0 && (
-        <div className="text-[11px] italic text-white/40">No items yet.</div>
+        <div className="text-[12px] italic text-white/40">No items yet.</div>
       )}
       <ul className="space-y-2">
         {visible.map((p, i) => {
@@ -86,7 +86,7 @@ function PressureCard({
                 <div className="mt-1 flex items-center gap-2">
                   <ConfidenceBadge confidence={p.confidence} />
                   {p.source && (
-                    <span className="text-[10px] italic text-white/40 truncate">{p.source}</span>
+                    <span className="text-[11px] italic text-white/40 truncate">{p.source}</span>
                   )}
                 </div>
               </div>
@@ -95,7 +95,7 @@ function PressureCard({
         })}
       </ul>
       {items.length > visible.length && (
-        <div className="mt-2 text-[10px] text-white/40">+{items.length - visible.length} more</div>
+        <div className="mt-2 text-[11px] text-white/40">+{items.length - visible.length} more</div>
       )}
     </div>
   );
@@ -121,8 +121,8 @@ function SignalSection({
       >
         <div className="flex items-center gap-2">
           {open ? <ChevronDown className="h-3.5 w-3.5 text-white/50" /> : <ChevronRight className="h-3.5 w-3.5 text-white/50" />}
-          <span className="text-[13px] font-medium text-white">{title}</span>
-          <span className="text-[10px] text-white/40 ml-1">({count})</span>
+          <span className="text-[14px] font-medium text-white">{title}</span>
+          <span className="text-[11px] text-white/40 ml-1">({count})</span>
         </div>
       </button>
       {open && <div className="px-4 pb-4 pt-1">{children}</div>}
@@ -135,11 +135,11 @@ function SignalRow({ s }: { s: Signal }) {
     <div className="border-l border-white/10 pl-3 py-2">
       <div className="text-[12px] text-white leading-snug">{s.signal}</div>
       {s.what_it_reveals && (
-        <div className="mt-1 text-[11px] italic text-white/55 leading-snug">{s.what_it_reveals}</div>
+        <div className="mt-1 text-[12px] italic text-white/55 leading-snug">{s.what_it_reveals}</div>
       )}
       <div className="mt-1.5 flex items-center gap-2">
         <ConfidenceBadge confidence={s.confidence} />
-        {s.source && <span className="text-[10px] italic text-white/40">{s.source}</span>}
+        {s.source && <span className="text-[11px] italic text-white/40">{s.source}</span>}
       </div>
     </div>
   );
@@ -190,7 +190,7 @@ export function OracleEvaluatorPicture({
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-white/60 py-8">
+      <div className="flex items-center gap-2 text-[14px] text-white/60 py-8">
         <Loader2 className="h-4 w-4 animate-spin" />
         Loading evaluator picture…
       </div>
@@ -201,10 +201,10 @@ export function OracleEvaluatorPicture({
     return (
       <div className="rounded-md border border-white/10 bg-white/[0.02] p-8 text-center">
         <Sparkles className="h-6 w-6 mx-auto text-[#C9A55C] animate-pulse" />
-        <div className="mt-3 text-sm text-white">
+        <div className="mt-3 text-[14px] text-white">
           IRIS is building the evaluator picture for this mission.
         </div>
-        <div className="mt-1 text-xs text-white/50">
+        <div className="mt-1 text-[12px] text-white/50">
           Check back in a moment — this runs in the background after BLAST OFF.
         </div>
         {isAdmin && (
@@ -257,7 +257,7 @@ export function OracleEvaluatorPicture({
           style={{ background: "rgba(196,154,43,0.06)", borderColor: "rgba(196,154,43,0.35)" }}
         >
           <div
-            className="text-[10px] uppercase tracking-[0.15em] font-semibold"
+            className="text-[11px] tracking-[0.15em] font-medium"
             style={{ color: GOLD }}
           >
             IRIS — The one thing to know
@@ -296,7 +296,7 @@ export function OracleEvaluatorPicture({
         <SignalSection title="RFP Signals" count={picture.rfp_signals.length}>
           <div className="space-y-2">
             {picture.rfp_signals.length === 0 && (
-              <div className="text-[11px] italic text-white/40">No RFP-structure signals yet.</div>
+              <div className="text-[12px] italic text-white/40">No RFP-structure signals yet.</div>
             )}
             {picture.rfp_signals.map((s, i) => <SignalRow key={i} s={s} />)}
           </div>
@@ -304,7 +304,7 @@ export function OracleEvaluatorPicture({
         <SignalSection title="Prior Procurement Signals" count={picture.prior_procurement_signals.length}>
           <div className="space-y-2">
             {picture.prior_procurement_signals.length === 0 && (
-              <div className="text-[11px] italic text-white/40">No prior-procurement signals yet.</div>
+              <div className="text-[12px] italic text-white/40">No prior-procurement signals yet.</div>
             )}
             {picture.prior_procurement_signals.map((s, i) => <SignalRow key={i} s={s} />)}
           </div>
@@ -312,14 +312,14 @@ export function OracleEvaluatorPicture({
         <SignalSection title="Public Record Signals" count={picture.public_record_signals.length}>
           <div className="space-y-2">
             {picture.public_record_signals.length === 0 && (
-              <div className="text-[11px] italic text-white/40">No public-record signals yet.</div>
+              <div className="text-[12px] italic text-white/40">No public-record signals yet.</div>
             )}
             {picture.public_record_signals.map((s, i) => <SignalRow key={i} s={s} />)}
           </div>
         </SignalSection>
         <SignalSection title="Named Individuals" count={picture.named_individual_signals.length}>
           {picture.named_individual_signals.length === 0 ? (
-            <div className="text-[11px] italic text-white/55">
+            <div className="text-[12px] italic text-white/55">
               No named evaluators identified in the RFP or public record.
             </div>
           ) : (
@@ -331,10 +331,10 @@ export function OracleEvaluatorPicture({
                     {n.role && <span className="text-white/45"> — {n.role}</span>}
                   </div>
                   {n.what_iris_knows && (
-                    <div className="text-[11px] italic text-white/55 mt-0.5">{n.what_iris_knows}</div>
+                    <div className="text-[12px] italic text-white/55 mt-0.5">{n.what_iris_knows}</div>
                   )}
                   {n.relevance_to_scoring && (
-                    <div className="text-[11px] text-white/70 mt-0.5">Relevance: {n.relevance_to_scoring}</div>
+                    <div className="text-[12px] text-white/70 mt-0.5">Relevance: {n.relevance_to_scoring}</div>
                   )}
                 </div>
               ))}
@@ -350,7 +350,7 @@ export function OracleEvaluatorPicture({
               borderColor: "rgba(239,159,39,0.35)",
             }}
           >
-            <div className="text-[10px] uppercase tracking-wider font-semibold text-[#f59e0b] mb-2">
+            <div className="text-[11px] font-medium text-[#f59e0b] mb-2">
               Political environment signal:
             </div>
             <ul className="space-y-1.5">
@@ -358,7 +358,7 @@ export function OracleEvaluatorPicture({
                 <li key={i} className="text-[12px] text-amber-100/90">
                   {s.signal}
                   {s.what_it_reveals && (
-                    <span className="block text-[11px] italic text-amber-100/60 mt-0.5">{s.what_it_reveals}</span>
+                    <span className="block text-[12px] italic text-amber-100/60 mt-0.5">{s.what_it_reveals}</span>
                   )}
                 </li>
               ))}
@@ -370,15 +370,15 @@ export function OracleEvaluatorPicture({
       {/* Section 4 — Scoring lens */}
       {picture.scoring_lens && (
         <div className="rounded-md border border-white/10 bg-white/[0.02] p-5">
-          <div className="text-[11px] uppercase tracking-wider text-white/45 font-semibold">
+          <div className="text-[12px] text-white/45 font-medium">
             How IRIS believes this panel approaches the scoring rubric
           </div>
-          <p className="mt-3 text-[13px] text-white" style={{ lineHeight: 1.7 }}>
+          <p className="mt-3 text-[14px] text-white" style={{ lineHeight: 1.7 }}>
             {picture.scoring_lens}
           </p>
           {picture.inferred_panel_mindset && (
             <p
-              className="mt-4 text-[13px] italic text-white pl-3"
+              className="mt-4 text-[14px] italic text-white pl-3"
               style={{ lineHeight: 1.7, borderLeft: `2px solid ${GOLD}` }}
             >
               {picture.inferred_panel_mindset}
@@ -392,7 +392,7 @@ export function OracleEvaluatorPicture({
         className="rounded-md border px-5 py-4"
         style={{ background: "rgba(239,159,39,0.04)", borderColor: "rgba(239,159,39,0.4)" }}
       >
-        <div className="text-[11px] uppercase tracking-[0.15em] font-semibold text-[#f59e0b]">
+        <div className="text-[12px] tracking-[0.15em] font-medium text-[#f59e0b]">
           What IRIS does not know
         </div>
         {picture.what_iris_does_not_know && (
@@ -408,7 +408,7 @@ export function OracleEvaluatorPicture({
                 <div>
                   <div className="text-[12px] text-white">{g.action}</div>
                   {g.what_it_would_reveal && (
-                    <div className="text-[11px] italic text-white/55 mt-0.5">
+                    <div className="text-[12px] italic text-white/55 mt-0.5">
                       {g.what_it_would_reveal}
                     </div>
                   )}

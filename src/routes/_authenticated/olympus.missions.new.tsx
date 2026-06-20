@@ -217,12 +217,12 @@ function MeetIrisIntro() {
           </div>
           <div className="pt-1">
             <div
-              className="text-[11px] uppercase tracking-[0.22em]"
+              className="text-[12px] tracking-[0.22em]"
               style={{ color: "#C49A2B" }}
             >
               IRIS · Mission Intelligence Officer
             </div>
-            <div className="text-white/55 text-[13px] mt-0.5">Online</div>
+            <div className="text-white/55 text-[14px] mt-0.5">Online</div>
           </div>
         </div>
 
@@ -239,7 +239,7 @@ function MeetIrisIntro() {
           <h1 className="text-white text-[26px] sm:text-[30px] font-medium leading-snug">
             {greet} I'm <span style={{ color: "#C49A2B" }}>IRIS</span>.
           </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-white/65">
+          <p className="mt-3 text-[14px] leading-relaxed text-white/65">
             Let's set up a new mission together. Tell me the basics and I'll
             take it from there — read the RFP, map the agency, and build the
             intelligence picture before you write a word.
@@ -476,7 +476,7 @@ function ChatField({
   };
   return (
     <div>
-      <label className="block text-[13px] text-white/70 mb-2">{label}</label>
+      <label className="block text-[14px] text-white/70 mb-2">{label}</label>
       {multiline ? (
         <textarea
           value={value}
@@ -498,7 +498,7 @@ function ChatField({
           placeholder={placeholder}
           disabled={disabled}
           readOnly={disabled}
-          className="w-full rounded-lg px-4 py-3 text-[15px] text-white placeholder:text-white/30 transition-colors focus:outline-none"
+          className="w-full rounded-lg px-4 py-3 text-[14px] text-white placeholder:text-white/30 transition-colors focus:outline-none"
           style={baseStyle}
           onFocus={onFocus}
           onBlur={onBlur}
@@ -535,9 +535,9 @@ function CollapsibleSection({
         className="w-full flex items-center justify-between px-5 py-3 text-left hover:bg-white/[0.03] transition-colors"
       >
         <div>
-          <div className="text-[13px] text-white font-medium">{title}</div>
+          <div className="text-[14px] text-white font-medium">{title}</div>
           {subtitle && (
-            <div className="text-[11px] text-white/40 mt-0.5">{subtitle}</div>
+            <div className="text-[12px] text-white/40 mt-0.5">{subtitle}</div>
           )}
         </div>
         <span

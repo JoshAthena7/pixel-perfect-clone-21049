@@ -202,7 +202,7 @@ export function Step5IntelNetwork({
         subtitle="Drop in URLs of stakeholders, advocates, academic orgs, trade associations, and other influencers. IRIS will start monitoring them daily."
       />
 
-      <label className="block text-[12px] uppercase tracking-[0.1em] text-white/55 mb-2">
+      <label className="block text-[12px] tracking-[0.1em] text-white/55 mb-2">
         Paste URLs
       </label>
       <textarea
@@ -223,7 +223,7 @@ export function Step5IntelNetwork({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="text-[13px] px-3 py-1.5 rounded-md text-white/75 hover:text-white"
+          className="text-[14px] px-3 py-1.5 rounded-md text-white/75 hover:text-white"
           style={{ border: "1px solid rgba(255,255,255,0.15)" }}
         >
           Upload CSV or Excel
@@ -245,7 +245,7 @@ export function Step5IntelNetwork({
       </div>
 
       {chips.length === 0 && (
-        <p className="mt-4 text-[13px] text-white/55 leading-relaxed">
+        <p className="mt-4 text-[14px] text-white/55 leading-relaxed">
           IRIS will monitor these sources daily and surface new signals — personnel changes,
           published comments, new reports, and policy shifts — directly in your Intelligence Feed.
         </p>
@@ -259,11 +259,11 @@ export function Step5IntelNetwork({
               className="flex items-center gap-3 px-3 py-2 rounded-md"
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
             >
-              <span className="flex-1 truncate text-[13px] text-white/85">{c.url}</span>
+              <span className="flex-1 truncate text-[14px] text-white/85">{c.url}</span>
               <select
                 value={c.category}
                 onChange={(e) => setChipCategory(c.url, e.target.value as Category)}
-                className="text-[11.5px] uppercase tracking-[0.08em] px-2 py-1 rounded bg-transparent text-white/80 outline-none"
+                className="text-[11.5px] tracking-[0.08em] px-2 py-1 rounded bg-transparent text-white/80 outline-none"
                 style={{ border: "1px solid rgba(196,154,43,0.4)", color: "#C49A2B" }}
               >
                 {CATEGORIES.map((c) => (
@@ -288,7 +288,7 @@ export function Step5IntelNetwork({
       <div className="mt-6 flex items-center gap-4">
         <button
           onClick={onAdvance}
-          className="text-[13px] text-white/55 hover:text-white underline-offset-2 hover:underline"
+          className="text-[14px] text-white/55 hover:text-white underline-offset-2 hover:underline"
         >
           Skip for now
         </button>

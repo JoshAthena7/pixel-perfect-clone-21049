@@ -196,13 +196,13 @@ export function ComplianceTab({
       </div>
 
 
-      <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 flex gap-2 text-sm">
+      <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 flex gap-2 text-[14px]">
         <AlertTriangle className="size-4 text-amber-500 shrink-0 mt-0.5" />
         <span>Missing a compliance requirement is an automatic disqualifier. Review every item.</span>
       </div>
 
       <div className="space-y-2">
-        <div className="flex justify-between text-sm">
+        <div className="flex justify-between text-[14px]">
           <span>{done} of {total} requirements addressed</span>
           <span className="font-medium">{pct}%</span>
         </div>
@@ -212,7 +212,7 @@ export function ComplianceTab({
       </div>
 
       {showWarning && (
-        <div className="rounded-lg bg-red-600 text-white p-3 font-medium text-sm">
+        <div className="rounded-lg bg-red-600 text-white p-3 font-medium text-[14px]">
           WARNING: {highRiskUnaddressed} high-risk requirements are unaddressed.
           Submission is in {daysToDeadline} day{daysToDeadline === 1 ? "" : "s"}.
         </div>
@@ -226,13 +226,13 @@ export function ComplianceTab({
           <button
             key={t.id}
             onClick={() => setFilter(t.id)}
-            className={`px-3 py-2 text-sm border-b-2 whitespace-nowrap ${
+            className={`px-3 py-2 text-[14px] border-b-2 whitespace-nowrap ${
               filter === t.id
                 ? "border-primary text-foreground"
                 : "border-transparent text-muted-foreground"
             }`}
           >
-            {t.label} <span className="text-xs opacity-60">({counts[t.id] ?? 0})</span>
+            {t.label} <span className="text-[12px] opacity-60">({counts[t.id] ?? 0})</span>
           </button>
         ))}
         <div className="ml-auto py-1">
@@ -275,7 +275,7 @@ export function ComplianceTab({
                       </Badge>
                     </div>
                     <button
-                      className="text-sm text-left block"
+                      className="text-[14px] text-left block"
                       onClick={() => {
                         const next = new Set(expanded);
                         next.has(r.id) ? next.delete(r.id) : next.add(r.id);
@@ -284,7 +284,7 @@ export function ComplianceTab({
                     >
                       {text}
                     </button>
-                    <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                    <div className="flex flex-wrap gap-3 text-[12px] text-muted-foreground">
                       {r.source && <span>Source: {r.source}</span>}
                       <span>
                         Section:{" "}
@@ -298,7 +298,7 @@ export function ComplianceTab({
                         value={r.owner_id ?? "none"}
                         onValueChange={(v) => update(r.id, { owner_id: v === "none" ? null : v })}
                       >
-                        <SelectTrigger className="h-8 w-48 text-xs">
+                        <SelectTrigger className="h-8 w-48 text-[12px]">
                           <SelectValue placeholder="Unassigned" />
                         </SelectTrigger>
                         <SelectContent>
@@ -311,7 +311,7 @@ export function ComplianceTab({
                         </SelectContent>
                       </Select>
                       <Select value={r.status} onValueChange={(v) => update(r.id, { status: v })}>
-                        <SelectTrigger className="h-8 w-40 text-xs">
+                        <SelectTrigger className="h-8 w-40 text-[12px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -474,7 +474,7 @@ function ReqDialog({
               </SelectContent>
             </Select>
           </div>
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex items-center gap-2 text-[14px]">
             <Checkbox checked={highRisk} onCheckedChange={(v) => setHighRisk(!!v)} />
             High Risk
           </label>
@@ -574,7 +574,7 @@ function EditReqForm({
             </SelectContent>
           </Select>
         </div>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-[14px]">
           <Checkbox checked={highRisk} onCheckedChange={(v) => setHighRisk(!!v)} />
           High Risk
         </label>

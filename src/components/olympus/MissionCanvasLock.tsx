@@ -45,7 +45,7 @@ export function MissionCanvasLockBanner({
       }}
     >
       <Lock className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "rgb(74,222,128)" }} />
-      <div className="text-[13px] leading-relaxed">
+      <div className="text-[14px] leading-relaxed">
         <div className="font-medium mb-1" style={{ color: "rgb(134,239,172)" }}>
           Mission Brief is approved.
         </div>

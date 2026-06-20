@@ -63,25 +63,25 @@ function UnsubscribePage() {
       }}
     >
       <div className="w-full max-w-md rounded-lg border border-border bg-surface p-8 text-center">
-        <div className="text-[10px] font-bold tracking-[0.42em]" style={{ color: "#C9922A" }}>
+        <div className="text-[11px] font-medium tracking-[0.42em]" style={{ color: "#C9922A" }}>
           ATHENA STRATEGY COMMAND
         </div>
-        <h1 className="mt-4 text-xl font-semibold">Email Preferences</h1>
+        <h1 className="mt-4 text-xl font-medium">Email Preferences</h1>
         {state.status === "loading" && (
-          <p className="mt-6 inline-flex items-center gap-2 text-sm text-muted-foreground">
+          <p className="mt-6 inline-flex items-center gap-2 text-[14px] text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             Verifying…
           </p>
         )}
         {state.status === "ready" && (
           <>
-            <p className="mt-4 text-sm text-muted-foreground">
+            <p className="mt-4 text-[14px] text-muted-foreground">
               Confirm you want to unsubscribe from all non-essential emails.
             </p>
             <button
               onClick={confirm}
               disabled={busy}
-              className="mt-5 inline-flex items-center gap-2 rounded-md px-5 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white disabled:opacity-60"
+              className="mt-5 inline-flex items-center gap-2 rounded-md px-5 py-2 text-[12px] font-medium tracking-[0.22em] text-white disabled:opacity-60"
               style={{ background: "#C9922A" }}
             >
               {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
@@ -90,15 +90,15 @@ function UnsubscribePage() {
           </>
         )}
         {state.status === "already" && (
-          <p className="mt-6 text-sm text-muted-foreground">
+          <p className="mt-6 text-[14px] text-muted-foreground">
             You're already unsubscribed.
           </p>
         )}
         {state.status === "success" && (
-          <p className="mt-6 text-sm text-emerald-300">You've been unsubscribed.</p>
+          <p className="mt-6 text-[14px] text-emerald-300">You've been unsubscribed.</p>
         )}
         {state.status === "invalid" && (
-          <p className="mt-6 text-sm text-destructive">
+          <p className="mt-6 text-[14px] text-destructive">
             This unsubscribe link is invalid or expired.
           </p>
         )}

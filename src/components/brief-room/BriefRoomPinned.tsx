@@ -32,7 +32,7 @@ export function BriefRoomPinned() {
   return (
     <>
       <div
-        className="w-full border-b px-4 py-2 flex items-center gap-3 text-sm"
+        className="w-full border-b px-4 py-2 flex items-center gap-3 text-[14px]"
         style={{
           background:
             "linear-gradient(90deg, rgba(245,158,11,0.10), rgba(245,158,11,0.04))",
@@ -40,7 +40,7 @@ export function BriefRoomPinned() {
         }}
       >
         <span
-          className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em]"
+          className="inline-flex items-center gap-1.5 text-[11px] font-medium tracking-[0.22em]"
           style={{ color: "var(--athena-gold, #f59e0b)" }}
         >
           {top.type === "global" ? (
@@ -54,13 +54,13 @@ export function BriefRoomPinned() {
           {top.subject}
         </span>
         {more > 0 && (
-          <span className="text-[11px] text-muted-foreground shrink-0">
+          <span className="text-[12px] text-muted-foreground shrink-0">
             +{more} more
           </span>
         )}
         <button
           onClick={() => setOpen(true)}
-          className="shrink-0 inline-flex h-7 items-center rounded-md px-3 text-[11px] font-semibold uppercase tracking-[0.16em]"
+          className="shrink-0 inline-flex h-7 items-center rounded-md px-3 text-[12px] font-medium tracking-[0.16em]"
           style={{
             background: "var(--athena-gold, #f59e0b)",
             color: "#0a0a0a",
@@ -136,7 +136,7 @@ export function BriefingAckModal({
         {/* Document letterhead */}
         <div className="px-10 pt-10 pb-5">
           <div
-            className="text-[10px] font-bold uppercase tracking-[0.32em]"
+            className="text-[11px] font-medium tracking-[0.32em]"
             style={{ color: "var(--athena-gold, #f59e0b)" }}
           >
             {isGlobal ? "Briefing · Athena Leadership" : "Briefing · Direct"}
@@ -151,7 +151,7 @@ export function BriefingAckModal({
           >
             {briefing.subject}
           </h2>
-          <div className="mt-3 flex items-center gap-2 text-[11px] text-muted-foreground">
+          <div className="mt-3 flex items-center gap-2 text-[12px] text-muted-foreground">
             <span>
               From <span className="text-foreground font-medium">{briefing.sender_name}</span>
             </span>
@@ -178,13 +178,13 @@ export function BriefingAckModal({
         {/* Signature block */}
         <div className="px-10 pb-2">
           <div
-            className="text-[10px] font-bold uppercase tracking-[0.28em] mb-1"
+            className="text-[11px] font-medium tracking-[0.28em] mb-1"
             style={{ color: "rgba(245,158,11,0.7)" }}
           >
             Signed
           </div>
           <div
-            className="text-[15px]"
+            className="text-[14px]"
             style={{
               fontFamily:
                 "'Cormorant Garamond', 'Instrument Serif', Georgia, serif",
@@ -198,7 +198,7 @@ export function BriefingAckModal({
 
         <div className="mx-10 mt-5 border-t border-white/10" />
 
-        <div className="px-10 pt-3 text-[11px] leading-relaxed text-muted-foreground">
+        <div className="px-10 pt-3 text-[12px] leading-relaxed text-muted-foreground">
           {isGlobal
             ? "This is an official communication from Athena Strategy Group. By selecting Acknowledged, you confirm you have read this Briefing. It will remain accessible in your Brief Room inbox."
             : "This message is intended solely for you. It is private and may not be forwarded or shared. By selecting Acknowledged, you confirm receipt."}
@@ -208,7 +208,7 @@ export function BriefingAckModal({
           <Button
             onClick={() => ack.mutate()}
             disabled={ack.isPending}
-            className="h-10 px-6 text-[12px] font-bold uppercase tracking-[0.18em]"
+            className="h-10 px-6 text-[12px] font-medium tracking-[0.18em]"
             style={{
               background: "var(--athena-gold, #f59e0b)",
               color: "#0a0a0a",

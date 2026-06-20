@@ -132,19 +132,19 @@ export function QuickJump({
         )}
       >
         <div className="flex md:hidden items-center justify-between px-4 py-2 border-b border-white/10">
-          <span className="text-xs uppercase tracking-widest text-[var(--athena-gold)] font-bold">Quick Jump</span>
+          <span className="text-[12px] text-[var(--athena-gold)] font-medium">Quick Jump</span>
           <button onClick={onClose} aria-label="Close" className="text-white/60 hover:text-white">
             <X className="h-4 w-4" />
           </button>
         </div>
 
         <div className="overflow-y-auto">
-          <div className="px-4 pt-3 pb-1 text-[10px] uppercase tracking-widest text-[var(--athena-gold)] font-bold">
+          <div className="px-4 pt-3 pb-1 text-[11px] text-[var(--athena-gold)] font-medium">
             Active Missions
           </div>
           <div>
-            {!missions && <div className="px-4 py-3 text-xs text-white/50">Loading…</div>}
-            {missions?.length === 0 && <div className="px-4 py-3 text-xs text-white/50">None active.</div>}
+            {!missions && <div className="px-4 py-3 text-[12px] text-white/50">Loading…</div>}
+            {missions?.length === 0 && <div className="px-4 py-3 text-[12px] text-white/50">None active.</div>}
             {missions?.map((m) => {
               const isCurrent = m.id === currentMissionId;
               const days = m.submission_deadline
@@ -166,7 +166,7 @@ export function QuickJump({
                   )}
                 >
                   <span className={cn("h-2 w-2 rounded-full shrink-0", dot)} />
-                  <span className="flex-1 min-w-0 text-[13px] text-white truncate">{m.name}</span>
+                  <span className="flex-1 min-w-0 text-[14px] text-white truncate">{m.name}</span>
                   {days !== null && (
                     <span className={cn("text-[12px] shrink-0", dayColor)}>
                       {days < 0 ? `${Math.abs(days)}d past` : `${days}d`}
@@ -178,25 +178,25 @@ export function QuickJump({
             <Link
               to="/olympus/missions/new"
               onClick={onClose}
-              className="flex items-center gap-2 px-4 py-2 text-xs text-[var(--athena-gold)]/80 hover:bg-white/5"
+              className="flex items-center gap-2 px-4 py-2 text-[12px] text-[var(--athena-gold)]/80 hover:bg-white/5"
             >
               <Plus className="h-3.5 w-3.5" /> Create New Mission
             </Link>
           </div>
 
-          <div className="px-4 pt-3 pb-1 text-[10px] uppercase tracking-widest text-[var(--athena-gold)] font-bold border-t border-white/10">
+          <div className="px-4 pt-3 pb-1 text-[11px] text-[var(--athena-gold)] font-medium border-t border-white/10">
             Olympus
           </div>
           <Link to="/olympus/missions" onClick={onClose}
-                className="block px-4 py-2 text-[13px] text-white hover:bg-white/5">All Missions</Link>
+                className="block px-4 py-2 text-[14px] text-white hover:bg-white/5">All Missions</Link>
           <Link to="/admin/team" onClick={onClose}
-                className="block px-4 py-2 text-[13px] text-white hover:bg-white/5">Athena Team</Link>
+                className="block px-4 py-2 text-[14px] text-white hover:bg-white/5">Athena Team</Link>
           <Link to="/reports" onClick={onClose}
-                className="block px-4 py-2 text-[13px] text-white hover:bg-white/5">Reports</Link>
+                className="block px-4 py-2 text-[14px] text-white hover:bg-white/5">Reports</Link>
 
           {currentMissionId && (
             <>
-              <div className="px-4 pt-3 pb-1 text-[10px] uppercase tracking-widest text-[var(--athena-gold)] font-bold border-t border-white/10">
+              <div className="px-4 pt-3 pb-1 text-[11px] text-[var(--athena-gold)] font-medium border-t border-white/10">
                 This Mission
               </div>
               <div>
@@ -209,7 +209,7 @@ export function QuickJump({
                       <button
                         onClick={() => pickTab(t.id)}
                         className={cn(
-                          "w-full text-left px-4 py-1.5 flex items-center gap-2 hover:bg-white/5 border-l-2 text-[13px]",
+                          "w-full text-left px-4 py-1.5 flex items-center gap-2 hover:bg-white/5 border-l-2 text-[14px]",
                           isActive ? "border-[var(--athena-gold)] bg-white/5 text-[var(--athena-gold)]" : "border-transparent text-white/80",
                         )}
                       >

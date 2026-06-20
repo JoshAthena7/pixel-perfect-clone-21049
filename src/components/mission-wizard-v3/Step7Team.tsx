@@ -212,7 +212,7 @@ function TeamSubStep({
 
   return (
     <div>
-      <p className="text-[11px] uppercase tracking-[0.18em] text-amber-300/80 mb-1">
+      <p className="text-[12px] tracking-[0.18em] text-amber-300/80 mb-1">
         Step 7 of 9 — Team &amp; Assignments
       </p>
       <WizardStepHeading
@@ -224,7 +224,7 @@ function TeamSubStep({
         {/* LEFT — Available */}
         <section className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[13.5px] font-semibold text-white inline-flex items-center gap-2">
+            <h3 className="text-[13.5px] font-medium text-white inline-flex items-center gap-2">
               <Users className="h-3.5 w-3.5 text-white/55" /> Available Members
             </h3>
             <span className="text-[11.5px] text-white/45">{available.length} available</span>
@@ -234,7 +234,7 @@ function TeamSubStep({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name…"
-            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-[13px] text-white placeholder:text-white/35 focus:outline-none focus:border-amber-400/50 mb-3"
+            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-[14px] text-white placeholder:text-white/35 focus:outline-none focus:border-amber-400/50 mb-3"
           />
           <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
             {rosterLoading ? (
@@ -263,7 +263,7 @@ function TeamSubStep({
         {/* RIGHT — Mission team */}
         <section className="rounded-xl border border-white/10 bg-white/[0.02] p-4 flex flex-col">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[13.5px] font-semibold text-white">Mission Team</h3>
+            <h3 className="text-[13.5px] font-medium text-white">Mission Team</h3>
             <span className="text-[11.5px] text-white/45">{team.length} assigned</span>
           </div>
           <div className="space-y-2 flex-1 max-h-[480px] overflow-y-auto pr-1">
@@ -296,7 +296,7 @@ function TeamSubStep({
         className="mt-8 pt-6 flex items-center justify-between gap-4"
         style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
       >
-        <button onClick={onBack} className="text-[13px] text-white/55 hover:text-white">
+        <button onClick={onBack} className="text-[14px] text-white/55 hover:text-white">
           ← Back
         </button>
         <div className="flex items-center gap-3">
@@ -334,9 +334,9 @@ function RosterCard({
     <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
       <Avatar name={name} />
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] text-white font-medium truncate">{name}</p>
-        {skill ? <p className="text-[11.5px] text-white/55 truncate">{skill}</p> : <p className="text-[9px] italic text-white/35 truncate">No role assigned</p>}
-        <p className="text-[11px] text-white/40 mt-0.5">
+        <p className="text-[14px] text-white font-medium truncate">{name}</p>
+        {skill ? <p className="text-[11.5px] text-white/55 truncate">{skill}</p> : <p className="text-[11px] italic text-white/35 truncate">No role assigned</p>}
+        <p className="text-[12px] text-white/40 mt-0.5">
           {loadCount} active mission{loadCount === 1 ? "" : "s"}
         </p>
       </div>
@@ -368,12 +368,12 @@ function AssignedCard({
     <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
       <Avatar name={name} />
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] text-white font-medium truncate">{name}</p>
+        <p className="text-[14px] text-white font-medium truncate">{name}</p>
         {(() => {
           const role = row.member?.job_title ?? row.member?.skills?.[0];
           return role
             ? <p className="text-[11.5px] text-white/45 truncate">{role}</p>
-            : <p className="text-[9px] italic text-white/35 truncate">No role assigned</p>;
+            : <p className="text-[11px] italic text-white/35 truncate">No role assigned</p>;
         })()}
       </div>
       <select
@@ -704,7 +704,7 @@ function AssignmentsSubStep({
       >
         <ArrowLeft className="h-3 w-3" /> Back to Team
       </button>
-      <p className="text-[11px] uppercase tracking-[0.18em] text-amber-300/80 mb-1">
+      <p className="text-[12px] tracking-[0.18em] text-amber-300/80 mb-1">
         Step 7 of 9 — Team &amp; Assignments
       </p>
       <WizardStepHeading
@@ -720,7 +720,7 @@ function AssignmentsSubStep({
           <div className="flex items-start gap-3">
             <Sparkles className="h-5 w-5 mt-0.5 shrink-0" />
             <div>
-              <p className="text-[14px] font-semibold">No questions extracted from your RFP yet</p>
+              <p className="text-[14px] font-medium">No questions extracted from your RFP yet</p>
               <p className="text-[12.5px] opacity-80 mt-0.5">
                 IRIS hasn't read the uploaded documents for this mission. Run extraction now to
                 pull every numbered question out of the RFP so you can assign writers.
@@ -744,7 +744,7 @@ function AssignmentsSubStep({
                 setExtracting(false);
               }
             }}
-            className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-semibold border-2 disabled:opacity-60"
+            className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-md text-[14px] font-medium border-2 disabled:opacity-60"
             style={{ background: "#0B4F8A", color: "#C9972B", borderColor: "#0B4F8A" }}
           >
             {extracting ? (
@@ -890,7 +890,7 @@ function AssignmentsSubStep({
                               return next;
                             });
                           }}
-                          className="ml-2 text-[11px] text-white/45 hover:text-white"
+                          className="ml-2 text-[12px] text-white/45 hover:text-white"
                         >
                           {isExpanded ? "Show less" : "Show more"}
                         </button>
@@ -933,11 +933,11 @@ function AssignmentsSubStep({
       {/* Bottom validation */}
       <div className="mt-5">
         {allAssigned ? (
-          <div className="rounded-md border border-green-500/30 bg-green-500/10 p-3 text-[13px] text-green-200">
+          <div className="rounded-md border border-green-500/30 bg-green-500/10 p-3 text-[14px] text-green-200">
             ✅ All {totalCount} questions have an owner. Ready for BLAST OFF.
           </div>
         ) : (
-          <div className="rounded-md border border-amber-400/30 bg-amber-400/10 p-3 text-[13px] text-amber-100">
+          <div className="rounded-md border border-amber-400/30 bg-amber-400/10 p-3 text-[14px] text-amber-100">
             ⚠ {totalCount - assignedCount} question{totalCount - assignedCount === 1 ? "" : "s"} still
             need a writer. BLAST OFF requires every question to have an owner.
           </div>
@@ -948,7 +948,7 @@ function AssignmentsSubStep({
         className="mt-8 pt-6 flex items-center justify-between gap-4"
         style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
       >
-        <button onClick={onBack} className="text-[13px] text-white/55 hover:text-white">
+        <button onClick={onBack} className="text-[14px] text-white/55 hover:text-white">
           ← Back to Team
         </button>
         <button
@@ -965,8 +965,8 @@ function AssignmentsSubStep({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70" onClick={() => setConfirmClear(false)} />
           <div className="relative z-10 w-full max-w-md rounded-xl border border-white/15 bg-[#0a1428] p-6">
-            <h3 className="text-[15px] font-semibold text-white mb-2">Clear all assignments?</h3>
-            <p className="text-[13px] text-white/65">
+            <h3 className="text-[14px] font-medium text-white mb-2">Clear all assignments?</h3>
+            <p className="text-[14px] text-white/65">
               This will remove all question assignments. Writers will need to be reassigned before
               BLAST OFF. Continue?
             </p>
@@ -1016,7 +1016,7 @@ function initials(name: string): string {
 function Avatar({ name }: { name: string }) {
   return (
     <div
-      className="h-9 w-9 rounded-full flex items-center justify-center text-[11.5px] font-semibold shrink-0"
+      className="h-9 w-9 rounded-full flex items-center justify-center text-[11.5px] font-medium shrink-0"
       style={{ background: "#0D1B3E", color: "#C49A2B", border: "1px solid rgba(196,154,43,0.35)" }}
     >
       {initials(name)}

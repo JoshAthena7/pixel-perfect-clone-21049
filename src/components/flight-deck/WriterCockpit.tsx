@@ -605,7 +605,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
               top: 6,
               right: 10,
               fontSize: 8,
-              textTransform: "uppercase",
+              textTransform: "",
               letterSpacing: "0.08em",
               color: "rgba(255,255,255,0.25)",
               pointerEvents: "none",
@@ -751,7 +751,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
             {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             <span style={{ fontFamily: "monospace", color: GOLD, fontSize: 12, fontWeight: 700 }}>{q.question_number}</span>
             {q.section_name && (
-              <span style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)" }}>{q.section_name}</span>
+              <span style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "", color: "rgba(255,255,255,0.45)" }}>{q.section_name}</span>
             )}
             <HealthBadge h={q.health_status} />
             {q.iris_brief_status === "stale" && <Chip color={AMBER}>⚠ Stale</Chip>}
@@ -831,7 +831,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                   gap: 12,
                 }}
               >
-                <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.14em", color: "rgba(255,255,255,0.45)", textTransform: "uppercase" }}>
+                <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.14em", color: "rgba(255,255,255,0.45)", textTransform: "" }}>
                   Status HUD
                 </div>
 
@@ -840,7 +840,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                   <span style={{
                     fontSize: 22, fontWeight: 700,
                     color: healthColor(q.health_status),
-                    textTransform: "uppercase", letterSpacing: "0.04em",
+                    textTransform: "", letterSpacing: "0.04em",
                   }}>
                     {q.health_status === "at_risk" ? "At Risk" : q.health_status === "watch" ? "Priority" : "On Track"}
                   </span>
@@ -853,7 +853,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
 
                 {/* Status — 4-pill selector */}
                 <div>
-                  <div style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>Status</div>
+                  <div style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "", color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>Status</div>
                   <StatusPills
                     current={dbToSimple(q.progress_status)}
                     pensDown={!!cockpit?.pensDown}
@@ -863,7 +863,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
 
                 {/* Confidence — 3-pill selector */}
                 <div>
-                  <div style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>
+                  <div style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "", color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>
                     {q.writer_confidence ? "Confidence" : "How confident are you?"}
                   </div>
                   <ConfidencePills
@@ -980,7 +980,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                   gap: 12,
                 }}
               >
-                <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.14em", color: GOLD, textTransform: "uppercase" }}>
+                <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.14em", color: GOLD, textTransform: "" }}>
                   Brief
                 </div>
 
@@ -1060,7 +1060,7 @@ function Stat({ label, value, color }: { label: string; value: number; color: st
   return (
     <div style={{ padding: "6px 10px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: `1px solid ${color}40`, display: "flex", alignItems: "center", gap: 6 }}>
       <span style={{ fontSize: 14, fontWeight: 700, color }}>{value}</span>
-      <span style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.6)" }}>{label}</span>
+      <span style={{ fontSize: 10, textTransform: "", letterSpacing: "0.08em", color: "rgba(255,255,255,0.6)" }}>{label}</span>
     </div>
   );
 }
@@ -1069,7 +1069,7 @@ function Group<T>({ title, color, items, render }: { title: string; color: strin
   if (!items.length) return null;
   return (
     <div style={{ marginBottom: 18 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, fontSize: 11, letterSpacing: "0.1em", textTransform: "", color }}>
         {title}
         <div style={{ flex: 1, height: 1, background: `${color}30` }} />
         <span style={{ color: "rgba(255,255,255,0.4)" }}>{items.length}</span>
@@ -1111,7 +1111,7 @@ function Dot({ color, pulse }: { color: string; pulse?: boolean }) {
 function SignalRow({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <span style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>{label}</span>
+      <span style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "", color: "rgba(255,255,255,0.4)" }}>{label}</span>
       <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.85)" }}>{value}</span>
     </div>
   );
@@ -1134,7 +1134,7 @@ function StatusDropdown({
   const displayCurrent = (current ?? "not_started").replace(/_/g, " ");
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <span style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>Status</span>
+      <span style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "", color: "rgba(255,255,255,0.4)" }}>Status</span>
       {options.length === 0 ? (
         <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.85)" }}>{displayCurrent}</span>
       ) : (
@@ -1597,7 +1597,7 @@ function QuestionContextStrip({ q }: { q: Q }) {
         fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
         fontSize: 9,
         letterSpacing: "0.06em",
-        textTransform: "uppercase",
+        textTransform: "",
         color: "rgba(255,255,255,0.55)",
         background: "rgba(255,255,255,0.02)",
         padding: "6px 12px",

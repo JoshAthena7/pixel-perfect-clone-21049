@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/reports")({
 function ReportsPage() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
-      <h1 className="text-4xl font-bold text-foreground mb-2">Fast Reports</h1>
+      <h1 className="text-4xl font-medium text-foreground mb-2">Fast Reports</h1>
       <p className="text-muted-foreground mb-8">
         Live snapshots of mission health, team load, assignment status, and intelligence coverage.
       </p>
@@ -41,8 +41,8 @@ function ReportCard({
     <section className="rounded-xl border border-border bg-surface/40 border-l-4 border-l-[var(--athena-gold)] overflow-hidden">
       <header className="flex items-start justify-between gap-3 px-5 py-4 border-b border-border">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-          {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+          <h2 className="text-lg font-medium text-foreground">{title}</h2>
+          {subtitle && <p className="text-[12px] text-muted-foreground mt-0.5">{subtitle}</p>}
         </div>
         <Button size="sm" variant="outline" onClick={onExport} disabled={exportDisabled}>
           <Download className="h-3.5 w-3.5 mr-1.5" /> Export CSV
@@ -55,14 +55,14 @@ function ReportCard({
 
 function LoadingRow({ label = "Loading…" }: { label?: string }) {
   return (
-    <div className="px-5 py-10 text-sm text-muted-foreground flex items-center gap-2">
+    <div className="px-5 py-10 text-[14px] text-muted-foreground flex items-center gap-2">
       <Loader2 className="h-4 w-4 animate-spin" /> {label}
     </div>
   );
 }
 
 function EmptyRow({ label }: { label: string }) {
-  return <div className="px-5 py-10 text-sm text-muted-foreground">{label}</div>;
+  return <div className="px-5 py-10 text-[14px] text-muted-foreground">{label}</div>;
 }
 
 // ───────────────── Report 1: Mission Portfolio Health ─────────────────
@@ -124,8 +124,8 @@ function PortfolioHealthCard() {
     >
       {isLoading ? <LoadingRow /> :
        !rows.length ? <EmptyRow label="No active missions." /> :
-       <table className="w-full text-sm">
-        <thead className="bg-muted/30 text-xs uppercase text-muted-foreground sticky top-0">
+       <table className="w-full text-[14px]">
+        <thead className="bg-muted/30 text-[12px] text-muted-foreground sticky top-0">
           <tr>
             <th className="text-left px-4 py-2 font-medium">Mission</th>
             <th className="text-left px-4 py-2 font-medium">Client</th>
@@ -144,7 +144,7 @@ function PortfolioHealthCard() {
               <td className={cn("px-4 py-2 text-right font-medium", dayColor(r.days))}>
                 {r.days == null ? "—" : r.days}
               </td>
-              <td className="px-4 py-2 text-xs">
+              <td className="px-4 py-2 text-[12px]">
                 <span className="text-green-400">{r.healthy}</span>
                 {" / "}<span className="text-amber-400">{r.watch}</span>
                 {" / "}<span className="text-red-400">{r.atRisk}</span>
@@ -219,8 +219,8 @@ function TeamAvailabilityCard() {
     >
       {isLoading ? <LoadingRow /> :
        !rows.length ? <EmptyRow label="No team members." /> :
-       <table className="w-full text-sm">
-        <thead className="bg-muted/30 text-xs uppercase text-muted-foreground sticky top-0">
+       <table className="w-full text-[14px]">
+        <thead className="bg-muted/30 text-[12px] text-muted-foreground sticky top-0">
           <tr>
             <th className="text-left px-4 py-2 font-medium">Name</th>
             <th className="text-left px-4 py-2 font-medium">Role</th>
@@ -236,7 +236,7 @@ function TeamAvailabilityCard() {
               <td className="px-4 py-2 text-muted-foreground">{r.role}</td>
               <td className="px-4 py-2 text-right">{r.activeMissions}</td>
               <td className="px-4 py-2 text-right">{r.questions}</td>
-              <td className="px-4 py-2 text-muted-foreground text-xs">
+              <td className="px-4 py-2 text-muted-foreground text-[12px]">
                 {r.lastActive ? formatDistanceToNowStrict(new Date(r.lastActive), { addSuffix: true }) : "Never"}
               </td>
             </tr>
@@ -318,8 +318,8 @@ function AssignmentAcceptanceCard() {
     >
       {isLoading ? <LoadingRow /> :
        !rows.length ? <EmptyRow label="All assignments accepted. 🎉" /> :
-       <table className="w-full text-sm">
-        <thead className="bg-muted/30 text-xs uppercase text-muted-foreground sticky top-0">
+       <table className="w-full text-[14px]">
+        <thead className="bg-muted/30 text-[12px] text-muted-foreground sticky top-0">
           <tr>
             <th className="text-left px-4 py-2 font-medium">Q #</th>
             <th className="text-left px-4 py-2 font-medium">Mission</th>
@@ -334,7 +334,7 @@ function AssignmentAcceptanceCard() {
               <td className="px-4 py-2 font-medium">{r.questionNumber}</td>
               <td className="px-4 py-2 text-muted-foreground truncate max-w-[180px]">{r.mission}</td>
               <td className="px-4 py-2">{r.writer}</td>
-              <td className="px-4 py-2 text-xs">{statusLabel(r.status)}</td>
+              <td className="px-4 py-2 text-[12px]">{statusLabel(r.status)}</td>
               <td className={cn(
                 "px-4 py-2 text-right font-medium",
                 r.days > 7 ? "text-red-400" : r.days > 3 ? "text-amber-400" : "text-muted-foreground",
@@ -387,8 +387,8 @@ function IntelligenceCoverageCard() {
     >
       {isLoading ? <LoadingRow /> :
        !rows.length ? <EmptyRow label="No active missions." /> :
-       <table className="w-full text-sm">
-        <thead className="bg-muted/30 text-xs uppercase text-muted-foreground sticky top-0">
+       <table className="w-full text-[14px]">
+        <thead className="bg-muted/30 text-[12px] text-muted-foreground sticky top-0">
           <tr>
             <th className="text-left px-4 py-2 font-medium">Mission</th>
             <th className="text-right px-4 py-2 font-medium">Intel</th>

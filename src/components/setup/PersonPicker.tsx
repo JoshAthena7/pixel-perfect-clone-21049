@@ -45,7 +45,7 @@ export function PersonPicker({
         <button
           type="button"
           disabled={disabled}
-          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs text-foreground hover:bg-surface-hover disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-[12px] text-foreground hover:bg-surface-hover disabled:opacity-50"
         >
           {!current && <UserPlus className="h-3 w-3 opacity-60" />}
           <span className={current ? "" : "text-muted-foreground"}>{label}</span>
@@ -79,9 +79,9 @@ export function PersonPicker({
                     className="flex items-center justify-between gap-2"
                   >
                     <div className="min-w-0">
-                      <div className="truncate text-sm">{name}</div>
+                      <div className="truncate text-[14px]">{name}</div>
                       {opt.email && opt.display_name && (
-                        <div className="truncate text-[10px] text-muted-foreground">{opt.email}</div>
+                        <div className="truncate text-[11px] text-muted-foreground">{opt.email}</div>
                       )}
                     </div>
                     {selectedId === opt.id && <Check className="h-3.5 w-3.5 opacity-70" />}

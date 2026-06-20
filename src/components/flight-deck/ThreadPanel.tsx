@@ -298,7 +298,7 @@ export function ThreadPanel({
         >
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 4, color: "rgba(180,170,255,0.9)" }}>
             <Eye size={11} />
-            <span style={{ fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase" }}>IRIS</span>
+            <span style={{ fontSize: 10, letterSpacing: "0.06em", textTransform: "" }}>IRIS</span>
           </div>
           This is the living memory of question {questionNumber ?? "—"}. Everything discussed, decided, and documented
           here stays attached to this question permanently. IRIS is listening — she will surface relevant intelligence,
@@ -969,7 +969,7 @@ function AssignmentHeader({ missionId, questionId }: { missionId: string; questi
         userSelect: "none",
       }}
     >
-      <span style={{ color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: 0.5, fontSize: 10 }}>
+      <span style={{ color: "rgba(255,255,255,0.45)", textTransform: "", letterSpacing: 0.5, fontSize: 10 }}>
         On this question
       </span>
       <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>

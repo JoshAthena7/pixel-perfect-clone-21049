@@ -300,7 +300,7 @@ function DashboardHeader({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Completeness */}
         <div>
-          <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.4)" }}>
+          <div style={{ fontSize: 10, textTransform: "", letterSpacing: "0.1em", color: "rgba(255,255,255,0.4)" }}>
             Intelligence Completeness
           </div>
           <div className="flex items-center gap-2 mt-1.5">
@@ -325,7 +325,7 @@ function DashboardHeader({
 
         {/* Feed items + chip breakdown */}
         <div>
-          <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.4)" }}>
+          <div style={{ fontSize: 10, textTransform: "", letterSpacing: "0.1em", color: "rgba(255,255,255,0.4)" }}>
             Feed Items
           </div>
           <div style={{ color: "white", fontWeight: 600, fontSize: 22, lineHeight: 1, marginTop: 6 }}>
@@ -353,7 +353,7 @@ function DashboardHeader({
         {/* Last updated + sweep button */}
         <div className="flex flex-col items-start md:items-end justify-between gap-2">
           <div>
-            <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.4)" }}>
+            <div style={{ fontSize: 10, textTransform: "", letterSpacing: "0.1em", color: "rgba(255,255,255,0.4)" }}>
               Last Updated
             </div>
             <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 12, marginTop: 6 }}>
@@ -445,7 +445,7 @@ function GroupDivider({ id, count }: { id: GroupId; count: number }) {
           fontSize: 11,
           fontWeight: 600,
           letterSpacing: "0.12em",
-          textTransform: "uppercase",
+          textTransform: "",
           color: meta.color,
         }}
       >

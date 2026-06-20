@@ -154,7 +154,7 @@
 /* Typography polish — section labels, display, tabular numbers */
 .section-label {
   font-size: 10px; font-weight: 700; letter-spacing: 0.25em;
-  text-transform: uppercase; color: var(--muted-foreground);
+  color: var(--muted-foreground);
 }
 .display-tight { letter-spacing: -0.02em; line-height: 1.1; font-weight: 700; }
 .num-tabular { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
@@ -193,7 +193,7 @@
   }
   .h2-label {
     font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em;
-    text-transform: uppercase; color: var(--muted-foreground);
+    color: var(--muted-foreground);
   }
   .h3-card {
     font-size: 0.95rem; font-weight: 600; color: var(--foreground);
@@ -207,7 +207,7 @@
     display: inline-flex; align-items: center; gap: 6px;
     padding: 3px 10px; border-radius: 9999px;
     font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
-    text-transform: uppercase;
+    
   }
   .pill-green  { background: color-mix(in oklab, var(--green) 14%, transparent); color: var(--green); }
   .pill-yellow { background: color-mix(in oklab, var(--yellow) 14%, transparent); color: var(--yellow); }
@@ -234,7 +234,7 @@
     display: inline-flex; align-items: center;
     color: var(--iris);
     font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
-    text-transform: uppercase;
+    
   }
   /* IRIS Neural Pulse — concentric expanding rings */
   .iris-dot, .iris-pulse-dot {
@@ -269,7 +269,7 @@
     border-radius: 9999px;
     padding: 2px 8px;
     font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em;
-    text-transform: uppercase;
+    
     font-family: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace;
   }
   .live-badge::before {
@@ -418,7 +418,7 @@
     display: flex; align-items: center; gap: 4px;
     padding: 6px 10px; margin-bottom: 6px; border-radius: 4px;
     font-size: 0.7rem; font-weight: 600; letter-spacing: 0.16em;
-    text-transform: uppercase; color: var(--muted-foreground);
+    color: var(--muted-foreground);
     transition: background 120ms ease, color 120ms ease;
   }
   .nav-section-label:hover { background: rgba(42,58,85,0.3); color: #e8edf5; }

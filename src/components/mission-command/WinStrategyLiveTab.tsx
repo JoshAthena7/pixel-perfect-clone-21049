@@ -111,7 +111,7 @@ export function WinStrategyLiveTab({ missionId, missionName }: { missionId: stri
 
 
       <div className="rounded-xl border-2 border-primary bg-card p-6 text-center space-y-2">
-        <div className="text-xs uppercase tracking-wider text-primary font-semibold">North Star</div>
+        <div className="text-[12px] text-primary font-medium">North Star</div>
         <Textarea
           rows={3}
           value={ws.north_star_message ?? ""}
@@ -123,7 +123,7 @@ export function WinStrategyLiveTab({ missionId, missionName }: { missionId: stri
 
       {bannerOn && (
         <div className="rounded-lg bg-primary/15 border border-primary/40 p-3 flex items-center justify-between">
-          <span className="text-sm">Win Strategy updated. IRIS has been informed.</span>
+          <span className="text-[14px]">Win Strategy updated. IRIS has been informed.</span>
           <Button size="sm" onClick={notifyTeam}>Notify Team</Button>
         </div>
       )}
@@ -159,14 +159,14 @@ export function WinStrategyLiveTab({ missionId, missionName }: { missionId: stri
       />
 
       <div>
-        <h3 className="font-semibold mb-2">Recent Changes</h3>
+        <h3 className="font-medium mb-2">Recent Changes</h3>
         <div className="space-y-2">
           {(audit ?? []).length === 0 && (
-            <p className="text-sm text-muted-foreground">No changes yet.</p>
+            <p className="text-[14px] text-muted-foreground">No changes yet.</p>
           )}
           {(audit ?? []).map((a: any) => (
-            <div key={a.id} className="text-sm border-l-2 border-primary/40 pl-3">
-              <span className="text-xs text-muted-foreground">{format(new Date(a.created_at), "MMM d, h:mm a")}</span>
+            <div key={a.id} className="text-[14px] border-l-2 border-primary/40 pl-3">
+              <span className="text-[12px] text-muted-foreground">{format(new Date(a.created_at), "MMM d, h:mm a")}</span>
               <span className="ml-2">{a.action}</span>
               {a.performed_by_name && <span className="text-muted-foreground"> — {a.performed_by_name}</span>}
             </div>
@@ -197,7 +197,7 @@ function ListEditor({
             className={`rounded border p-3 space-y-2 ${leftBorder ? "border-l-4 border-l-primary" : ""}`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-[12px] text-muted-foreground">
                 {numbered ? `#${idx + 1}` : `Item ${idx + 1}`}
               </span>
               <Button variant="ghost" size="icon" className="size-6"

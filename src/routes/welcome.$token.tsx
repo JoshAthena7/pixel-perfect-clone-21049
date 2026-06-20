@@ -42,7 +42,7 @@ function WelcomePage() {
   if (isLoading) {
     return (
       <Shell>
-        <div className="flex min-h-[60vh] items-center justify-center text-sm text-white/40">
+        <div className="flex min-h-[60vh] items-center justify-center text-[14px] text-white/40">
           Loading…
         </div>
       </Shell>
@@ -79,7 +79,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         </div>
         <Link
           to="/login"
-          className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+          className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-[14px] font-medium transition-opacity hover:opacity-90"
           style={{ background: "var(--athena-gold, #C49A22)", color: "#07101e" }}
         >
           Log in <ArrowRight size={14} />
@@ -104,7 +104,7 @@ function ValidWelcome({
     <main className="mx-auto w-full max-w-3xl px-6 pb-20 pt-8">
       {/* IRIS bubble */}
       <div
-        className="mx-auto rounded-2xl border p-7 text-[15px] leading-relaxed"
+        className="mx-auto rounded-2xl border p-7 text-[14px] leading-relaxed"
         style={{
           background: "rgba(120,80,200,0.08)",
           borderColor: "rgba(160,120,240,0.25)",
@@ -112,7 +112,7 @@ function ValidWelcome({
         }}
       >
         <div
-          className="mb-3 text-[11px] uppercase tracking-[0.18em]"
+          className="mb-3 text-[12px] tracking-[0.18em]"
           style={{ color: "rgba(180,150,240,0.7)" }}
         >
           IRIS
@@ -135,7 +135,7 @@ function ValidWelcome({
       <button
         type="button"
         onClick={onEnter}
-        className="mt-10 inline-flex w-full items-center justify-center gap-2 rounded-md py-4 text-base font-semibold transition-opacity hover:opacity-90"
+        className="mt-10 inline-flex w-full items-center justify-center gap-2 rounded-md py-4 text-base font-medium transition-opacity hover:opacity-90"
         style={{ background: "var(--athena-gold, #C49A22)", color: "#07101e" }}
       >
         Enter ATLAS <ArrowRight size={18} />
@@ -148,13 +148,13 @@ function MissionHeader({ data }: { data: WelcomeInvitePayload }) {
   const m = data.mission!;
   return (
     <div className="mb-4">
-      <div className="text-xs uppercase tracking-[0.16em] text-white/40">Mission</div>
-      <div className="mt-1 text-lg font-semibold text-white">{m.name}</div>
+      <div className="text-[12px] tracking-[0.16em] text-white/40">Mission</div>
+      <div className="mt-1 text-lg font-medium text-white">{m.name}</div>
       {m.clientName && (
-        <div className="text-sm text-white/60">{m.clientName}</div>
+        <div className="text-[14px] text-white/60">{m.clientName}</div>
       )}
       {m.daysToSubmission !== null && (
-        <div className="mt-1 text-sm" style={{ color: "var(--athena-gold, #C49A22)" }}>
+        <div className="mt-1 text-[14px]" style={{ color: "var(--athena-gold, #C49A22)" }}>
           {m.daysToSubmission} days to submission
         </div>
       )}
@@ -182,24 +182,24 @@ function WriterMissionPanel({ data }: { data: WelcomeInvitePayload }) {
       <MissionHeader data={data} />
       {a ? (
         <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.04] p-4">
-          <div className="text-xs uppercase tracking-[0.14em] text-white/40">
+          <div className="text-[12px] tracking-[0.14em] text-white/40">
             Your most urgent assignment
           </div>
           <div className="mt-2 flex items-center justify-between gap-3">
-            <div className="text-sm text-white">
+            <div className="text-[14px] text-white">
               {a.questionNumber ? `Question ${a.questionNumber}` : "Assignment"}
               {a.sectionName && <span className="text-white/50"> · {a.sectionName}</span>}
             </div>
             {a.health && <HealthChip health={a.health} />}
           </div>
           {a.dueDate && (
-            <div className="mt-1 text-xs text-white/50">
+            <div className="mt-1 text-[12px] text-white/50">
               Due {new Date(a.dueDate).toLocaleDateString()}
             </div>
           )}
         </div>
       ) : (
-        <p className="mt-3 text-sm text-white/55">
+        <p className="mt-3 text-[14px] text-white/55">
           Your assignments will appear once you log in.
         </p>
       )}
@@ -217,8 +217,8 @@ function NoMissionCards() {
     <div className="grid gap-3 sm:grid-cols-3">
       {cards.map((c) => (
         <div key={c.title} className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
-          <div className="text-sm font-semibold text-white">{c.title}</div>
-          <div className="mt-1 text-xs leading-relaxed text-white/55">{c.body}</div>
+          <div className="text-[14px] font-medium text-white">{c.title}</div>
+          <div className="mt-1 text-[12px] leading-relaxed text-white/55">{c.body}</div>
         </div>
       ))}
     </div>
@@ -228,8 +228,8 @@ function NoMissionCards() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-      <div className="text-xs uppercase tracking-[0.14em] text-white/40">{label}</div>
-      <div className="mt-1 text-2xl font-semibold text-white">{value}</div>
+      <div className="text-[12px] tracking-[0.14em] text-white/40">{label}</div>
+      <div className="mt-1 text-2xl font-medium text-white">{value}</div>
     </div>
   );
 }
@@ -243,7 +243,7 @@ function HealthChip({ health }: { health: string }) {
   const s = map[health] || { bg: "rgba(255,255,255,0.08)", fg: "#cfd6e4", label: health };
   return (
     <span
-      className="rounded-full px-2.5 py-0.5 text-[11px] font-medium"
+      className="rounded-full px-2.5 py-0.5 text-[12px] font-medium"
       style={{ background: s.bg, color: s.fg }}
     >
       {s.label}

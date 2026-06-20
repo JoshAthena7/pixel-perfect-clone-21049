@@ -60,14 +60,14 @@ export function StatePackTab({ missionId }: { missionId: string }) {
 
   if (!stateCode) {
     return (
-      <div className="text-[11px] text-white/50 py-6 text-center">
+      <div className="text-[12px] text-white/50 py-6 text-center">
         This mission has no state code assigned.
       </div>
     );
   }
 
   if (isLoading) {
-    return <div className="text-[11px] text-white/40 py-6 text-center">Loading state pack…</div>;
+    return <div className="text-[12px] text-white/40 py-6 text-center">Loading state pack…</div>;
   }
 
   const items = data ?? [];
@@ -108,7 +108,7 @@ export function StatePackTab({ missionId }: { missionId: string }) {
           <div className="text-[12px] text-white">
             <span style={{ color: GOLD, fontWeight: 600 }}>{stateName}</span> Intelligence Pack
           </div>
-          <div className="text-[10px] text-white/45 mt-0.5">
+          <div className="text-[11px] text-white/45 mt-0.5">
             {items.length} item{items.length === 1 ? "" : "s"}
             {lastReviewed ? ` · Last reviewed ${new Date(lastReviewed).toLocaleDateString()}` : ""}
           </div>
@@ -141,12 +141,12 @@ export function StatePackTab({ missionId }: { missionId: string }) {
             style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
           >
             <div className="min-w-0 flex-1">
-              <div className="text-[11px] text-white/90 truncate" title={it.title}>{it.title}</div>
-              <div className="text-[9px] text-white/40">
+              <div className="text-[12px] text-white/90 truncate" title={it.title}>{it.title}</div>
+              <div className="text-[11px] text-white/40">
                 {(it.category ?? it.signal_type ?? "—").toString().replace(/_/g, " ")}
               </div>
             </div>
-            <div className="shrink-0 text-[10px]" style={{ color: GOLD }}>
+            <div className="shrink-0 text-[11px]" style={{ color: GOLD }}>
               {it.relevance_score ?? 0}
             </div>
           </div>
@@ -156,7 +156,7 @@ export function StatePackTab({ missionId }: { missionId: string }) {
       <Link
         to="/admin/state-intel"
         search={{ from_mission: missionId } as any}
-        className="inline-flex items-center gap-1 text-[11px] hover:underline"
+        className="inline-flex items-center gap-1 text-[12px] hover:underline"
         style={{ color: GOLD }}
       >
         Manage all state packs <ArrowRight className="h-3 w-3" />

@@ -12,7 +12,7 @@ function HomeRoute() {
   });
 
   if (isLoading) {
-    return <div className="p-8 text-sm text-muted-foreground">Loading…</div>;
+    return <div className="p-8 text-[14px] text-muted-foreground">Loading…</div>;
   }
 
   if (data?.isAdmin) {

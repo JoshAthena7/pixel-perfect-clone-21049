@@ -543,7 +543,7 @@ export function AskIrisPanel() {
       >
         <IrisMark className="h-5 w-5" />
         <span
-          className="text-[11px] text-white/60 tracking-wide select-none"
+          className="text-[12px] text-white/60 tracking-wide select-none"
           style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
         >
           IRIS
@@ -627,7 +627,7 @@ export function AskIrisPanel() {
               }}
               placeholder={placeholder}
               disabled={streaming}
-              className="flex-1 resize-none rounded-md text-[13px] text-white placeholder:text-white/40 focus:outline-none"
+              className="flex-1 resize-none rounded-md text-[14px] text-white placeholder:text-white/40 focus:outline-none"
               style={{
                 background: "rgba(255,255,255,0.05)",
                 border: "0.5px solid rgba(255,255,255,0.1)",
@@ -654,7 +654,7 @@ export function AskIrisPanel() {
             <button
               type="button"
               onClick={() => setMode("quick")}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition"
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[12px] font-medium transition"
               style={{
                 background: mode === "quick" ? "rgba(127,119,221,0.18)" : "rgba(255,255,255,0.04)",
                 border: mode === "quick" ? `0.5px solid ${IRIS_BORDER}` : "0.5px solid rgba(255,255,255,0.08)",
@@ -667,7 +667,7 @@ export function AskIrisPanel() {
             <button
               type="button"
               onClick={() => setMode("research")}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition"
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[12px] font-medium transition"
               style={{
                 background: mode === "research" ? "rgba(196,154,43,0.18)" : "rgba(255,255,255,0.04)",
                 border: mode === "research" ? `0.5px solid ${GOLD}66` : "0.5px solid rgba(255,255,255,0.08)",
@@ -677,7 +677,7 @@ export function AskIrisPanel() {
             >
               <span aria-hidden>🔍</span> Research
             </button>
-            <div className="ml-auto text-[10px] text-white/35">
+            <div className="ml-auto text-[11px] text-white/35">
               {mode === "research"
                 ? "Cited live web intelligence · 3–8s"
                 : "Shift+Enter for newline · ` to toggle"}
@@ -688,7 +688,7 @@ export function AskIrisPanel() {
               <button
                 type="button"
                 onClick={() => setOracleIntakeOpen(true)}
-                className="inline-flex items-center gap-1 text-[10px] text-white/40 hover:text-white/80 transition"
+                className="inline-flex items-center gap-1 text-[11px] text-white/40 hover:text-white/80 transition"
                 title="Capture field intel from this question and add it to ORACLE"
               >
                 <Plus className="h-2.5 w-2.5" /> Add intel to ORACLE
@@ -756,14 +756,14 @@ function HomeState(props: {
   return (
     <div className="space-y-4">
       <div
-        className="rounded-lg p-3.5 text-[13px] text-white/85 leading-relaxed"
+        className="rounded-lg p-3.5 text-[14px] text-white/85 leading-relaxed"
         style={{ background: "rgba(127,119,221,0.08)", border: "0.5px solid rgba(127,119,221,0.2)" }}
       >
         {props.greeting}
       </div>
 
       <div>
-        <div className="text-[11px] uppercase tracking-widest text-white/45 mb-2">What do you need?</div>
+        <div className="text-[12px] text-white/45 mb-2">What do you need?</div>
         <div className="flex flex-col gap-2">
           <ActionCard icon={<FileText className="h-3.5 w-3.5" />} label="Brief me" sub="Today's intel summary" onClick={props.onBriefMe} />
           <ActionCard icon={<Users className="h-3.5 w-3.5" />} label="Find an SME" sub="Get expert help fast" onClick={props.onFindSme} />
@@ -784,10 +784,10 @@ function ActionCard({ icon, label, sub, onClick, danger }: { icon: ReactNode; la
         border: danger ? "0.5px solid rgba(224,74,74,0.15)" : "0.5px solid rgba(255,255,255,0.07)",
       }}
     >
-      <div className="flex items-center gap-1.5 text-[13px] font-medium" style={{ color: danger ? SOS_RED : "white" }}>
+      <div className="flex items-center gap-1.5 text-[14px] font-medium" style={{ color: danger ? SOS_RED : "white" }}>
         {icon} {label}
       </div>
-      <div className="text-[11px] text-white/50 mt-0.5">{sub}</div>
+      <div className="text-[12px] text-white/50 mt-0.5">{sub}</div>
     </button>
   );
 }
@@ -829,15 +829,15 @@ function ConversationState(props: {
 function MessageRow({ m, onNavigate, onOpenInThread }: { m: Msg; onNavigate: (h: string) => void; onOpenInThread: (d: string) => void }) {
   if (m.role === "system") {
     return (
-      <div className="text-center text-[11px] text-white/40 py-1">{m.text}</div>
+      <div className="text-center text-[12px] text-white/40 py-1">{m.text}</div>
     );
   }
   if (m.role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[85%] text-white text-[13px]" style={{ background: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "10px 0 10px 10px", padding: "10px 14px" }}>
+        <div className="max-w-[85%] text-white text-[14px]" style={{ background: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "10px 0 10px 10px", padding: "10px 14px" }}>
           <div className="whitespace-pre-wrap break-words">{m.text}</div>
-          <div className="text-[10px] text-white/35 mt-1 text-right">{fmtTime(m.at)}</div>
+          <div className="text-[11px] text-white/35 mt-1 text-right">{fmtTime(m.at)}</div>
         </div>
       </div>
     );
@@ -845,7 +845,7 @@ function MessageRow({ m, onNavigate, onOpenInThread }: { m: Msg; onNavigate: (h:
   return (
     <div className="flex gap-2">
       <IrisMark className="h-3 w-3 mt-2 shrink-0" />
-      <div className="max-w-[85%] text-white text-[13px]" style={{ background: "rgba(127,119,221,0.08)", border: "0.5px solid rgba(127,119,221,0.15)", borderRadius: "0 10px 10px 10px", padding: "10px 14px" }}>
+      <div className="max-w-[85%] text-white text-[14px]" style={{ background: "rgba(127,119,221,0.08)", border: "0.5px solid rgba(127,119,221,0.15)", borderRadius: "0 10px 10px 10px", padding: "10px 14px" }}>
         <div className="prose prose-invert prose-sm max-w-none leading-relaxed">
           <ReactMarkdown>{m.text || " "}</ReactMarkdown>
         </div>
@@ -854,7 +854,7 @@ function MessageRow({ m, onNavigate, onOpenInThread }: { m: Msg; onNavigate: (h:
         {m.card?.kind === "risks" && <RiskCardView card={m.card} onNavigate={onNavigate} />}
         {m.card?.kind === "intel" && <IntelCardView card={m.card} onNavigate={onNavigate} />}
         {m.card?.kind === "sources" && <SourcesCardView card={m.card} />}
-        <div className="text-[10px] text-white/35 mt-1">{fmtTime(m.at)}</div>
+        <div className="text-[11px] text-white/35 mt-1">{fmtTime(m.at)}</div>
       </div>
     </div>
   );
@@ -863,13 +863,13 @@ function MessageRow({ m, onNavigate, onOpenInThread }: { m: Msg; onNavigate: (h:
 function DraftCardView({ card, onOpenInThread }: { card: Extract<CardKind, { kind: "draft" }>; onOpenInThread: (d: string) => void }) {
   return (
     <div className="mt-2 rounded-lg p-3" style={{ border: `1px solid ${GOLD}66`, background: "rgba(196,154,43,0.04)" }}>
-      <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: GOLD }}>Draft response</div>
-      <div className="whitespace-pre-wrap text-white text-[13px] max-h-44 overflow-y-auto">{card.draft}</div>
+      <div className="text-[11px] mb-2" style={{ color: GOLD }}>Draft response</div>
+      <div className="whitespace-pre-wrap text-white text-[14px] max-h-44 overflow-y-auto">{card.draft}</div>
       <div className="flex gap-2 mt-2">
-        <button className="text-[11px] px-2 py-1 rounded border border-white/15 text-white/80 inline-flex items-center gap-1" onClick={() => { navigator.clipboard.writeText(card.draft); toast.success("Copied"); }}>
+        <button className="text-[12px] px-2 py-1 rounded border border-white/15 text-white/80 inline-flex items-center gap-1" onClick={() => { navigator.clipboard.writeText(card.draft); toast.success("Copied"); }}>
           <Copy className="h-3 w-3" /> Copy
         </button>
-        <button className="text-[11px] px-2 py-1 rounded" style={{ background: GOLD, color: "#1a0f00" }} onClick={() => onOpenInThread(card.draft)}>
+        <button className="text-[12px] px-2 py-1 rounded" style={{ background: GOLD, color: "#1a0f00" }} onClick={() => onOpenInThread(card.draft)}>
           📌 Notes
         </button>
       </div>
@@ -881,12 +881,12 @@ function ScoreCardView({ card }: { card: Extract<CardKind, { kind: "score" }> })
   return (
     <div className="mt-2 rounded-lg p-3" style={{ border: `1px solid ${IRIS}55`, background: "rgba(127,119,221,0.06)" }}>
       <div className="flex items-baseline justify-between">
-        <span className="text-[10px] uppercase tracking-wider" style={{ color: IRIS }}>Quick score</span>
-        <span className="text-2xl font-bold" style={{ color: IRIS }}>{card.total}<span className="text-sm text-white/55">/100</span></span>
+        <span className="text-[11px]" style={{ color: IRIS }}>Quick score</span>
+        <span className="text-2xl font-medium" style={{ color: IRIS }}>{card.total}<span className="text-[14px] text-white/55">/100</span></span>
       </div>
       <div className="mt-2 space-y-1">
         {card.breakdown.map((b) => (
-          <div key={b.label} className="text-[11px]">
+          <div key={b.label} className="text-[12px]">
             <div className="flex justify-between text-white/70"><span>{b.label}</span><span>{b.score}/{b.max}</span></div>
             <div className="h-1 rounded mt-0.5 bg-white/10 overflow-hidden">
               <div className="h-full" style={{ width: `${(b.score / b.max) * 100}%`, background: IRIS }} />
@@ -895,7 +895,7 @@ function ScoreCardView({ card }: { card: Extract<CardKind, { kind: "score" }> })
         ))}
       </div>
       {card.gaps?.length > 0 && (
-        <ul className="mt-2 text-[11px] text-white/75 list-disc pl-4 space-y-0.5">
+        <ul className="mt-2 text-[12px] text-white/75 list-disc pl-4 space-y-0.5">
           {card.gaps.slice(0, 2).map((g, i) => <li key={i}>{g}</li>)}
         </ul>
       )}
@@ -909,8 +909,8 @@ function RiskCardView({ card, onNavigate }: { card: Extract<CardKind, { kind: "r
     <ul className="mt-2 space-y-1">
       {card.items.map((it, i) => (
         <li key={i}>
-          <button onClick={() => onNavigate(it.href)} className="w-full text-left text-[11px] rounded px-2 py-1.5 border border-amber-400/30 hover:bg-amber-500/10">
-            <span className="font-semibold text-white">{it.label}</span>
+          <button onClick={() => onNavigate(it.href)} className="w-full text-left text-[12px] rounded px-2 py-1.5 border border-amber-400/30 hover:bg-amber-500/10">
+            <span className="font-medium text-white">{it.label}</span>
             <span className="text-white/55"> — {it.detail}</span>
           </button>
         </li>
@@ -924,8 +924,8 @@ function IntelCardView({ card, onNavigate }: { card: Extract<CardKind, { kind: "
   return (
     <ul className="mt-2 space-y-1.5">
       {card.items.map((it, i) => (
-        <li key={i} className="text-[11px] rounded p-2 border border-white/10">
-          <div className="font-semibold text-white">{it.headline}</div>
+        <li key={i} className="text-[12px] rounded p-2 border border-white/10">
+          <div className="font-medium text-white">{it.headline}</div>
           {it.assessment && <div className="text-white/55 mt-0.5">{it.assessment}</div>}
           <div className="flex gap-3 mt-1">
             {it.url && <a href={it.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1" style={{ color: IRIS }}>Open <ExternalLink className="h-3 w-3" /></a>}
@@ -949,7 +949,7 @@ function SourcesCardView({ card }: { card: Extract<CardKind, { kind: "sources" }
     <div className="mt-2">
       {card.research && <ResearchBadge />}
       <div
-        className="my-2 flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-white/45"
+        className="my-2 flex items-center gap-2 text-[11px] tracking-[0.18em] text-white/45"
         aria-hidden
       >
         <span className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />
@@ -963,12 +963,12 @@ function SourcesCardView({ card }: { card: Extract<CardKind, { kind: "sources" }
               href={c.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="block text-[11px] rounded-md p-2 border hover:bg-white/5 transition"
+              className="block text-[12px] rounded-md p-2 border hover:bg-white/5 transition"
               style={{ borderColor: "rgba(127,119,221,0.25)", background: "rgba(0,0,0,0.2)" }}
             >
               <div className="flex items-center gap-1.5">
                 <span
-                  className="text-[10px] font-mono px-1.5 py-0.5 rounded"
+                  className="text-[11px] font-mono px-1.5 py-0.5 rounded"
                   style={{ background: "rgba(127,119,221,0.15)", color: "rgba(255,255,255,0.85)" }}
                 >
                   {c.domain}
@@ -984,7 +984,7 @@ function SourcesCardView({ card }: { card: Extract<CardKind, { kind: "sources" }
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="mt-1.5 text-[11px] text-white/55 hover:text-white"
+          className="mt-1.5 text-[12px] text-white/55 hover:text-white"
         >
           View all {card.citations.length} sources →
         </button>
@@ -996,7 +996,7 @@ function SourcesCardView({ card }: { card: Extract<CardKind, { kind: "sources" }
 function ResearchBadge() {
   return (
     <div
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold mb-1"
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium mb-1"
       style={{ background: "rgba(196,154,43,0.15)", color: GOLD, border: `0.5px solid ${GOLD}55` }}
     >
       <span aria-hidden>🔍</span> IRIS Research
@@ -1051,8 +1051,8 @@ function PostUpdateOverlay({ open, onClose, missionId, onSent }: { open: boolean
     <div className="fixed inset-0 z-50 flex items-center justify-end p-6" style={{ background: "rgba(0,0,0,0.4)" }} onClick={onClose}>
       <div className="w-full max-w-[400px] rounded-lg p-4 space-y-3" style={{ background: PANEL_BG, border: `1px solid ${IRIS_BORDER}` }} onClick={(e) => e.stopPropagation()}>
         <div className="text-white text-[14px] font-medium">Update Reality</div>
-        <div className="text-[11px] text-white/55 -mt-1">Use when the mission's strategic direction needs to change (north star, why-win, state priorities, competitive landscape). For real-time observations, use Mission Pulse instead.</div>
-        <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="What changed about the mission strategy?" rows={5} className="w-full bg-white/5 text-white placeholder:text-white/40 rounded p-2 text-[13px] border border-white/10 focus:outline-none" />
+        <div className="text-[12px] text-white/55 -mt-1">Use when the mission's strategic direction needs to change (north star, why-win, state priorities, competitive landscape). For real-time observations, use Mission Pulse instead.</div>
+        <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="What changed about the mission strategy?" rows={5} className="w-full bg-white/5 text-white placeholder:text-white/40 rounded p-2 text-[14px] border border-white/10 focus:outline-none" />
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="text-[12px] text-white/60 px-2 py-1">Cancel</button>
           <button onClick={submit} disabled={busy || !text.trim()} className="text-[12px] px-3 py-1.5 rounded disabled:opacity-50" style={{ background: IRIS, color: "#0F0A2A" }}>
@@ -1116,8 +1116,8 @@ function SosOverlay({ open, onClose, missionId, questionId, onSent }: { open: bo
     <div className="fixed inset-0 z-50 flex items-center justify-end p-6" style={{ background: "rgba(0,0,0,0.4)" }} onClick={onClose}>
       <div className="w-full max-w-[400px] rounded-lg p-4 space-y-3" style={{ background: PANEL_BG, border: `1px solid ${SOS_RED}` }} onClick={(e) => e.stopPropagation()}>
         <div className="text-[14px] font-medium" style={{ color: SOS_RED }}>SOS — Alert Leadership</div>
-        <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="Describe the situation" rows={5} className="w-full bg-white/5 text-white placeholder:text-white/40 rounded p-2 text-[13px] border border-white/10 focus:outline-none" />
-        <div className="flex gap-2 text-[11px]">
+        <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="Describe the situation" rows={5} className="w-full bg-white/5 text-white placeholder:text-white/40 rounded p-2 text-[14px] border border-white/10 focus:outline-none" />
+        <div className="flex gap-2 text-[12px]">
           {(["watch", "at_risk", "blocked"] as const).map((p) => (
             <button key={p} onClick={() => setPriority(p)} className="px-2 py-1 rounded border" style={{
               borderColor: priority === p ? (p === "watch" ? "#f59e0b" : p === "at_risk" ? "#ef4444" : "#7f1d1d") : "rgba(255,255,255,0.15)",

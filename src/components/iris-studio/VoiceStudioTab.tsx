@@ -112,12 +112,12 @@ export function VoiceStudioTab({
 
       {/* Status banner */}
       {configured ? (
-        <div className="rounded text-[10px] px-3 py-2"
+        <div className="rounded text-[11px] px-3 py-2"
              style={{ background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.3)", color: "rgba(74,222,128,0.9)" }}>
           ● ElevenLabs connected — voice controls are live.
         </div>
       ) : (
-        <div className="rounded text-[10px] px-3 py-2"
+        <div className="rounded text-[11px] px-3 py-2"
              style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", color: "rgba(245,158,11,0.95)" }}>
           ⚠ ElevenLabs key not detected on the server. Connect it under Connectors to enable voice preview.
         </div>
@@ -131,8 +131,8 @@ export function VoiceStudioTab({
         {customSelected && (
           <div className="mb-2 rounded border p-3"
                style={{ borderColor: "rgba(196,154,43,0.8)", background: "rgba(196,154,43,0.06)" }}>
-            <div className="text-[11px] font-semibold text-white">Custom voice</div>
-            <div className="text-[9px] text-white/60 mt-1 font-mono">{voiceId}</div>
+            <div className="text-[12px] font-medium text-white">Custom voice</div>
+            <div className="text-[11px] text-white/60 mt-1 font-mono">{voiceId}</div>
           </div>
         )}
 
@@ -152,18 +152,18 @@ export function VoiceStudioTab({
                       border: `${selected ? 1.5 : 1}px solid ${selected ? "rgba(196,154,43,0.8)" : "rgba(255,255,255,0.08)"}`,
                       width: "100%", minHeight: 90,
                     }}>
-                    <div className="text-[12px] font-semibold text-white">{v.name}</div>
+                    <div className="text-[12px] font-medium text-white">{v.name}</div>
                     <div className="flex gap-1 flex-wrap mt-1 mb-1">
                       {(["accent", "gender", "age"] as const).map((k) => v.labels?.[k] ? (
-                        <span key={k} className="text-[8px] text-white/60 px-1.5 py-[2px] rounded"
+                        <span key={k} className="text-[11px] text-white/60 px-1.5 py-[2px] rounded"
                           style={{ background: "rgba(255,255,255,0.06)" }}>{v.labels[k]}</span>
                       ) : null)}
                     </div>
-                    <div className="text-[9px] text-white/50 line-clamp-2">{v.description ?? ""}</div>
+                    <div className="text-[11px] text-white/50 line-clamp-2">{v.description ?? ""}</div>
                     <div className="absolute bottom-2 right-2">
                       <button type="button"
                         onClick={(e) => { e.stopPropagation(); previewingId === v.voice_id ? stopAudio() : previewVoice(v.voice_id); }}
-                        className="text-[9px] font-medium flex items-center gap-1" style={{ color: GOLD }}>
+                        className="text-[11px] font-medium flex items-center gap-1" style={{ color: GOLD }}>
                         {previewingId === v.voice_id ? <><Square className="w-2.5 h-2.5" /> Stop</> : <><Play className="w-2.5 h-2.5" /> Preview</>}
                       </button>
                     </div>
@@ -174,18 +174,18 @@ export function VoiceStudioTab({
 
         <div className="mt-3">
           {!customOpen ? (
-            <button type="button" className="text-[10px] text-white/60 hover:text-white"
+            <button type="button" className="text-[11px] text-white/60 hover:text-white"
               onClick={() => setCustomOpen(true)}>+ Use custom voice ID</button>
           ) : (
             <div className="flex gap-2">
-              <input className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[11px] text-white"
+              <input className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[12px] text-white"
                 placeholder="Paste an ElevenLabs voice_id…"
                 value={customId} onChange={(e) => setCustomId(e.target.value)} />
-              <button type="button" className="px-2.5 py-1.5 rounded bg-white/10 text-[10px]"
+              <button type="button" className="px-2.5 py-1.5 rounded bg-white/10 text-[11px]"
                 onClick={() => { if (customId.trim()) { setVoiceId(customId.trim()); setCustomId(""); setCustomOpen(false); }}}>
                 Use
               </button>
-              <button type="button" className="px-2.5 py-1.5 text-[10px] text-white/50" onClick={() => setCustomOpen(false)}>cancel</button>
+              <button type="button" className="px-2.5 py-1.5 text-[11px] text-white/50" onClick={() => setCustomOpen(false)}>cancel</button>
             </div>
           )}
         </div>
@@ -206,10 +206,10 @@ export function VoiceStudioTab({
                   border: `${sel ? 1.5 : 1}px solid ${sel ? "rgba(196,154,43,0.8)" : "rgba(255,255,255,0.08)"}`,
                   minHeight: 80,
                 }}>
-                <div className="text-[11px] font-semibold text-white">{m.title}</div>
-                <div className="text-[9px] mt-0.5" style={{ color: GOLD }}>{m.sub}</div>
-                <div className="text-[9px] text-white/55 mt-1">{m.desc}</div>
-                <div className="text-[8px] mt-1.5" style={{ color: GOLD }}>RECOMMENDED: <span className="text-white/70">{m.rec}</span></div>
+                <div className="text-[12px] font-medium text-white">{m.title}</div>
+                <div className="text-[11px] mt-0.5" style={{ color: GOLD }}>{m.sub}</div>
+                <div className="text-[11px] text-white/55 mt-1">{m.desc}</div>
+                <div className="text-[11px] mt-1.5" style={{ color: GOLD }}>RECOMMENDED: <span className="text-white/70">{m.rec}</span></div>
               </button>
             );
           })}
@@ -235,10 +235,10 @@ export function VoiceStudioTab({
         <div>
           <div className="flex items-center justify-between">
             <FieldLabel>SPEECH PACE</FieldLabel>
-            <span className="text-[10px] text-white/60 font-mono">{speed.toFixed(2)}x</span>
+            <span className="text-[11px] text-white/60 font-mono">{speed.toFixed(2)}x</span>
           </div>
           <Slider value={[speed]} min={0.5} max={2.0} step={0.05} onValueChange={(v) => setSpeed(v[0])} />
-          <div className="flex justify-between text-[8px] text-white/40 mt-1">
+          <div className="flex justify-between text-[11px] text-white/40 mt-1">
             <span>0.7x</span><span>1.0x</span><span>1.3x</span><span>1.8x</span>
           </div>
           <FieldDesc>1.0 = natural. 1.2–1.4 = brisk delivery. 0.8 = emphasis and gravitas.</FieldDesc>
@@ -247,8 +247,8 @@ export function VoiceStudioTab({
         <div className="flex items-center gap-3">
           <Switch checked={boost} onCheckedChange={setBoost} />
           <div>
-            <div className="text-[11px] text-white">SPEAKER BOOST <span className="text-white/40 ml-2">{boost ? "ON" : "OFF"}</span></div>
-            <div className="text-[9px] text-white/45">Enhances vocal clarity. Recommended ON.</div>
+            <div className="text-[12px] text-white">SPEAKER BOOST <span className="text-white/40 ml-2">{boost ? "ON" : "OFF"}</span></div>
+            <div className="text-[11px] text-white/45">Enhances vocal clarity. Recommended ON.</div>
           </div>
         </div>
       </div>
@@ -269,8 +269,8 @@ export function VoiceStudioTab({
                   background: sel ? "rgba(196,154,43,0.06)" : "rgba(255,255,255,0.03)",
                   border: `${sel ? 1.5 : 1}px solid ${sel ? "rgba(196,154,43,0.8)" : "rgba(255,255,255,0.08)"}`,
                 }}>
-                <div className="text-[11px] font-semibold text-white">{o.t}</div>
-                <div className="text-[9px] text-white/55 mt-1">{o.d}</div>
+                <div className="text-[12px] font-medium text-white">{o.t}</div>
+                <div className="text-[11px] text-white/55 mt-1">{o.d}</div>
               </button>
             );
           })}
@@ -285,7 +285,7 @@ export function VoiceStudioTab({
           {testing ? <><Square className="w-3.5 h-3.5" /> Playing — click to stop</> :
             <><Play className="w-3.5 h-3.5" /> Test IRIS Voice</>}
         </button>
-        <p className="text-[9px] text-white/40 italic mt-2">Preview text: "{IRIS_PREVIEW_TEXT}"</p>
+        <p className="text-[11px] text-white/40 italic mt-2">Preview text: "{IRIS_PREVIEW_TEXT}"</p>
       </div>
 
       {/* Save */}
@@ -300,8 +300,8 @@ export function VoiceStudioTab({
 
       {/* Custom voice placeholder */}
       <div className="rounded border border-dashed border-white/15 p-4 text-center">
-        <div className="text-[11px] text-white/60">🎤 Custom IRIS Voice — Coming Soon</div>
-        <div className="text-[9px] text-white/40 mt-1">Upload voice samples to create a custom IRIS voice trained on your team's language and style. Available in a future ATLAS release.</div>
+        <div className="text-[12px] text-white/60">🎤 Custom IRIS Voice — Coming Soon</div>
+        <div className="text-[11px] text-white/40 mt-1">Upload voice samples to create a custom IRIS voice trained on your team's language and style. Available in a future ATLAS release.</div>
       </div>
     </div>
   );
@@ -317,10 +317,10 @@ function SliderRow({
     <div>
       <div className="flex items-center justify-between">
         <FieldLabel>{label}</FieldLabel>
-        <span className="text-[10px] text-white/60 font-mono">{value.toFixed(2)}</span>
+        <span className="text-[11px] text-white/60 font-mono">{value.toFixed(2)}</span>
       </div>
       <Slider value={[value]} min={min} max={max} step={step} onValueChange={(v) => setValue(v[0])} />
-      <div className="flex justify-between text-[8px] text-white/40 mt-1">
+      <div className="flex justify-between text-[11px] text-white/40 mt-1">
         <span>◄ {left}</span><span>{right} ►</span>
       </div>
       <FieldDesc>{desc}</FieldDesc>

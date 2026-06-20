@@ -359,7 +359,7 @@ export function ScoreDraftPanel({
                   <select
                     value={selectedQuestionId ?? ""}
                     onChange={(e) => setSelectedQuestionId(e.target.value || null)}
-                    className="w-full rounded-md px-3 py-2 text-[13px] text-white"
+                    className="w-full rounded-md px-3 py-2 text-[14px] text-white"
                     style={{
                       background: "rgba(255,255,255,0.03)",
                       border: "0.5px solid rgba(255,255,255,0.1)",
@@ -419,7 +419,7 @@ export function ScoreDraftPanel({
                     onChange={(e) => setDraft(e.target.value)}
                     placeholder="Paste your draft response here..."
                     rows={10}
-                    className="w-full rounded-lg p-3 text-white text-[13px] resize-y"
+                    className="w-full rounded-lg p-3 text-white text-[14px] resize-y"
                     style={{
                       background: "rgba(255,255,255,0.03)",
                       border: "0.5px solid rgba(255,255,255,0.1)",
@@ -428,7 +428,7 @@ export function ScoreDraftPanel({
                     }}
                   />
                   <div
-                    className="absolute right-3 bottom-2 text-[11px]"
+                    className="absolute right-3 bottom-2 text-[12px]"
                     style={{ color: "rgba(255,255,255,0.4)" }}
                   >
                     {wordCount} words
@@ -491,7 +491,7 @@ export function ScoreDraftPanel({
                   {mode === "full" ? "Score This Draft" : "Quick Check"}
                 </button>
                 <p
-                  className="text-center mt-2 text-[11px]"
+                  className="text-center mt-2 text-[12px]"
                   style={{ color: "rgba(255,255,255,0.4)" }}
                 >
                   IRIS reads your draft against the RFP. Content is never saved.
@@ -539,13 +539,13 @@ export function ScoreDraftPanel({
                     setStatus("input");
                     setErrorMsg(null);
                   }}
-                  className="rounded-md px-4 py-2 text-[13px] text-white/70 border border-white/15"
+                  className="rounded-md px-4 py-2 text-[14px] text-white/70 border border-white/15"
                 >
                   Back
                 </button>
                 <button
                   onClick={handleScore}
-                  className="rounded-md px-4 py-2 text-[13px] font-medium"
+                  className="rounded-md px-4 py-2 text-[14px] font-medium"
                   style={{ background: GOLD, color: NAVY }}
                 >
                   Retry
@@ -599,7 +599,7 @@ export function ScoreDraftPanel({
                       const pct = (b.score / b.max) * 100;
                       return (
                         <div key={b.category}>
-                          <div className="flex items-center justify-between text-[13px]">
+                          <div className="flex items-center justify-between text-[14px]">
                             <span className="text-white">{b.category}</span>
                             <span className="text-white font-medium tabular-nums">
                               {b.score} / {b.max}
@@ -620,7 +620,7 @@ export function ScoreDraftPanel({
                           </div>
                           {b.explanation && (
                             <p
-                              className="mt-1 text-[11px] italic"
+                              className="mt-1 text-[12px] italic"
                               style={{ color: "rgba(255,255,255,0.5)" }}
                             >
                               {b.explanation}
@@ -636,7 +636,7 @@ export function ScoreDraftPanel({
                     <h3 className="text-white text-[14px] font-medium mb-2">What to fix</h3>
                     {result.gaps.length === 0 || result.overall >= 85 ? (
                       <div
-                        className="rounded-md px-3 py-3 flex items-center gap-2 text-[13px] text-white/80"
+                        className="rounded-md px-3 py-3 flex items-center gap-2 text-[14px] text-white/80"
                         style={{
                           background: "rgba(125,207,125,0.07)",
                           border: "1px solid rgba(125,207,125,0.2)",
@@ -657,11 +657,11 @@ export function ScoreDraftPanel({
                             }}
                           >
                             <div className="flex items-start justify-between gap-3">
-                              <div className="text-white text-[13px] font-medium">
+                              <div className="text-white text-[14px] font-medium">
                                 {g.description}
                               </div>
                               <span
-                                className="shrink-0 rounded uppercase tracking-wider"
+                                className="shrink-0 rounded"
                                 style={{
                                   background: `${impactColor(g.impact)}22`,
                                   color: impactColor(g.impact),
@@ -675,7 +675,7 @@ export function ScoreDraftPanel({
                             </div>
                             {g.potential_points > 0 && (
                               <div
-                                className="mt-1 text-[11px]"
+                                className="mt-1 text-[12px]"
                                 style={{ color: "rgba(255,255,255,0.45)" }}
                               >
                                 Fixing this could add ~{g.potential_points} points
@@ -697,12 +697,12 @@ export function ScoreDraftPanel({
                       }}
                     >
                       <div
-                        className="uppercase tracking-wider mb-1"
+                        className="mb-1"
                         style={{ color: GOLD, fontSize: 10, fontWeight: 600 }}
                       >
                         IRIS recommends
                       </div>
-                      <p className="text-white text-[13px] leading-relaxed">
+                      <p className="text-white text-[14px] leading-relaxed">
                         {result.iris_recommendation}
                       </p>
                     </div>
@@ -713,7 +713,7 @@ export function ScoreDraftPanel({
                     {onFixWithIris && (
                       <button
                         onClick={handleFix}
-                        className="rounded-md px-3 py-2 text-[13px] font-medium"
+                        className="rounded-md px-3 py-2 text-[14px] font-medium"
                         style={{
                           background: "rgba(196,154,43,0.12)",
                           border: "1px solid rgba(196,154,43,0.4)",
@@ -725,13 +725,13 @@ export function ScoreDraftPanel({
                     )}
                     <button
                       onClick={handleSave}
-                      className="rounded-md px-3 py-2 text-[13px] text-white/70 border border-white/15"
+                      className="rounded-md px-3 py-2 text-[14px] text-white/70 border border-white/15"
                     >
                       Save Score
                     </button>
                     <button
                       onClick={handleScoreAgain}
-                      className="rounded-md px-3 py-2 text-[13px] text-white/70 border border-white/15"
+                      className="rounded-md px-3 py-2 text-[14px] text-white/70 border border-white/15"
                     >
                       Score Again
                     </button>
@@ -769,7 +769,7 @@ function Toggle({
       />
       <div>
         <div className="text-white text-[12px]">{label}</div>
-        <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+        <div className="text-[12px]" style={{ color: "rgba(255,255,255,0.4)" }}>
           {sub}
         </div>
       </div>
@@ -814,13 +814,13 @@ function QuickResults({
         <div className="text-[36px] font-medium text-white">
           {score} <span className="text-[18px] text-white/40">/ 30</span>
         </div>
-        <div className="text-[13px] text-white/60 mt-1">
+        <div className="text-[14px] text-white/60 mt-1">
           {missing > 0 ? `${missing} requirement${missing === 1 ? "" : "s"} missing` : "All requirements covered"}
         </div>
       </div>
       <div className="space-y-1.5">
         {checklist.map((c, i) => (
-          <div key={i} className="flex items-start gap-2 text-[13px]">
+          <div key={i} className="flex items-start gap-2 text-[14px]">
             {c.covered ? (
               <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "#7dcf7d" }} />
             ) : (
@@ -832,7 +832,7 @@ function QuickResults({
       </div>
       <button
         onClick={onFullScore}
-        className="w-full rounded-md py-2.5 text-[13px] font-medium"
+        className="w-full rounded-md py-2.5 text-[14px] font-medium"
         style={{
           background: "rgba(196,154,43,0.12)",
           border: "1px solid rgba(196,154,43,0.4)",

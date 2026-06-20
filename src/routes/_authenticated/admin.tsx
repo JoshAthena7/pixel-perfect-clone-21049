@@ -99,7 +99,7 @@ function AdminLayout() {
             style={{
               fontSize: 9,
               letterSpacing: "0.12em",
-              textTransform: "uppercase",
+              textTransform: "",
               color: toolsActive ? "#c9a84c" : "rgba(255,255,255,0.4)",
               fontWeight: 600,
             }}

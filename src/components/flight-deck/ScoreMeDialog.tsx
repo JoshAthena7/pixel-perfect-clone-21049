@@ -326,7 +326,7 @@ export function ScoreMeDialog({
                   onChange={(e) => setDraft(e.target.value)}
                   placeholder="Paste your draft from Word, SharePoint, Loopio, or wherever you are working..."
                   disabled={loading}
-                  className={`w-full rounded-lg p-3 text-white text-[13px] resize-y outline-none ${loading ? "iris-textarea-reading" : ""}`}
+                  className={`w-full rounded-lg p-3 text-white text-[14px] resize-y outline-none ${loading ? "iris-textarea-reading" : ""}`}
                   style={{
                     background: "rgba(255,255,255,0.03)",
                     border: "1px solid rgba(255,255,255,0.1)",
@@ -420,7 +420,7 @@ export function ScoreMeDialog({
                 onChange={(e) => setStuckPrompt(e.target.value)}
                 placeholder="In your own words: what is this question really asking?"
                 disabled={stuckLoading}
-                className="w-full rounded-lg p-3 text-white text-[13px] resize-y outline-none"
+                className="w-full rounded-lg p-3 text-white text-[14px] resize-y outline-none"
                 style={{
                   background: "rgba(255,255,255,0.03)",
                   border: "1px solid rgba(255,255,255,0.1)",
@@ -452,7 +452,7 @@ export function ScoreMeDialog({
                     border: `1px solid ${GOLD}`,
                   }}
                 >
-                  <div style={{ fontSize: 9, color: GOLD, textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 700, marginBottom: 6 }}>
+                  <div style={{ fontSize: 9, color: GOLD, textTransform: "", letterSpacing: "0.12em", fontWeight: 700, marginBottom: 6 }}>
                     IRIS · YOUR OPENING
                   </div>
                   <div className="whitespace-pre-wrap text-white" style={{ fontSize: 13, lineHeight: 1.6 }}>
@@ -509,7 +509,7 @@ export function ScoreMeDialog({
                   style={{
                     fontSize: 10,
                     color: "rgba(255,255,255,0.45)",
-                    textTransform: "uppercase",
+                    textTransform: "",
                     letterSpacing: "0.08em",
                     paddingBottom: 6,
                   }}
@@ -572,7 +572,7 @@ export function ScoreMeDialog({
                   style={{
                     fontSize: 9,
                     color: GOLD,
-                    textTransform: "uppercase",
+                    textTransform: "",
                     letterSpacing: "0.12em",
                     fontWeight: 700,
                   }}
@@ -658,7 +658,7 @@ function ResultCard({
         style={{
           fontSize: 9,
           color: labelColor,
-          textTransform: "uppercase",
+          textTransform: "",
           letterSpacing: "0.12em",
           fontWeight: 700,
         }}

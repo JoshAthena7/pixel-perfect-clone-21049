@@ -50,7 +50,7 @@ export function MissionOutcomeCard({ missionId }: { missionId: string }) {
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <span
-            className="inline-flex items-center gap-1.5 rounded-full font-semibold"
+            className="inline-flex items-center gap-1.5 rounded-full font-medium"
             style={{
               background: meta.bg,
               border: `0.5px solid ${meta.border}`,
@@ -65,7 +65,7 @@ export function MissionOutcomeCard({ missionId }: { missionId: string }) {
           </span>
           <div style={{ color: "white", fontSize: 14, fontWeight: 500 }}>Mission Outcome</div>
         </div>
-        <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.45)" }}>
+        <div className="text-[12px]" style={{ color: "rgba(255,255,255,0.45)" }}>
           Closed {closedDate}
         </div>
       </div>
@@ -94,7 +94,7 @@ export function MissionOutcomeCard({ missionId }: { missionId: string }) {
           <Link
             to="/missions/$missionId/insights"
             params={{ missionId }}
-            className="rounded-md px-3 py-1.5 text-[11px] font-medium"
+            className="rounded-md px-3 py-1.5 text-[12px] font-medium"
             style={{
               border: "1px solid rgba(201,168,76,0.4)",
               color: "#c9a84c",
@@ -112,7 +112,7 @@ export function MissionOutcomeCard({ missionId }: { missionId: string }) {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[10px]" style={{ color: "rgba(255,255,255,0.45)", letterSpacing: "0.08em" }}>
+      <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.45)", letterSpacing: "0.08em" }}>
         {label.toUpperCase()}
       </div>
       <div className="mt-0.5" style={{ color: "white", fontWeight: 500 }}>

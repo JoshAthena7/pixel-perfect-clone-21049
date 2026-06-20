@@ -12,22 +12,22 @@ export type IrisConfig = Record<string, unknown> & {
 export function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="mb-4">
-      <div className="uppercase tracking-[0.12em] text-[10px]" style={{ color: GOLD }}>
+      <div className="tracking-[0.12em] text-[11px]" style={{ color: GOLD }}>
         {title}
       </div>
-      {subtitle && <p className="text-[10px] text-white/50 mt-1">{subtitle}</p>}
+      {subtitle && <p className="text-[11px] text-white/50 mt-1">{subtitle}</p>}
     </div>
   );
 }
 
 export function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="uppercase tracking-[0.1em] text-[9px] mb-1.5" style={{ color: GOLD }}>
+    <div className="tracking-[0.1em] text-[11px] mb-1.5" style={{ color: GOLD }}>
       {children}
     </div>
   );
 }
 
 export function FieldDesc({ children }: { children: React.ReactNode }) {
-  return <p className="text-[9px] text-white/45 mb-2">{children}</p>;
+  return <p className="text-[11px] text-white/45 mb-2">{children}</p>;
 }
