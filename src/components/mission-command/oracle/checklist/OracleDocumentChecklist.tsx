@@ -247,15 +247,16 @@ export function OracleDocumentChecklist({
 
   async function processOne(doc: MissionDoc) {
     if (!doc.file_url) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const docs = supabase.from("mission_documents") as any;
     try {
-      await supabase.from("mission_documents").update({ processing_status: "processing", processing_error_message: null }).eq("id", doc.id);
+      await docs.update({ processing_status: "processing", processing_error_message: null }).eq("id", doc.id);
       const { data: blob } = await supabase.storage.from(BUCKET).download(doc.file_url);
       if (!blob) throw new Error("Could not download file from storage");
       const file = new File([blob], doc.file_url.split("/").pop() || doc.title || "doc", { type: blob.type });
       const text = (await extractTextFromBlob(file, file.name)).trim();
       if (text.length < 100) {
-        await supabase
-          .from("mission_documents")
+        await docs
           .update({
             processing_status: "error",
             processing_error_message: "Could not extract text — this may be an image-only PDF.",
@@ -280,8 +281,7 @@ export function OracleDocumentChecklist({
       });
       const json = (await res.json().catch(() => ({}))) as { ok?: boolean; items_extracted?: number; error?: string };
       if (json.ok) {
-        await supabase
-          .from("mission_documents")
+        await docs
           .update({
             processing_status: "complete",
             items_extracted: json.items_extracted ?? 0,
@@ -289,8 +289,7 @@ export function OracleDocumentChecklist({
           })
           .eq("id", doc.id);
       } else {
-        await supabase
-          .from("mission_documents")
+        await docs
           .update({
             processing_status: "error",
             processing_error_message: json.error ?? "Processing failed",
@@ -298,8 +297,7 @@ export function OracleDocumentChecklist({
           .eq("id", doc.id);
       }
     } catch (e) {
-      await supabase
-        .from("mission_documents")
+      await docs
         .update({
           processing_status: "error",
           processing_error_message: e instanceof Error ? e.message : "Processing failed",
@@ -307,6 +305,7 @@ export function OracleDocumentChecklist({
         .eq("id", doc.id);
     }
   }
+
 
   async function retry(doc: MissionDoc) {
     setDocs((cur) =>
