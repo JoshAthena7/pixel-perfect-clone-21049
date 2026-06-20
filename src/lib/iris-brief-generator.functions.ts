@@ -55,6 +55,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { buildMissionContext, serializeContextForPrompt } from "@/lib/iris/build-mission-context";
+import { buildLanguagePrompt } from "@/lib/iris/language-prompt";
 
 const Input = z.object({
   missionId: z.string().uuid(),
@@ -209,6 +210,21 @@ export const generateIrisBrief = createServerFn({ method: "POST" })
       const contextBlock = serializeContextForPrompt(ctx, "question");
 
       // 2) System + user prompts (grounded)
+      // Fetch per-mission IRIS Studio language config and append to system prompt.
+      let languageBlock = "";
+      try {
+        const { data: cfg } = await (supabase as unknown as {
+          from: (t: string) => { select: (s: string) => { eq: (k: string, v: string) => { maybeSingle: () => Promise<{ data: unknown }> } } };
+        })
+          .from("mission_iris_config")
+          .select("person_first_pairs, cultural_standards, state_terminology")
+          .eq("mission_id", data.missionId)
+          .maybeSingle();
+        if (cfg) languageBlock = buildLanguagePrompt(cfg as Parameters<typeof buildLanguagePrompt>[0]);
+      } catch (e) {
+        console.warn("[iris-brief] could not load mission_iris_config", e);
+      }
+
       const system = `You are IRIS, the intelligence co-pilot for Athena Strategy Group's ATLAS platform — Medicaid managed care procurement consulting.
 
 You are generating a pre-writing intelligence brief for a writer.
@@ -221,7 +237,7 @@ CONTENT RULES:
 - iris_evidence: industry-level proof points from public sources surfaced by ORACLE. Never invent statistics.
 - Never generate client-specific performance data, outcomes, or case studies.
 - client_proof_points_prompt instructs the writer to add their own organization's data.
-- No filler ("it is important to note"). Direct, briefing-officer voice.`;
+- No filler ("it is important to note"). Direct, briefing-officer voice.${languageBlock}`;
 
       const userMsg = [
         `=== MISSION INTELLIGENCE ===`,

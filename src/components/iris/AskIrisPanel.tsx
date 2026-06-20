@@ -32,6 +32,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { askIrisWithSources } from "@/lib/iris/perplexity.functions";
 import ReactMarkdown from "react-markdown";
 import { IrisMark } from "@/components/iris/IrisMark";
+import { ReadAloudToggle } from "@/components/iris/ReadAloudToggle";
 import { useIris, getPageLabel } from "@/components/iris/IrisContext";
 
 const IRIS = "#A78BFA";
@@ -568,6 +569,7 @@ export function AskIrisPanel() {
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <ReadAloudToggle messages={messages} />
             <button onClick={() => setState("collapsed")} title="Minimize" className="h-7 w-7 inline-flex items-center justify-center text-white/65 hover:text-white">
               <ChevronRight className="h-4 w-4" />
             </button>

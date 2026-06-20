@@ -1,16 +1,38 @@
 // IRIS voice TTS endpoint. Synthesizes speech via ElevenLabs and returns
-// MP3 bytes. Auth-gated by a Supabase bearer token.
+// MP3 bytes. Auth-gated by a Supabase bearer token. The API key NEVER leaves
+// the server.
 //
-// Voice id resolution (first match wins):
-//   1. Body `voiceId` (when present)
-//   2. process.env.IRIS_VOICE_ID  ← set this secret to your custom voice
-//   3. Fallback: ElevenLabs "Sarah" (EXAVITQu4vr4xnSDxMaL)
+// Accepted body:
+//   text:        string (required, 1-5000 chars)
+//   voiceId:     string (optional, overrides config / IRIS_VOICE_ID)
+//   modelId:     enum   (optional, defaults to eleven_multilingual_v2)
+//   settings:    { stability, similarity_boost, style, use_speaker_boost, speed }
+//                (all optional, sensible defaults)
+//   streaming:   boolean (optional, true = /stream endpoint for low latency)
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+
+const SettingsSchema = z.object({
+  stability: z.number().min(0).max(1).optional(),
+  similarity_boost: z.number().min(0).max(1).optional(),
+  style: z.number().min(0).max(1).optional(),
+  use_speaker_boost: z.boolean().optional(),
+  speed: z.number().min(0.25).max(4.0).optional(),
+});
 
 const BodySchema = z.object({
   text: z.string().min(1).max(5000),
   voiceId: z.string().min(1).optional(),
+  modelId: z
+    .enum([
+      "eleven_multilingual_v2",
+      "eleven_turbo_v2_5",
+      "eleven_flash_v2_5",
+      "eleven_monolingual_v1",
+    ])
+    .optional(),
+  settings: SettingsSchema.optional(),
+  streaming: z.boolean().optional(),
 });
 
 const FALLBACK_VOICE_ID = "EXAVITQu4vr4xnSDxMaL"; // Sarah
@@ -46,25 +68,32 @@ export const Route = createFileRoute("/api/iris-voice")({
           );
         }
 
-        const voiceId =
-          body.voiceId || process.env.IRIS_VOICE_ID || FALLBACK_VOICE_ID;
+        const voiceId = body.voiceId || process.env.IRIS_VOICE_ID || FALLBACK_VOICE_ID;
+        const modelId = body.modelId ?? "eleven_multilingual_v2";
+        const s = body.settings ?? {};
+        const streaming = body.streaming === true;
+        const path = streaming
+          ? `text-to-speech/${voiceId}/stream`
+          : `text-to-speech/${voiceId}`;
 
         const ttsRes = await fetch(
-          `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
+          `https://api.elevenlabs.io/v1/${path}?output_format=mp3_44100_128`,
           {
             method: "POST",
             headers: {
               "xi-api-key": apiKey,
               "Content-Type": "application/json",
+              Accept: "audio/mpeg",
             },
             body: JSON.stringify({
               text: body.text,
-              model_id: "eleven_multilingual_v2",
+              model_id: modelId,
               voice_settings: {
-                stability: 0.5,
-                similarity_boost: 0.75,
-                style: 0.35,
-                use_speaker_boost: true,
+                stability: s.stability ?? 0.55,
+                similarity_boost: s.similarity_boost ?? 0.75,
+                style: s.style ?? 0.2,
+                use_speaker_boost: s.use_speaker_boost ?? true,
+                speed: s.speed ?? 1.0,
               },
             }),
           },
