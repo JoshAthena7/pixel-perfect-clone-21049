@@ -21,7 +21,7 @@ export function PersonalityTab({
         <div>
           <div className="flex items-center justify-between">
             <FieldLabel>TONE</FieldLabel>
-            <span className="text-[11px] text-white/60 font-mono">{tone.toFixed(2)}</span>
+            <span className="text-[11px] text-white/60">{tone.toFixed(2)}</span>
           </div>
           <FieldDesc>0 = clinical • 1 = warm</FieldDesc>
           <Slider value={[tone]} min={0} max={1} step={0.05} onValueChange={(v) => setTone(v[0])} />
@@ -29,7 +29,7 @@ export function PersonalityTab({
         <div>
           <div className="flex items-center justify-between">
             <FieldLabel>FORMALITY</FieldLabel>
-            <span className="text-[11px] text-white/60 font-mono">{formality.toFixed(2)}</span>
+            <span className="text-[11px] text-white/60">{formality.toFixed(2)}</span>
           </div>
           <FieldDesc>0 = casual • 1 = formal</FieldDesc>
           <Slider value={[formality]} min={0} max={1} step={0.05} onValueChange={(v) => setFormality(v[0])} />
