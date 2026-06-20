@@ -51,6 +51,7 @@ import { Route as AuthenticatedAdminIrisStudioRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminIrisRefreshRouteImport } from './routes/_authenticated/admin.iris-refresh'
 import { Route as AuthenticatedAdminIrisHealthRouteImport } from './routes/_authenticated/admin.iris-health'
 import { Route as AuthenticatedAdminIrisControlRouteImport } from './routes/_authenticated/admin.iris-control'
+import { Route as AuthenticatedAdminIrisConsoleRouteImport } from './routes/_authenticated/admin.iris-console'
 import { Route as AuthenticatedAdminInsightsRouteImport } from './routes/_authenticated/admin.insights'
 import { Route as AuthenticatedAdminEmailTemplatesRouteImport } from './routes/_authenticated/admin.email-templates'
 import { Route as AuthenticatedAdminActivityRouteImport } from './routes/_authenticated/admin.activity'
@@ -331,6 +332,12 @@ const AuthenticatedAdminIrisControlRoute =
   AuthenticatedAdminIrisControlRouteImport.update({
     id: '/iris-control',
     path: '/iris-control',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminIrisConsoleRoute =
+  AuthenticatedAdminIrisConsoleRouteImport.update({
+    id: '/iris-console',
+    path: '/iris-console',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminInsightsRoute =
@@ -677,6 +684,7 @@ export interface FileRoutesByFullPath {
   '/admin/activity': typeof AuthenticatedAdminActivityRoute
   '/admin/email-templates': typeof AuthenticatedAdminEmailTemplatesRoute
   '/admin/insights': typeof AuthenticatedAdminInsightsRoute
+  '/admin/iris-console': typeof AuthenticatedAdminIrisConsoleRoute
   '/admin/iris-control': typeof AuthenticatedAdminIrisControlRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
   '/admin/iris-refresh': typeof AuthenticatedAdminIrisRefreshRoute
@@ -771,6 +779,7 @@ export interface FileRoutesByTo {
   '/admin/activity': typeof AuthenticatedAdminActivityRoute
   '/admin/email-templates': typeof AuthenticatedAdminEmailTemplatesRoute
   '/admin/insights': typeof AuthenticatedAdminInsightsRoute
+  '/admin/iris-console': typeof AuthenticatedAdminIrisConsoleRoute
   '/admin/iris-control': typeof AuthenticatedAdminIrisControlRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
   '/admin/iris-refresh': typeof AuthenticatedAdminIrisRefreshRoute
@@ -869,6 +878,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/activity': typeof AuthenticatedAdminActivityRoute
   '/_authenticated/admin/email-templates': typeof AuthenticatedAdminEmailTemplatesRoute
   '/_authenticated/admin/insights': typeof AuthenticatedAdminInsightsRoute
+  '/_authenticated/admin/iris-console': typeof AuthenticatedAdminIrisConsoleRoute
   '/_authenticated/admin/iris-control': typeof AuthenticatedAdminIrisControlRoute
   '/_authenticated/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
   '/_authenticated/admin/iris-refresh': typeof AuthenticatedAdminIrisRefreshRoute
@@ -967,6 +977,7 @@ export interface FileRouteTypes {
     | '/admin/activity'
     | '/admin/email-templates'
     | '/admin/insights'
+    | '/admin/iris-console'
     | '/admin/iris-control'
     | '/admin/iris-health'
     | '/admin/iris-refresh'
@@ -1061,6 +1072,7 @@ export interface FileRouteTypes {
     | '/admin/activity'
     | '/admin/email-templates'
     | '/admin/insights'
+    | '/admin/iris-console'
     | '/admin/iris-control'
     | '/admin/iris-health'
     | '/admin/iris-refresh'
@@ -1158,6 +1170,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/activity'
     | '/_authenticated/admin/email-templates'
     | '/_authenticated/admin/insights'
+    | '/_authenticated/admin/iris-console'
     | '/_authenticated/admin/iris-control'
     | '/_authenticated/admin/iris-health'
     | '/_authenticated/admin/iris-refresh'
@@ -1565,6 +1578,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIrisControlRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/iris-console': {
+      id: '/_authenticated/admin/iris-console'
+      path: '/iris-console'
+      fullPath: '/admin/iris-console'
+      preLoaderRoute: typeof AuthenticatedAdminIrisConsoleRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/insights': {
       id: '/_authenticated/admin/insights'
       path: '/insights'
@@ -1964,6 +1984,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminActivityRoute: typeof AuthenticatedAdminActivityRoute
   AuthenticatedAdminEmailTemplatesRoute: typeof AuthenticatedAdminEmailTemplatesRoute
   AuthenticatedAdminInsightsRoute: typeof AuthenticatedAdminInsightsRoute
+  AuthenticatedAdminIrisConsoleRoute: typeof AuthenticatedAdminIrisConsoleRoute
   AuthenticatedAdminIrisControlRoute: typeof AuthenticatedAdminIrisControlRoute
   AuthenticatedAdminIrisHealthRoute: typeof AuthenticatedAdminIrisHealthRoute
   AuthenticatedAdminIrisRefreshRoute: typeof AuthenticatedAdminIrisRefreshRoute
@@ -1985,6 +2006,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminActivityRoute: AuthenticatedAdminActivityRoute,
   AuthenticatedAdminEmailTemplatesRoute: AuthenticatedAdminEmailTemplatesRoute,
   AuthenticatedAdminInsightsRoute: AuthenticatedAdminInsightsRoute,
+  AuthenticatedAdminIrisConsoleRoute: AuthenticatedAdminIrisConsoleRoute,
   AuthenticatedAdminIrisControlRoute: AuthenticatedAdminIrisControlRoute,
   AuthenticatedAdminIrisHealthRoute: AuthenticatedAdminIrisHealthRoute,
   AuthenticatedAdminIrisRefreshRoute: AuthenticatedAdminIrisRefreshRoute,
