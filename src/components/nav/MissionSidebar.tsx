@@ -58,6 +58,7 @@ function buildItems(missionId: string): NavItem[] {
       Icon: Radar,
       to: `/missions/${missionId}/war-room`,
       matchSegs: ["war-room"],
+      tooltip: "Air Traffic Control — mission oversight for leads and managers.",
     },
     {
       id: "olympus",
