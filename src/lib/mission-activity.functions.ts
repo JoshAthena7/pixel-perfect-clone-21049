@@ -156,7 +156,7 @@ export const getMissionActivity = createServerFn({ method: "POST" })
           .from("mission_assist_events")
           .select("id,question_id,user_id,event_type,metadata,created_at")
           .eq("mission_id", data.missionId)
-          .in("event_type", ["check_in", "sticky_note_posted", "sticky_note_pinned_slack", "brief_exported", "nudge_sent", "writer_reviewed", "writer_flagged", "oracle_intel_added", "score_me_run", "mission_pulse_signal", "trivia_answered"])
+          .in("event_type", ["check_in", "sticky_note_posted", "sticky_note_pinned_slack", "sticky_note_resolved", "sticky_note_escalation", "brief_exported", "nudge_sent", "writer_reviewed", "writer_flagged", "oracle_intel_added", "score_me_run", "mission_pulse_signal", "trivia_answered"])
           .order("created_at", { ascending: false })
           .limit(200),
       ),
@@ -358,12 +358,38 @@ export const getMissionActivity = createServerFn({ method: "POST" })
         });
       } else if (r.event_type === "sticky_note_posted") {
         const note = (meta.summary ?? "").toString().slice(0, 60);
+        const nt = (meta.note_type ?? "note").toString();
+        const verb =
+          nt === "decision" ? "posted a decision" :
+          nt === "question" ? "asked a question" :
+          nt === "blocker" ? "flagged a blocker" :
+          nt === "insight" ? "shared an insight" :
+          "pinned a note";
         items.push({
           id: `sticky:${r.id}`, stream: "sticky_note", created_at: r.created_at,
           actor: actorFull, question_id: r.question_id,
           question_number: q?.question_number ?? null, question_text: q?.question_text ?? null,
-          summary: `${firstName} pinned a note to ${qLabel} — ${note}${note.length === 60 ? "…" : ""}`,
+          summary: `${firstName} ${verb} on ${qLabel}${note ? ` — ${note}${note.length === 60 ? "…" : ""}` : ""}`,
           detail: note,
+        });
+      } else if (r.event_type === "sticky_note_resolved") {
+        const nt = (meta.note_type ?? "note").toString();
+        items.push({
+          id: `sticky-res:${r.id}`, stream: "sticky_note", created_at: r.created_at,
+          actor: actorFull, question_id: r.question_id,
+          question_number: q?.question_number ?? null, question_text: q?.question_text ?? null,
+          summary: `${firstName} resolved a ${nt} on ${qLabel}`,
+          detail: (meta.resolution_note ?? "").toString().slice(0, 240),
+        });
+      } else if (r.event_type === "sticky_note_escalation") {
+        const nt = (meta.note_type ?? "note").toString();
+        const lvl = Number(meta.escalation_level ?? 0);
+        items.push({
+          id: `sticky-esc:${r.id}`, stream: "sticky_note", created_at: r.created_at,
+          actor: actorFull, question_id: r.question_id,
+          question_number: q?.question_number ?? null, question_text: q?.question_text ?? null,
+          summary: `Unanswered ${nt} on ${qLabel} — escalation level ${lvl}`,
+          detail: "",
         });
       } else if (r.event_type === "brief_exported") {
         items.push({

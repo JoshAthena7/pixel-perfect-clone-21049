@@ -11,9 +11,11 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { X, Pin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fireAssistEvent } from "@/lib/fireAssistEvent";
+import { isSlackConfigured, postNoteToSlack as postNoteToSlackFn } from "@/lib/slack-notify.functions";
 import { toast } from "sonner";
 
 type Props = {
@@ -96,9 +98,6 @@ const TYPE_BY: Record<NoteType, (typeof NOTE_TYPES)[number]> = NOTE_TYPES.reduce
   {} as Record<NoteType, (typeof NOTE_TYPES)[number]>,
 );
 
-const SLACK_WEBHOOK_URL: string | undefined =
-  (import.meta.env.VITE_SLACK_WEBHOOK_URL as string | undefined) || undefined;
-
 function firstNameOf(name: string | null | undefined, email: string | null | undefined): string {
   const raw = name || email || "Someone";
   return raw.split(/[\s@]/)[0];
@@ -139,59 +138,6 @@ function escalationState(createdAt: string) {
   };
 }
 
-async function postNoteToSlack(args: {
-  noteId: string;
-  noteType: NoteType;
-  content: string;
-  questionNumber: string | null;
-  questionTitle: string | null;
-}) {
-  if (!SLACK_WEBHOOK_URL) return;
-  const typeEmoji: Record<NoteType, string> = {
-    decision: "📋",
-    question: "❓",
-    blocker: "🚧",
-    insight: "💡",
-  };
-  const emoji = typeEmoji[args.noteType];
-  const label = args.noteType.toUpperCase();
-  const qNum = args.questionNumber ?? "?";
-  const title = args.questionTitle ?? "";
-  const payload = {
-    text: `${emoji} ATLAS · Q${qNum} · ${label}`,
-    blocks: [
-      { type: "header", text: { type: "plain_text", text: `${emoji} ${label} — Q${qNum}` } },
-      { type: "section", text: { type: "mrkdwn", text: `*${title}*\n${args.content}` } },
-      {
-        type: "context",
-        elements: [{ type: "mrkdwn", text: `Posted in ATLAS · ${new Date().toLocaleString()}` }],
-      },
-      ...(args.noteType === "question" || args.noteType === "blocker"
-        ? [
-            {
-              type: "section",
-              text: { type: "mrkdwn", text: `_This note requires a response. Reply in ATLAS._` },
-            },
-          ]
-        : []),
-    ],
-  };
-  try {
-    await fetch(SLACK_WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    await supabase
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .from("question_notes" as any)
-      .update({ slack_posted: true, slack_posted_at: new Date().toISOString() } as never)
-      .eq("id", args.noteId);
-  } catch (err) {
-    console.warn("[sticky-notes] Slack post failed (non-fatal)", err);
-  }
-}
-
 export function StickyNotesPanel({
   open,
   onClose,
@@ -210,6 +156,15 @@ export function StickyNotesPanel({
   const [isLead, setIsLead] = useState(false);
   const [me, setMe] = useState<string | null>(null);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const checkSlackConfigured = useServerFn(isSlackConfigured);
+  const postSlackFn = useServerFn(postNoteToSlackFn);
+  const { data: slackCfg } = useQuery({
+    queryKey: ["slack-configured"],
+    queryFn: () => checkSlackConfigured(),
+    staleTime: 5 * 60_000,
+  });
+  const slackEnabled = !!slackCfg?.configured;
 
   const queryKey = ["sticky-notes-v2", questionId];
 
@@ -294,7 +249,7 @@ export function StickyNotesPanel({
         is_resolved: false,
         seen_by: [],
         escalation_level: 0,
-        pinned_to_slack: shareSlack && !!SLACK_WEBHOOK_URL,
+        pinned_to_slack: shareSlack && slackEnabled,
       };
       const { data: inserted, error } = await supabase
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -374,14 +329,25 @@ export function StickyNotesPanel({
           } as never);
       }
 
-      if (shareSlack && SLACK_WEBHOOK_URL) {
-        postNoteToSlack({
-          noteId: note.id,
-          noteType: selectedType,
-          content: body,
-          questionNumber,
-          questionTitle: questionText,
-        });
+      if (shareSlack && slackEnabled) {
+        postSlackFn({
+          data: {
+            noteType: selectedType,
+            content: body,
+            questionNumber,
+            questionTitle: questionText,
+          },
+        })
+          .then(async (r) => {
+            if (r?.ok) {
+              await supabase
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .from("question_notes" as any)
+                .update({ slack_posted: true, slack_posted_at: new Date().toISOString() } as never)
+                .eq("id", note.id);
+            }
+          })
+          .catch((err) => console.warn("[sticky-notes] Slack post failed", err));
       }
 
       qc.setQueryData<NoteRow[]>(queryKey, (prev) => [note, ...(prev ?? [])]);
@@ -686,7 +652,7 @@ export function StickyNotesPanel({
               marginTop: 10,
             }}
           >
-            {SLACK_WEBHOOK_URL ? (
+            {slackEnabled ? (
               <label
                 style={{
                   display: "inline-flex",
