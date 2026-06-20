@@ -205,21 +205,36 @@ export function ExecutiveSummary({
           {/* Coverage (30%) */}
           <div className="lg:col-span-3">
             <Label>INTELLIGENCE COVERAGE</Label>
-            <div
-              style={{ fontSize: 28, color: "white", fontWeight: 700, lineHeight: 1.1, marginTop: 4 }}
-            >
-              {pct}%
-            </div>
-            <div
-              style={{
-                fontSize: 10,
-                color: "rgba(255,255,255,0.5)",
-                marginTop: 4,
-                lineHeight: 1.4,
-              }}
-            >
-              {sentence}
-            </div>
+            {approvedCount > 50 ? (
+              <>
+                <div
+                  style={{ fontSize: 18, color: "white", fontWeight: 600, lineHeight: 1.1, marginTop: 4, letterSpacing: "0.04em" }}
+                >
+                  STRONG COVERAGE
+                </div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", marginTop: 4 }}>
+                  {approvedCount} signals active · target: 50
+                </div>
+              </>
+            ) : (
+              <>
+                <div
+                  style={{ fontSize: 28, color: "white", fontWeight: 700, lineHeight: 1.1, marginTop: 4 }}
+                >
+                  {pct}%
+                </div>
+                <div
+                  style={{
+                    fontSize: 10,
+                    color: "rgba(255,255,255,0.5)",
+                    marginTop: 4,
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {sentence}
+                </div>
+              </>
+            )}
             {sinceLastVisit > 0 && (
               <div
                 style={{
