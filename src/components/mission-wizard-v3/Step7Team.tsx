@@ -702,11 +702,11 @@ function AssignmentsSubStep({
         <ArrowLeft className="h-3 w-3" /> Back to Team
       </button>
       <p className="text-[11px] uppercase tracking-[0.18em] text-amber-300/80 mb-1">
-        Phase 4 of 7 — Team &amp; Assignments
+        Step 7 of 9 — Team &amp; Assignments
       </p>
       <WizardStepHeading
         title="Step 4B — Assign Questions"
-        subtitle="Assign every question to a lead writer. Every question must have an owner before BLAST OFF."
+        subtitle="Assign every question to a lead writer. Every question must have an owner before launch."
       />
 
       {totalCount === 0 && (
