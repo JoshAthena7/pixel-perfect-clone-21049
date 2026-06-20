@@ -652,7 +652,7 @@ export function StickyNotesPanel({
               marginTop: 10,
             }}
           >
-            {SLACK_WEBHOOK_URL ? (
+            {slackEnabled ? (
               <label
                 style={{
                   display: "inline-flex",
