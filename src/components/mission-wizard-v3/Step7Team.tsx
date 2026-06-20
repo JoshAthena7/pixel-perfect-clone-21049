@@ -213,7 +213,7 @@ function TeamSubStep({
   return (
     <div>
       <p className="text-[11px] uppercase tracking-[0.18em] text-amber-300/80 mb-1">
-        Phase 4 of 7 — Team &amp; Assignments
+        Step 7 of 9 — Team &amp; Assignments
       </p>
       <WizardStepHeading
         title="Step 4A — Assemble Your Mission Team"
