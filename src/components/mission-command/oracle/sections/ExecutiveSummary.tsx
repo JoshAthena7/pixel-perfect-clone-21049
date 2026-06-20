@@ -20,14 +20,33 @@ export function ExecutiveSummary({
     queryKey: ["mission-north-star", missionId],
     queryFn: async () => {
       const sb = supabase as any;
-      const { data } = await sb
-        .from("mission_north_star")
-        .select("content, status")
-        .eq("mission_id", missionId)
-        .order("version", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return data?.content ?? null;
+      // Read from the canonical sources (mission column + win-strategy),
+      // then fall back to the historical mission_north_star table.
+      const [missionRow, wsRow, historyRow] = await Promise.all([
+        sb.from("missions").select("north_star").eq("id", missionId).maybeSingle(),
+        sb
+          .from("mission_win_strategy")
+          .select("north_star_message")
+          .eq("mission_id", missionId)
+          .maybeSingle(),
+        sb
+          .from("mission_north_star")
+          .select("content")
+          .eq("mission_id", missionId)
+          .order("version", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+      const pick = (v: unknown) => {
+        const s = typeof v === "string" ? v.trim() : "";
+        return s.length > 0 ? s : null;
+      };
+      return (
+        pick(missionRow?.data?.north_star) ??
+        pick(wsRow?.data?.north_star_message) ??
+        pick(historyRow?.data?.content) ??
+        null
+      );
     },
     staleTime: 60_000,
   });
