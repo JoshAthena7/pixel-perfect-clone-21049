@@ -1069,7 +1069,7 @@ function WatchItemsCard({ missionId, mission }: { missionId: string; mission?: a
       (qRes.data ?? []).forEach((q: any) =>
         combined.push({
           id: `q-${q.id}`,
-          title: `Q${q.question_number ?? ""} — ${truncate(q.question_text ?? "", 100)}`,
+          title: `Q${q.question_number ?? ""} — ${normalizeWatchTitle(q.question_text ?? "")}`,
         }),
       );
       return combined.slice(0, 4);
