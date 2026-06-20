@@ -180,10 +180,16 @@ export function GlobalCommandBar({ email, isAdmin = false }: { email?: string | 
           <button
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent("atlas:iris:open"))}
-            className="hidden sm:inline-flex items-center gap-1 rounded-md text-[11px] font-medium px-2.5 py-1 transition-colors"
-            style={{ background: "rgba(127,119,221,0.12)", border: "1px solid rgba(127,119,221,0.3)", color: "rgba(200,195,255,0.9)" }}
+            className="iris-ask-btn group hidden sm:inline-flex items-center gap-2 rounded-full text-[11px] font-medium pl-1.5 pr-2.5 py-1 relative overflow-hidden"
+            aria-label="Ask IRIS"
           >
-            Ask IRIS
+            <span className="iris-orb" aria-hidden="true">
+              <span className="iris-orb-core" />
+              <span className="iris-orb-ring" />
+            </span>
+            <span className="iris-ask-label">Ask IRIS</span>
+            <kbd className="iris-ask-kbd hidden md:inline-flex">⌘I</kbd>
+            <span className="iris-ask-shimmer" aria-hidden="true" />
           </button>
           <span className="hidden sm:inline-block h-5 w-px" style={{ background: "rgba(255,255,255,0.08)" }} />
           <button

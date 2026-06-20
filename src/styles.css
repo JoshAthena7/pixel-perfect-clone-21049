@@ -777,3 +777,98 @@ html[data-write-mode="on"] .studio-body > .studio-left { border-right: none !imp
 .iris-textarea-reading {
   animation: iris-border-breathe 2s ease-in-out infinite;
 }
+
+/* ============ Ask IRIS — hybrid glass + living orb + shimmer ============ */
+.iris-ask-btn {
+  color: rgba(220,216,255,0.95);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  backdrop-filter: blur(10px) saturate(140%);
+  border: 1px solid rgba(160,140,255,0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 0 0 1px rgba(127,119,221,0.0),
+    0 6px 20px -12px rgba(127,119,221,0.6);
+  transition: border-color .25s ease, box-shadow .35s ease, transform .15s ease, color .2s ease;
+}
+.iris-ask-btn:hover {
+  border-color: rgba(180,160,255,0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 0 0 1px rgba(127,119,221,0.25),
+    0 10px 30px -10px rgba(127,119,221,0.85);
+  color: #fff;
+}
+.iris-ask-btn:active { transform: translateY(0.5px); }
+
+.iris-ask-label {
+  letter-spacing: 0.02em;
+  background: linear-gradient(90deg, #e7e2ff 0%, #fff 50%, #c9f4ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.iris-ask-kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9.5px;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 4px;
+  color: rgba(220,216,255,0.7);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Living orb */
+.iris-orb {
+  position: relative;
+  width: 16px; height: 16px;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 16px;
+}
+.iris-orb-core {
+  position: absolute; inset: 2px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 30%, #ffffff 0%, #b9a8ff 30%, #6d5cf0 65%, #2a1f8a 100%);
+  box-shadow: 0 0 10px rgba(140,120,255,0.7), inset 0 0 4px rgba(255,255,255,0.4);
+  animation: iris-orb-pulse 2.4s ease-in-out infinite;
+}
+.iris-orb-ring {
+  position: absolute; inset: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(180,160,255,0.5);
+  animation: iris-orb-ripple 2.8s ease-out infinite;
+}
+@keyframes iris-orb-pulse {
+  0%,100% { transform: scale(1);   filter: brightness(1); }
+  50%     { transform: scale(1.08); filter: brightness(1.15); }
+}
+@keyframes iris-orb-ripple {
+  0%   { transform: scale(0.9); opacity: 0.7; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* Conic shimmer sweep on hover */
+.iris-ask-shimmer {
+  position: absolute; inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(from 0deg,
+    transparent 0deg,
+    rgba(180,160,255,0.0) 200deg,
+    rgba(180,160,255,0.9) 290deg,
+    rgba(120,220,255,0.9) 320deg,
+    transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  opacity: 0;
+  transition: opacity .25s ease;
+  animation: iris-spin 4s linear infinite;
+  pointer-events: none;
+}
+.iris-ask-btn:hover .iris-ask-shimmer { opacity: 1; }
+@keyframes iris-spin { to { transform: rotate(360deg); } }
