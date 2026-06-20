@@ -12,6 +12,7 @@ import {
   updateProgressStatus, nextStatuses, dbToSimple, type ProgressStatus, type SimpleStatus,
 } from "@/lib/writer-cockpit.functions";
 import { buildLineOfSight } from "@/lib/iris-line-of-sight.functions";
+import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
 import { ScoreMeDialog } from "@/components/flight-deck/ScoreMeDialog";
 import { MissionPulsePanel } from "@/components/flight-deck/MissionPulsePanel";
 import { CheckInDialog } from "@/components/flight-deck/CheckInDialog";
