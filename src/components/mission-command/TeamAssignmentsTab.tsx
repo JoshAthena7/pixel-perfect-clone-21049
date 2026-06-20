@@ -222,7 +222,9 @@ function TeamSub({ missionId }: { missionId: string }) {
                   <td className="px-3 py-2">
                     <div className="flex gap-1 justify-end">
                       {a.atlas_invite_status !== "active" && (
-                        <Button size="sm" variant="ghost" onClick={() => sendInvite(m.member_id)}>Invite</Button>
+                        <Button size="sm" variant="ghost" onClick={() => setInviteTarget({ memberId: m.member_id, name: `${a.first_name ?? ""} ${a.last_name ?? ""}`.trim() || "this member", email: (a as any).email ?? "" })}>
+                          {a.atlas_invite_status === "invite_sent" ? "Re-invite" : "Invite"}
+                        </Button>
                       )}
                       <Button size="sm" variant="ghost" onClick={() => tryRemove(m)}>
                         <Trash2 className="size-4" />
