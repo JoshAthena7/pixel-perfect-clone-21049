@@ -575,52 +575,42 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         @keyframes atc-sos { 0%,100%{opacity:1; box-shadow:0 0 0 0 rgba(239,68,68,.7)} 50%{opacity:.7; box-shadow:0 0 12px 2px rgba(239,68,68,.6)} }
       `}</style>
 
-      {/* Mission status strip — pinned */}
+      {/* Mission status strip — pinned, minimal */}
       <div
         className="shrink-0 flex items-center gap-4 px-4 border-b text-[12px]"
         style={{
-          height: 48,
+          height: 44,
           background: "#050d18",
           borderColor: "rgba(255,255,255,0.08)",
         }}
       >
-        {/* LEFT */}
+        {/* LEFT — mission identity only */}
         <div className="flex items-center gap-3 shrink-0 min-w-0">
           <Radar className="w-4 h-4" style={{ color: GOLD }} />
-          <div className="flex flex-col leading-tight min-w-0">
-            <span className="font-semibold truncate" style={{ color: GOLD, fontSize: 13 }}>{missionName}</span>
-            <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase" }}>Air Traffic Control</span>
-          </div>
-          <span
-            className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded"
-            style={{ background: "rgba(34,197,94,0.15)", color: "#86efac" }}
-          >
-            {String(d.mission?.status ?? "active")}
-          </span>
+          <span className="font-semibold truncate" style={{ color: GOLD, fontSize: 13 }}>{missionName}</span>
           {daysToDeadline != null && (
-            <span className={`text-[11px] whitespace-nowrap ${daysToDeadline < 14 ? "text-amber-300" : "text-white/90"}`}>
+            <span className={`text-[11px] whitespace-nowrap ${daysToDeadline < 14 ? "text-amber-300" : "text-white/60"}`}>
               {daysToDeadline < 0 ? `${Math.abs(daysToDeadline)}d overdue` : `${daysToDeadline}d to submission`}
             </span>
           )}
-          <span
-            className="text-[11px] font-semibold whitespace-nowrap"
-            style={{ color: healthState === "at_risk" ? "#f87171" : healthState === "watch" ? "#fbbf24" : "#4ade80" }}
-          >
-            {healthState === "at_risk" ? "At Risk" : healthState === "watch" ? "Watch" : "On Track"}
+        </div>
+
+        {/* CENTER — one summary sentence, replaces six pills */}
+        <div className="flex-1 flex items-center justify-center min-w-0">
+          <span className="text-[12px] text-white/70 truncate">
+            <span className="text-white/90 font-medium">{d.pipeline.ready}</span>
+            <span className="text-white/45"> of </span>
+            <span className="text-white/90 font-medium">{d.stats.totalQuestions ?? 0}</span>
+            <span className="text-white/45"> finalized · </span>
+            <span className={(d.stats.atRiskCount ?? 0) > 0 ? "text-red-300 font-medium" : "text-white/70"}>
+              {d.stats.atRiskCount ?? 0} at risk
+            </span>
+            <span className="text-white/45"> · </span>
+            <span className="text-white/70">{d.writers.length} writers</span>
           </span>
         </div>
 
-        {/* CENTER pills — consistent ● dot prefix, no emoji */}
-        <div className="flex-1 flex items-center justify-center gap-2 flex-wrap min-w-0">
-          <StatPill icon="●" value={d.writers.length} label="Writers" />
-          <StatPill icon="✓" value={d.pipeline.ready} label="Finalized" />
-          <StatPill icon="●" value={d.stats.writersActiveToday} label="Active" />
-          <StatPill icon="⚠" value={d.stats.atRiskCount ?? 0} label="At Risk" danger={(d.stats.atRiskCount ?? 0) > 0} />
-          <StatPill icon="◯" value={(d.stats as any).unstartedCount ?? 0} label="Unstarted" />
-          <StatPill icon="●" value={notesTodayQ.data ?? 0} label="Notes today" />
-        </div>
-
-        {/* RIGHT */}
+        {/* RIGHT — SOS only when active; momentum stays */}
         <div className="flex items-center gap-3 shrink-0">
           {sosCount > 0 && (
             <button
@@ -641,17 +631,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
               ⚠ {sosCount > 1 ? `${sosCount} SOS` : "SOS"}
             </button>
           )}
-          <span className="text-[10px] text-white/45 whitespace-nowrap" style={{ fontFamily: "'Courier New', monospace" }}>
-            IRIS: {relTime(d.lastIrisRun)}
-          </span>
-          <Button
-            size="sm" variant="ghost" className="h-7 gap-1.5"
-            onClick={() => { dataQ.refetch(); trendQ.refetch(); }}
-          >
-            <RefreshCw className="w-3.5 h-3.5" /> Refresh
-          </Button>
           <MomentumScorePill missionId={missionId} />
-
         </div>
       </div>
 
