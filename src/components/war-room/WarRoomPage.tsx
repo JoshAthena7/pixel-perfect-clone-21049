@@ -257,7 +257,6 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
     ? Math.ceil((new Date(deadline).getTime() - Date.now()) / 86400_000)
     : null;
 
-  const groups = groupWriters(d.writers);
   const sosCount = sosActiveQ.data?.length ?? 0;
   const missionName = (d.mission?.name ?? "Mission").slice(0, 40);
 
