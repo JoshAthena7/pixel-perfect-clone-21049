@@ -1111,7 +1111,17 @@ function WatchItemsCard({ missionId, mission }: { missionId: string; mission?: a
               className="shrink-0 mt-1.5"
               style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b" }}
             />
-            <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.9)", lineHeight: 1.5 }}>
+            <span
+              style={{
+                fontSize: 13.5,
+                color: "rgba(255,255,255,0.9)",
+                lineHeight: 1.5,
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
               {it.title}
             </span>
           </li>
@@ -1123,7 +1133,7 @@ function WatchItemsCard({ missionId, mission }: { missionId: string; mission?: a
         className="inline-flex items-center gap-1 mt-5"
         style={{ color: GOLD, fontSize: 12, fontWeight: 700 }}
       >
-        View all watch items <ArrowRight size={12} />
+        View all {items.length} watch item{items.length === 1 ? "" : "s"} <ArrowRight size={12} />
       </Link>
     </section>
   );
