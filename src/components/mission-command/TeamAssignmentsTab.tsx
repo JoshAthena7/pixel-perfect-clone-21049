@@ -376,7 +376,7 @@ function AddMemberSheet({
                   className="block w-full text-left p-2 rounded hover:bg-muted"
                 >
                   <div className="font-medium">{m.first_name} {m.last_name}</div>
-                  <div className="text-[12px] text-muted-foreground">{m.job_title}</div>
+
                 </button>
               ))}
               {!filtered.length && <p className="text-[14px] text-muted-foreground">No matches.</p>}
