@@ -2,8 +2,9 @@ import { Link, useParams, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { tabLabel, isValidTab } from "@/components/mission-command/MissionTabs";
+import { shortMissionCode } from "@/lib/mission-display";
 
-type Crumb = { label: string; to?: string; params?: Record<string, string> };
+type Crumb = { label: string; fullLabel?: string; to?: string; params?: Record<string, string> };
 
 function useCrumbs(): Crumb[] {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
