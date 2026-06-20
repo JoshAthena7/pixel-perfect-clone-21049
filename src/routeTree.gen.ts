@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as WelcomeTokenRouteImport } from './routes/welcome.$token'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as CheckinTokenRouteImport } from './routes/checkin.$token'
+import { Route as ApiIrisVoiceRouteImport } from './routes/api/iris-voice'
 import { Route as AuthenticatedWelcomeRouteImport } from './routes/_authenticated/welcome'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
@@ -133,6 +134,11 @@ const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
 const CheckinTokenRoute = CheckinTokenRouteImport.update({
   id: '/checkin/$token',
   path: '/checkin/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiIrisVoiceRoute = ApiIrisVoiceRouteImport.update({
+  id: '/api/iris-voice',
+  path: '/api/iris-voice',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedWelcomeRoute = AuthenticatedWelcomeRouteImport.update({
@@ -637,6 +643,7 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AuthenticatedReportsRoute
   '/team': typeof AuthenticatedTeamRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
+  '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/welcome/$token': typeof WelcomeTokenRoute
@@ -727,6 +734,7 @@ export interface FileRoutesByTo {
   '/reports': typeof AuthenticatedReportsRoute
   '/team': typeof AuthenticatedTeamRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
+  '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/welcome/$token': typeof WelcomeTokenRoute
@@ -820,6 +828,7 @@ export interface FileRoutesById {
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/welcome': typeof AuthenticatedWelcomeRoute
+  '/api/iris-voice': typeof ApiIrisVoiceRoute
   '/checkin/$token': typeof CheckinTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/welcome/$token': typeof WelcomeTokenRoute
@@ -914,6 +923,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/team'
     | '/welcome'
+    | '/api/iris-voice'
     | '/checkin/$token'
     | '/email/unsubscribe'
     | '/welcome/$token'
@@ -1004,6 +1014,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/team'
     | '/welcome'
+    | '/api/iris-voice'
     | '/checkin/$token'
     | '/email/unsubscribe'
     | '/welcome/$token'
@@ -1096,6 +1107,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reports'
     | '/_authenticated/team'
     | '/_authenticated/welcome'
+    | '/api/iris-voice'
     | '/checkin/$token'
     | '/email/unsubscribe'
     | '/welcome/$token'
@@ -1180,6 +1192,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
+  ApiIrisVoiceRoute: typeof ApiIrisVoiceRoute
   CheckinTokenRoute: typeof CheckinTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   WelcomeTokenRoute: typeof WelcomeTokenRoute
@@ -1257,6 +1270,13 @@ declare module '@tanstack/react-router' {
       path: '/checkin/$token'
       fullPath: '/checkin/$token'
       preLoaderRoute: typeof CheckinTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/iris-voice': {
+      id: '/api/iris-voice'
+      path: '/api/iris-voice'
+      fullPath: '/api/iris-voice'
+      preLoaderRoute: typeof ApiIrisVoiceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/welcome': {
@@ -2058,6 +2078,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   UnsubscribeRoute: UnsubscribeRoute,
+  ApiIrisVoiceRoute: ApiIrisVoiceRoute,
   CheckinTokenRoute: CheckinTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   WelcomeTokenRoute: WelcomeTokenRoute,
