@@ -466,6 +466,8 @@ export function Step1Fuel({
           />
         </div>
 
+        <OracleDocumentChecklist missionId={missionId} variant="wizard" />
+
         {missingTextDocCount > 0 && (
           <div
             className="rounded-lg px-4 py-3 flex items-start gap-3"
