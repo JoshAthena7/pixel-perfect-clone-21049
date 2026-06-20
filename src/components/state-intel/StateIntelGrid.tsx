@@ -45,10 +45,18 @@ export function StateIntelGrid() {
   const [open, setOpen] = useState(false);
   const [picked, setPicked] = useState<string>("");
 
-  const { data: packs = [], isLoading } = useQuery({
+  const { data: packs = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["state-intel-packs"],
     queryFn: () => list(),
   });
+
+  const [timedOut, setTimedOut] = useState(false);
+  useEffect(() => {
+    if (!isLoading) return;
+    setTimedOut(false);
+    const t = window.setTimeout(() => setTimedOut(true), 5000);
+    return () => clearTimeout(t);
+  }, [isLoading]);
 
   const createMut = useMutation({
     mutationFn: ({ code, name }: { code: string; name: string }) =>
