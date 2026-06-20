@@ -22,7 +22,8 @@ export type ActivityStream =
   | "brief_exported"
   | "nudge"
   | "writer_reviewed"
-  | "writer_flagged";
+  | "writer_flagged"
+  | "trivia";
 
 export type ActivityItem = {
   id: string;
