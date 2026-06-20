@@ -504,6 +504,9 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
     } catch (e: any) {
       toast.error(e.message || "Could not dismiss");
     }
+  }
+
+
 
   async function handleAckFeedback(fbId: string, questionId: string) {
     await supabase.from("question_feedback")
