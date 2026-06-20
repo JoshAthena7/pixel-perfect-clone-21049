@@ -289,10 +289,12 @@ function OracleLeftColumn({
   missionId,
   selectedNodeId,
   onSelect,
+  onFeed,
 }: {
   missionId: string;
   selectedNodeId: string | null;
   onSelect: (id: string | null) => void;
+  onFeed: () => void;
 }) {
   const countQ = useQuery({
     queryKey: ["oracle-approved-count", missionId],
@@ -312,13 +314,13 @@ function OracleLeftColumn({
   }
 
   if ((countQ.data ?? 0) < 10) {
-    return <OracleEmptyGuide missionId={missionId} />;
+    return <OracleEmptyGuide onFeed={onFeed} />;
   }
 
   return <TaxonomyBrowser selectedNodeId={selectedNodeId} onSelect={onSelect} />;
 }
 
-function OracleEmptyGuide({ missionId }: { missionId: string }) {
+function OracleEmptyGuide({ onFeed }: { onFeed: () => void }) {
   const goReview = () => {
     const el = document.querySelector('[data-olympus-col="review"]');
     if (el) (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "start" });
@@ -339,17 +341,26 @@ function OracleEmptyGuide({ missionId }: { missionId: string }) {
         </div>
       </div>
       <ol className="space-y-4">
-        <GuideStep n={1} title="Run the Setup Wizard"
-          body="Upload your RFP and documents. IRIS extracts intelligence automatically.">
-          <Link
-            to="/olympus/wizard/$missionId"
-            params={{ missionId }}
-            search={{ step: 1 }}
+        <GuideStep n={1} title="Feed ATLAS"
+          body="Upload your RFP and documents, or add a manual intelligence item. IRIS extracts the rest.">
+          <button
+            type="button"
+            onClick={onFeed}
             className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium"
             style={{ background: "#d4af37", color: "#070f1c" }}
           >
-            Open Setup Wizard <ArrowRight className="h-3 w-3" />
-          </Link>
+            + Feed ATLAS <ArrowRight className="h-3 w-3" />
+          </button>
+        </GuideStep>
+        <GuideStep n={2} title="Review extracted items"
+          body="IRIS will surface items here for your review. Approve what's accurate.">
+          <button
+            type="button"
+            onClick={goReview}
+            className="text-[11px] text-white/55 hover:text-white/80 inline-flex items-center gap-1"
+          >
+            Go to Review Queue <ArrowRight className="h-3 w-3" />
+          </button>
         </GuideStep>
         <GuideStep n={2} title="Review extracted items"
           body="IRIS will surface items here for your review. Approve what's accurate.">
