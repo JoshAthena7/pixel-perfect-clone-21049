@@ -678,8 +678,10 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
       {briefOpenFor && (
         <BriefViewer
           q={briefOpenFor}
+          missionId={missionId}
           onClose={() => setBriefOpenFor(null)}
           onExport={() => handleExportBrief(briefOpenFor)}
+          onRefreshed={() => qc.invalidateQueries({ queryKey: refreshKey })}
         />
       )}
 
@@ -1349,8 +1351,36 @@ function AssistButton({
   );
 }
 
-function BriefViewer({ q, onClose, onExport }: { q: Q; onClose: () => void; onExport: () => void }) {
+function BriefViewer({
+  q,
+  missionId,
+  onClose,
+  onExport,
+  onRefreshed,
+}: {
+  q: Q;
+  missionId: string;
+  onClose: () => void;
+  onExport: () => void;
+  onRefreshed?: () => void;
+}) {
   const b = q.iris_brief ?? {};
+  const regenerate = useServerFn(generateIrisBrief);
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function handleRefresh() {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      await regenerate({ data: { missionId, questionId: q.id } });
+      onRefreshed?.();
+    } catch (e) {
+      console.error("Brief refresh failed", e);
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 50, display: "flex", justifyContent: "flex-end" }}>
       <div onClick={e => e.stopPropagation()} style={{
@@ -1365,7 +1395,27 @@ function BriefViewer({ q, onClose, onExport }: { q: Q; onClose: () => void; onEx
               <AdminOnlyModelBadge model={b.model_used} generatedAt={q.iris_brief_generated_at} />
             )}
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              title="Regenerate this brief from current ORACLE intel"
+              style={{
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.15)",
+                color: refreshing ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.8)",
+                padding: "4px 10px",
+                borderRadius: 4,
+                fontSize: 11,
+                cursor: refreshing ? "wait" : "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
+              <span style={{ display: "inline-block", animation: refreshing ? "spin 1s linear infinite" : "none" }}>↻</span>
+              {refreshing ? "Refreshing…" : "Refresh brief"}
+            </button>
             <button onClick={onExport} style={btn(GOLD)}><Download size={12}/> Export</button>
             <button onClick={onClose} style={btn("#888")}>Close</button>
           </div>
