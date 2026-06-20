@@ -78,8 +78,8 @@ export function OracleMissingDocsBanner({
           <span className="font-semibold text-amber-200">ORACLE is missing critical documents</span>{" "}
           — IRIS briefs may be incomplete.{" "}
           <span className="text-amber-200/70">
-            {missing.map((m) => m.label).slice(0, 4).join(" · ")}
-            {missing.length > 4 ? ` · +${missing.length - 4} more` : ""} not uploaded.
+            {missing.map((m) => m.label).slice(0, 2).join(" · ")}
+            {missing.length > 2 ? ` · +${missing.length - 2} more` : ""} not uploaded.
           </span>
         </span>
         <button
