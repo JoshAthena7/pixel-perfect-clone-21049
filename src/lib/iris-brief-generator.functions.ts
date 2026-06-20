@@ -449,6 +449,7 @@ CONTENT RULES:
         score: n.boosted_score ?? n.oracle_score ?? null,
       }));
       brief.oracle_nodes_used = uniqueNodes.length;
+      brief.model_used = modelUsed;
 
       // 5) Persist brief
       await supabase
