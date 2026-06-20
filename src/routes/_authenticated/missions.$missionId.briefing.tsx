@@ -468,7 +468,7 @@ function extractFocusItems(content: any, summary?: string | null): string[] {
 
 /* ───────────────── 2c. IRIS Brief (combined: Today's Focus + IRIS Guidance) ───────────────── */
 function IrisBriefCard({ missionId, mission }: { missionId: string; mission: any }) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(true);
   const { data: brief } = useQuery({
     queryKey: ["briefing-todays-focus", missionId],
     queryFn: async () => {
