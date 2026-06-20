@@ -11795,28 +11795,61 @@ export type Database = {
           author_id: string
           content: string
           created_at: string
+          escalation_level: number
           id: string
+          is_resolved: boolean
+          last_escalation_at: string | null
           mission_id: string
+          note_type: string
           pinned_to_slack: boolean
           question_id: string
+          reply_to_note_id: string | null
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          seen_by: Json
+          slack_posted: boolean
+          slack_posted_at: string | null
         }
         Insert: {
           author_id: string
           content: string
           created_at?: string
+          escalation_level?: number
           id?: string
+          is_resolved?: boolean
+          last_escalation_at?: string | null
           mission_id: string
+          note_type?: string
           pinned_to_slack?: boolean
           question_id: string
+          reply_to_note_id?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          seen_by?: Json
+          slack_posted?: boolean
+          slack_posted_at?: string | null
         }
         Update: {
           author_id?: string
           content?: string
           created_at?: string
+          escalation_level?: number
           id?: string
+          is_resolved?: boolean
+          last_escalation_at?: string | null
           mission_id?: string
+          note_type?: string
           pinned_to_slack?: boolean
           question_id?: string
+          reply_to_note_id?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          seen_by?: Json
+          slack_posted?: boolean
+          slack_posted_at?: string | null
         }
         Relationships: [
           {
@@ -11845,6 +11878,27 @@ export type Database = {
             columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_notes_reply_to_note_id_fkey"
+            columns: ["reply_to_note_id"]
+            isOneToOne: false
+            referencedRelation: "question_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_notes_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_notes_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -13654,6 +13708,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      escalate_unanswered_notes: { Args: never; Returns: undefined }
       get_app_base_url: { Args: never; Returns: string }
       get_engagement_compliance_score: {
         Args: { _engagement_id: string }
