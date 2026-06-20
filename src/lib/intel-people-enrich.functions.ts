@@ -47,7 +47,7 @@ export const enrichStakeholderWithPerplexity = createServerFn({ method: "POST" }
           model: "sonar-pro",
           recencyFilter: "year",
           system:
-            "You are IRIS profiling a stakeholder for Athena's proposal team. Write 4-6 sentences covering background, current role, policy positions, and notable recent activity. Be specific with dates, programs, and statements. Cite inline. If coverage is thin, say so plainly. No preamble.",
+            "You are IRIS profiling a stakeholder for the client's proposal team (Athena advises them; Athena is not the bidder). Write 4-6 sentences covering background, current role, policy positions, and notable recent activity. Be specific with dates, programs, and statements. Cite inline. If coverage is thin, say so plainly. No preamble.",
         });
         if (!profile?.content) return;
 

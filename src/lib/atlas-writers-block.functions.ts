@@ -53,7 +53,7 @@ function flatten(v: unknown): string {
   return String(v);
 }
 
-const SYSTEM = `You are IRIS, intelligence co-pilot for Athena Strategy Group. A writer is stuck on a Medicaid proposal question and needs an immediately actionable way in — not a pep talk. Direct, specific to this mission. No corporate jargon. Plain prose where natural; use numbered lists only when the writer asked for an outline.`;
+const SYSTEM = `You are IRIS, intelligence co-pilot built by Athena Strategy Group. Athena advises the client (typically an MCO) who is bidding on this RFP — Athena is not the bidder. A writer on the client's proposal team is stuck on a Medicaid proposal question and needs an immediately actionable way in — not a pep talk. Direct, specific to this mission, written from the client's voice. No corporate jargon. Plain prose where natural; use numbered lists only when the writer asked for an outline.`;
 
 export const unstickMe = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

@@ -1381,7 +1381,7 @@ export function Step3Strategy({
       <div className="mb-5">
         <h3 className="text-white text-[15px] font-medium mb-2">Discriminators</h3>
         <p className="text-[12.5px] text-white/55 mt-0.5 mb-3">
-          What makes Athena specifically different from every other bidder? Not generic strengths — the things only we can say.
+          What makes the client specifically different from every other bidder? Not generic strengths — the things only they can say.
         </p>
         <TwoColumn
           left={

@@ -39,7 +39,7 @@ async function callIrisText(system: string, user: string): Promise<string> {
   return (j.choices?.[0]?.message?.content ?? "").trim();
 }
 
-const SYSTEM = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Athena wins complex Medicaid procurements with small expert teams. Speak directly — no corporate jargon, no hedging, no "in summary". Specific to this mission. Plain prose unless asked for a list.`;
+const SYSTEM = `You are IRIS, intelligence co-pilot built by Athena Strategy Group. Athena advises managed care organizations (the client / bidder) competing for complex Medicaid procurements — Athena itself is NOT the bidder. Always frame strategy from the client's perspective ("the client", "your team", or the client/MCO name when known). Never say Athena is pursuing, bidding on, or competing for the RFP. Speak directly — no corporate jargon, no hedging, no "in summary". Specific to this mission. Plain prose unless asked for a list.`;
 
 function flatten(v: unknown): string {
   if (v == null) return "";
@@ -79,7 +79,7 @@ export const runAssistTool = createServerFn({ method: "POST" })
     if (tool === "decode") {
       user = `${base}\n\nWhat is this question REALLY asking beyond the literal words? What are evaluators testing for? What does a high-scoring answer look like vs low-scoring? Reference specific win themes and evaluator priorities from the context above. Max 200 words. Direct.`;
     } else if (tool === "win_angle") {
-      user = `${base}\n\nHow should Athena specifically attack this question? What's the unique angle given who we are vs who else is bidding (use the competitive landscape above)? Concrete strategic direction tied to win themes and discriminators. Max 150 words.`;
+      user = `${base}\n\nHow should the client specifically attack this question? What's their unique angle vs the other bidders (use the competitive landscape above)? Concrete strategic direction tied to the client's win themes and discriminators — never frame Athena as the bidder. Max 150 words.`;
     } else if (tool === "evidence") {
       const pp = ctx.proofPoints.length ? `\n\nProof points available:\n${ctx.proofPoints.map((p, i) => `${i + 1}. ${p}`).join("\n")}` : "";
       const ex = ctx.confirmedExtractions.length ? `\n\nConfirmed RFP facts:\n${ctx.confirmedExtractions.slice(0, 8).map((e) => `- ${e.field}: ${e.value}`).join("\n")}` : "";
