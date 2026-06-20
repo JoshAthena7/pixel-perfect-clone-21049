@@ -89,8 +89,8 @@ function AdminLayout() {
         <span className="mr-3" style={{ color: "rgba(255,255,255,0.2)", fontSize: 12 }}>·</span>
         {MAIN_TABS.map((t) => renderTab(t))}
 
-        {/* Platform Tools collapsible group, pushed to the far right */}
-        <div className="ml-auto flex items-center gap-1 relative">
+        {/* Platform Tools collapsible group, inline after the main tabs */}
+        <div className="flex items-center gap-1 relative ml-2">
           <button
             type="button"
             onClick={() => setToolsOpen((v) => !v)}
