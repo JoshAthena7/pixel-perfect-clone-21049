@@ -288,6 +288,25 @@ function Card({
             {s.source_name && <span className="text-white/40 truncate">· {s.source_name}</span>}
             <span className="text-white/30 ml-auto">{relative(s.published_at ?? s.created_at)}</span>
           </div>
+          <div className="flex items-center gap-2 mb-1 text-[10px] text-white/40">
+            <span className={`px-1.5 py-0.5 rounded border ${scoreColor(s.relevance_score)}`}>
+              {s.relevance_score}
+            </span>
+            {s.urgency && s.urgency !== "normal" && (
+              <span
+                className={`text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                  s.urgency === "immediate"
+                    ? "bg-red-500/15 text-red-300 border border-red-400/40"
+                    : "bg-amber-500/15 text-amber-300 border border-amber-400/40"
+                }`}
+              >
+                {s.urgency}
+              </span>
+            )}
+            {s.category && <span className="text-white/40">{formatCategory(s.category)}</span>}
+            {s.source_name && <span className="text-white/40 truncate">Source: {s.source_name}</span>}
+            <span className="text-white/30 ml-auto">{relative(s.published_at ?? s.created_at)}</span>
+          </div>
           <div className="text-[12px] text-white/90 font-medium truncate">{s.title}</div>
           {s.summary && (
             <div className="text-[11px] text-white/50 truncate mt-0.5">{s.summary}</div>
@@ -303,9 +322,9 @@ function Card({
           )}
         </div>
         <div className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
-          <ActionBtn color="emerald" label="Approve" small onClick={() => onAction("approved")} />
-          <ActionBtn color="amber" label="Push" small onClick={() => onAction("pushed")} />
-          <ActionBtn color="red" label="Dismiss" small onClick={() => onAction("dismissed")} />
+          <ActionBtn color="primary" label="Approve" small onClick={() => onAction("approved")} />
+          <ActionBtn color="secondary" label="Push" small onClick={() => onAction("pushed")} />
+          <ActionBtn color="muted" label="Dismiss" small onClick={() => onAction("dismissed")} />
         </div>
       </div>
     </div>
@@ -318,7 +337,7 @@ function ActionBtn({
   small,
   onClick,
 }: {
-  color: "emerald" | "amber" | "red";
+  color: "emerald" | "amber" | "red" | "primary" | "secondary" | "muted";
   label: string;
   small?: boolean;
   onClick: () => void;
@@ -327,6 +346,9 @@ function ActionBtn({
     emerald: "border-emerald-400/60 text-emerald-300 hover:bg-emerald-400/10",
     amber: "border-amber-400/60 text-amber-300 hover:bg-amber-400/10",
     red: "border-red-400/60 text-red-300 hover:bg-red-400/10",
+    primary: "border-amber-400/70 bg-amber-400/15 text-amber-200 font-semibold hover:bg-amber-400/25",
+    secondary: "border-sky-400/50 text-sky-300 hover:bg-sky-400/10",
+    muted: "border-white/15 text-white/45 hover:text-red-300 hover:border-red-400/50 hover:bg-red-400/5",
   }[color];
   return (
     <button
