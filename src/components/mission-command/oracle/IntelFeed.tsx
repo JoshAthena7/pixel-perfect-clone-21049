@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, Loader2, Plus, RefreshCw } from "lucide-react";
+import { Eye, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/select";
 import { addManualIntelEvent } from "@/lib/intel-events-manual.functions";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
-import { OracleIntakeModal } from "@/components/oracle/OracleIntakeModal";
 import { listOracleSignalsForMission } from "@/lib/oracle-intel.functions";
 
 const GOLD = "#C49A2B";
@@ -155,7 +154,6 @@ function formatCategory(cat?: string | null): string | null {
 
 export function IntelFeed({ missionId }: { missionId: string }) {
   const [filter, setFilter] = useState<FilterId>("all");
-  const [addOpen, setAddOpen] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const seedTriedRef = useRef<Set<string>>(new Set());
   const qc = useQueryClient();
