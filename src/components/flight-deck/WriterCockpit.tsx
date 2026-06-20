@@ -306,6 +306,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
         writerByQid,
         myQids: Array.from(myQids),
         activeSosQids,
+        staleSosMeta,
       };
     },
   });
