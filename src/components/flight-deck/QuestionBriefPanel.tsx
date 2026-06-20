@@ -231,7 +231,7 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
                   }}
                 >
                   <RefreshCw size={10} />
-                  {genMutation.isPending ? "Regenerating…" : "Regenerate"}
+                  {genMutation.isPending ? "Refreshing brief…" : "↻ Refresh brief"}
                 </button>
               </div>
             </div>
