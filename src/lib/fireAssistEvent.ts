@@ -65,4 +65,32 @@ export async function fireAssistEvent(
     // Don't throw — assist events are observability, not blocking UX.
     console.error("[fireAssistEvent] failed", eventType, error);
   }
+
+  // Fan out to oracle_signal_feedback so the learning loop sees writer
+  // behavior. Best-effort, non-blocking — wrapped in a promise we never
+  // await on the critical path. Only fires for events tied to a question
+  // (the feedback table is per-signal, joined via question_intel_links).
+  if (questionId) {
+    (async () => {
+      try {
+        const { recordFeedbackForLinkedSignals } = await import("@/lib/oracle-feedback");
+        if (eventType === "brief_opened") {
+          await recordFeedbackForLinkedSignals(questionId, missionId, "brief_used", { userId: uid });
+        } else if (eventType === "brief_exported") {
+          await recordFeedbackForLinkedSignals(questionId, missionId, "exported", { userId: uid });
+        } else if (eventType === "assist_ignored" && metadata?.tool === "decode") {
+          await recordFeedbackForLinkedSignals(questionId, missionId, "brief_ignored", { userId: uid });
+        } else if (eventType === "confidence_updated" || eventType === "check_in") {
+          const conf = String(metadata?.confidence ?? "").toLowerCase();
+          if (conf === "high") {
+            await recordFeedbackForLinkedSignals(questionId, missionId, "confidence_high", { userId: uid });
+          } else if (conf === "low") {
+            await recordFeedbackForLinkedSignals(questionId, missionId, "confidence_low", { userId: uid });
+          }
+        }
+      } catch (err) {
+        console.warn("[fireAssistEvent] feedback fan-out failed (non-fatal)", err);
+      }
+    })();
+  }
 }
