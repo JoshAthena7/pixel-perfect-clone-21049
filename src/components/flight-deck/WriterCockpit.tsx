@@ -1361,6 +1361,9 @@ function BriefViewer({ q, onClose, onExport }: { q: Q; onClose: () => void; onEx
           <div>
             <div style={{ fontFamily: "monospace", color: GOLD, fontSize: 12 }}>{q.question_number}</div>
             <div style={{ fontSize: 16, fontWeight: 700 }}>IRIS Question Brief</div>
+            {b?.model_used && (
+              <AdminOnlyModelBadge model={b.model_used} generatedAt={q.iris_brief_generated_at} />
+            )}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={onExport} style={btn(GOLD)}><Download size={12}/> Export</button>
