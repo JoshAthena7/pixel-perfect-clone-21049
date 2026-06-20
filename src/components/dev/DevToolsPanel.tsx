@@ -507,7 +507,7 @@ export function DevToolsPanel() {
         type="button"
         aria-label="Developer Tools (Admin only)"
         title="Developer Tools (Admin only)"
-        onClick={() => setOpen((v) => !v)}
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
         style={{
           position: "fixed",
           right: 16,
