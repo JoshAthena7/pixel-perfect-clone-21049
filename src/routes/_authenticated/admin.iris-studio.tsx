@@ -80,9 +80,13 @@ function IrisStudioPage() {
   });
 
   const config = configQuery.data as Record<string, unknown> | undefined;
-  const headerLabel = useMemo(() => {
+  const { headerLabel, headerFull } = useMemo(() => {
     const m = missions.find((x) => x.id === missionId);
-    return m?.name ?? "Select a mission";
+    const name = m?.name ?? null;
+    if (!name) return { headerLabel: "Select a mission", headerFull: undefined as string | undefined };
+    const code = name.split(/\s*-\s*/)[0]?.trim();
+    const shortCode = code && code.length <= 12 ? code : name.slice(0, 12);
+    return { headerLabel: shortCode, headerFull: name };
   }, [missions, missionId]);
 
   return (
@@ -93,9 +97,9 @@ function IrisStudioPage() {
             <div className="uppercase tracking-[0.16em] text-[10px]" style={{ color: GOLD }}>
               IRIS STUDIO
             </div>
-            <h1 className="text-2xl font-semibold mt-1">{headerLabel}</h1>
-            <p className="text-[12px] mt-1 text-white/50">
-              Per-mission control plane for IRIS — voice, language &amp; inclusion, evaluator persona, brief settings, personality.
+            <h1 className="text-2xl font-semibold mt-1" title={headerFull}>IRIS Studio · {headerLabel}</h1>
+            <p className="text-[11px] mt-1 text-white/50">
+              Per-mission IRIS voice, language, and behavior configuration.
             </p>
           </div>
           <div className="w-[260px]">
