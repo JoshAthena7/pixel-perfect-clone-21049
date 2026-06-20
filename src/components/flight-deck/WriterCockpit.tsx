@@ -454,6 +454,57 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
     qc.invalidateQueries({ queryKey: refreshKey });
   }
 
+  async function handleSimpleStatusChange(q: Q, next: SimpleStatus) {
+    const currentSimple = dbToSimple(q.progress_status);
+    if (currentSimple === next) return;
+    const isBackward =
+      (currentSimple === "in_review" && next === "drafting") ||
+      (currentSimple === "finalized" && next !== "finalized") ||
+      (currentSimple === "drafting" && next === "not_started");
+    if (isBackward) {
+      const label = next === "drafting" ? "Drafting" : next === "not_started" ? "Not Started" : "In Review";
+      const ok = window.confirm(`Moving back to ${label}. Your lead will see this change.`);
+      if (!ok) return;
+    }
+    try {
+      await updateStatus({
+        data: {
+          progressId: q.progress_id,
+          newStatus: next as unknown as ProgressStatus,
+          pensDown: !!cockpit?.pensDown,
+          allowBackward: isBackward,
+        },
+      });
+      qc.invalidateQueries({ queryKey: refreshKey });
+    } catch (e: any) {
+      toast.error(e.message || "Could not update status");
+    }
+  }
+
+  async function handleConfidenceChange(q: Q, v: "high" | "medium" | "low") {
+    try {
+      await supabase.from("question_progress")
+        .update({ writer_confidence: v, last_activity_at: new Date().toISOString() } as never)
+        .eq("id", q.progress_id);
+      await fireAssistEvent(missionId, q.id, userId, "confidence_updated", {
+        confidence: v, question_number: q.question_number,
+      });
+      qc.invalidateQueries({ queryKey: refreshKey });
+    } catch (e: any) {
+      toast.error(e.message || "Could not save confidence");
+    }
+  }
+
+  async function handleDismissSos(q: Q) {
+    try {
+      await fireAssistEvent(missionId, q.id, userId, "sos_dismissed", {
+        dismissed_by: userId, question_number: q.question_number,
+      });
+      qc.invalidateQueries({ queryKey: refreshKey });
+    } catch (e: any) {
+      toast.error(e.message || "Could not dismiss");
+    }
+
   async function handleAckFeedback(fbId: string, questionId: string) {
     await supabase.from("question_feedback")
       .update({ status: "acknowledged", acknowledged_by: userId, acknowledged_at: new Date().toISOString() } as never)
