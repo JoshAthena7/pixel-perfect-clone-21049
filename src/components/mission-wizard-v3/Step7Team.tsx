@@ -369,9 +369,12 @@ function AssignedCard({
       <Avatar name={name} />
       <div className="flex-1 min-w-0">
         <p className="text-[13px] text-white font-medium truncate">{name}</p>
-        <p className="text-[11.5px] text-white/45 truncate">
-          {row.member?.job_title ?? row.member?.skills?.[0] ?? "—"}
-        </p>
+        {(() => {
+          const role = row.member?.job_title ?? row.member?.skills?.[0];
+          return role
+            ? <p className="text-[11.5px] text-white/45 truncate">{role}</p>
+            : <p className="text-[9px] italic text-white/35 truncate">No role assigned</p>;
+        })()}
       </div>
       <select
         value={currentRole}
