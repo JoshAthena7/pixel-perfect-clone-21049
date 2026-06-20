@@ -385,16 +385,16 @@ function TriviaTab({ missionId }: { missionId: string }) {
       </div>
 
       {answered && !expanded ? (
-        <div className="pt-2">
+        <div className="pt-2" style={{ paddingRight: 96 }}>
           <button
             onClick={() => setExpanded(true)}
-            className="w-full flex items-center justify-between rounded-md px-3 py-2 text-left transition-colors hover:bg-white/5"
+            className="w-full flex items-center justify-between gap-2 rounded-md px-3 py-2 text-left transition-colors hover:bg-white/5"
             style={{
               background: wasTimeout ? "rgba(248,113,113,0.06)" : "rgba(74,222,128,0.06)",
               border: `0.5px solid ${wasTimeout ? "rgba(248,113,113,0.25)" : "rgba(74,222,128,0.25)"}`,
             }}
           >
-            <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.75)" }}>
+            <span className="text-[11px] min-w-0 truncate" style={{ color: "rgba(255,255,255,0.75)" }}>
               {wasTimeout ? (
                 <>⏱ Timed out today · answer was <span style={{ color: "#86EFAC" }}>{opts[correctIdx] ?? ""}</span></>
               ) : todaysAnswer?.is_correct ? (
@@ -403,11 +403,12 @@ function TriviaTab({ missionId }: { missionId: string }) {
                 <>Answered today · answer was <span style={{ color: "#86EFAC" }}>{opts[correctIdx] ?? ""}</span></>
               )}
             </span>
-            <span className="text-[10px] flex items-center gap-1" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <span className="text-[10px] flex items-center gap-1 shrink-0" style={{ color: "rgba(255,255,255,0.45)" }}>
               Show question <ChevronDown className="h-3 w-3" />
             </span>
           </button>
         </div>
+
       ) : (
         <>
           <div className="pr-32 pt-2" style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>
