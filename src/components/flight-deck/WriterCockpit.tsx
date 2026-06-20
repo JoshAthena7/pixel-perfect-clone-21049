@@ -65,6 +65,37 @@ function relTime(d: string | null): string {
   return "just now";
 }
 
+function getIrisActionPrompt(q: {
+  progress_status: string;
+  writer_confidence: string | null;
+  brief_exported_at: string | null;
+  brief_opened_at: string | null;
+  acceptance_status: string | null;
+}): string {
+  if (q.acceptance_status === "need_help") {
+    return "You flagged this question for help. Your Engagement Lead has been notified — check for a response before proceeding.";
+  }
+  if (!q.brief_opened_at) {
+    return "Start here — generate or open your IRIS brief to understand what the evaluator wants.";
+  }
+  if (!q.brief_exported_at) {
+    return "Your brief is ready. Export it to your writing environment before you start drafting.";
+  }
+  const simple = dbToSimple(q.progress_status);
+  if (simple === "drafting" && !q.writer_confidence) {
+    return "Drafting is underway. Set your confidence so your lead knows how you're feeling about this one.";
+  }
+  if (simple === "drafting" && q.writer_confidence === "low") {
+    return "Low confidence flagged. Consider running Score Me on your draft or requesting SME support.";
+  }
+  if (simple === "drafting" && q.writer_confidence === "high") {
+    return "Looking strong. When your draft is complete, move to In Review so your lead can check it.";
+  }
+  if (simple === "in_review") return "In review with your lead. No action needed until feedback comes back.";
+  if (simple === "finalized") return "Finalized ✓ — this question is complete.";
+  return "Open your IRIS brief, draft your response, and check in when done.";
+}
+
 type Q = {
   id: string;
   question_number: string;
