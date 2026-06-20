@@ -637,6 +637,98 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
 
       {readOnly && <ClosedMissionBanner />}
 
+      {/* Health verdict — the page's headline */}
+      <div
+        className="shrink-0 px-5 py-3 border-b border-white/[0.06]"
+        style={{ background: "linear-gradient(180deg, #060f1c 0%, #070f1c 100%)" }}
+      >
+        <div className="flex items-baseline gap-4 flex-wrap">
+          <span
+            className="font-semibold tracking-tight"
+            style={{
+              fontSize: 26,
+              lineHeight: 1.1,
+              color: healthState === "at_risk" ? "#f87171" : healthState === "watch" ? "#fbbf24" : "#4ade80",
+            }}
+          >
+            {healthState === "at_risk" ? "At Risk" : healthState === "watch" ? "Watch" : "On Track"}
+          </span>
+          <span className="text-[12px] text-white/55">
+            {healthState === "at_risk"
+              ? `${d.stats.atRiskCount ?? 0} question${(d.stats.atRiskCount ?? 0) === 1 ? "" : "s"} need intervention`
+              : healthState === "watch"
+              ? `${d.stats.watchCount ?? 0} item${(d.stats.watchCount ?? 0) === 1 ? "" : "s"} worth watching`
+              : "All systems nominal"}
+          </span>
+          <span className="ml-auto text-[10px] text-white/35 whitespace-nowrap" style={{ fontFamily: "'Courier New', monospace" }}>
+            IRIS · {relTime(d.lastIrisRun)}
+          </span>
+        </div>
+      </div>
+
+      {/* Attention queue — promoted out of the radar drawer */}
+      {filteredSos.length > 0 && (
+        <div className="shrink-0 px-5 py-3 border-b border-white/[0.06] max-h-[260px] overflow-y-auto">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[10px] uppercase tracking-wider text-white/55 font-semibold">
+              Needs attention
+            </span>
+            <span className="text-[10px] text-white/40">· {filteredSos.length}</span>
+          </div>
+          <ul className="space-y-1.5">
+            {filteredSos.slice(0, 5).map((s: any) => (
+              <li key={s.questionId} className="group rounded border border-white/[0.06] hover:border-white/15 bg-white/[0.015] px-3 py-2 transition-colors">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-white/40 font-mono text-[11px] shrink-0">{s.questionNumber}</span>
+                  <span className="text-[12.5px] text-white/90 truncate flex-1">{s.questionTitle}</span>
+                  <span className="text-[10.5px] text-white/45 shrink-0">{s.writerName}</span>
+                </div>
+                <div className="text-[10.5px] text-amber-300/85 mt-0.5 truncate">
+                  {s.reasons.slice(0, 2).join(" · ")}
+                </div>
+                <div className="flex flex-wrap gap-1 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => flagMut.mutate({ qid: s.questionId, reason: s.reasons[0] })}
+                    className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 inline-flex items-center gap-1">
+                    <Flag className="w-3 h-3" /> Flag
+                  </button>
+                  <button onClick={() => navigate({ to: "/missions/$missionId/flight-deck", params: { missionId }, hash: s.questionId })}
+                    className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10">
+                    Open
+                  </button>
+                  <button onClick={() => briefMut.mutate(s.questionId)}
+                    disabled={briefMut.isPending}
+                    className="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-200 hover:bg-amber-500/25 inline-flex items-center gap-1">
+                    <Zap className="w-3 h-3" /> Brief
+                  </button>
+                  <button onClick={() => setReassignFor(s.questionId)}
+                    className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10">
+                    Reassign
+                  </button>
+                </div>
+                {reassignFor === s.questionId && (
+                  <div className="mt-1.5 flex gap-1.5">
+                    <Select onValueChange={(v) => reassignMut.mutate({ qid: s.questionId, writerId: v })}>
+                      <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Pick writer…" /></SelectTrigger>
+                      <SelectContent>
+                        {d.writers.filter((w: any) => w.userId !== s.writerId).map((w: any) => (
+                          <SelectItem key={w.userId} value={w.userId}>{w.name} ({formatRoleLabel(w.role)})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => setReassignFor(null)}>Cancel</Button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+          {filteredSos.length > 5 && (
+            <div className="text-[10.5px] text-white/45 mt-2 px-1">
+              + {filteredSos.length - 5} more in radar
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Mobile tab bar */}
       <div className="atc-mobile shrink-0 flex border-b border-white/[0.06] bg-[#050d18]">
         {([
