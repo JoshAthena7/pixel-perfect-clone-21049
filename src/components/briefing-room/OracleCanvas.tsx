@@ -217,7 +217,7 @@ export function OracleCanvas({
   return (
     <div className="space-y-3">
       {/* North Star */}
-      {oracleConfig.north_star ? (
+      {show("northStar") && (oracleConfig.north_star ? (
         <Section title="North Star">
           <div
             style={{
@@ -235,34 +235,39 @@ export function OracleCanvas({
         <Section title="North Star">
           <NorthStarEditor onSave={(v) => save({ north_star: v })} />
         </Section>
-      ) : null}
+      ) : null)}
 
       {/* Win Themes */}
-      <Section title="How We Win" icon={<Star size={11} />}>
-        <ThemeList
-          items={winThemes}
-          canEdit={canEdit}
-          emptyEdit="No win themes configured. Add your first win theme."
-          emptyRead="Win themes will appear here once configured."
-          addLabel="Add win theme"
-          onChange={(next) => save({ win_themes: next as never })}
-        />
-      </Section>
+      {show("winThemes") && (
+        <Section title="How We Win" icon={<Star size={11} />}>
+          <ThemeList
+            items={winThemes}
+            canEdit={canEdit}
+            collapsible={winThemesCollapsed}
+            emptyEdit="No win themes configured. Add your first win theme."
+            emptyRead="Win themes will appear here once configured."
+            addLabel="Add win theme"
+            onChange={(next) => save({ win_themes: next as never })}
+          />
+        </Section>
+      )}
 
       {/* Strategic Risks */}
-      <Section title="Strategic Risks" icon={<ShieldAlert size={11} />}>
-        <ThemeList
-          items={topRisks}
-          canEdit={canEdit}
-          emptyEdit="No strategic risks tracked. Add your first risk."
-          emptyRead="Strategic risks will appear here once configured."
-          addLabel="Add risk"
-          onChange={(next) => save({ top_risks: next as never })}
-        />
-      </Section>
+      {show("risks") && (
+        <Section title="Strategic Risks" icon={<ShieldAlert size={11} />}>
+          <ThemeList
+            items={topRisks}
+            canEdit={canEdit}
+            emptyEdit="No strategic risks tracked. Add your first risk."
+            emptyRead="Strategic risks will appear here once configured."
+            addLabel="Add risk"
+            onChange={(next) => save({ top_risks: next as never })}
+          />
+        </Section>
+      )}
 
       {/* Competitors */}
-      {(competitors.length > 0 || canEdit) && (
+      {show("competitors") && (competitors.length > 0 || canEdit) && (
         <Section title="Monitored Competitors" icon={<Eye size={11} />}>
           <CompetitorChips
             items={competitors}
@@ -273,31 +278,33 @@ export function OracleCanvas({
       )}
 
       {/* Status badge */}
-      <div className="flex justify-end items-center gap-2">
-        <span
-          className="inline-flex items-center gap-2 rounded-full"
-          style={{
-            fontSize: 10,
-            padding: "4px 10px",
-            background: "rgba(255,255,255,0.04)",
-            border: `0.5px solid ${CARD_BORDER}`,
-            color: MUTED,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-          }}
-        >
+      {show("badge") && (
+        <div className="flex justify-end items-center gap-2">
           <span
+            className="inline-flex items-center gap-2 rounded-full"
             style={{
-              width: 6,
-              height: 6,
-              borderRadius: 999,
-              background: oracleConfig.status === "active" ? "#4ade80" : "#888",
+              fontSize: 10,
+              padding: "4px 10px",
+              background: "rgba(255,255,255,0.04)",
+              border: `0.5px solid ${CARD_BORDER}`,
+              color: MUTED,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
             }}
-          />
-          <Activity size={10} />
-          ORACLE · {capitalize(oracleConfig.monitoring_mode ?? "balanced")}
-        </span>
-      </div>
+          >
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 999,
+                background: oracleConfig.status === "active" ? "#4ade80" : "#888",
+              }}
+            />
+            <Activity size={10} />
+            ORACLE · {capitalize(oracleConfig.monitoring_mode ?? "balanced")}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
