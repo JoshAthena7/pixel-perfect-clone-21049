@@ -225,8 +225,10 @@ function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
             <h1 className="font-bold" style={{ fontSize: 36, lineHeight: 1.1, letterSpacing: "-0.01em" }}>
               {mission?.name ?? "Mission"}
             </h1>
-            <div className="mt-2" style={{ fontSize: 20, color: GOLD, fontWeight: 500 }}>
-              {mission?.client_name ?? "—"}
+            <div className="mt-2 space-y-0.5" style={{ color: GOLD, fontWeight: 500, fontSize: 12, lineHeight: 1.4 }}>
+              {(mission?.client_name ? mission.client_name.split(/(?=\bState of [A-Z])/g).map((s: string) => s.trim()).filter(Boolean) : ["—"]).map((a: string, i: number) => (
+                <div key={i}>{a}</div>
+              ))}
             </div>
 
             <div className="inline-flex items-center gap-2 mt-4">
@@ -252,11 +254,11 @@ function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
                   border: "1px solid rgba(255,255,255,0.15)",
                   color: "rgba(255,255,255,0.85)",
                   fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
                 }}
               >
-                QUESTION HEALTH <ArrowRight size={12} />
+                View Question Health <ArrowRight size={12} />
               </Link>
             </div>
 
