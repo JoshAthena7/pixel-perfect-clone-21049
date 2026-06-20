@@ -878,7 +878,7 @@ function ATLASCommandSurfaceInner({
       >
         {/* col 1: mission pulse */}
         <div className="px-4 py-2 flex flex-col justify-center" style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}>
-          <div style={{ fontSize: 7, letterSpacing: "0.18em", color: `rgba(${GOLD},0.7)` }}>
+          <div style={{ fontSize: 7, letterSpacing: "0.18em", color: `rgba(${GOLD},0.7)`, whiteSpace: "nowrap" }}>
             MISSION {missionId.slice(0, 4).toUpperCase()}
           </div>
           <div style={{ fontSize: 14, fontWeight: 300, color: "white", marginTop: 4 }}>
@@ -891,7 +891,7 @@ function ATLASCommandSurfaceInner({
 
         {/* col 2: signal density */}
         <div className="px-4 py-2 flex flex-col justify-center" style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}>
-          <div style={{ fontSize: 7, letterSpacing: "0.18em", color: "rgba(255,255,255,0.3)" }}>
+          <div style={{ fontSize: 7, letterSpacing: "0.18em", color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap" }}>
             INTELLIGENCE DENSITY
           </div>
           <div className="mt-1.5 flex flex-col gap-[3px]">
@@ -918,7 +918,7 @@ function ATLASCommandSurfaceInner({
 
         {/* col 3: coverage */}
         <div className="px-4 py-2 flex flex-col justify-center" style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}>
-          <div style={{ fontSize: 7, letterSpacing: "0.18em", color: "rgba(255,255,255,0.3)" }}>
+          <div style={{ fontSize: 7, letterSpacing: "0.18em", color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap" }}>
             ORACLE COVERAGE
           </div>
           <div style={{ fontSize: 22, fontWeight: 200, color: "white", lineHeight: 1, marginTop: 4 }}>
@@ -931,7 +931,7 @@ function ATLASCommandSurfaceInner({
 
         {/* col 4: gaps */}
         <div className="px-4 py-2 flex flex-col justify-center" style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}>
-          <div style={{ fontSize: 7, letterSpacing: "0.18em", color: "rgba(248,113,113,0.7)" }}>
+          <div style={{ fontSize: 7, letterSpacing: "0.18em", color: "rgba(248,113,113,0.7)", whiteSpace: "nowrap" }}>
             KNOWLEDGE GAPS
           </div>
           <div style={{ fontSize: 14, fontWeight: 300, color: "white", marginTop: 4 }}>
@@ -951,7 +951,7 @@ function ATLASCommandSurfaceInner({
 
         {/* col 5: system status */}
         <div className="px-4 py-2 flex flex-col justify-center">
-          <div style={{ fontSize: 7, letterSpacing: "0.18em", color: "rgba(255,255,255,0.3)" }}>
+          <div style={{ fontSize: 7, letterSpacing: "0.18em", color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap" }}>
             SYSTEM STATUS
           </div>
           <div style={{ fontSize: 10, color: "rgba(74,222,128,0.85)", marginTop: 4, fontWeight: 500, letterSpacing: "0.12em" }}>
