@@ -600,6 +600,178 @@ export type Database = {
         }
         Relationships: []
       }
+      atlas_entity_relationships: {
+        Row: {
+          created_by: string | null
+          evidence_count: number | null
+          first_observed_at: string | null
+          id: string
+          last_updated_at: string | null
+          relationship_notes: string | null
+          relationship_strength: number | null
+          relationship_type: string
+          source_entity_id: string
+          source_entity_name: string
+          source_entity_type: string
+          source_oracle_signal_ids: string[] | null
+          state_code: string | null
+          target_entity_id: string
+          target_entity_name: string
+          target_entity_type: string
+        }
+        Insert: {
+          created_by?: string | null
+          evidence_count?: number | null
+          first_observed_at?: string | null
+          id?: string
+          last_updated_at?: string | null
+          relationship_notes?: string | null
+          relationship_strength?: number | null
+          relationship_type: string
+          source_entity_id: string
+          source_entity_name: string
+          source_entity_type: string
+          source_oracle_signal_ids?: string[] | null
+          state_code?: string | null
+          target_entity_id: string
+          target_entity_name: string
+          target_entity_type: string
+        }
+        Update: {
+          created_by?: string | null
+          evidence_count?: number | null
+          first_observed_at?: string | null
+          id?: string
+          last_updated_at?: string | null
+          relationship_notes?: string | null
+          relationship_strength?: number | null
+          relationship_type?: string
+          source_entity_id?: string
+          source_entity_name?: string
+          source_entity_type?: string
+          source_oracle_signal_ids?: string[] | null
+          state_code?: string | null
+          target_entity_id?: string
+          target_entity_name?: string
+          target_entity_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atlas_entity_relationships_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atlas_entity_relationships_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      atlas_institutional_memory: {
+        Row: {
+          applicable_procurement_types: string[] | null
+          applicable_question_categories: string[] | null
+          applicable_states: string[] | null
+          applicable_win_theme_ids: string[] | null
+          confidence_score: number | null
+          created_at: string | null
+          embedding: string | null
+          extracted_from_mission_id: string | null
+          extraction_method: string | null
+          first_observed_at: string | null
+          human_validated: boolean | null
+          id: string
+          last_confirmed_at: string | null
+          pattern_description: string
+          pattern_type: string
+          supporting_evidence: Json | null
+          suppressed: boolean | null
+          suppression_reason: string | null
+          times_applied: number | null
+          times_confirmed: number | null
+          times_rejected: number | null
+          updated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          applicable_procurement_types?: string[] | null
+          applicable_question_categories?: string[] | null
+          applicable_states?: string[] | null
+          applicable_win_theme_ids?: string[] | null
+          confidence_score?: number | null
+          created_at?: string | null
+          embedding?: string | null
+          extracted_from_mission_id?: string | null
+          extraction_method?: string | null
+          first_observed_at?: string | null
+          human_validated?: boolean | null
+          id?: string
+          last_confirmed_at?: string | null
+          pattern_description: string
+          pattern_type: string
+          supporting_evidence?: Json | null
+          suppressed?: boolean | null
+          suppression_reason?: string | null
+          times_applied?: number | null
+          times_confirmed?: number | null
+          times_rejected?: number | null
+          updated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          applicable_procurement_types?: string[] | null
+          applicable_question_categories?: string[] | null
+          applicable_states?: string[] | null
+          applicable_win_theme_ids?: string[] | null
+          confidence_score?: number | null
+          created_at?: string | null
+          embedding?: string | null
+          extracted_from_mission_id?: string | null
+          extraction_method?: string | null
+          first_observed_at?: string | null
+          human_validated?: boolean | null
+          id?: string
+          last_confirmed_at?: string | null
+          pattern_description?: string
+          pattern_type?: string
+          supporting_evidence?: Json | null
+          suppressed?: boolean | null
+          suppression_reason?: string | null
+          times_applied?: number | null
+          times_confirmed?: number | null
+          times_rejected?: number | null
+          updated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atlas_institutional_memory_extracted_from_mission_id_fkey"
+            columns: ["extracted_from_mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atlas_institutional_memory_validated_by_fkey"
+            columns: ["validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atlas_institutional_memory_validated_by_fkey"
+            columns: ["validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       atlas_invite_tokens: {
         Row: {
           created_at: string
@@ -9471,6 +9643,7 @@ export type Database = {
           confidence: string | null
           core_insight: string
           created_at: string | null
+          embedding: string | null
           extracted_by: string | null
           id: string
           mission_id: string | null
@@ -9483,6 +9656,7 @@ export type Database = {
           confidence?: string | null
           core_insight: string
           created_at?: string | null
+          embedding?: string | null
           extracted_by?: string | null
           id?: string
           mission_id?: string | null
@@ -9495,6 +9669,7 @@ export type Database = {
           confidence?: string | null
           core_insight?: string
           created_at?: string | null
+          embedding?: string | null
           extracted_by?: string | null
           id?: string
           mission_id?: string | null
@@ -9931,6 +10106,78 @@ export type Database = {
           },
         ]
       }
+      oracle_signal_feedback: {
+        Row: {
+          created_at: string | null
+          feedback_type: string
+          id: string
+          metadata: Json | null
+          mission_id: string | null
+          oracle_signal_id: string | null
+          question_id: string | null
+          source_user_id: string | null
+          weight: number
+        }
+        Insert: {
+          created_at?: string | null
+          feedback_type: string
+          id?: string
+          metadata?: Json | null
+          mission_id?: string | null
+          oracle_signal_id?: string | null
+          question_id?: string | null
+          source_user_id?: string | null
+          weight: number
+        }
+        Update: {
+          created_at?: string | null
+          feedback_type?: string
+          id?: string
+          metadata?: Json | null
+          mission_id?: string | null
+          oracle_signal_id?: string | null
+          question_id?: string | null
+          source_user_id?: string | null
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_signal_feedback_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_signal_feedback_oracle_signal_id_fkey"
+            columns: ["oracle_signal_id"]
+            isOneToOne: false
+            referencedRelation: "oracle_signals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_signal_feedback_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_signal_feedback_source_user_id_fkey"
+            columns: ["source_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oracle_signal_feedback_source_user_id_fkey"
+            columns: ["source_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oracle_signal_tags: {
         Row: {
           created_at: string
@@ -9973,6 +10220,7 @@ export type Database = {
           confidence_score: number
           created_at: string
           effective_date: string | null
+          embedding: string | null
           expiration_date: string | null
           id: string
           impact_score: number
@@ -10017,6 +10265,7 @@ export type Database = {
           confidence_score?: number
           created_at?: string
           effective_date?: string | null
+          embedding?: string | null
           expiration_date?: string | null
           id?: string
           impact_score?: number
@@ -10061,6 +10310,7 @@ export type Database = {
           confidence_score?: number
           created_at?: string
           effective_date?: string | null
+          embedding?: string | null
           expiration_date?: string | null
           id?: string
           impact_score?: number
@@ -10215,6 +10465,8 @@ export type Database = {
       }
       oracle_source_registry: {
         Row: {
+          approval_count: number | null
+          avg_relevance_score: number | null
           check_frequency_hours: number
           created_at: string
           created_by: string | null
@@ -10222,15 +10474,18 @@ export type Database = {
           default_category: Database["public"]["Enums"]["oracle_category"]
           default_subcategory: Database["public"]["Enums"]["oracle_subcategory"]
           description: string | null
+          dismissal_count: number | null
           error_count: number
           error_message: string | null
           feed_url: string | null
           id: string
           last_checked_at: string | null
           last_new_item_at: string | null
+          last_quality_update: string | null
           minimum_relevance_threshold: number
           mission_id: string | null
           notes: string | null
+          quality_score: number | null
           source_name: string
           source_type: Database["public"]["Enums"]["oracle_source_type"]
           source_url: string
@@ -10238,9 +10493,12 @@ export type Database = {
           status: Database["public"]["Enums"]["oracle_source_status"]
           tier: Database["public"]["Enums"]["oracle_tier"]
           topic_filter_tags: string[]
+          total_signals_generated: number | null
           updated_at: string
         }
         Insert: {
+          approval_count?: number | null
+          avg_relevance_score?: number | null
           check_frequency_hours?: number
           created_at?: string
           created_by?: string | null
@@ -10248,15 +10506,18 @@ export type Database = {
           default_category: Database["public"]["Enums"]["oracle_category"]
           default_subcategory: Database["public"]["Enums"]["oracle_subcategory"]
           description?: string | null
+          dismissal_count?: number | null
           error_count?: number
           error_message?: string | null
           feed_url?: string | null
           id?: string
           last_checked_at?: string | null
           last_new_item_at?: string | null
+          last_quality_update?: string | null
           minimum_relevance_threshold?: number
           mission_id?: string | null
           notes?: string | null
+          quality_score?: number | null
           source_name: string
           source_type?: Database["public"]["Enums"]["oracle_source_type"]
           source_url: string
@@ -10264,9 +10525,12 @@ export type Database = {
           status?: Database["public"]["Enums"]["oracle_source_status"]
           tier: Database["public"]["Enums"]["oracle_tier"]
           topic_filter_tags?: string[]
+          total_signals_generated?: number | null
           updated_at?: string
         }
         Update: {
+          approval_count?: number | null
+          avg_relevance_score?: number | null
           check_frequency_hours?: number
           created_at?: string
           created_by?: string | null
@@ -10274,15 +10538,18 @@ export type Database = {
           default_category?: Database["public"]["Enums"]["oracle_category"]
           default_subcategory?: Database["public"]["Enums"]["oracle_subcategory"]
           description?: string | null
+          dismissal_count?: number | null
           error_count?: number
           error_message?: string | null
           feed_url?: string | null
           id?: string
           last_checked_at?: string | null
           last_new_item_at?: string | null
+          last_quality_update?: string | null
           minimum_relevance_threshold?: number
           mission_id?: string | null
           notes?: string | null
+          quality_score?: number | null
           source_name?: string
           source_type?: Database["public"]["Enums"]["oracle_source_type"]
           source_url?: string
@@ -10290,6 +10557,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["oracle_source_status"]
           tier?: Database["public"]["Enums"]["oracle_tier"]
           topic_filter_tags?: string[]
+          total_signals_generated?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -13405,6 +13673,17 @@ export type Database = {
         Args: { _engagement_id: string }
         Returns: string
       }
+      get_signals_needing_embeddings: {
+        Args: { p_limit?: number }
+        Returns: {
+          category: string
+          id: string
+          title: string
+          topic_tags: string[]
+          what_happened: string
+          why_it_matters: string
+        }[]
+      }
       get_trivia_leaderboard: {
         Args: { p_mission_id: string; p_window?: string }
         Returns: {
@@ -13433,6 +13712,38 @@ export type Database = {
       has_thread_access: {
         Args: { _thread_id: string; _user_id: string }
         Returns: boolean
+      }
+      hybrid_oracle_search: {
+        Args: {
+          p_include_tiers?: string[]
+          p_limit?: number
+          p_mission_id: string
+          p_query_embedding?: string
+          p_query_text: string
+        }
+        Returns: {
+          category: string
+          id: string
+          recommended_action: string
+          relevance_score: number
+          similarity_score: number
+          source_name: string
+          tier: string
+          title: string
+          topic_tags: string[]
+          urgency: string
+          what_happened: string
+          why_it_matters: string
+          win_theme_tags: string[]
+        }[]
+      }
+      increment_source_approvals: {
+        Args: { p_source_name: string }
+        Returns: undefined
+      }
+      increment_source_dismissals: {
+        Args: { p_source_name: string }
+        Returns: undefined
       }
       iris_pipeline_jobs: {
         Args: never
@@ -13492,6 +13803,24 @@ export type Database = {
       }
       is_olympus_user: { Args: { _user_id: string }; Returns: boolean }
       is_platform_admin: { Args: { _user_id: string }; Returns: boolean }
+      keyword_oracle_search: {
+        Args: { p_limit?: number; p_mission_id: string; p_query_text: string }
+        Returns: {
+          category: string
+          id: string
+          recommended_action: string
+          relevance_score: number
+          similarity_score: number
+          source_name: string
+          tier: string
+          title: string
+          topic_tags: string[]
+          urgency: string
+          what_happened: string
+          why_it_matters: string
+          win_theme_tags: string[]
+        }[]
+      }
       leadership_count: { Args: { _engagement_id: string }; Returns: number }
       list_mission_scoped_tables: {
         Args: never
@@ -13610,6 +13939,7 @@ export type Database = {
         Returns: boolean
       }
       sync_pens_down_availability: { Args: never; Returns: undefined }
+      update_signal_relevance_from_feedback: { Args: never; Returns: undefined }
       user_has_any_leadership_role: {
         Args: { _user_id: string }
         Returns: boolean
