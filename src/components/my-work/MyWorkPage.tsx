@@ -258,7 +258,6 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
             <Sparkles className="h-3.5 w-3.5" />
             Score Draft
           </button>
-          <AskIrisButton />
 
         </div>
       </div>

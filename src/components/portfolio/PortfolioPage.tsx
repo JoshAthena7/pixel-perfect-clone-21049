@@ -105,7 +105,6 @@ export function PortfolioPage({ onOpenIris }: Props) {
           <h1 className="text-white text-[22px] font-medium">Portfolio</h1>
           <p className="text-white/50 text-[13px] mt-0.5">{format(new Date(), "EEEE, MMMM d, yyyy")}</p>
         </div>
-        <AskIrisButton />
 
       </div>
 

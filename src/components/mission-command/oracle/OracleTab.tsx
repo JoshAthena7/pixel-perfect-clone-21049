@@ -104,9 +104,6 @@ export function OracleTab({ missionId }: { missionId: string }) {
             missionId={missionId}
             section="Intelligence"
           />
-          <AskIrisButton
-            prefill={`Explain this page (IRIS) for mission ${mission?.name ?? missionId}.`}
-          />
         </div>
 
         <ExecutiveSummary
