@@ -124,39 +124,46 @@ function BriefingPage() {
         }
       `}</style>
       <div style={{ background: NAVY, color: TEXT, minHeight: "100vh" }}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-8 py-8" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-8 py-8" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <HeroCard missionId={missionId} mission={mission} />
 
-          <OracleCanvasSlot missionId={missionId} />
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: "60fr 40fr",
+              gap: 24,
+              alignItems: "start",
+            }}
+          >
+            {/* LEFT COLUMN — strategic content */}
+            <div className="flex flex-col gap-6 min-w-0">
+              <NorthStarCompactCard missionId={missionId} />
+              <EvaluatorLensCard missionId={missionId} />
+              <OracleCanvas
+                missionId={missionId}
+                canEdit={canEditBroadcast}
+                only={["winThemes"]}
+                winThemesCollapsed
+              />
+              <IrisBriefCard missionId={missionId} mission={mission} />
+              <WatchItemsCard missionId={missionId} mission={mission} />
+            </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-            <div className="lg:col-span-3"><IrisBriefCard missionId={missionId} mission={mission} /></div>
-            <div className="lg:col-span-2 flex flex-col gap-4">
+            {/* RIGHT COLUMN — operational status */}
+            <div className="flex flex-col gap-6 min-w-0">
               <MissionHealthSummaryCard missionId={missionId} />
-              <LeadershipBroadcastCard missionId={missionId} mission={mission} canEdit={canEditBroadcast} />
+              <CompactMissionJourneyCard missionId={missionId} mission={mission} />
+              <StrategicRisksCard missionId={missionId} />
+              <CompetitorsCard missionId={missionId} />
+              <WhatChangedCard missionId={missionId} />
+              <MissionLeadersCard missionId={missionId} />
             </div>
           </div>
-
-          <MissionJourneyCard missionId={missionId} mission={mission} />
-
-          <div className="grid grid-cols-1">
-            <EvaluatorLensCard missionId={missionId} />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <StrategicRisksCard missionId={missionId} />
-            <CompetitorsCard missionId={missionId} />
-          </div>
-
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <WatchItemsCard missionId={missionId} mission={mission} />
-            <WhatChangedCard missionId={missionId} />
-          </div>
-
-          <MissionLeadersCard missionId={missionId} />
         </div>
       </div>
+      {/* Unused for now — kept so admin edit flows still compile */}
+      {false && canEditBroadcast && <LeadershipBroadcastCard missionId={missionId} mission={mission} canEdit={canEditBroadcast} />}
+      {false && <OracleCanvasSlot missionId={missionId} />}
     </>
   );
 }
