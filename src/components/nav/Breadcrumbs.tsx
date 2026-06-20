@@ -77,7 +77,7 @@ export function Breadcrumbs() {
       {list.map((c, i) => {
         const last = i === list.length - 1;
         return (
-          <span key={`${c.label}-${i}`} className="flex items-center gap-1.5 min-w-0">
+          <span key={`${c.label}-${i}`} className="flex items-center gap-1.5 min-w-0" title={c.fullLabel}>
             {c.to && !last ? (
               <Link
                 to={c.to as any}
