@@ -686,6 +686,34 @@ export async function runPromoter(): Promise<PromoterResult> {
 
       promoted += 1;
 
+      // Generate an embedding for the new signal — fire-and-forget so a slow
+      // gateway never blocks the classifier pipeline. Best-effort only.
+      (async () => {
+        try {
+          const { generateEmbedding, buildSignalEmbeddingText, toPgVector } = await import(
+            "@/lib/embeddings.server"
+          );
+          const vec = await generateEmbedding(
+            buildSignalEmbeddingText({
+              title: insertPayload.title as string,
+              what_happened: (insertPayload.what_happened as string) ?? null,
+              why_it_matters: (insertPayload.why_it_matters as string) ?? null,
+              category: (insertPayload.category as string) ?? null,
+              topic_tags: (insertPayload.topic_tags as string[]) ?? null,
+            }),
+          );
+          if (vec) {
+            await client
+              .from("oracle_signals")
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              .update({ embedding: toPgVector(vec) } as any)
+              .eq("id", inserted.id);
+          }
+        } catch (e) {
+          console.warn("[oracle-promoter] embedding gen failed (non-fatal):", e);
+        }
+      })();
+
       // High-signal alerts → write to intel_events for each affected mission
       const score = row.classified_relevance_score ?? 0;
       const urgent = row.classified_urgency === "immediate" || row.classified_urgency === "high";

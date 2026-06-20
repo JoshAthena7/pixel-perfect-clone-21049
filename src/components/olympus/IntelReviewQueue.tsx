@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listOlympusSignals } from "@/lib/olympus.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { recordSignalFeedback } from "@/lib/oracle-feedback";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ExternalLink } from "lucide-react";
 import { toast } from "sonner";
@@ -86,6 +87,9 @@ export function IntelReviewQueue({
         .update({ status: newStatus })
         .eq("id", id);
       if (error) throw error;
+      // Record human feedback — drives the nightly relevance learning loop.
+      // Non-blocking; recordSignalFeedback never throws.
+      void recordSignalFeedback(id, missionId, newStatus);
     },
     onMutate: async ({ id, newStatus }) => {
       await qc.cancelQueries({ queryKey });

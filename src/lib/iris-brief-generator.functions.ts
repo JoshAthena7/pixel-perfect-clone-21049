@@ -56,6 +56,45 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { buildMissionContext, serializeContextForPrompt } from "@/lib/iris/build-mission-context";
 import { buildLanguagePrompt } from "@/lib/iris/language-prompt";
+import { generateEmbedding, buildQueryEmbeddingText, toPgVector } from "@/lib/embeddings.server";
+
+type HybridSignalRow = {
+  id: string;
+  title: string | null;
+  what_happened: string | null;
+  why_it_matters: string | null;
+  category: string | null;
+  tier: string | null;
+  urgency: string | null;
+  relevance_score: number | null;
+  source_name: string | null;
+  similarity_score: number | null;
+};
+
+async function hybridOracleSearchSafe(
+  supabase: any,
+  missionId: string,
+  queryText: string,
+  label: string,
+): Promise<HybridSignalRow[]> {
+  try {
+    const embedding = await generateEmbedding(queryText);
+    const { data, error } = await supabase.rpc("hybrid_oracle_search", {
+      p_mission_id: missionId,
+      p_query_text: queryText,
+      p_query_embedding: embedding ? toPgVector(embedding) : null,
+      p_limit: 8,
+    });
+    if (error) {
+      console.warn(`[iris-brief] hybrid_oracle_search(${label}) error`, error.message);
+      return [];
+    }
+    return (Array.isArray(data) ? data : []) as HybridSignalRow[];
+  } catch (e: any) {
+    console.warn(`[iris-brief] hybrid_oracle_search(${label}) threw`, e?.message);
+    return [];
+  }
+}
 
 const Input = z.object({
   missionId: z.string().uuid(),
@@ -203,8 +242,23 @@ export const generateIrisBrief = createServerFn({ method: "POST" })
       const totalNodes =
         decodeNodes.length + winAngleNodes.length + evidenceNodes.length + riskNodes.length;
 
+      // 1b) Hybrid semantic+keyword search across all approved/pushed signals,
+      // run AFTER we have the question text in hand. Four focused queries
+      // mirror the brief layers. Results are merged into question_intel_links
+      // (and the oracle_sources UI list) but do NOT alter the taxonomy-grounded
+      // prompt above — they're enrichment, not replacement.
+      const qText = String(question.question_text ?? "");
+      const [hybridDecode, hybridWinAngle, hybridEvidence, hybridRisk] = qText
+        ? await Promise.all([
+            hybridOracleSearchSafe(supabase, data.missionId, `compliance requirements: ${qText}`, "decode"),
+            hybridOracleSearchSafe(supabase, data.missionId, `competitive differentiation win strategy: ${qText}`, "winAngle"),
+            hybridOracleSearchSafe(supabase, data.missionId, `evidence base research proof points: ${qText}`, "evidence"),
+            hybridOracleSearchSafe(supabase, data.missionId, `risks landmines evaluation criteria: ${qText}`, "risk"),
+          ])
+        : [[], [], [], []];
+
       console.log(
-        `[iris-brief] ORACLE nodes: decode=${decodeNodes.length} winAngle=${winAngleNodes.length} evidence=${evidenceNodes.length} risk=${riskNodes.length} total=${totalNodes}`,
+        `[iris-brief] ORACLE nodes: decode=${decodeNodes.length} winAngle=${winAngleNodes.length} evidence=${evidenceNodes.length} risk=${riskNodes.length} total=${totalNodes} | hybrid=${hybridDecode.length + hybridWinAngle.length + hybridEvidence.length + hybridRisk.length}`,
       );
 
       const contextBlock = serializeContextForPrompt(ctx, "question");
@@ -431,24 +485,46 @@ CONTENT RULES:
         })
         .eq("id", data.questionId);
 
-      // 6) Upsert question_intel_links (best-effort; never block)
-      if (uniqueNodes.length > 0) {
-        const rows = uniqueNodes.map((n) => ({
-          question_id: data.questionId,
-          signal_id: n.id,
-          mission_id: data.missionId,
-          relevance_score: (() => {
-            const v = n.boosted_score ?? n.oracle_score ?? null;
-            if (v == null) return null;
-            return Math.max(0, Math.min(100, Math.round(v)));
-          })(),
-          briefing_layer: n._branch,
-          // CHECK constraint requires one of: iris_suggested | admin_added | leader_added
-          added_by: "iris_suggested" as const,
-        }));
+      // 6) Upsert question_intel_links — merge taxonomy nodes with hybrid-search hits.
+      const taxonomyRows = uniqueNodes.map((n) => ({
+        question_id: data.questionId,
+        signal_id: n.id,
+        mission_id: data.missionId,
+        relevance_score: (() => {
+          const v = n.boosted_score ?? n.oracle_score ?? null;
+          if (v == null) return null;
+          return Math.max(0, Math.min(100, Math.round(v)));
+        })(),
+        briefing_layer: n._branch,
+        added_by: "iris_suggested" as const,
+      }));
+      const taxonomyIds = new Set(uniqueNodes.map((n) => n.id));
+      const hybridLayered: Array<{ row: HybridSignalRow; layer: string }> = [
+        ...hybridDecode.map((r) => ({ row: r, layer: "hybrid_decode" })),
+        ...hybridWinAngle.map((r) => ({ row: r, layer: "hybrid_win_angle" })),
+        ...hybridEvidence.map((r) => ({ row: r, layer: "hybrid_evidence" })),
+        ...hybridRisk.map((r) => ({ row: r, layer: "hybrid_risk" })),
+      ];
+      const hybridDedup = new Map<string, { row: HybridSignalRow; layer: string }>();
+      for (const item of hybridLayered) {
+        if (!item.row?.id || taxonomyIds.has(item.row.id)) continue;
+        if (!hybridDedup.has(item.row.id)) hybridDedup.set(item.row.id, item);
+      }
+      const hybridRows = Array.from(hybridDedup.values()).map(({ row, layer }) => ({
+        question_id: data.questionId,
+        signal_id: row.id,
+        mission_id: data.missionId,
+        relevance_score: row.relevance_score != null
+          ? Math.max(0, Math.min(100, Math.round(row.relevance_score)))
+          : 75,
+        briefing_layer: layer,
+        added_by: "iris_suggested" as const,
+      }));
+      const allRows = [...taxonomyRows, ...hybridRows];
+      if (allRows.length > 0) {
         const { error: linkErr } = await supabase
           .from("question_intel_links")
-          .upsert(rows, { onConflict: "question_id,signal_id", ignoreDuplicates: false });
+          .upsert(allRows, { onConflict: "question_id,signal_id", ignoreDuplicates: false });
         if (linkErr) {
           console.warn("[iris-brief] question_intel_links upsert failed", linkErr.message);
         }

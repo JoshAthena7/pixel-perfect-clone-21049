@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { refreshIrisAllForMission } from "@/lib/iris-refresh-all-for-mission.functions";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 import { getIrisPipelineStatus, getIrisWiringSnapshot } from "@/lib/iris-health.functions";
+import { backfillSignalEmbeddings } from "@/lib/embeddings-backfill.functions";
 import {
   RefreshCw,
   Loader2,
@@ -15,6 +16,7 @@ import {
   Activity,
   AlertTriangle,
   AlertCircle,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -349,6 +351,9 @@ function IrisControlPage() {
         <HealthDashboard />
       </div>
 
+      <BackfillEmbeddingsPanel />
+
+
       <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-4">
         <div>
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -439,6 +444,85 @@ function IrisControlPage() {
           </ul>
         </div>
       )}
+    </div>
+  );
+}
+
+function BackfillEmbeddingsPanel() {
+  const backfillFn = useServerFn(backfillSignalEmbeddings);
+  const [running, setRunning] = useState(false);
+  const [stats, setStats] = useState<{ processed: number; failed: number; batches: number } | null>(
+    null,
+  );
+
+  const runBackfill = async () => {
+    if (running) return;
+    setRunning(true);
+    setStats({ processed: 0, failed: 0, batches: 0 });
+    const totals = { processed: 0, failed: 0, batches: 0 };
+    const toastId = toast.loading("Backfilling signal embeddings…");
+    try {
+      // Loop until the server reports no more pending signals.
+      // Cap at 40 batches (~2,000 signals) per click to bound runtime.
+      for (let i = 0; i < 40; i++) {
+        const res = await backfillFn({ data: { limit: 50 } });
+        totals.processed += res.processed;
+        totals.failed += res.failed;
+        totals.batches += 1;
+        setStats({ ...totals });
+        toast.loading(
+          `Batch ${totals.batches} · ${totals.processed} embedded · ${totals.failed} failed`,
+          { id: toastId },
+        );
+        if (res.total === 0 || res.remaining === 0) break;
+      }
+      toast.success(
+        `Backfill complete — ${totals.processed} signals embedded across ${totals.batches} batch(es)` +
+          (totals.failed ? ` (${totals.failed} failed)` : ""),
+        { id: toastId },
+      );
+    } catch (err) {
+      toast.error(`Backfill failed: ${(err as Error).message}`, { id: toastId });
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-sm font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-400" /> Backfill signal embeddings
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground max-w-xl">
+            Generates vector embeddings for oracle signals that don't have one yet so they can
+            participate in hybrid semantic search. Safe to re-run — only signals without an
+            embedding are processed.
+          </p>
+          {stats && (
+            <div className="mt-2 text-[11px] font-mono text-muted-foreground">
+              {stats.batches} batch(es) · {stats.processed} embedded · {stats.failed} failed
+            </div>
+          )}
+        </div>
+        <Button
+          onClick={runBackfill}
+          disabled={running}
+          variant="outline"
+          className="shrink-0 border-amber-500/40 text-amber-300 hover:bg-amber-500/10"
+        >
+          {running ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Embedding…
+            </>
+          ) : (
+            <>
+              <Sparkles className="mr-2 h-4 w-4" /> Backfill Embeddings
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   );
 }
