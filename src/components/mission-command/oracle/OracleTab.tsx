@@ -18,7 +18,7 @@ import { SourceNetwork } from "./sections/SourceNetwork";
 import { IntelligenceGaps } from "./sections/IntelligenceGaps";
 import { AnalysisTools } from "./sections/AnalysisTools";
 import { IntelSidebar } from "./sections/IntelSidebar";
-import { OracleVisualization } from "./sections/OracleVisualization";
+import { ATLASCommandSurface } from "./sections/ATLASCommandSurface";
 
 export function OracleTab({ missionId }: { missionId: string }) {
   const { isAdmin, isLoading: adminLoading } = useIsAdmin();
