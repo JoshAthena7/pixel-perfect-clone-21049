@@ -587,7 +587,7 @@ function ATLASCommandSurfaceInner({
               letterSpacing: "0.18em",
             }}
           >
-            INITIALIZING TERRAIN…
+            {terrainActive || positionedSignals.length > 0 ? "TERRAIN ACTIVE" : "INITIALIZING TERRAIN…"}
           </div>
         ) : (
           <>
