@@ -1,21 +1,13 @@
 /**
  * ATLAS Developer Tools — admin-only floating panel.
  *
- * Admin-only (gated by has_role 'admin'). Three sections:
- *   1. Screen Previewer (categorized, collapsible, filterable, scrolls
- *      independently inside the drawer).
+ * Admin-only (gated by has_role 'admin'). Sections:
+ *   1. Screen Previewer — categorized, filterable, status-dotted cards.
+ *      PREVIEW cards load in an iframe drawer. SET_FLAG/OPEN/PLAY cards
+ *      show a toast with a "Go there now →" action instead of silently
+ *      navigating away.
  *   2. Quick Actions.
  *   3. Role Simulator.
- *
- * Screen Previewer cards have a `kind`:
- *   - iframe   : open a route in a full-screen iframe overlay
- *   - navigate : window.location.assign to a route
- *   - splash   : replay the constellation splash
- *   - simulate : navigate to the closest existing route + toast a hint
- *   - modal    : navigate (if needed) then programmatically click a button
- *                in the page to open the relevant modal/panel
- *   - anim     : dispatch the relevant animation event (bolt, whisper,
- *                scan, iris-loading) or replay splash
  */
 import { useEffect, useMemo, useState } from "react";
 import { Code, X, ChevronDown, ChevronRight } from "lucide-react";
@@ -28,20 +20,35 @@ import { triggerIrisBolt } from "@/lib/iris-bolt";
 const SUPABASE_URL =
   (import.meta as any).env?.VITE_SUPABASE_URL ?? "https://hqtmulghixcirvamdcol.supabase.co";
 
-type ScreenKind = "iframe" | "navigate" | "splash" | "simulate" | "modal" | "anim";
+/** Fallback mission ID used by PREVIEW iframe cards when the admin isn't
+ * currently inside a mission context. Real mission pages still use the
+ * mission ID from the URL when available. */
+const FALLBACK_MID = "128da20f-9479-4108-b6b9-0017595509b1";
+
+type ScreenKind = "iframe" | "splash" | "simulate" | "modal" | "anim";
+type StatusDot = "green" | "amber" | "red";
 
 type ScreenCard = {
   id: string;
   name: string;
   description: string;
   kind: ScreenKind;
+  /** iframe: explicit URL (use {MID} placeholder for mission-scoped) */
   href?: string;
   /** modal: button-text matcher to click after navigation */
   modal?: string;
   /** anim: which animation to trigger */
   anim?: "splash" | "bolt" | "whisper" | "scan" | "iris_loading";
-  /** simulate: optional sessionStorage flag to set so the target page renders an empty/special state */
+  /** simulate: sessionStorage flag to set */
   flag?: string;
+  /** simulate/modal/anim: where to send the user when they click "Go there now →" */
+  destinationUrl?: string;
+  /** simulate destination label, e.g. "Flight Deck" */
+  destinationLabel?: string;
+  /** static status dot — set per the audit */
+  status: StatusDot;
+  /** When true, route doesn't exist — render as disabled "Not built" card */
+  notBuilt?: boolean;
 };
 
 type Category = { id: string; label: string; cards: ScreenCard[] };
@@ -52,109 +59,113 @@ const SAMPLE_DRAFT =
 const SAMPLE_WHISPER =
   "⚡ New waiver guidance published June 19 — may affect Section 4 compliance requirements.";
 
+// {MID} is replaced at click time with the current mission ID (or FALLBACK_MID).
+const M = "{MID}";
+
 const CATEGORIES: Category[] = [
   {
     id: "auth",
     label: "Auth & Onboarding",
     cards: [
-      { id: "login", name: "Login Screen", description: "First screen new users see", kind: "iframe", href: "/login?preview=1" },
-      { id: "welcome", name: "Welcome Screen", description: "Post-auth landing (forces replay)", kind: "navigate", href: "/welcome?iris-demo=1" },
-      { id: "onboarding", name: "Onboarding", description: "New user setup (forces replay)", kind: "navigate", href: "/welcome?iris-demo=1" },
-      { id: "new-user", name: "New User Experience", description: "Writer with no assignments, first visit", kind: "navigate", href: "/welcome?iris-demo=1" },
+      { id: "login",      name: "Login Screen",   description: "First screen new users see",        kind: "iframe", href: "/login?preview=1",                                 status: "green" },
+      { id: "welcome",    name: "Welcome Screen", description: "Post-auth landing (forces replay)", kind: "iframe", href: "/welcome?preview=1&iris-demo=1",                   status: "green" },
+      { id: "onboarding", name: "Onboarding",     description: "New user setup",                    kind: "iframe", href: "/onboarding?preview=1",                            status: "green" },
+      { id: "new-user",   name: "New User Experience", description: "Writer with no assignments, first visit", kind: "iframe", href: `/missions/${M}/flight-deck?preview=1&sim=new_user`, status: "green" },
     ],
   },
   {
     id: "roles",
     label: "Role Views",
     cards: [
-      { id: "role-writer", name: "Writer (5 questions)", description: "Flight Deck as a writer", kind: "simulate", flag: "atlas_preview_role:Writer" },
-      { id: "role-sme", name: "SME View", description: "SME review queue", kind: "simulate", flag: "atlas_preview_role:SME" },
-      { id: "role-lead", name: "Engagement Lead", description: "ATC with full team data", kind: "simulate", flag: "atlas_preview_role:Engagement Lead" },
-      { id: "role-reviewer", name: "Reviewer", description: "Red team review mode", kind: "simulate", flag: "atlas_preview_role:Reviewer" },
-      { id: "role-readonly", name: "Read-Only (Closed)", description: "Mission after submission deadline", kind: "simulate", flag: "atlas_sim_readonly" },
+      { id: "role-writer",   name: "Writer (5 questions)", description: "Flight Deck as a writer",         kind: "simulate", flag: "atlas_preview_role:Writer",          destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Writer View",          status: "amber" },
+      { id: "role-sme",      name: "SME View",             description: "SME review queue",                kind: "simulate", flag: "atlas_preview_role:SME",             destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "SME View",             status: "amber" },
+      { id: "role-lead",     name: "Engagement Lead",      description: "ATC with full team data",         kind: "simulate", flag: "atlas_preview_role:Engagement Lead", destinationUrl: `/missions/${M}/war-room`,    destinationLabel: "Engagement Lead View", status: "amber" },
+      { id: "role-reviewer", name: "Reviewer",             description: "Red team review mode",            kind: "simulate", flag: "atlas_preview_role:Reviewer",        destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Reviewer View",        status: "amber" },
+      { id: "role-readonly", name: "Read-Only (Closed)",   description: "Mission after submission deadline", kind: "simulate", flag: "atlas_sim_readonly",                destinationUrl: `/missions/${M}/briefing`,    destinationLabel: "Read-Only Mission",    status: "amber" },
     ],
   },
   {
     id: "empty",
     label: "Empty States",
     cards: [
-      { id: "empty-mission", name: "Empty Mission", description: "New mission, nothing set up", kind: "simulate", flag: "atlas_sim_empty_mission" },
-      { id: "empty-oracle", name: "Empty ORACLE", description: "ORACLE with zero intel", kind: "navigate", flag: "atlas_sim_empty_oracle" },
-      { id: "empty-flight-deck", name: "Empty Flight Deck", description: "Writer with no assigned questions", kind: "simulate", flag: "atlas_sim_empty_flightdeck" },
-      { id: "empty-atc", name: "Empty ATC", description: "No team activity", kind: "navigate", flag: "atlas_sim_empty_atc" },
-      { id: "empty-briefing", name: "Empty Briefing Room", description: "No north star or win themes", kind: "simulate", flag: "atlas_sim_empty_briefing" },
-      { id: "empty-intel", name: "Empty Intelligence", description: "Zero items in feed", kind: "navigate", flag: "atlas_sim_empty_intel" },
+      { id: "empty-mission",      name: "Empty Mission",       description: "New mission, nothing set up",     kind: "simulate", flag: "atlas_sim_empty_mission",     destinationUrl: `/missions/${M}/briefing`,     destinationLabel: "Empty Mission",       status: "amber" },
+      { id: "empty-oracle",       name: "Empty ORACLE",        description: "ORACLE with zero intel",          kind: "iframe",   href: `/missions/${M}/olympus?preview=1&sim=empty_oracle`,                                                                  status: "green" },
+      { id: "empty-flight-deck",  name: "Empty Flight Deck",   description: "Writer with no assigned questions", kind: "simulate", flag: "atlas_sim_empty_flightdeck",  destinationUrl: `/missions/${M}/flight-deck`,  destinationLabel: "Empty Flight Deck",   status: "amber" },
+      { id: "empty-atc",          name: "Empty ATC",           description: "No team activity",                kind: "iframe",   href: `/missions/${M}/war-room?preview=1&sim=empty_atc`,                                                                    status: "green" },
+      { id: "empty-briefing",     name: "Empty Briefing Room", description: "No north star or win themes",     kind: "simulate", flag: "atlas_sim_empty_briefing",    destinationUrl: `/missions/${M}/briefing`,     destinationLabel: "Empty Briefing Room", status: "amber" },
+      { id: "empty-intel",        name: "Empty Intelligence",  description: "Zero items in feed",              kind: "iframe",   href: `/missions/${M}/intelligence?preview=1&sim=empty_intelligence`,                                                       status: "green" },
     ],
   },
   {
     id: "admin",
     label: "Admin Pages",
     cards: [
-      { id: "admin-home", name: "Admin Home", description: "Cross-mission dashboard", kind: "navigate", href: "/admin" },
-      { id: "admin-mission", name: "Mission Setup", description: "Admin mission setup tab", kind: "simulate" },
-      { id: "admin-state-intel", name: "State Intel", description: "State intelligence packs", kind: "navigate", href: "/admin/state-intel" },
-      { id: "admin-iris-control", name: "IRIS Control", description: "Pipeline health dashboard", kind: "navigate", href: "/admin/iris-control" },
-      { id: "admin-iris-writer", name: "IRIS Writer View", description: "IRIS writer surface", kind: "navigate", href: "/admin/iris-writer-view" },
-      { id: "admin-staff", name: "Staff Management", description: "Team management", kind: "navigate", href: "/admin/team" },
-      { id: "admin-messaging", name: "Messaging", description: "Platform messaging", kind: "navigate", href: "/admin/messaging" },
-      { id: "admin-email-templates", name: "Email Templates", description: "Customize the IRIS mission-invite email body", kind: "navigate", href: "/admin/email-templates" },
-      { id: "olympus", name: "ORACLE Command", description: "Cross-mission ORACLE", kind: "navigate", href: "/olympus" },
+      { id: "admin-home",            name: "Admin Home",        description: "Cross-mission dashboard",         kind: "iframe", href: "/admin?preview=1",                                                                                       status: "green" },
+      { id: "admin-mission",         name: "Mission Setup",     description: "Admin mission setup tab",         kind: "simulate", flag: "atlas_sim_mission_setup",       destinationUrl: `/admin/missions/${M}`,    destinationLabel: "Mission Setup", status: "amber" },
+      { id: "admin-state-intel",     name: "State Intel",       description: "State intelligence packs",        kind: "iframe", href: "/admin/state-intel?preview=1",                                                                            status: "green" },
+      { id: "admin-iris-control",    name: "IRIS Control",      description: "Pipeline health dashboard",       kind: "iframe", href: "/admin/iris-control?preview=1",                                                                           status: "green" },
+      { id: "admin-iris-writer",     name: "IRIS Writer View",  description: "IRIS writer surface",             kind: "iframe", href: "/admin/iris-writer-view?preview=1",                                                                       status: "green" },
+      { id: "admin-staff",           name: "Staff Management",  description: "Team management",                 kind: "iframe", href: "/admin/team?preview=1",                                                                                   status: "green" },
+      { id: "admin-messaging",       name: "Messaging",         description: "Platform messaging",              kind: "iframe", href: "/admin/messaging?preview=1",                                                                              status: "green" },
+      { id: "admin-email-templates", name: "Email Templates",   description: "Customize the IRIS mission-invite email body", kind: "iframe", href: "/admin/email-templates?preview=1",                                                            status: "green" },
+      { id: "olympus",               name: "ORACLE Command",    description: "Cross-mission ORACLE",            kind: "iframe", href: "/olympus?preview=1",                                                                                      status: "green" },
     ],
   },
   {
     id: "wizard",
     label: "Wizard Steps",
     cards: [
-      { id: "wiz-1-empty", name: "Wizard Step 1 (Empty)", description: "Fuel IRIS — no docs uploaded", kind: "simulate", flag: "atlas_sim_wizard:1:empty" },
-      { id: "wiz-1-ready", name: "Wizard Step 1 (Ready)", description: "Docs tagged, ready to analyze", kind: "simulate", flag: "atlas_sim_wizard:1:ready" },
-      { id: "wiz-2", name: "Wizard Step 2", description: "State intelligence step", kind: "simulate", flag: "atlas_sim_wizard:2" },
-      { id: "wiz-9", name: "Wizard Step 9", description: "Review & Launch final step", kind: "simulate", flag: "atlas_sim_wizard:9" },
+      { id: "wiz-1-empty", name: "Wizard Step 1 (Empty)", description: "Fuel IRIS — no docs uploaded",       kind: "simulate", flag: "atlas_sim_wizard:1:empty", destinationUrl: `/olympus/wizard/${M}`, destinationLabel: "Wizard Step 1 (Empty)", status: "amber" },
+      { id: "wiz-1-ready", name: "Wizard Step 1 (Ready)", description: "Docs tagged, ready to analyze",      kind: "simulate", flag: "atlas_sim_wizard:1:ready", destinationUrl: `/olympus/wizard/${M}`, destinationLabel: "Wizard Step 1 (Ready)", status: "amber" },
+      { id: "wiz-2",       name: "Wizard Step 2",         description: "State intelligence step",            kind: "simulate", flag: "atlas_sim_wizard:2",       destinationUrl: `/olympus/wizard/${M}`, destinationLabel: "Wizard Step 2",         status: "amber" },
+      { id: "wiz-9",       name: "Wizard Step 9",         description: "Review & Launch final step",         kind: "simulate", flag: "atlas_sim_wizard:9",       destinationUrl: `/olympus/wizard/${M}`, destinationLabel: "Wizard Step 9",         status: "amber" },
     ],
   },
   {
     id: "errors",
     label: "Error & Edge States",
     cards: [
-      { id: "err-404", name: "404 Page", description: "Page not found", kind: "navigate", href: "/this-does-not-exist" },
-      { id: "err-access", name: "Access Denied", description: "Non-admin tries admin page", kind: "simulate", flag: "atlas_sim_access_denied" },
-      { id: "err-mission-404", name: "Mission Not Found", description: "Invalid mission ID", kind: "navigate", href: "/missions/00000000-0000-0000-0000-000000000000/briefing" },
-      { id: "err-pipeline", name: "Pipeline Error", description: "IRIS Control with a cron failure", kind: "simulate", flag: "atlas_sim_pipeline_error" },
+      { id: "err-404",         name: "404 Page",           description: "Page not found",                    kind: "iframe",   href: "/this-page-does-not-exist-404-test",                                                                       status: "green" },
+      { id: "err-access",      name: "Access Denied",      description: "Non-admin tries admin page",        kind: "simulate", flag: "atlas_sim_access_denied",  destinationUrl: `/missions/${M}/briefing`, destinationLabel: "Access Denied", status: "amber" },
+      { id: "err-mission-404", name: "Mission Not Found",  description: "Invalid mission ID",                kind: "iframe",   href: "/missions/00000000-0000-0000-0000-000000000000/briefing?preview=1",                                       status: "green" },
+      { id: "err-pipeline",    name: "Pipeline Error",     description: "IRIS Control with a cron failure",  kind: "simulate", flag: "atlas_sim_pipeline_error", destinationUrl: "/admin/iris-control",     destinationLabel: "Pipeline Error", status: "amber" },
     ],
   },
   {
     id: "modals",
     label: "Modals & Panels",
     cards: [
-      { id: "m-checkin-ontrack", name: "Check-In: On Track", description: "Check-in submitted as On Track", kind: "modal", modal: "checkin_ontrack" },
-      { id: "m-checkin-blocked", name: "Check-In: Blocked", description: "Check-in submitted as Blocked", kind: "modal", modal: "checkin_blocked" },
-      { id: "m-checkin-sme", name: "Check-In: Need SME", description: "Check-in requesting SME help", kind: "modal", modal: "checkin_sme" },
-      { id: "m-score-empty", name: "Score Me: Empty", description: "Score Me before pasting draft", kind: "modal", modal: "score_me" },
-      { id: "m-score-results", name: "Score Me: Results", description: "Score Me with rubric + authenticity", kind: "modal", modal: "score_me_results" },
-      { id: "m-evaluator", name: "Evaluator Simulation", description: "Evaluator voice feedback mode", kind: "modal", modal: "evaluator_sim" },
-      { id: "m-sticky-empty", name: "Sticky Notes: Empty", description: "No notes pinned yet", kind: "modal", modal: "sticky_empty" },
-      { id: "m-sticky-notes", name: "Sticky Notes: With Notes", description: "Sticky notes with sample cards", kind: "modal", modal: "sticky_notes" },
-      { id: "m-nudge", name: "Nudge: With Team", description: "Nudge modal with team members", kind: "modal", modal: "nudge" },
-      { id: "m-iris-chat", name: "IRIS Chat", description: "Ask IRIS chat panel open", kind: "modal", modal: "iris_chat" },
-      { id: "m-search-empty", name: "Global Search: Empty", description: "Cmd+K with no query", kind: "modal", modal: "search_empty" },
-      { id: "m-search-intent", name: "Global Search: Intent", description: "Typing 'check in' — intent match", kind: "modal", modal: "search_intent" },
-      { id: "m-writer-drawer", name: "WriterDrawer: Questions", description: "ATC writer drawer with questions", kind: "modal", modal: "writer_drawer" },
+      { id: "m-checkin-ontrack", name: "Check-In: On Track",    description: "Check-in submitted as On Track",    kind: "modal", modal: "checkin_ontrack", destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Check-In: On Track", status: "amber" },
+      { id: "m-checkin-blocked", name: "Check-In: Blocked",     description: "Check-in submitted as Blocked",     kind: "modal", modal: "checkin_blocked", destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Check-In: Blocked", status: "amber" },
+      { id: "m-checkin-sme",     name: "Check-In: Need SME",    description: "Check-in requesting SME help",      kind: "modal", modal: "checkin_sme",     destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Check-In: Need SME", status: "amber" },
+      { id: "m-score-empty",     name: "Score Me: Empty",       description: "Score Me before pasting draft",     kind: "modal", modal: "score_me",        destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Score Me", status: "amber" },
+      { id: "m-score-results",   name: "Score Me: Results",     description: "Score Me with rubric + authenticity", kind: "modal", modal: "score_me_results", destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Score Me: Results", status: "amber" },
+      { id: "m-evaluator",       name: "Evaluator Simulation",  description: "Evaluator voice feedback mode",     kind: "modal", modal: "evaluator_sim",   destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Evaluator Sim", status: "amber" },
+      { id: "m-sticky-empty",    name: "Sticky Notes: Empty",   description: "No notes pinned yet",               kind: "modal", modal: "sticky_empty",    destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Sticky Notes", status: "amber" },
+      { id: "m-sticky-notes",    name: "Sticky Notes: With Notes", description: "Sticky notes with sample cards", kind: "modal", modal: "sticky_notes",    destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Sticky Notes", status: "amber" },
+      { id: "m-nudge",           name: "Nudge: With Team",      description: "Nudge modal with team members",     kind: "modal", modal: "nudge",           destinationUrl: `/missions/${M}/war-room`,    destinationLabel: "Nudge", status: "amber" },
+      { id: "m-iris-chat",       name: "IRIS Chat",             description: "Ask IRIS chat panel open",          kind: "modal", modal: "iris_chat",       destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "IRIS Chat", status: "amber" },
+      { id: "m-search-empty",    name: "Global Search: Empty",  description: "Cmd+K with no query",               kind: "modal", modal: "search_empty",    destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Global Search", status: "amber" },
+      { id: "m-search-intent",   name: "Global Search: Intent", description: "Typing 'check in' — intent match",  kind: "modal", modal: "search_intent",   destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Global Search", status: "amber" },
+      { id: "m-writer-drawer",   name: "WriterDrawer: Questions", description: "ATC writer drawer with questions", kind: "modal", modal: "writer_drawer",  destinationUrl: `/missions/${M}/war-room`,    destinationLabel: "Writer Drawer", status: "amber" },
     ],
   },
   {
     id: "anims",
     label: "Animations",
     cards: [
-      { id: "a-splash", name: "Splash Screen", description: "Constellation load animation", kind: "anim", anim: "splash" },
-      { id: "a-iris-loading", name: "IRIS Brief Loading", description: "Particle field thinking state", kind: "anim", anim: "iris_loading" },
-      { id: "a-whisper", name: "Whisper Arrival", description: "Whisper drop animation", kind: "anim", anim: "whisper" },
-      { id: "a-scan", name: "Score Me Scan", description: "Evaluator reading scan line", kind: "anim", anim: "scan" },
-      { id: "a-bolt", name: "Bolt Flash", description: "Lightning bolt IRIS activation", kind: "anim", anim: "bolt" },
+      { id: "a-splash",       name: "Splash Screen",     description: "Constellation load animation",   kind: "anim", anim: "splash",       destinationUrl: "/admin",                          destinationLabel: "Splash",       status: "amber" },
+      { id: "a-iris-loading", name: "IRIS Brief Loading", description: "Particle field thinking state", kind: "anim", anim: "iris_loading", destinationUrl: `/missions/${M}/flight-deck`,      destinationLabel: "IRIS Loading", status: "amber" },
+      { id: "a-whisper",      name: "Whisper Arrival",   description: "Whisper drop animation",         kind: "anim", anim: "whisper",      destinationUrl: `/missions/${M}/flight-deck`,      destinationLabel: "Whisper",      status: "amber" },
+      { id: "a-scan",         name: "Score Me Scan",     description: "Evaluator reading scan line",    kind: "anim", anim: "scan",         destinationUrl: `/missions/${M}/flight-deck`,      destinationLabel: "Score Scan",   status: "amber" },
+      { id: "a-bolt",         name: "Bolt Flash",        description: "Lightning bolt IRIS activation", kind: "anim", anim: "bolt",                                                                                              status: "amber" },
     ],
   },
 ];
 
 const ROLE_KEY = "atlas_preview_role";
 const SPLASH_KEY = "atlas_splash_shown";
+const MODAL_STATE_KEY = "atlas_dev_modal_state";
 const ROLES = ["Admin", "Engagement Lead", "Project Manager", "Writer", "SME", "Reviewer"] as const;
 type Role = (typeof ROLES)[number];
 
@@ -181,6 +192,11 @@ function currentMissionId(pathname: string): string | null {
   return m ? m[1] : null;
 }
 
+function resolveUrl(template: string | undefined, missionId: string | null): string {
+  if (!template) return "";
+  return template.replaceAll("{MID}", missionId ?? FALLBACK_MID);
+}
+
 /** Find a visible button whose text matches any of the given needles (case-insensitive substring). */
 function findButton(needles: string[]): HTMLElement | null {
   const buttons = Array.from(document.querySelectorAll<HTMLElement>("button, [role='button']"));
@@ -204,11 +220,19 @@ function setReactInputValue(el: HTMLInputElement | HTMLTextAreaElement, value: s
   el.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
+function dotColor(s: StatusDot): string {
+  if (s === "green") return "rgba(74,222,128,0.85)";
+  if (s === "amber") return "rgba(251,191,36,0.85)";
+  return "rgba(248,113,113,0.85)";
+}
+
 export function DevToolsPanel() {
   const isAdmin = useIsAdmin();
   const [open, setOpen] = useState(false);
-  const [preview, setPreview] = useState<ScreenCard | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewName, setPreviewName] = useState<string>("");
   const [playSplash, setPlaySplash] = useState(false);
+  const [overlay, setOverlay] = useState<string | null>(null);
   const { pathname } = useLocation();
   const missionId = useMemo(() => currentMissionId(pathname), [pathname]);
   const [activeRole, setActiveRole] = useState<Role>("Admin");
@@ -223,16 +247,16 @@ export function DevToolsPanel() {
   }, []);
 
   useEffect(() => {
-    if (!open && !preview && !playSplash) return;
+    if (!open && !previewUrl && !playSplash) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       if (playSplash) setPlaySplash(false);
-      else if (preview) setPreview(null);
+      else if (previewUrl) setPreviewUrl(null);
       else if (open) setOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, preview, playSplash]);
+  }, [open, previewUrl, playSplash]);
 
   useEffect(() => {
     const onOpen = () => setOpen(true);
@@ -242,41 +266,21 @@ export function DevToolsPanel() {
 
   if (!isAdmin) return null;
 
-  const resolveRoute = (s: ScreenCard): string | null => {
-    if (s.href) return s.href;
-
-    // Mission-context fallbacks (need missionId in URL)
-    const needMission: Record<string, string> = {
-      "empty-oracle": `/missions/${missionId}/olympus`,
-      "empty-intel": `/missions/${missionId}/intelligence`,
-      "empty-atc": `/missions/${missionId}/war-room`,
-      "empty-flight-deck": `/missions/${missionId}/flight-deck`,
-      "empty-briefing": `/missions/${missionId}/briefing`,
-      "role-readonly": `/missions/${missionId}/briefing`,
-    };
-    if (s.id in needMission) {
-      if (!missionId) return null;
-      return needMission[s.id];
-    }
-
-    // Wizard: prefer current mission, otherwise new-mission wizard
-    if (s.id.startsWith("wiz-")) {
-      return missionId ? `/olympus/wizard/${missionId}` : `/olympus/wizard/new`;
-    }
-
-    // Other simulate cards that have a real destination
-    const fixed: Record<string, string> = {
-      "empty-mission": "/olympus/missions/new",
-      "new-user": "/welcome",
-      "err-access": "/admin",
-      "err-pipeline": "/admin/iris-control",
-      "admin-mission": missionId ? `/admin/missions/${missionId}` : "/admin",
-    };
-    if (s.id in fixed) return fixed[s.id];
-
-    return null;
+  const showOverlay = (text: string, ms = 2000) => {
+    setOverlay(text);
+    setTimeout(() => setOverlay((v) => (v === text ? null : v)), ms);
   };
 
+  const goThereToast = (label: string, url: string) => {
+    toast.success(`${label} flag set ✓`, {
+      description: `Navigate to ${label.toLowerCase()} to see it.`,
+      duration: 5000,
+      action: {
+        label: "Go there now →",
+        onClick: () => window.location.assign(url),
+      },
+    });
+  };
 
   const setFlag = (flag?: string) => {
     if (!flag) return;
@@ -292,22 +296,29 @@ export function DevToolsPanel() {
     } catch {}
   };
 
-  const runModal = async (modal: string) => {
-    setOpen(false); // close drawer so modal isn't obscured
+  const runModal = async (s: ScreenCard) => {
+    const modal = s.modal!;
+    setOpen(false);
+    showOverlay(`Dev Tools: Opening ${s.name}…`, 2500);
+
     const onFlightDeck = pathname.includes("/flight-deck");
     const onWarRoom = pathname.includes("/war-room");
+    const needFlightDeck = ["checkin_ontrack","checkin_blocked","checkin_sme","score_me","score_me_results","evaluator_sim","sticky_empty","sticky_notes","iris_chat","search_empty","search_intent"].includes(modal);
+    const needWarRoom = modal === "writer_drawer" || modal === "nudge";
 
-    const needFlightDeck = ["checkin_ontrack","checkin_blocked","checkin_sme","score_me","score_me_results","evaluator_sim","sticky_empty","sticky_notes","nudge","iris_chat"].includes(modal);
-    const needWarRoom = modal === "writer_drawer";
+    // Set pre-fill state for modals that need it
+    try {
+      if (modal === "checkin_blocked") sessionStorage.setItem(MODAL_STATE_KEY, "blocked");
+      else if (modal === "checkin_sme") sessionStorage.setItem(MODAL_STATE_KEY, "sme");
+      else if (modal === "score_me_results") sessionStorage.setItem(MODAL_STATE_KEY, "results");
+      else if (modal === "evaluator_sim") sessionStorage.setItem(MODAL_STATE_KEY, "evaluator");
+      else sessionStorage.removeItem(MODAL_STATE_KEY);
+    } catch {}
 
-    if (needFlightDeck && !onFlightDeck) {
-      if (!missionId) { toast.error("Open a mission's Flight Deck first."); return; }
-      window.location.assign(`/missions/${missionId}/flight-deck`);
-      return;
-    }
-    if (needWarRoom && !onWarRoom) {
-      if (!missionId) { toast.error("Open a mission's ATC first."); return; }
-      window.location.assign(`/missions/${missionId}/war-room`);
+    if ((needFlightDeck && !onFlightDeck) || (needWarRoom && !onWarRoom)) {
+      const url = resolveUrl(s.destinationUrl, missionId);
+      if (!url) { toast.error("No destination configured."); return; }
+      window.location.assign(url);
       return;
     }
 
@@ -377,64 +388,74 @@ export function DevToolsPanel() {
     }
   };
 
-  const runAnim = (anim: NonNullable<ScreenCard["anim"]>) => {
+  const runAnim = (s: ScreenCard) => {
+    const anim = s.anim!;
     setOpen(false);
-    switch (anim) {
-      case "splash":
-        try { sessionStorage.removeItem(SPLASH_KEY); } catch {}
+    showOverlay(`Dev Tools: Playing ${s.name}…`, 2000);
+
+    if (anim === "bolt") {
+      triggerIrisBolt("iris");
+      triggerIrisBolt("brief");
+      triggerIrisBolt("score");
+      triggerIrisBolt("whisper");
+      triggerIrisBolt("alert");
+      return;
+    }
+
+    if (anim === "splash") {
+      try { sessionStorage.removeItem(SPLASH_KEY); } catch {}
+      // If we're on /admin already, just replay in place; otherwise navigate so splash fires on load.
+      if (pathname.startsWith("/admin")) {
         setPlaySplash(true);
-        return;
-      case "bolt":
-        triggerIrisBolt("iris");
-        triggerIrisBolt("brief");
-        triggerIrisBolt("score");
-        triggerIrisBolt("whisper");
-        triggerIrisBolt("alert");
-        return;
-      case "whisper":
-        window.dispatchEvent(new CustomEvent("atlas-dev-whisper", { detail: { text: SAMPLE_WHISPER } }));
-        toast.success("Whisper dispatched.");
-        return;
-      case "scan":
-        window.dispatchEvent(new CustomEvent("atlas-dev-scan", { detail: { text: SAMPLE_DRAFT } }));
-        toast.success("Scan animation dispatched.");
-        return;
-      case "iris_loading":
-        window.dispatchEvent(new CustomEvent("atlas-dev-iris-loading", { detail: { ms: 5000 } }));
-        toast.success("IRIS loading state dispatched (5s).");
-        return;
+      } else {
+        window.location.assign(resolveUrl(s.destinationUrl, missionId) || "/admin");
+      }
+      return;
+    }
+
+    // whisper / scan / iris_loading — need Flight Deck context
+    const onFlightDeck = pathname.includes("/flight-deck");
+    if (!onFlightDeck && s.destinationUrl) {
+      window.location.assign(resolveUrl(s.destinationUrl, missionId));
+      return;
+    }
+
+    if (anim === "whisper") {
+      window.dispatchEvent(new CustomEvent("atlas-dev-whisper", { detail: { text: SAMPLE_WHISPER } }));
+      toast.success("Whisper dispatched.");
+    } else if (anim === "scan") {
+      window.dispatchEvent(new CustomEvent("atlas-dev-scan", { detail: { text: SAMPLE_DRAFT } }));
+      toast.success("Scan animation dispatched.");
+    } else if (anim === "iris_loading") {
+      window.dispatchEvent(new CustomEvent("atlas-dev-iris-loading", { detail: { ms: 5000 } }));
+      toast.success("IRIS loading state dispatched (5s).");
     }
   };
 
   const handleScreen = (s: ScreenCard) => {
+    if (s.notBuilt) return;
+
     if (s.kind === "splash") {
       try { sessionStorage.removeItem(SPLASH_KEY); } catch {}
       setPlaySplash(true);
       return;
     }
-    if (s.kind === "anim" && s.anim) { runAnim(s.anim); return; }
-    if (s.kind === "modal" && s.modal) { void runModal(s.modal); return; }
-    if (s.kind === "iframe") { setPreview(s); return; }
-    if (s.kind === "navigate") {
-      const href = resolveRoute(s);
-      if (!href) { toast.error("Open a mission first — that preview needs a mission context."); return; }
-      setFlag(s.flag);
-      window.location.assign(href);
+    if (s.kind === "anim") { runAnim(s); return; }
+    if (s.kind === "modal") { void runModal(s); return; }
+    if (s.kind === "iframe") {
+      const url = resolveUrl(s.href, missionId);
+      setPreviewUrl(url);
+      setPreviewName(s.name);
       return;
     }
     if (s.kind === "simulate") {
       setFlag(s.flag);
-      const href = resolveRoute(s);
-      if (href) {
-        window.location.assign(href);
-      } else if (s.flag?.startsWith("atlas_preview_role:")) {
-        toast.success(`${s.name}: role set. Refresh a mission page to see it.`);
-      } else {
-        toast.success(`${s.name}: flag set. Open the relevant page to see the state.`);
-      }
+      const destUrl = resolveUrl(s.destinationUrl, missionId);
+      const destLabel = s.destinationLabel ?? s.name;
+      if (destUrl) goThereToast(destLabel, destUrl);
+      else toast.success(`${s.name}: flag set.`);
       return;
     }
-
   };
 
   const clearSplash = () => {
@@ -505,7 +526,7 @@ export function DevToolsPanel() {
         <Code size={16} />
       </button>
 
-      {/* Drawer */}
+      {/* Drawer — full viewport width, slides up from the bottom */}
       <div
         role="dialog"
         aria-hidden={!open}
@@ -514,12 +535,13 @@ export function DevToolsPanel() {
           left: 0,
           right: 0,
           bottom: 0,
+          width: "100vw",
           height: 540,
           background: "#050d18",
           borderTop: "1px solid rgba(196,154,43,0.3)",
           transform: open ? "translateY(0)" : "translateY(100%)",
-          transition: "transform 200ms ease-out",
-          zIndex: 9998,
+          transition: "transform 250ms ease-out",
+          zIndex: 9990,
           color: "rgba(255,255,255,0.85)",
           display: "flex",
           flexDirection: "column",
@@ -545,20 +567,21 @@ export function DevToolsPanel() {
               type="text"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              placeholder="Filter screens..."
+              placeholder="🔍 Filter screens..."
               style={{
                 width: "100%",
-                padding: "6px 10px",
+                height: 28,
+                padding: "0 10px",
                 marginBottom: 10,
                 fontSize: 11,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.12)",
-                borderRadius: 6,
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 4,
                 color: "white",
                 outline: "none",
               }}
             />
-            <div style={{ maxHeight: 280, overflowY: "auto", paddingRight: 4 }}>
+            <div style={{ maxHeight: 320, overflowY: "auto", paddingRight: 4 }}>
               {CATEGORIES.map((cat) => {
                 const visible = cat.cards.filter(filterMatch);
                 if (visible.length === 0) return null;
@@ -587,31 +610,62 @@ export function DevToolsPanel() {
                     </button>
                     {!isCollapsed && (
                       <div className="grid grid-cols-3 gap-2">
-                        {visible.map((s) => (
-                          <button
-                            key={s.id}
-                            type="button"
-                            onClick={() => handleScreen(s)}
-                            className="text-left"
-                            style={{
-                              width: "100%",
-                              minHeight: 72,
-                              padding: 10,
-                              background: "rgba(255,255,255,0.04)",
-                              border: "1px solid rgba(255,255,255,0.08)",
-                              borderRadius: 6,
-                              cursor: "pointer",
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(196,154,43,0.6)")}
-                            onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
-                          >
-                            <div style={{ color: "white", fontSize: 11, fontWeight: 500 }}>{s.name}</div>
-                            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 9, marginTop: 2 }}>{s.description}</div>
-                            <div style={{ color: "#c9a84c", fontSize: 9, marginTop: 4 }}>
-                              {s.kind === "anim" ? "Play →" : s.kind === "modal" ? "Open →" : s.kind === "simulate" ? "Set flag →" : "Preview →"}
-                            </div>
-                          </button>
-                        ))}
+                        {visible.map((s) => {
+                          const cta = s.notBuilt
+                            ? "Not built"
+                            : s.kind === "anim" ? "Play →"
+                            : s.kind === "modal" ? "Open →"
+                            : s.kind === "simulate" ? "Set flag →"
+                            : "Preview →";
+                          const ctaColor = s.notBuilt ? "rgba(255,255,255,0.35)" : "#c9a84c";
+                          return (
+                            <button
+                              key={s.id}
+                              type="button"
+                              onClick={() => handleScreen(s)}
+                              disabled={s.notBuilt}
+                              className="text-left"
+                              style={{
+                                position: "relative",
+                                width: "100%",
+                                minHeight: 72,
+                                padding: 10,
+                                background: "rgba(255,255,255,0.04)",
+                                border: "1px solid rgba(255,255,255,0.08)",
+                                borderRadius: 6,
+                                cursor: s.notBuilt ? "not-allowed" : "pointer",
+                                opacity: s.notBuilt ? 0.4 : 1,
+                              }}
+                              onMouseEnter={(e) => { if (!s.notBuilt) e.currentTarget.style.borderColor = "rgba(196,154,43,0.6)"; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
+                            >
+                              <span
+                                aria-hidden
+                                style={{
+                                  position: "absolute",
+                                  top: 4,
+                                  right: 4,
+                                  width: 4,
+                                  height: 4,
+                                  borderRadius: 999,
+                                  background: dotColor(s.status),
+                                }}
+                              />
+                              <div style={{ color: "white", fontSize: 11, fontWeight: 500 }}>{s.name}</div>
+                              <div
+                                style={{
+                                  color: "rgba(255,255,255,0.5)",
+                                  fontSize: 9,
+                                  marginTop: 2,
+                                  fontStyle: s.notBuilt ? "italic" : "normal",
+                                }}
+                              >
+                                {s.notBuilt ? "(Not yet built)" : s.description}
+                              </div>
+                              <div style={{ color: ctaColor, fontSize: 9, marginTop: 4 }}>{cta}</div>
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -663,8 +717,8 @@ export function DevToolsPanel() {
         </div>
       </div>
 
-      {/* Iframe preview overlay */}
-      {preview && preview.kind === "iframe" && (
+      {/* Iframe preview overlay (full screen, above drawer) */}
+      {previewUrl && (
         <div
           style={{
             position: "fixed",
@@ -679,27 +733,57 @@ export function DevToolsPanel() {
             className="flex items-center justify-between px-4"
             style={{ height: 48, background: "#0a0e1a", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
           >
-            <div style={{ color: "white", fontSize: 13 }}>{preview.name}</div>
+            <div style={{ color: "white", fontSize: 13 }}>{previewName}</div>
+            <div
+              style={{
+                color: "rgba(255,255,255,0.45)",
+                fontSize: 9,
+                fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+              }}
+            >
+              {previewUrl}
+            </div>
             <div className="flex items-center gap-3">
               <a
-                href={preview.href}
+                href={previewUrl}
                 target="_blank"
                 rel="noreferrer"
                 style={{ color: "#c9a84c", fontSize: 11 }}
               >
                 Open in new tab →
               </a>
-              <button onClick={() => setPreview(null)} style={{ color: "white", fontSize: 11 }}>
-                Close Preview
+              <button onClick={() => setPreviewUrl(null)} style={{ color: "white", fontSize: 11 }}>
+                × Close Preview
               </button>
             </div>
           </div>
           <iframe
-            src={preview.href}
-            title={preview.name}
+            src={previewUrl}
+            title={previewName}
             data-preview-mode="true"
-            style={{ flex: 1, width: "100%", border: 0, background: "#000" }}
+            style={{ flex: 1, width: "100%", height: 360, border: 0, background: "#000" }}
           />
+        </div>
+      )}
+
+      {/* Action overlay indicator */}
+      {overlay && (
+        <div
+          style={{
+            position: "fixed",
+            right: 16,
+            bottom: 64,
+            zIndex: 9999,
+            padding: "6px 10px",
+            background: "rgba(5,13,24,0.95)",
+            border: "1px solid rgba(196,154,43,0.4)",
+            borderRadius: 6,
+            color: "#c9a84c",
+            fontSize: 10,
+            letterSpacing: "0.04em",
+          }}
+        >
+          {overlay}
         </div>
       )}
 
