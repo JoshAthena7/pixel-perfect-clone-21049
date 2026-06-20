@@ -67,6 +67,27 @@ function AdminSettingsPage() {
 
           <div className="mt-4 pt-4 flex items-center justify-between gap-6" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
             <div>
+              <div className="text-sm font-medium text-white">IRIS Studio</div>
+              <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
+                Per-mission control over IRIS voice, language & inclusion, evaluator persona, brief settings, and personality.
+              </div>
+            </div>
+            <Link
+              to="/admin/iris-studio"
+              className="rounded-md px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap"
+              style={{
+                background: "rgba(201,168,76,0.15)",
+                color: "#c9a84c",
+                border: "1px solid rgba(201,168,76,0.4)",
+              }}
+            >
+              Open IRIS Studio
+            </Link>
+          </div>
+
+
+          <div className="mt-4 pt-4 flex items-center justify-between gap-6" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <div>
               <div className="text-sm font-medium text-white">Replay ATLAS splash</div>
               <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
                 Clears the session flag and reloads so the constellation load screen plays again.
