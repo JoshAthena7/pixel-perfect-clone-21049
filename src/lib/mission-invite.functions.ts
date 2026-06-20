@@ -142,6 +142,35 @@ export const sendMissionInvite = createServerFn({ method: "POST" })
     const { getRequestHeader } = await import("@tanstack/react-start/server");
     const bearer = getRequestHeader("authorization");
 
+    // Load admin-customizable copy (if any)
+    const { data: override } = await supabase
+      .from("email_template_overrides")
+      .select("subject, intro, body, cta_label, signoff")
+      .eq("template_key", "mission-invite")
+      .maybeSingle();
+
+    const tokens: Record<string, string> = {
+      recipientName,
+      missionName: mission.name ?? "",
+      role: missionRole,
+      engagementLeadName,
+      expectedStartDate,
+      clientName: (mission as any).client_name ?? "",
+    };
+    const subst = (s: string) =>
+      (s || "").replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, k) => tokens[k] ?? "");
+
+    const resolvedSubject = subst(
+      override?.subject || "Your Mission Awaits — {{missionName}}"
+    );
+    const resolvedIntro = subst(override?.intro || "Hi {{recipientName}},");
+    const resolvedBody = subst(
+      override?.body ||
+        "You've been selected to join the {{missionName}} pursuit team at Athena Strategy Command."
+    );
+    const ctaLabel = override?.cta_label || "CREATE YOUR ACCOUNT →";
+    const signoff = override?.signoff || "— Athena Strategy Command";
+
     const siteUrl = acceptOrigin;
     const sendResp = await fetch(`${siteUrl}/lovable/email/transactional/send`, {
       method: "POST",
@@ -160,6 +189,11 @@ export const sendMissionInvite = createServerFn({ method: "POST" })
           engagementLeadName,
           expectedStartDate,
           acceptUrl,
+          intro: resolvedIntro,
+          body: resolvedBody,
+          ctaLabel,
+          signoff,
+          resolvedSubject,
         },
       }),
     });

@@ -97,6 +97,7 @@ const CATEGORIES: Category[] = [
       { id: "admin-iris-writer", name: "IRIS Writer View", description: "IRIS writer surface", kind: "navigate", href: "/admin/iris-writer-view" },
       { id: "admin-staff", name: "Staff Management", description: "Team management", kind: "navigate", href: "/admin/team" },
       { id: "admin-messaging", name: "Messaging", description: "Platform messaging", kind: "navigate", href: "/admin/messaging" },
+      { id: "admin-email-templates", name: "Email Templates", description: "Customize the IRIS mission-invite email body", kind: "navigate", href: "/admin/email-templates" },
       { id: "olympus", name: "ORACLE Command", description: "Cross-mission ORACLE", kind: "navigate", href: "/olympus" },
     ],
   },
