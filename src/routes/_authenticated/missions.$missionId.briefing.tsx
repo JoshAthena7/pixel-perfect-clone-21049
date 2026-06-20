@@ -507,18 +507,23 @@ function IrisBriefCard({ missionId, mission }: { missionId: string; mission: any
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="w-full flex items-start justify-between gap-3"
+        className="w-full flex items-center justify-between gap-3"
         style={{ background: "transparent", textAlign: "left" }}
       >
         <div className="flex items-center gap-2" style={cardLabel}>
-          <Zap size={14} /> IRIS Brief
-          <span style={{ marginLeft: 6, fontSize: 12, color: META_SOFT }}>{open ? "▲" : "▼"}</span>
+          <Zap size={14} /> <span>IRIS Brief</span>
         </div>
-        {rel && (
-          <div style={{ fontSize: 10, color: META_SOFT, fontWeight: 500, letterSpacing: 0 }}>
-            Generated {rel}
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {rel && (
+            <span style={{ fontSize: 9, color: META_SOFT, fontWeight: 500 }}>
+              Generated {rel}
+            </span>
+          )}
+          <ChevronDown
+            size={14}
+            style={{ color: META_SOFT, transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "rotate(0)" }}
+          />
+        </div>
       </button>
 
       {!open && (
