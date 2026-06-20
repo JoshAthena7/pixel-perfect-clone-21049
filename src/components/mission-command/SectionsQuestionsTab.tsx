@@ -667,7 +667,7 @@ function QuestionRow({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <div className="px-2 py-1 text-[11px]  text-muted-foreground">
+              <div className="px-2 py-1 text-[11px] text-muted-foreground">
                 Reassign Writer
               </div>
               {writers.map((w) => {
@@ -722,7 +722,7 @@ function HealthBadge({ value }: { value: string | null }) {
 function StatusBadge({ value }: { value: string | null }) {
   if (!value) return null;
   return (
-    <span className="text-[11px] px-1.5 py-0.5 rounded bg-surface-hover text-muted-foreground ">
+    <span className="text-[11px] px-1.5 py-0.5 rounded bg-surface-hover text-muted-foreground">
       {value.replace(/_/g, " ")}
     </span>
   );

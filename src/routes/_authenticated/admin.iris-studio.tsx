@@ -94,7 +94,7 @@ function IrisStudioPage() {
       <div className="max-w-[1280px] mx-auto px-6 py-8">
         <div className="flex items-end justify-between mb-6">
           <div>
-            <div className=" tracking-[0.16em] text-[11px]" style={{ color: GOLD }}>
+            <div className="tracking-[0.16em] text-[11px]" style={{ color: GOLD }}>
               IRIS STUDIO
             </div>
             <h1 className="text-2xl font-medium mt-1" title={headerFull}>IRIS Studio · {headerLabel}</h1>

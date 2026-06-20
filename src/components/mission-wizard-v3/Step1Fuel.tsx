@@ -455,7 +455,7 @@ export function Step1Fuel({
 
       <div className="space-y-6">
         <div>
-          <label className="text-[12px]  tracking-[0.14em] text-white/55 mb-2 block">
+          <label className="text-[12px] tracking-[0.14em] text-white/55 mb-2 block">
             Mission Name *
           </label>
           <Input

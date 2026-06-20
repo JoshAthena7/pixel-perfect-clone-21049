@@ -207,7 +207,7 @@ function AdminMissionsPage() {
                 </div>
                 {b === "Draft" && (
                   <span
-                    className="rounded-full text-[11px] font-medium   shrink-0"
+                    className="rounded-full text-[11px] font-medium shrink-0"
                     style={{
                       padding: "3px 9px",
                       background: "rgba(201,168,76,0.18)",
@@ -219,7 +219,7 @@ function AdminMissionsPage() {
                   </span>
                 )}
                 <span
-                  className="rounded-full text-[11px] font-medium   shrink-0"
+                  className="rounded-full text-[11px] font-medium shrink-0"
                   style={{
                     padding: "3px 9px",
                     background:

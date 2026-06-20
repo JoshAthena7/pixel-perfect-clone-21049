@@ -146,7 +146,7 @@ function InsightsPage() {
 
       {atRiskInsights.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-[12px] font-medium   text-muted-foreground">At Risk</h2>
+          <h2 className="text-[12px] font-medium text-muted-foreground">At Risk</h2>
           {atRiskInsights.map((i) => (
             <AthenaInsightCard
               key={i.id}
@@ -163,7 +163,7 @@ function InsightsPage() {
 
       {sectionInsights.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-[12px] font-medium   text-muted-foreground">By Section</h2>
+          <h2 className="text-[12px] font-medium text-muted-foreground">By Section</h2>
           {sectionInsights
             .slice()
             .sort((a, b) => {

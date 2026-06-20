@@ -202,7 +202,7 @@ export function Step5IntelNetwork({
         subtitle="Drop in URLs of stakeholders, advocates, academic orgs, trade associations, and other influencers. IRIS will start monitoring them daily."
       />
 
-      <label className="block text-[12px]  tracking-[0.1em] text-white/55 mb-2">
+      <label className="block text-[12px] tracking-[0.1em] text-white/55 mb-2">
         Paste URLs
       </label>
       <textarea
@@ -263,7 +263,7 @@ export function Step5IntelNetwork({
               <select
                 value={c.category}
                 onChange={(e) => setChipCategory(c.url, e.target.value as Category)}
-                className="text-[11.5px]  tracking-[0.08em] px-2 py-1 rounded bg-transparent text-white/80 outline-none"
+                className="text-[11.5px] tracking-[0.08em] px-2 py-1 rounded bg-transparent text-white/80 outline-none"
                 style={{ border: "1px solid rgba(196,154,43,0.4)", color: "#C49A2B" }}
               >
                 {CATEGORIES.map((c) => (

@@ -111,7 +111,7 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
             <Network className="h-3.5 w-3.5" style={{ color: IRIS_PURPLE }} />
             <span className="text-[12px] font-medium text-foreground">Mission Ecosystem</span>
             <span
-              className="ml-auto text-[11px]   font-medium"
+              className="ml-auto text-[11px] font-medium"
               style={{ color: IRIS_PURPLE }}
             >
               IRIS Graph
@@ -140,7 +140,7 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
             <Compass className="h-3.5 w-3.5" style={{ color: GOLD }} />
             <span className="text-[12px] font-medium text-foreground">Athena Insight</span>
             <span
-              className="ml-auto text-[11px]   font-medium"
+              className="ml-auto text-[11px] font-medium"
               style={{ color: GOLD }}
             >
               From Athena
@@ -164,7 +164,7 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
             <Eye className="h-3.5 w-3.5" style={{ color: IRIS_PURPLE }} />
             <span className="text-[12px] font-medium text-foreground">IRIS Brief</span>
             <span
-              className="ml-auto text-[11px]   font-medium"
+              className="ml-auto text-[11px] font-medium"
               style={{ color: IRIS_PURPLE }}
             >
               From IRIS
@@ -194,7 +194,7 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
               <GitBranch className="h-3.5 w-3.5" style={{ color: IRIS_PURPLE }} />
               <span className="text-[12px] font-medium text-foreground">Line of Sight</span>
               <span
-                className="ml-auto text-[11px]   italic"
+                className="ml-auto text-[11px] italic"
                 style={{ color: "rgba(255,255,255,0.45)" }}
               >
                 Decisions · Intelligence · Alignment
@@ -235,7 +235,7 @@ function SectionedBody(props: Required<Pick<Props, "missionId" | "questionId">> 
             <Search className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="text-[12px] font-medium text-foreground">How They're Thinking</span>
             <span
-              className="ml-auto text-[11px]   font-medium text-muted-foreground"
+              className="ml-auto text-[11px] font-medium text-muted-foreground"
             >
               Evaluator Picture
             </span>
@@ -384,7 +384,7 @@ function AthenaInsightBlock({
       <div className="rounded-md border border-[color:var(--athena-gold)]/20 bg-[color:var(--athena-gold)]/[0.04] p-3.5">
         <div className="flex items-center gap-2 mb-1.5">
           <Sparkles className="h-3 w-3" style={{ color: GOLD }} />
-          <span className="text-[11px]  " style={{ color: GOLD }}>
+          <span className="text-[11px]" style={{ color: GOLD }}>
             ✦ Daily
           </span>
         </div>
@@ -412,7 +412,7 @@ function AthenaInsightBlock({
       }}
     >
       <div className="flex items-center gap-2 mb-1.5">
-        <span className="text-[11px]  " style={{ color: borderColor }}>
+        <span className="text-[11px]" style={{ color: borderColor }}>
           {isAtRisk ? "⚠ At Risk" : isDaily ? "✦ Today" : "✦ Section"}
         </span>
         {insight.is_iris_generated && (
@@ -491,12 +491,12 @@ function RequirementRow({ r }: { r: any }) {
         </button>
         <div className="flex gap-1 mt-0.5">
           {r.is_high_risk && (
-            <span className="text-[11px]  rounded px-1 py-px bg-red-500/15 text-red-400 border border-red-500/30">
+            <span className="text-[11px] rounded px-1 py-px bg-red-500/15 text-red-400 border border-red-500/30">
               High Risk
             </span>
           )}
           {r.iris_extracted && (
-            <span className="text-[11px]  rounded px-1 py-px" style={{ background: "rgba(201,165,92,0.15)", color: GOLD, border: `1px solid ${GOLD}30` }}>
+            <span className="text-[11px] rounded px-1 py-px" style={{ background: "rgba(201,165,92,0.15)", color: GOLD, border: `1px solid ${GOLD}30` }}>
               IRIS
             </span>
           )}

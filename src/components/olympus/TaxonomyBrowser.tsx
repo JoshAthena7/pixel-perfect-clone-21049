@@ -76,7 +76,7 @@ export function TaxonomyBrowser({
       </div>
 
       <div className="pt-3 border-t border-white/5">
-        <div className="text-[11px]   text-red-400/80 mb-2">
+        <div className="text-[11px] text-red-400/80 mb-2">
           Intelligence Gaps · {gaps.length}
         </div>
         {gaps.length === 0 ? (

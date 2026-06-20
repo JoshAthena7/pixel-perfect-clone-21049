@@ -112,7 +112,7 @@ function ValidWelcome({
         }}
       >
         <div
-          className="mb-3 text-[12px]  tracking-[0.18em]"
+          className="mb-3 text-[12px] tracking-[0.18em]"
           style={{ color: "rgba(180,150,240,0.7)" }}
         >
           IRIS
@@ -148,7 +148,7 @@ function MissionHeader({ data }: { data: WelcomeInvitePayload }) {
   const m = data.mission!;
   return (
     <div className="mb-4">
-      <div className="text-[12px]  tracking-[0.16em] text-white/40">Mission</div>
+      <div className="text-[12px] tracking-[0.16em] text-white/40">Mission</div>
       <div className="mt-1 text-lg font-medium text-white">{m.name}</div>
       {m.clientName && (
         <div className="text-[14px] text-white/60">{m.clientName}</div>
@@ -182,7 +182,7 @@ function WriterMissionPanel({ data }: { data: WelcomeInvitePayload }) {
       <MissionHeader data={data} />
       {a ? (
         <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.04] p-4">
-          <div className="text-[12px]  tracking-[0.14em] text-white/40">
+          <div className="text-[12px] tracking-[0.14em] text-white/40">
             Your most urgent assignment
           </div>
           <div className="mt-2 flex items-center justify-between gap-3">
@@ -228,7 +228,7 @@ function NoMissionCards() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-      <div className="text-[12px]  tracking-[0.14em] text-white/40">{label}</div>
+      <div className="text-[12px] tracking-[0.14em] text-white/40">{label}</div>
       <div className="mt-1 text-2xl font-medium text-white">{value}</div>
     </div>
   );

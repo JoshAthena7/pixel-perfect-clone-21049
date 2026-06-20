@@ -282,7 +282,7 @@ function StatusChip({ status }: { status: string }) {
     : s === "setup" ? { bg: "rgba(148,163,184,0.7)", color: "#0D1B3E" }
     : { bg: "rgba(255,255,255,0.1)", color: "white" };
   return (
-    <span className="rounded-full px-2 py-[2px] text-[12px] font-medium  "
+    <span className="rounded-full px-2 py-[2px] text-[12px] font-medium"
           style={{ background: styles.bg, color: styles.color }}>
       {s}
     </span>
@@ -324,7 +324,7 @@ function TabPills({
           <div className="fixed inset-0 z-[80]">
             <div className="absolute inset-0 bg-black/60" onClick={() => setMoreOpen(false)} />
             <div className="absolute inset-x-0 bottom-0 rounded-t-xl bg-[#0D1B3E] border-t border-[var(--athena-gold)]/40 p-4 max-h-[70vh] overflow-y-auto">
-              <div className="text-[12px]   text-[var(--athena-gold)] font-medium mb-3">All Tabs</div>
+              <div className="text-[12px] text-[var(--athena-gold)] font-medium mb-3">All Tabs</div>
               {tabs.map((t) => (
                 <button
                   key={t.id}

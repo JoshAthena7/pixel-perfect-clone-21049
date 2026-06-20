@@ -375,7 +375,7 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
                   }}
                 >
                   <div
-                    className="text-[11px]   mb-2"
+                    className="text-[11px] mb-2"
                     style={{ color: GOLD }}
                   >
                     ✦ Athena Strategy
@@ -574,7 +574,7 @@ function AssignmentCard({
           {data.question?.question_number ?? "—"}
         </span>
         <span
-          className="text-[11px] font-medium  "
+          className="text-[11px] font-medium"
           style={{ color: statusColor }}
         >
           {statusLabel}

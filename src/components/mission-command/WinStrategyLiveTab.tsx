@@ -111,7 +111,7 @@ export function WinStrategyLiveTab({ missionId, missionName }: { missionId: stri
 
 
       <div className="rounded-xl border-2 border-primary bg-card p-6 text-center space-y-2">
-        <div className="text-[12px]   text-primary font-medium">North Star</div>
+        <div className="text-[12px] text-primary font-medium">North Star</div>
         <Textarea
           rows={3}
           value={ws.north_star_message ?? ""}

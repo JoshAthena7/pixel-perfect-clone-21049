@@ -665,7 +665,7 @@ export function OracleIntakeModal({
 function Section({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="text-[12px] font-medium   text-white/55 mb-1.5">{title}</div>
+      <div className="text-[12px] font-medium text-white/55 mb-1.5">{title}</div>
       {sub && <div className="text-[11px] text-white/40 mb-2">{sub}</div>}
       {children}
     </div>
@@ -675,7 +675,7 @@ function Section({ title, sub, children }: { title: string; sub?: string; childr
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <Label className="text-[11px]   text-white/50">
+      <Label className="text-[11px] text-white/50">
         {label} {required && <span style={{ color: GOLD }}>*</span>}
       </Label>
       {children}

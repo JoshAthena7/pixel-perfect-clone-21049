@@ -82,7 +82,7 @@ function PlatformStatusBar() {
       <div className="mx-auto max-w-[1600px] px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
         <div>
           <div
-            className="text-[14px] font-medium tracking-[0.25em] "
+            className="text-[14px] font-medium tracking-[0.25em]"
             style={{ color: GOLD }}
           >
             ⚡ Athena Command
@@ -248,7 +248,7 @@ function MissionCard({ m }: { m: AthenaMissionCard }) {
               </p>
             )}
             <div className="flex gap-1.5 mt-2">
-              <span className="text-[11px]   rounded-full border border-border bg-background/60 px-2 py-0.5 text-muted-foreground">
+              <span className="text-[11px] rounded-full border border-border bg-background/60 px-2 py-0.5 text-muted-foreground">
                 {m.status.replace(/_/g, " ")}
               </span>
               {days != null && (
@@ -439,7 +439,7 @@ function PlatformIntelligenceFeed() {
                       {truncate(e.missionName, 20)}
                     </Link>
                   )}
-                  <span className="rounded-full border border-border px-2 py-0.5 text-muted-foreground  tracking-wide text-[11px]">
+                  <span className="rounded-full border border-border px-2 py-0.5 text-muted-foreground tracking-wide text-[11px]">
                     {e.eventType}
                   </span>
                   <span className="text-muted-foreground ml-auto">
@@ -539,7 +539,7 @@ function PlatformHealthPanel() {
 
       {/* IRIS Pipeline */}
       <div>
-        <h4 className="text-[12px]   text-muted-foreground mb-2">IRIS Pipeline</h4>
+        <h4 className="text-[12px] text-muted-foreground mb-2">IRIS Pipeline</h4>
         {isLoading ? <Skeleton className="h-16 rounded" /> : (
           <div className="space-y-1.5">
             {(data?.cronJobs ?? []).length === 0 && (
@@ -574,7 +574,7 @@ function PlatformHealthPanel() {
 
       {/* Brief Generation */}
       <div>
-        <h4 className="text-[12px]   text-muted-foreground mb-2">Brief Generation</h4>
+        <h4 className="text-[12px] text-muted-foreground mb-2">Brief Generation</h4>
         <div className="grid grid-cols-2 gap-2 text-[12px]">
           <Stat label="Ready" value={data?.briefs.ready} />
           <Stat label="Queued" value={data?.briefs.queued} />
@@ -593,7 +593,7 @@ function PlatformHealthPanel() {
 
       {/* Graph Intelligence */}
       <div>
-        <h4 className="text-[12px]   text-muted-foreground mb-2">Graph Intelligence</h4>
+        <h4 className="text-[12px] text-muted-foreground mb-2">Graph Intelligence</h4>
         <div className="grid grid-cols-2 gap-2 text-[12px] mb-2">
           <Stat label="Total Nodes" value={data?.graph.nodes} />
           <Stat label="Total Edges" value={data?.graph.edges} />
@@ -615,7 +615,7 @@ function PlatformHealthPanel() {
 
       {/* Source Ingestion */}
       <div>
-        <h4 className="text-[12px]   text-muted-foreground mb-2">Source Ingestion</h4>
+        <h4 className="text-[12px] text-muted-foreground mb-2">Source Ingestion</h4>
         <div className="grid grid-cols-2 gap-2 text-[12px] mb-2">
           <Stat label="Sources Uploaded" value={data?.sources.uploaded} />
           <Stat label="Pending Extraction" value={data?.sources.pendingExtraction} danger={!!data?.sources.pendingExtraction} />
@@ -641,7 +641,7 @@ function Stat({ label, value, danger }: { label: string; value: number | undefin
       "rounded border px-2.5 py-2",
       danger ? "border-red-500/40 bg-red-500/10" : "border-border bg-background/40",
     )}>
-      <div className="text-[11px]  tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-[11px] tracking-wide text-muted-foreground">{label}</div>
       <div className={cn("text-lg font-medium tabular-nums", danger && "text-red-400")}>
         {display}
       </div>

@@ -118,7 +118,7 @@ export function StateIntelGrid() {
                     <div className="flex items-center gap-2">
                       <span className="text-[12px] font-mono text-[#c9a84c]">{p.state_code}</span>
                       {stale && (
-                        <span className="text-[11px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300  tracking-wide">
+                        <span className="text-[11px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 tracking-wide">
                           Stale
                         </span>
                       )}

@@ -198,7 +198,7 @@ export function LanguageInclusionTab({
         <div className="flex flex-wrap gap-1.5 mb-3">
           {CATS.map((c) => (
             <button type="button" key={c} onClick={() => setFilter(c)}
-              className="text-[11px] px-2 py-1 rounded  tracking-[0.06em]"
+              className="text-[11px] px-2 py-1 rounded tracking-[0.06em]"
               style={{
                 background: filter === c ? "rgba(196,154,43,0.15)" : "rgba(255,255,255,0.04)",
                 color: filter === c ? GOLD : "rgba(255,255,255,0.6)",
@@ -212,7 +212,7 @@ export function LanguageInclusionTab({
         <div className="rounded border border-white/10 overflow-hidden">
           <table className="w-full text-[12px]">
             <thead>
-              <tr className="text-left text-[11px]  tracking-[0.1em] text-white/40">
+              <tr className="text-left text-[11px] tracking-[0.1em] text-white/40">
                 <th className="px-3 py-2">Avoid</th>
                 <th className="px-3 py-2">Use Instead</th>
                 <th className="px-3 py-2 w-32">Category</th>
@@ -228,7 +228,7 @@ export function LanguageInclusionTab({
                     <td className="px-3 py-2" style={{ color: "rgba(248,113,113,0.85)" }}>{p.term}</td>
                     <td className="px-3 py-2" style={{ color: "rgba(74,222,128,0.9)" }}>{p.replacement}</td>
                     <td className="px-3 py-2">
-                      <span className="text-[11px]  tracking-[0.08em] px-1.5 py-0.5 rounded"
+                      <span className="text-[11px] tracking-[0.08em] px-1.5 py-0.5 rounded"
                         style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.6)" }}>
                         {PERSON_FIRST_CATEGORY_LABEL[p.category]}
                       </span>
@@ -304,7 +304,7 @@ export function LanguageInclusionTab({
         <div className="rounded border border-white/10 overflow-hidden">
           <table className="w-full text-[12px]">
             <thead>
-              <tr className="text-left text-[11px]  tracking-[0.1em] text-white/40">
+              <tr className="text-left text-[11px] tracking-[0.1em] text-white/40">
                 <th className="px-3 py-2">Term</th>
                 <th className="px-3 py-2">Preferred</th>
                 <th className="px-3 py-2">Context</th>
@@ -392,7 +392,7 @@ export function LanguageInclusionTab({
             <div className="space-y-2 max-h-[320px] overflow-y-auto">
               {auditResults.map((v, i) => (
                 <div key={i} className="rounded border border-white/5 bg-white/[0.02] p-2">
-                  <div className="text-[11px]  tracking-[0.08em] text-white/40">{v.table} · {v.field}</div>
+                  <div className="text-[11px] tracking-[0.08em] text-white/40">{v.table} · {v.field}</div>
                   <div className="text-[12px] mt-1 text-white/80">
                     {v.excerpt.split(v.foundTerm).map((chunk, ci, arr) => (
                       <span key={ci}>

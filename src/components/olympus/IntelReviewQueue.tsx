@@ -192,7 +192,7 @@ export function IntelReviewQueue({
                 </div>
                 <div className="text-white/80">{openSignal.summary || "—"}</div>
                 <div>
-                  <div className="text-[11px]  text-white/40 mb-1">Source</div>
+                  <div className="text-[11px] text-white/40 mb-1">Source</div>
                   <div className="text-white/70">{openSignal.source_name ?? "—"}</div>
                   {(openSignal.metadata as { source_url?: string })?.source_url && (
                     <a
@@ -225,7 +225,7 @@ export function IntelReviewQueue({
                 </div>
                 {openSignal.topic_tags?.length > 0 && (
                   <div>
-                    <div className="text-[11px]  text-white/40 mb-1">Topics</div>
+                    <div className="text-[11px] text-white/40 mb-1">Topics</div>
                     <div className="flex gap-1 flex-wrap">
                       {openSignal.topic_tags.map((t) => (
                         <span key={t} className="text-[11px] px-1.5 py-0.5 rounded bg-white/5 text-white/60">

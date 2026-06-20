@@ -181,7 +181,7 @@ export function WriterDrawer({
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[14px] font-medium text-white truncate">{target.name}</div>
-              <span className="inline-block mt-0.5 text-[11px] px-1.5 py-0.5 rounded bg-white/5 text-white/55  tracking-wide">
+              <span className="inline-block mt-0.5 text-[11px] px-1.5 py-0.5 rounded bg-white/5 text-white/55 tracking-wide">
                 {target.role || "Member"}
               </span>
             </div>

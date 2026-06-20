@@ -141,7 +141,7 @@ function DecisionCard({
     >
       <div className="flex items-center gap-2 mb-1.5">
         <span
-          className="rounded  "
+          className="rounded"
           style={{
             fontSize: 9,
             padding: "1px 6px",
@@ -208,7 +208,7 @@ function OracleIntelCard({
       <div className="flex items-center gap-2 mb-1.5">
         <BookOpen className="h-3 w-3" style={{ color: BLUE }} />
         <span
-          className="rounded  "
+          className="rounded"
           style={{
             fontSize: 9,
             padding: "1px 6px",
@@ -258,7 +258,7 @@ function ConflictCard({
       <div className="flex items-center gap-2 mb-1.5">
         <AlertTriangle className="h-3 w-3" style={{ color: AMBER }} />
         <span
-          className="rounded  "
+          className="rounded"
           style={{
             fontSize: 9,
             padding: "1px 6px",

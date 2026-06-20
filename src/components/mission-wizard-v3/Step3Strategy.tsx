@@ -266,7 +266,7 @@ function TaggedListEditor({
       >
         <div className="flex items-center gap-1.5 mb-2">
           <Star className="h-3.5 w-3.5" fill={GOLD} color={GOLD} />
-          <span className="text-[11.5px]  tracking-[0.1em]" style={{ color: GOLD }}>From the RFP</span>
+          <span className="text-[11.5px] tracking-[0.1em]" style={{ color: GOLD }}>From the RFP</span>
         </div>
         <div className="flex flex-col gap-2">
           {clientItems.length === 0 && (
@@ -286,7 +286,7 @@ function TaggedListEditor({
 
         <div className="flex items-center gap-1.5 mb-2">
           <Diamond className="h-3.5 w-3.5 text-white" />
-          <span className="text-[11.5px]  tracking-[0.1em] text-white/70">Our read</span>
+          <span className="text-[11.5px] tracking-[0.1em] text-white/70">Our read</span>
         </div>
         <div className="flex flex-col gap-2">
           {teamItems.length === 0 && (
@@ -378,7 +378,7 @@ function IrisSuggestionsPanel({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5">
           <Sparkles className="h-3.5 w-3.5" style={{ color: GOLD }} />
-          <span className="text-[12.5px]  tracking-[0.1em] text-white/70">IRIS Suggestions</span>
+          <span className="text-[12.5px] tracking-[0.1em] text-white/70">IRIS Suggestions</span>
         </div>
         <span className="text-[12px] text-white/45">avg confidence {avgConf}%</span>
       </div>
@@ -798,7 +798,7 @@ function TwoColumn({ left, right }: { left: React.ReactNode; right: React.ReactN
         style={{ background: "rgba(201,151,43,0.06)", border: "1px solid rgba(201,151,43,0.2)" }}
       >
         <div className="flex items-center gap-1.5 mb-2.5 flex-wrap">
-          <span className="text-[11px] font-medium tracking-[0.08em] " style={{ color: "#C9972B" }}>
+          <span className="text-[11px] font-medium tracking-[0.08em]" style={{ color: "#C9972B" }}>
             ⚡ IRIS Suggested
           </span>
           <span className="text-[11px] text-white/40 normal-case tracking-normal font-normal">— use as a guide only</span>
@@ -809,7 +809,7 @@ function TwoColumn({ left, right }: { left: React.ReactNode; right: React.ReactN
         className="rounded-lg p-3.5"
         style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
       >
-        <div className="text-[11px] font-medium tracking-[0.08em]  text-white mb-2.5">✏ Your Input</div>
+        <div className="text-[11px] font-medium tracking-[0.08em] text-white mb-2.5">✏ Your Input</div>
         {right}
       </div>
     </div>

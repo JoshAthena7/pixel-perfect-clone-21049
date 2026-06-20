@@ -125,7 +125,7 @@ function PortfolioHealthCard() {
       {isLoading ? <LoadingRow /> :
        !rows.length ? <EmptyRow label="No active missions." /> :
        <table className="w-full text-[14px]">
-        <thead className="bg-muted/30 text-[12px]  text-muted-foreground sticky top-0">
+        <thead className="bg-muted/30 text-[12px] text-muted-foreground sticky top-0">
           <tr>
             <th className="text-left px-4 py-2 font-medium">Mission</th>
             <th className="text-left px-4 py-2 font-medium">Client</th>
@@ -220,7 +220,7 @@ function TeamAvailabilityCard() {
       {isLoading ? <LoadingRow /> :
        !rows.length ? <EmptyRow label="No team members." /> :
        <table className="w-full text-[14px]">
-        <thead className="bg-muted/30 text-[12px]  text-muted-foreground sticky top-0">
+        <thead className="bg-muted/30 text-[12px] text-muted-foreground sticky top-0">
           <tr>
             <th className="text-left px-4 py-2 font-medium">Name</th>
             <th className="text-left px-4 py-2 font-medium">Role</th>
@@ -319,7 +319,7 @@ function AssignmentAcceptanceCard() {
       {isLoading ? <LoadingRow /> :
        !rows.length ? <EmptyRow label="All assignments accepted. 🎉" /> :
        <table className="w-full text-[14px]">
-        <thead className="bg-muted/30 text-[12px]  text-muted-foreground sticky top-0">
+        <thead className="bg-muted/30 text-[12px] text-muted-foreground sticky top-0">
           <tr>
             <th className="text-left px-4 py-2 font-medium">Q #</th>
             <th className="text-left px-4 py-2 font-medium">Mission</th>
@@ -388,7 +388,7 @@ function IntelligenceCoverageCard() {
       {isLoading ? <LoadingRow /> :
        !rows.length ? <EmptyRow label="No active missions." /> :
        <table className="w-full text-[14px]">
-        <thead className="bg-muted/30 text-[12px]  text-muted-foreground sticky top-0">
+        <thead className="bg-muted/30 text-[12px] text-muted-foreground sticky top-0">
           <tr>
             <th className="text-left px-4 py-2 font-medium">Mission</th>
             <th className="text-right px-4 py-2 font-medium">Intel</th>

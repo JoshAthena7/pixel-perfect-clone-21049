@@ -175,7 +175,7 @@ export function IrisFieldRow({
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between">
-        <label className="text-[14px]  tracking-[0.14em] text-white/55">
+        <label className="text-[14px] tracking-[0.14em] text-white/55">
           {label}
         </label>
         {hint && <span className="text-[12px] text-white/35">{hint}</span>}
@@ -237,7 +237,7 @@ export function IrisFieldRow({
           }
         >
           {hasIrisValue && !isOverridden && (
-            <div className="flex items-center gap-1.5 mb-1.5 text-[10.5px]  tracking-[0.18em]" style={{ color: "#C49A2B" }}>
+            <div className="flex items-center gap-1.5 mb-1.5 text-[10.5px] tracking-[0.18em]" style={{ color: "#C49A2B" }}>
               <Sparkles className="h-3 w-3" />
               IRIS · {extraction?.source_file_name ?? "extracted"}
               {typeof extraction?.confidence_score === "number" && (

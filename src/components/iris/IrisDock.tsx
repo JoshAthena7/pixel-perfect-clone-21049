@@ -464,7 +464,7 @@ function MessageRow({ m, onOpenInThread, onNavigate }: {
 function DraftCardView({ card, onOpenInThread }: { card: DraftCard; onOpenInThread: (draft: string) => void }) {
   return (
     <div className="mt-2 rounded border-2 p-3" style={{ borderColor: IRIS_BRAND, background: "rgba(167,139,250,0.07)" }}>
-      <div className="text-[12px]   mb-2" style={{ color: IRIS_BRAND }}><Sparkles className="inline h-3 w-3 mr-1" />Draft</div>
+      <div className="text-[12px] mb-2" style={{ color: IRIS_BRAND }}><Sparkles className="inline h-3 w-3 mr-1" />Draft</div>
       <div className="whitespace-pre-wrap text-white text-[14px] max-h-40 overflow-y-auto">{card.draft}</div>
       <div className="flex gap-2 mt-2">
         <Button size="sm" variant="outline" className="text-[12px]" onClick={() => { navigator.clipboard.writeText(card.draft); toast.success("Copied to clipboard"); }}>
@@ -483,7 +483,7 @@ function ScoreCardView({ card }: { card: ScoreCard }) {
   return (
     <div className="mt-2 rounded border p-3" style={{ borderColor: IRIS_BRAND, background: "rgba(167,139,250,0.08)" }}>
       <div className="flex items-baseline justify-between">
-        <span className="text-[12px]  " style={{ color: IRIS_BRAND }}>Score</span>
+        <span className="text-[12px]" style={{ color: IRIS_BRAND }}>Score</span>
         <span className="text-2xl font-medium" style={{ color: IRIS_BRAND }}>{card.total}<span className="text-[14px] text-white/60">/100</span></span>
       </div>
       <div className="mt-2 space-y-1">
@@ -496,7 +496,7 @@ function ScoreCardView({ card }: { card: ScoreCard }) {
       </div>
       {card.gaps.length > 0 && (
         <div className="mt-2">
-          <div className="text-[12px]   mb-1" style={{ color: IRIS_BRAND }}>Gaps</div>
+          <div className="text-[12px] mb-1" style={{ color: IRIS_BRAND }}>Gaps</div>
           <ul className="text-[12px] text-white/80 space-y-1 list-disc pl-4">
             {card.gaps.map((g, i) => <li key={i}>{g}</li>)}
           </ul>

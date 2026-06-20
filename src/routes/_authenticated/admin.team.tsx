@@ -127,7 +127,7 @@ function StaffPage() {
       <div className="mx-auto max-w-5xl px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <div className=" tracking-[0.16em] text-[11px] mb-1" style={{ color: "#c9a84c" }}>
+            <div className="tracking-[0.16em] text-[11px] mb-1" style={{ color: "#c9a84c" }}>
               ADMIN · STAFF
             </div>
             <h1 className="text-2xl font-medium text-white">Staff Directory</h1>
@@ -256,7 +256,7 @@ function StaffCard({
         </div>
       </div>
       <span
-        className="rounded-full text-[11px] font-medium   shrink-0"
+        className="rounded-full text-[11px] font-medium shrink-0"
         style={{
           padding: "3px 9px",
           background: cc.bg,
@@ -325,7 +325,7 @@ function StaffDetailPanel({
           className="flex items-center justify-between px-5 py-4"
           style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
         >
-          <div className="text-[12px] font-medium  " style={{ color: "#c9a84c" }}>
+          <div className="text-[12px] font-medium" style={{ color: "#c9a84c" }}>
             Staff profile
           </div>
           <button
@@ -364,7 +364,7 @@ function StaffDetailPanel({
           </DetailRow>
 
           <div>
-            <div className="text-[12px] font-medium   mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <div className="text-[12px] font-medium mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>
               Missions assigned ({missions.length || missionCount})
             </div>
             {missions.length === 0 ? (
@@ -381,7 +381,7 @@ function StaffDetailPanel({
                   >
                     <div className="min-w-0">
                       <div className="text-[14px] text-white truncate">{m.name}</div>
-                      <div className="text-[11px] mt-0.5  " style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <div className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
                         {m.status ?? "—"}
                       </div>
                     </div>
@@ -431,7 +431,7 @@ function StaffDetailPanel({
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="text-[12px] font-medium   mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+      <div className="text-[12px] font-medium mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
         {label}
       </div>
       <div className="text-[14px] text-white">{children}</div>
@@ -520,7 +520,7 @@ function Input({
 }) {
   return (
     <label className="block">
-      <div className="text-[12px] font-medium   mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+      <div className="text-[12px] font-medium mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
         {label}
       </div>
       <div className="relative">

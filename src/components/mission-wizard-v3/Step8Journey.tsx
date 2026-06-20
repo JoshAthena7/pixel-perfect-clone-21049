@@ -564,7 +564,7 @@ export function Step8Journey({
           <div className="overflow-x-auto">
             <table className="w-full text-[12.5px]" style={{ tableLayout: "fixed" }}>
               <thead>
-                <tr className="text-left text-[12px]   text-white/45 border-b border-white/10">
+                <tr className="text-left text-[12px] text-white/45 border-b border-white/10">
                   <th className="px-3 py-2 w-[130px]">Type</th>
                   <th className="px-3 py-2">Title</th>
                   <th className="px-3 py-2 w-[150px]">Date</th>
@@ -636,7 +636,7 @@ export function Step8Journey({
                       </td>
                       <td className="px-3 py-2">
                         <span
-                          className="inline-block rounded-full px-2 py-0.5 text-[10.5px]  "
+                          className="inline-block rounded-full px-2 py-0.5 text-[10.5px]"
                           style={{
                             background: "rgba(255,255,255,0.06)",
                             color: "rgba(255,255,255,0.6)",

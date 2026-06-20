@@ -612,14 +612,14 @@ function IntelligenceColumn({
   return (
     <div className="space-y-3">
       <div>
-        <div className="text-[11px]  tracking-[0.07em] text-muted-foreground font-medium">INTELLIGENCE</div>
+        <div className="text-[11px] tracking-[0.07em] text-muted-foreground font-medium">INTELLIGENCE</div>
         <div className="text-[11px] text-muted-foreground/60 italic mt-0.5">Updated by IRIS</div>
       </div>
 
       {/* Athena */}
       {athena ? (
         <div className="rounded-lg p-3" style={{ background: "rgba(196,154,43,0.06)", border: "1px solid rgba(196,154,43,0.3)" }}>
-          <div className="text-[11px]   font-medium" style={{ color: "#C49A2B" }}>✦ ATHENA STRATEGY</div>
+          <div className="text-[11px] font-medium" style={{ color: "#C49A2B" }}>✦ ATHENA STRATEGY</div>
           <div className="mt-2 text-[14px] italic text-white" style={{ lineHeight: 1.6 }}>
             {athena.strategic_quote || athena.quote || athena.title}
           </div>
@@ -635,7 +635,7 @@ function IntelligenceColumn({
 
       {/* IRIS Brief */}
       <div className="rounded-lg p-3" style={{ background: "rgba(127,119,221,0.06)", border: "0.5px solid rgba(127,119,221,0.2)" }}>
-        <div className="text-[11px]   font-medium" style={{ color: "#C8C3FF" }}>IRIS BRIEF</div>
+        <div className="text-[11px] font-medium" style={{ color: "#C8C3FF" }}>IRIS BRIEF</div>
         {brief?.refined_brief || brief?.content ? (
           <div className="mt-2 text-[12px]" style={{ color: "rgba(255,255,255,0.75)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
             {String(brief.refined_brief || brief.content)}
@@ -650,7 +650,7 @@ function IntelligenceColumn({
 
       {/* How They Are Thinking */}
       <div className="rounded-lg p-3" style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
-        <div className="text-[11px]   font-medium text-muted-foreground">HOW THEY ARE THINKING</div>
+        <div className="text-[11px] font-medium text-muted-foreground">HOW THEY ARE THINKING</div>
         {evaluator ? (
           <div className="mt-2 space-y-2">
             {evaluator.oneThing && (
@@ -692,7 +692,7 @@ function IntelligenceColumn({
 
       {/* Requirements */}
       <div className="rounded-lg p-3" style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
-        <div className="text-[11px]   font-medium text-muted-foreground">KEY REQUIREMENTS</div>
+        <div className="text-[11px] font-medium text-muted-foreground">KEY REQUIREMENTS</div>
         {reqs && reqs.length > 0 ? (
           <ul className="mt-2 space-y-1.5">
             {reqs.map((r: any) => {
@@ -774,7 +774,7 @@ function MyWorkColumn({
       {/* The Question */}
       <div className="rounded-lg p-3 border border-border bg-background/40">
         {sectionName && (
-          <div className="text-[11px]   text-muted-foreground font-medium">{sectionName}</div>
+          <div className="text-[11px] text-muted-foreground font-medium">{sectionName}</div>
         )}
         <div className="mt-1 text-[14px] text-white" style={{ lineHeight: 1.7 }}>
           {questionText}

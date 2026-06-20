@@ -76,7 +76,7 @@ function WriterMissionCardLink({ mission }: { mission: WriterMissionCard }) {
           )}
         </div>
         <span
-          className="shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium  tracking-[0.08em]"
+          className="shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium tracking-[0.08em]"
           style={{ borderColor: "rgba(34,197,94,0.35)", color: "#4ade80", background: "rgba(34,197,94,0.1)" }}
         >
           {mission.status}

@@ -107,7 +107,7 @@ export function MissionSwitcher() {
           ref={popRef}
           className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-80 rounded-lg border border-[var(--athena-gold)]/60 bg-[#0D1B3E] shadow-xl z-[60] overflow-hidden"
         >
-          <div className="px-4 py-2 text-[11px]   text-[var(--athena-gold)] font-medium border-b border-white/10">
+          <div className="px-4 py-2 text-[11px] text-[var(--athena-gold)] font-medium border-b border-white/10">
             Active Missions
           </div>
           <div className="max-h-80 overflow-y-auto">

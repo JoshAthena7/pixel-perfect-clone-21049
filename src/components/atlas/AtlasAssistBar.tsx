@@ -114,7 +114,7 @@ export function AtlasAssistBar({
   if (!generated && !hasAnyCache) {
     return (
       <div className="rounded-lg p-4 flex flex-col items-center gap-2" style={{ background: "rgba(127,119,221,0.04)", border: "1px solid rgba(127,119,221,0.18)" }}>
-        <div className="text-[12px]  " style={{ color: GOLD }}>IRIS Brief</div>
+        <div className="text-[12px]" style={{ color: GOLD }}>IRIS Brief</div>
         <button
           onClick={() => { setGenerated(true); fetchTool("decode", "initial"); }}
           className="w-full inline-flex items-center justify-center gap-2 rounded-md py-2 text-[12.5px] font-medium"
@@ -150,7 +150,7 @@ export function AtlasAssistBar({
       </div>
 
       <div className="mt-3 rounded-md px-3 py-2.5" style={{ background: "rgba(255,255,255,0.02)", borderLeft: `3px solid ${GOLD}` }}>
-        <div className="text-[11px]   font-medium flex items-center gap-1" style={{ color: GOLD }}>
+        <div className="text-[11px] font-medium flex items-center gap-1" style={{ color: GOLD }}>
           <Zap className="h-3 w-3" /> IRIS · {headerLabel}
         </div>
         {loading === active ? (

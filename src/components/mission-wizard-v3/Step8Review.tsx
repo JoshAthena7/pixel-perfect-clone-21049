@@ -643,7 +643,7 @@ export function Step8Review({
                   const v = resolveDisplay(k);
                   return (
                     <div key={k}>
-                      <dt className="text-[12px]  tracking-[0.12em] text-white/40">{k.replace(/_/g, " ")}</dt>
+                      <dt className="text-[12px] tracking-[0.12em] text-white/40">{k.replace(/_/g, " ")}</dt>
                       <dd className="text-[14px] text-white mt-0.5 whitespace-pre-wrap line-clamp-4">
                         {v?.value || <span className="text-white/35 italic">Not set</span>}
                         {v?.value && !v.confirmed && (
@@ -701,7 +701,7 @@ export function Step8Review({
       {/* IRIS Pre-Launch Checklist */}
       <div className="mt-8">
         <div className="mb-3">
-          <h3 className="text-[12px]  tracking-[0.14em] text-white/60 font-medium">IRIS Pre-Launch Checklist</h3>
+          <h3 className="text-[12px] tracking-[0.14em] text-white/60 font-medium">IRIS Pre-Launch Checklist</h3>
           <p className="text-[12px] text-white/45 mt-0.5">Every item must be green before BLAST OFF.</p>
         </div>
 

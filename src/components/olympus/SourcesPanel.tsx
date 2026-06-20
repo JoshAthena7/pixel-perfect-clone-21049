@@ -84,7 +84,7 @@ export function SourcesPanel() {
 
       <button
         onClick={() => setShowAdd((v) => !v)}
-        className="w-full text-[11px]   border border-white/20 rounded py-1.5 text-white/70 hover:bg-white/5"
+        className="w-full text-[11px] border border-white/20 rounded py-1.5 text-white/70 hover:bg-white/5"
       >
         {showAdd ? "Cancel" : "+ Add Source"}
       </button>
@@ -126,13 +126,13 @@ function SourceRow({
       <div className="flex gap-1">
         <button
           onClick={onToggle}
-          className="text-[11px]   border border-white/20 rounded px-2 py-0.5 text-white/70 hover:bg-white/5"
+          className="text-[11px] border border-white/20 rounded px-2 py-0.5 text-white/70 hover:bg-white/5"
         >
           {s.status === "active" ? "Pause" : "Resume"}
         </button>
         <button
           onClick={onCheck}
-          className="text-[11px]   border border-white/20 rounded px-2 py-0.5 text-white/70 hover:bg-white/5"
+          className="text-[11px] border border-white/20 rounded px-2 py-0.5 text-white/70 hover:bg-white/5"
         >
           Check Now
         </button>
@@ -209,7 +209,7 @@ function AddSourceForm({ onDone }: { onDone: () => void }) {
       <button
         onClick={() => m.mutate()}
         disabled={m.isPending || !form.source_name || !form.source_url}
-        className="w-full text-[11px]   border border-amber-400/60 text-amber-300 rounded py-1.5 hover:bg-amber-400/10 disabled:opacity-50"
+        className="w-full text-[11px] border border-amber-400/60 text-amber-300 rounded py-1.5 hover:bg-amber-400/10 disabled:opacity-50"
       >
         {m.isPending ? "Saving…" : "Save Source"}
       </button>

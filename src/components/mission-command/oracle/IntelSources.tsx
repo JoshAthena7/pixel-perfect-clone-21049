@@ -87,7 +87,7 @@ export function IntelSources({ missionId }: { missionId: string }) {
 
       {oracleSources.length > 0 && (
         <section>
-          <div className="text-[11px]   mb-2 pb-1" style={{ color: GOLD, borderBottom: `1px solid ${GOLD}33` }}>
+          <div className="text-[11px] mb-2 pb-1" style={{ color: GOLD, borderBottom: `1px solid ${GOLD}33` }}>
             ORACLE Source Registry ({oracleSources.length})
           </div>
           <div className="space-y-2">
@@ -97,7 +97,7 @@ export function IntelSources({ missionId }: { missionId: string }) {
       )}
 
       {sources.length > 0 && (
-        <div className="text-[11px]   pt-2" style={{ color: "rgba(255,255,255,0.4)" }}>
+        <div className="text-[11px] pt-2" style={{ color: "rgba(255,255,255,0.4)" }}>
           Legacy Sources
         </div>
       )}
@@ -113,7 +113,7 @@ export function IntelSources({ missionId }: { missionId: string }) {
             if (!items.length) return null;
             return (
               <section key={g.id}>
-                <div className="text-[11px]   mb-2 pb-1" style={{ color: g.color, borderBottom: `1px solid ${g.color}33` }}>
+                <div className="text-[11px] mb-2 pb-1" style={{ color: g.color, borderBottom: `1px solid ${g.color}33` }}>
                   {g.label} ({items.length})
                 </div>
                 <div className="space-y-2">

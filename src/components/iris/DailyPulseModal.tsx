@@ -216,7 +216,7 @@ export function DailyPulseModal({ open, onOpenChange, missionId }: { open: boole
 
 function SectionLabel({ children, tone = "gold" }: { children: React.ReactNode; tone?: "gold" | "amber" }) {
   const color = tone === "amber" ? "#F59E0B" : GOLD;
-  return <p className="text-[11px]   font-medium mb-2" style={{ color }}>{children}</p>;
+  return <p className="text-[11px] font-medium mb-2" style={{ color }}>{children}</p>;
 }
 
 function AdminBriefView({ b }: { b: AdminBrief }) {

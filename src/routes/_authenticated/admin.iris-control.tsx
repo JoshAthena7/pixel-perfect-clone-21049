@@ -77,7 +77,7 @@ function Stat({
       : "text-white";
   return (
     <div className="rounded-lg border border-white/10 bg-black/30 px-3 py-2.5">
-      <div className="text-[11px]  tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-[11px] tracking-wide text-muted-foreground">{label}</div>
       <div className={`text-xl font-medium ${toneCls}`}>{value}</div>
       {hint && <div className="text-[11px] text-muted-foreground mt-0.5">{hint}</div>}
     </div>
@@ -169,7 +169,7 @@ function HealthDashboard() {
 
       {/* Pipelines */}
       <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-        <div className="mb-2 text-[12px] font-medium text-muted-foreground  tracking-wide">
+        <div className="mb-2 text-[12px] font-medium text-muted-foreground tracking-wide">
           Cron pipelines ({jobs.length})
         </div>
         {status.isLoading ? (
@@ -211,7 +211,7 @@ function HealthDashboard() {
       {/* Two-column: failures + open flags */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-          <div className="mb-2 text-[12px] font-medium text-muted-foreground  tracking-wide flex items-center gap-1.5">
+          <div className="mb-2 text-[12px] font-medium text-muted-foreground tracking-wide flex items-center gap-1.5">
             <AlertTriangle className="h-3.5 w-3.5 text-red-400" /> Recent hook failures
           </div>
           {(wiring.data?.recentHookFailures.length ?? 0) === 0 ? (
@@ -237,7 +237,7 @@ function HealthDashboard() {
         </div>
 
         <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-          <div className="mb-2 text-[12px] font-medium text-muted-foreground  tracking-wide flex items-center gap-1.5">
+          <div className="mb-2 text-[12px] font-medium text-muted-foreground tracking-wide flex items-center gap-1.5">
             <AlertCircle className="h-3.5 w-3.5 text-amber-400" /> Open IRIS health flags
           </div>
           {(wiring.data?.openFlags.length ?? 0) === 0 ? (
@@ -356,7 +356,7 @@ function IrisControlPage() {
 
       <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-4">
         <div>
-          <label className="text-[12px] font-medium text-muted-foreground  tracking-wide">
+          <label className="text-[12px] font-medium text-muted-foreground tracking-wide">
             Mission
           </label>
           <input

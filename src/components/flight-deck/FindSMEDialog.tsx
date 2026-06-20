@@ -86,7 +86,7 @@ export function FindSMEDialog({
             >
               <div className="min-w-0">
                 <div className="text-[14px] font-medium text-foreground">{s.name}</div>
-                <div className="text-[11px]   text-muted-foreground mt-0.5">
+                <div className="text-[11px] text-muted-foreground mt-0.5">
                   {s.source === "stakeholder" ? "Stakeholder" : "Mission SME"}
                 </div>
                 {s.expertise.length > 0 && (

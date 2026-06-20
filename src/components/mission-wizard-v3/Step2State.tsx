@@ -147,7 +147,7 @@ export function Step2State({
 
       <div className="space-y-6">
         <div>
-          <label className="text-[12px]  tracking-[0.12em] text-white/55 mb-2 block">State</label>
+          <label className="text-[12px] tracking-[0.12em] text-white/55 mb-2 block">State</label>
           <Select value={code} onValueChange={setCode}>
             <SelectTrigger className="bg-white/[0.03] border-white/10 text-white h-11 max-w-md">
               <SelectValue placeholder="Choose a state…" />

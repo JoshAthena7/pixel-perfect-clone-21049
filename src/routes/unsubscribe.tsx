@@ -81,7 +81,7 @@ function UnsubscribePage() {
             <button
               onClick={confirm}
               disabled={busy}
-              className="mt-5 inline-flex items-center gap-2 rounded-md px-5 py-2 text-[12px] font-medium  tracking-[0.22em] text-white disabled:opacity-60"
+              className="mt-5 inline-flex items-center gap-2 rounded-md px-5 py-2 text-[12px] font-medium tracking-[0.22em] text-white disabled:opacity-60"
               style={{ background: "#C9922A" }}
             >
               {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : null}

@@ -105,13 +105,13 @@ export function AtlasLoginPage() {
               style={{ filter: "brightness(1.08)" }}
             />
           </div>
-          <div className="text-[11px]  tracking-[0.32em] text-amber-100/55">
+          <div className="text-[11px] tracking-[0.32em] text-amber-100/55">
             Intelligence · Alignment · Execution
           </div>
           <div className="mt-5 flex items-center justify-center gap-2">
             <IrisMark size={18} glow />
             <span
-              className="text-[11px] font-medium  tracking-[0.34em]"
+              className="text-[11px] font-medium tracking-[0.34em]"
               style={{
                 background:
                   "linear-gradient(90deg, #a78bfa 0%, #8b6dff 50%, #67e8f9 100%)",
@@ -130,12 +130,12 @@ export function AtlasLoginPage() {
           onSubmit={onSubmit}
           className="rounded-md border border-amber-200/20 bg-black/60 backdrop-blur p-6 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)] space-y-5"
         >
-          <div className="text-center text-[11px] font-medium  tracking-[0.32em] text-amber-200/80">
+          <div className="text-center text-[11px] font-medium tracking-[0.32em] text-amber-200/80">
             Welcome Back
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="email" className="block text-[11px] font-medium  tracking-[0.28em] text-amber-200/70">
+            <label htmlFor="email" className="block text-[11px] font-medium tracking-[0.28em] text-amber-200/70">
               Email
             </label>
             <input
@@ -150,7 +150,7 @@ export function AtlasLoginPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="password" className="block text-[11px] font-medium  tracking-[0.28em] text-amber-200/70">
+            <label htmlFor="password" className="block text-[11px] font-medium tracking-[0.28em] text-amber-200/70">
               Password
             </label>
             <input
@@ -167,17 +167,17 @@ export function AtlasLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full inline-flex items-center justify-center rounded-sm px-6 py-2.5 text-[12px] font-medium  tracking-[0.3em] text-white shadow-[0_4px_24px_-8px_rgba(201,146,42,0.6)] transition hover:brightness-110 disabled:opacity-60"
+            className="w-full inline-flex items-center justify-center rounded-sm px-6 py-2.5 text-[12px] font-medium tracking-[0.3em] text-white shadow-[0_4px_24px_-8px_rgba(201,146,42,0.6)] transition hover:brightness-110 disabled:opacity-60"
             style={{ background: "#C9922A" }}
           >
             {loading ? "Entering…" : "Enter ATLAS"}
           </button>
         </form>
 
-        <div className="text-center mt-6 text-[11px]  tracking-[0.28em] text-amber-100/40">
+        <div className="text-center mt-6 text-[11px] tracking-[0.28em] text-amber-100/40">
           The operating environment for high stakes work
         </div>
-        <div className="text-center mt-3 text-[11px]  tracking-[0.32em] text-amber-100/30">
+        <div className="text-center mt-3 text-[11px] tracking-[0.32em] text-amber-100/30">
           Athena Strategy Command
         </div>
         <figure className="mt-6 text-center select-none">
@@ -186,7 +186,7 @@ export function AtlasLoginPage() {
             No other path, no other way.<br />
             No day but today.”
           </blockquote>
-          <figcaption className="mt-1.5 text-[11px]  tracking-[0.3em] text-amber-100/25">
+          <figcaption className="mt-1.5 text-[11px] tracking-[0.3em] text-amber-100/25">
             — Jonathan Larson
           </figcaption>
         </figure>

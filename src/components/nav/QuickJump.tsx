@@ -132,14 +132,14 @@ export function QuickJump({
         )}
       >
         <div className="flex md:hidden items-center justify-between px-4 py-2 border-b border-white/10">
-          <span className="text-[12px]   text-[var(--athena-gold)] font-medium">Quick Jump</span>
+          <span className="text-[12px] text-[var(--athena-gold)] font-medium">Quick Jump</span>
           <button onClick={onClose} aria-label="Close" className="text-white/60 hover:text-white">
             <X className="h-4 w-4" />
           </button>
         </div>
 
         <div className="overflow-y-auto">
-          <div className="px-4 pt-3 pb-1 text-[11px]   text-[var(--athena-gold)] font-medium">
+          <div className="px-4 pt-3 pb-1 text-[11px] text-[var(--athena-gold)] font-medium">
             Active Missions
           </div>
           <div>
@@ -184,7 +184,7 @@ export function QuickJump({
             </Link>
           </div>
 
-          <div className="px-4 pt-3 pb-1 text-[11px]   text-[var(--athena-gold)] font-medium border-t border-white/10">
+          <div className="px-4 pt-3 pb-1 text-[11px] text-[var(--athena-gold)] font-medium border-t border-white/10">
             Olympus
           </div>
           <Link to="/olympus/missions" onClick={onClose}
@@ -196,7 +196,7 @@ export function QuickJump({
 
           {currentMissionId && (
             <>
-              <div className="px-4 pt-3 pb-1 text-[11px]   text-[var(--athena-gold)] font-medium border-t border-white/10">
+              <div className="px-4 pt-3 pb-1 text-[11px] text-[var(--athena-gold)] font-medium border-t border-white/10">
                 This Mission
               </div>
               <div>

@@ -121,7 +121,7 @@ export function IntelPeople({ missionId }: { missionId: string }) {
         <div className="space-y-6">
           {oracleEntries.length > 0 && (
             <section>
-              <div className="text-[11px]   mb-2 pb-1" style={{ color: GOLD, borderBottom: `1px solid ${GOLD}33` }}>
+              <div className="text-[11px] mb-2 pb-1" style={{ color: GOLD, borderBottom: `1px solid ${GOLD}33` }}>
                 ORACLE Sources ({oracleEntries.length})
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -131,7 +131,7 @@ export function IntelPeople({ missionId }: { missionId: string }) {
           )}
           {legacyEntries.length > 0 && (
             <section>
-              <div className="text-[11px]   mb-2 pb-1 text-white/55" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+              <div className="text-[11px] mb-2 pb-1 text-white/55" style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
                 Manual Entries ({legacyEntries.length})
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -168,7 +168,7 @@ function SourceCard({ entry }: { entry: SourceEntry }) {
             <Users className="h-3 w-3 shrink-0" style={{ color: GOLD }} />
             <span className="truncate">{entry.name}</span>
           </div>
-          <div className="text-[11px] text-white/45 mt-0.5  ">{entry.category.replace(/_/g, " ")}</div>
+          <div className="text-[11px] text-white/45 mt-0.5">{entry.category.replace(/_/g, " ")}</div>
         </div>
         {entry.fromOracle && (
           <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 3, background: "rgba(196,154,43,0.15)", color: GOLD, border: `0.5px solid ${GOLD}55`, whiteSpace: "nowrap" }}>

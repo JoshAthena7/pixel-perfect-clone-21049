@@ -661,7 +661,7 @@ export function ScoreDraftPanel({
                                 {g.description}
                               </div>
                               <span
-                                className="shrink-0 rounded  "
+                                className="shrink-0 rounded"
                                 style={{
                                   background: `${impactColor(g.impact)}22`,
                                   color: impactColor(g.impact),
@@ -697,7 +697,7 @@ export function ScoreDraftPanel({
                       }}
                     >
                       <div
-                        className="  mb-1"
+                        className="mb-1"
                         style={{ color: GOLD, fontSize: 10, fontWeight: 600 }}
                       >
                         IRIS recommends

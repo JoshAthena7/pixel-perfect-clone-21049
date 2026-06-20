@@ -342,7 +342,7 @@ function FlightDeck() {
       <div className="border-b border-[#C49A2B]/30 bg-[#0D1B3E]/80">
         <div className="mx-auto max-w-6xl px-6 py-5 flex items-center gap-4">
           <div>
-            <p className="text-[11px]  tracking-[0.2em] text-[#C49A2B]">Athena · ATLAS</p>
+            <p className="text-[11px] tracking-[0.2em] text-[#C49A2B]">Athena · ATLAS</p>
             <h1 className="text-2xl font-medium text-foreground">Flight Deck</h1>
             <p className="text-[12px] text-muted-foreground">
               {userName || "Writer"} · {totalLoad} active {totalLoad === 1 ? "assignment" : "assignments"}
@@ -449,7 +449,7 @@ function FlightDeck() {
                           <span className="text-[14px] font-medium text-foreground">
                             {missionName(a.mission_id)}
                           </span>
-                          <span className="text-[11px]   text-muted-foreground">
+                          <span className="text-[11px] text-muted-foreground">
                             {sectionLookup(q!.section_id)?.name ?? ""}
                           </span>
                         </div>
@@ -615,7 +615,7 @@ function SectionHeader({
         {icon}
         <h2 className="text-base font-medium text-foreground">{title}</h2>
       </div>
-      {hint && <span className="text-[11px]   text-muted-foreground">{hint}</span>}
+      {hint && <span className="text-[11px] text-muted-foreground">{hint}</span>}
     </div>
   );
 }
@@ -632,7 +632,7 @@ function Stat({ label, value, tone }: { label: string; value: number; tone: stri
   return (
     <div className="rounded-lg bg-background/40 py-2">
       <div className={cn("text-lg font-medium", tone)}>{value}</div>
-      <div className="text-[11px]   text-muted-foreground">{label}</div>
+      <div className="text-[11px] text-muted-foreground">{label}</div>
     </div>
   );
 }
@@ -861,7 +861,7 @@ function AcceptanceCard({
     <div className="rounded-xl border border-border border-l-[6px] border-l-primary bg-primary/5 p-5 mb-4">
       <div className="flex items-center gap-2 mb-2">
         <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-        <span className="text-[12px] font-medium   text-primary">
+        <span className="text-[12px] font-medium text-primary">
           Action Required
         </span>
       </div>

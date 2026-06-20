@@ -76,7 +76,7 @@ function IrisWriterViewPage() {
           className="rounded-lg p-4 self-start"
           style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
         >
-          <label className="block text-[12px]  tracking-wide text-white/55 mb-1.5">
+          <label className="block text-[12px] tracking-wide text-white/55 mb-1.5">
             Mission
           </label>
           <select
@@ -95,7 +95,7 @@ function IrisWriterViewPage() {
             ))}
           </select>
 
-          <label className="block text-[12px]  tracking-wide text-white/55 mb-1.5 mt-4">
+          <label className="block text-[12px] tracking-wide text-white/55 mb-1.5 mt-4">
             Question
           </label>
           <select
@@ -147,7 +147,7 @@ function IrisWriterViewPage() {
           ) : (
             <>
               <div className="mb-3 pb-3 border-b border-white/10">
-                <div className="text-[11px]  tracking-wide text-white/40 mb-1">
+                <div className="text-[11px] tracking-wide text-white/40 mb-1">
                   Writer Flight Deck preview
                 </div>
                 {selectedQuestion && (

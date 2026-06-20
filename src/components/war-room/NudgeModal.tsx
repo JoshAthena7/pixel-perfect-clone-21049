@@ -129,7 +129,7 @@ export function NudgeModal({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-[14px] font-medium truncate">{target.name}</span>
-                <span className="text-[11px] px-1.5 py-0.5 rounded bg-white/5 text-white/55  tracking-wide">
+                <span className="text-[11px] px-1.5 py-0.5 rounded bg-white/5 text-white/55 tracking-wide">
                   {target.role}
                 </span>
               </div>
@@ -141,7 +141,7 @@ export function NudgeModal({
 
           {/* Channel selector */}
           <div>
-            <div className="text-[11px]   text-white/45 mb-1.5">Channel</div>
+            <div className="text-[11px] text-white/45 mb-1.5">Channel</div>
             {noChannels ? (
               <div className="rounded border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-[12px] text-amber-200 flex items-start gap-2">
                 <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
@@ -163,7 +163,7 @@ export function NudgeModal({
 
           {/* Message preview */}
           <div>
-            <div className="text-[11px]   text-white/45 mb-1.5">Message</div>
+            <div className="text-[11px] text-white/45 mb-1.5">Message</div>
             {customize ? (
               <Textarea
                 value={message}

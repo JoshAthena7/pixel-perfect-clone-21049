@@ -344,7 +344,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         <div className="border-t border-white/[0.06]">
           <button
             onClick={() => setStatsOpen((v) => !v)}
-            className="w-full px-3 py-2 text-[11px]   text-white/50 hover:text-white/80 hover:bg-white/[0.03] inline-flex items-center justify-center gap-1.5"
+            className="w-full px-3 py-2 text-[11px] text-white/50 hover:text-white/80 hover:bg-white/[0.03] inline-flex items-center justify-center gap-1.5"
           >
             {statsOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             {statsOpen ? "Hide mission stats" : "Show mission stats"}
@@ -352,7 +352,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
           {statsOpen && (
             <div className="px-3 pb-3 space-y-3">
               <div>
-                <div className="text-[11px]   text-white/45 mb-2">Health Over Time</div>
+                <div className="text-[11px] text-white/45 mb-2">Health Over Time</div>
                 {!trendQ.data || !trendQ.data.hasHistory ? (
                   <div className="py-3 text-center text-[12px] text-white/50">
                     Health tracking started today.
@@ -373,7 +373,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                 </div>
               </div>
               <div>
-                <div className="text-[11px]   text-white/45 mb-2">Brief Pipeline</div>
+                <div className="text-[11px] text-white/45 mb-2">Brief Pipeline</div>
                 <PipelineBar pipeline={d.pipeline} total={d.stats.totalQuestions} onSegment={setFilterStatus} active={filterStatus} />
                 {d.pipeline.error > 0 && (
                   <button
@@ -422,7 +422,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         </div>
         {/* Unified intel stream — no tabs */}
         <div style={{ flex: "1 1 auto", minHeight: 0 }} className="flex flex-col">
-          <div className="px-3 py-1.5 text-[11px] font-medium   text-white/40 bg-[#050d18] border-b border-white/[0.06]">
+          <div className="px-3 py-1.5 text-[11px] font-medium text-white/40 bg-[#050d18] border-b border-white/[0.06]">
             Intel Stream
           </div>
           <div className="flex-1 overflow-y-auto p-3">
@@ -552,7 +552,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
       {filteredSos.length > 0 && (
         <div className="shrink-0 px-5 py-3 border-b border-white/[0.06] max-h-[260px] overflow-y-auto">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-[11px]   text-white/55 font-medium">
+            <span className="text-[11px] text-white/55 font-medium">
               Needs attention
             </span>
             <span className="text-[11px] text-white/40">· {filteredSos.length}</span>
@@ -678,7 +678,7 @@ function ColumnShell({ header, headerAccent, children }: {
         className="shrink-0 flex items-center justify-between gap-2 px-3 border-b border-white/[0.06]"
         style={{ height: 36, background: "#050d18" }}
       >
-        <span className="text-[12px] font-medium   text-white/85">{header}</span>
+        <span className="text-[12px] font-medium text-white/85">{header}</span>
         {headerAccent}
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto">{children}</div>

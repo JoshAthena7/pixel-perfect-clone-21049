@@ -165,7 +165,7 @@ export function WritersBlockDialog({
         {response && (
           <>
             <div className="rounded-md px-3 py-2.5" style={{ background: "rgba(255,255,255,0.02)", borderLeft: `3px solid ${GOLD}` }}>
-              <div className="text-[11px]   font-medium flex items-center gap-1" style={{ color: GOLD }}>
+              <div className="text-[11px] font-medium flex items-center gap-1" style={{ color: GOLD }}>
                 <Zap className="h-3 w-3" /> IRIS · Unstick
               </div>
               <div className="mt-2 text-[12.5px] whitespace-pre-wrap" style={{ color: "rgba(255,255,255,0.88)", lineHeight: 1.7 }}>

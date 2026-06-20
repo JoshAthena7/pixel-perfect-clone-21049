@@ -205,7 +205,7 @@ function MemberProfilePage() {
           </div>
           <div className="flex flex-col items-end gap-2">
             <div className="w-48">
-              <Label className="text-[11px]   text-muted-foreground">Atlas role</Label>
+              <Label className="text-[11px] text-muted-foreground">Atlas role</Label>
               <Select
                 value={currentRole}
                 disabled={roleMut.isPending}
@@ -231,7 +231,7 @@ function MemberProfilePage() {
         {/* Editable details */}
         <div className="rounded-lg border p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-[14px] font-medium   text-muted-foreground">Profile details</h2>
+            <h2 className="text-[14px] font-medium text-muted-foreground">Profile details</h2>
             <Button size="sm" disabled={!dirty || saveMut.isPending} onClick={() => saveMut.mutate()}>
               {saveMut.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               Save changes
@@ -293,7 +293,7 @@ function MemberProfilePage() {
 
         {/* Activity */}
         <div className="rounded-lg border p-6">
-          <h2 className="text-[14px] font-medium   text-muted-foreground mb-3">Recent activity</h2>
+          <h2 className="text-[14px] font-medium text-muted-foreground mb-3">Recent activity</h2>
           {activity.length === 0 ? (
             <p className="text-[14px] text-muted-foreground">No activity yet.</p>
           ) : (
@@ -315,7 +315,7 @@ function MemberProfilePage() {
 function InfoCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="rounded-md border p-3">
-      <div className="text-[11px]   text-muted-foreground">{label}</div>
+      <div className="text-[11px] text-muted-foreground">{label}</div>
       <div className="mt-1 text-[14px] break-words">{children}</div>
     </div>
   );

@@ -229,7 +229,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <div className="text-[12px] font-medium   mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+      <div className="text-[12px] font-medium mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>
         {label}
       </div>
       {children}
@@ -393,7 +393,7 @@ function SectionCard({ title, children }: { title: string; children: React.React
         border: "1px solid rgba(255,255,255,0.06)",
       }}
     >
-      <div className="text-[12px] font-medium   mb-4" style={{ color: "#c9a84c" }}>
+      <div className="text-[12px] font-medium mb-4" style={{ color: "#c9a84c" }}>
         {title}
       </div>
       {children}
@@ -1191,7 +1191,7 @@ function ComplianceTab({ missionId }: { missionId: string }) {
                     <div className="text-[14px] font-medium text-white truncate">{r.name}</div>
                     {!r.required && (
                       <span
-                        className="text-[11px]   px-1.5 py-0.5 rounded"
+                        className="text-[11px] px-1.5 py-0.5 rounded"
                         style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.5)" }}
                       >
                         Optional
@@ -1324,7 +1324,7 @@ function CompliancePanel({
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <div className="text-[12px] font-medium  " style={{ color: "#fbbf24" }}>
+              <div className="text-[12px] font-medium" style={{ color: "#fbbf24" }}>
                 Pending ({pending.length})
               </div>
               {pending.length > 0 && (
@@ -1359,7 +1359,7 @@ function CompliancePanel({
           </div>
 
           <div>
-            <div className="text-[12px] font-medium   mb-2" style={{ color: "#4ade80" }}>
+            <div className="text-[12px] font-medium mb-2" style={{ color: "#4ade80" }}>
               Complete ({done.length})
             </div>
             <ul className="space-y-1.5">
@@ -1528,7 +1528,7 @@ function ReportsTab({ missionId }: { missionId: string }) {
       >
         <div className="flex items-center justify-between mb-4">
           <div>
-            <div className="text-[12px] font-medium  " style={{ color: "#c9a84c" }}>
+            <div className="text-[12px] font-medium" style={{ color: "#c9a84c" }}>
               Scheduled Reports
             </div>
             <div className="text-[12px] mt-1" style={{ color: "rgba(255,255,255,0.55)" }}>

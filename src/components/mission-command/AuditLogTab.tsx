@@ -134,7 +134,7 @@ export function AuditLogTab({ missionId, missionName }: { missionId: string; mis
       ) : (
         <div className="rounded-lg border border-border overflow-hidden">
           <table className="w-full text-[14px]">
-            <thead className="bg-muted/40 text-[12px]  text-muted-foreground">
+            <thead className="bg-muted/40 text-[12px] text-muted-foreground">
               <tr>
                 <th className="px-3 py-2 text-left">Timestamp</th>
                 <th className="px-3 py-2 text-left">Action</th>

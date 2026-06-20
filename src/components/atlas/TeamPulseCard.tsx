@@ -89,7 +89,7 @@ function InspirationTab({ missionId }: { missionId: string }) {
   return (
     <div className="relative">
       <span
-        className="absolute right-0 top-0 rounded-full px-2 py-0.5 text-[11px] font-medium  "
+        className="absolute right-0 top-0 rounded-full px-2 py-0.5 text-[11px] font-medium"
         style={{ background: "rgba(196,154,43,0.12)", color: GOLD, border: "1px solid rgba(196,154,43,0.3)" }}
       >
         Today's Inspiration
@@ -365,7 +365,7 @@ function TriviaTab({ missionId }: { missionId: string }) {
           </div>
         )}
         <div className="text-right">
-          <div className="text-[11px]  " style={{ color: "rgba(255,255,255,0.45)" }}>My Score</div>
+          <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.45)" }}>My Score</div>
           <div className="text-[16px] font-medium text-white leading-none mt-0.5">{myScore?.total ?? 0}</div>
           {myScore && myScore.streak > 0 && (
             <div className="text-[11px] mt-0.5 flex items-center justify-end gap-0.5" style={{ color: GOLD }}>
@@ -722,7 +722,7 @@ function TeamTriviaStatus({ missionId }: { missionId: string }) {
   if (!data || data.length === 0) return null;
   return (
     <div>
-      <div className="text-[11px]   font-medium text-muted-foreground">Today's Trivia</div>
+      <div className="text-[11px] font-medium text-muted-foreground">Today's Trivia</div>
       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5">
         {data.map((m) => (
           <div key={m.id} className="text-[12px] flex items-center gap-1" style={{ color: "rgba(255,255,255,0.78)" }}>
@@ -774,7 +774,7 @@ function RecentWins({ missionId }: { missionId: string }) {
 
   return (
     <div>
-      <div className="text-[11px]   font-medium text-muted-foreground">Recent Wins</div>
+      <div className="text-[11px] font-medium text-muted-foreground">Recent Wins</div>
       {!events || events.length === 0 ? (
         <div className="mt-2 text-[12px] italic text-muted-foreground">The team is heads down. Check back soon.</div>
       ) : (
@@ -827,7 +827,7 @@ function IrisNudges({ missionId }: { missionId: string }) {
   if (!nudges || nudges.length === 0) return null;
   return (
     <div>
-      <div className="text-[11px]   font-medium text-muted-foreground">IRIS Nudges</div>
+      <div className="text-[11px] font-medium text-muted-foreground">IRIS Nudges</div>
       <div className="mt-2 space-y-2">
         {nudges.map((n, i) => (
           <div key={i} className="rounded-md px-3 py-2 text-[11.5px]" style={{ background: "rgba(127,119,221,0.06)", border: "1px solid rgba(127,119,221,0.2)", color: "rgba(255,255,255,0.78)", lineHeight: 1.6 }}>
@@ -906,7 +906,7 @@ function ShoutoutBox({ missionId }: { missionId: string }) {
 
   return (
     <div>
-      <div className="text-[11px]   font-medium text-muted-foreground">Shoutout</div>
+      <div className="text-[11px] font-medium text-muted-foreground">Shoutout</div>
 
       {received && received.length > 0 && (
         <ul className="mt-2 space-y-1.5">

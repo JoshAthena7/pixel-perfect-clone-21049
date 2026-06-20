@@ -596,7 +596,7 @@ function StatCard({
       )}
     >
       <div className="text-3xl font-medium">{value}</div>
-      <div className="text-[12px]  tracking-wide mt-1">{label}</div>
+      <div className="text-[12px] tracking-wide mt-1">{label}</div>
     </button>
   );
 }
@@ -750,12 +750,12 @@ function HealthCard({
       <div className="flex flex-wrap items-center gap-2 text-[12px]">
         <HealthBadge value={h} />
         {overrideActive && (
-          <span className="px-1.5 py-0.5 rounded  font-medium bg-primary/15 text-primary border border-primary/40">
+          <span className="px-1.5 py-0.5 rounded font-medium bg-primary/15 text-primary border border-primary/40">
             Manually set
           </span>
         )}
         {managerFlag && (
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded  font-medium bg-amber-500/20 text-amber-300">
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-medium bg-amber-500/20 text-amber-300">
             <Flag className="h-3 w-3" /> Flagged
           </span>
         )}
@@ -790,12 +790,12 @@ function HealthCard({
       {expanded && (
         <div className="mt-3 border-t border-border pt-3 space-y-3 text-[14px]">
           <div>
-            <div className="text-[12px]  text-muted-foreground mb-1">Assigned SMEs</div>
+            <div className="text-[12px] text-muted-foreground mb-1">Assigned SMEs</div>
             <div>{smes.length ? smes.join(", ") : <span className="text-muted-foreground">None</span>}</div>
           </div>
           {q.evaluation_criteria && (
             <div>
-              <div className="text-[12px]  text-muted-foreground mb-1">Evaluation Criteria</div>
+              <div className="text-[12px] text-muted-foreground mb-1">Evaluation Criteria</div>
               <p>{q.evaluation_criteria}</p>
             </div>
           )}
@@ -832,7 +832,7 @@ function HealthCard({
 
           <div className="flex items-center gap-4">
             <div>
-              <div className="text-[12px]  text-muted-foreground">Days until due</div>
+              <div className="text-[12px] text-muted-foreground">Days until due</div>
               <div className={cn("text-3xl font-medium", dueColor)}>
                 {days === null ? "—" : days < 0 ? `${Math.abs(days)} overdue` : days}
               </div>
@@ -850,7 +850,7 @@ function HealthCard({
           {/* Admin private note — only admins see this section */}
           {isAdmin && latestOverride && (
             <div data-no-toggle className="rounded-md border border-border bg-background/40 p-3">
-              <div className="flex items-center gap-1.5 mb-2 text-[12px]  tracking-wide text-muted-foreground">
+              <div className="flex items-center gap-1.5 mb-2 text-[12px] tracking-wide text-muted-foreground">
                 <Lock className="h-3 w-3" /> Admin Note — not visible to team
                 {noteSaved && <span className="ml-auto text-green-400 normal-case">Saved</span>}
               </div>

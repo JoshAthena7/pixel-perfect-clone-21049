@@ -104,7 +104,7 @@ export function StateIntelDetail({ stateCode }: { stateCode: string }) {
 
         <aside className="space-y-4">
           <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
-            <h3 className="text-[12px] font-medium text-white/55  tracking-wide mb-2">
+            <h3 className="text-[12px] font-medium text-white/55 tracking-wide mb-2">
               Missions inheriting this pack
             </h3>
             {data.missions.length === 0 ? (
@@ -119,7 +119,7 @@ export function StateIntelDetail({ stateCode }: { stateCode: string }) {
                       className="text-[14px] text-white/80 hover:text-white block truncate"
                     >
                       {m.name}
-                      <span className="text-[11px] text-white/40 ml-2 ">{m.status}</span>
+                      <span className="text-[11px] text-white/40 ml-2">{m.status}</span>
                     </Link>
                   </li>
                 ))}

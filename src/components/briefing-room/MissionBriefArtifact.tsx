@@ -72,13 +72,13 @@ export function MissionBriefArtifact({ missionId }: { missionId: string }) {
           <Badge
             variant="outline"
             style={{ background: meta.bg, color: meta.fg, borderColor: meta.border }}
-            className="text-[11px]  "
+            className="text-[11px]"
           >
             {isApproved && <CheckCircle2 className="h-3 w-3 mr-1 inline" />}
             {meta.label}
           </Badge>
           {status?.brief_version ? (
-            <span className="text-[11px]   text-muted-foreground">
+            <span className="text-[11px] text-muted-foreground">
               v{status.brief_version}
             </span>
           ) : null}
@@ -171,7 +171,7 @@ function IntelligenceSourcesFooter({ missionId }: { missionId: string }) {
 
   return (
     <details className="mt-4 group">
-      <summary className="cursor-pointer text-[12px]   text-muted-foreground hover:text-foreground">
+      <summary className="cursor-pointer text-[12px] text-muted-foreground hover:text-foreground">
         Intelligence Sources Used
         {total > 0 ? (
           <span className="ml-2 normal-case tracking-normal text-[12px] text-muted-foreground">

@@ -55,7 +55,7 @@ function ProfilePlaceholder({ title = "Profile" }: { title?: string }) {
 function HelpPanel() {
   return (
     <div className="mx-auto max-w-3xl px-8 py-12">
-      <div className="flex items-center gap-2 text-[11px] font-medium  tracking-[0.28em] text-cyan-400/90">
+      <div className="flex items-center gap-2 text-[11px] font-medium tracking-[0.28em] text-cyan-400/90">
         <LifeBuoy className="h-3.5 w-3.5" />
         Support
       </div>

@@ -41,7 +41,7 @@ function AdminSettingsPage() {
           className="mt-8 rounded-lg p-5"
           style={{ background: "#0c1220", border: "1px solid rgba(255,255,255,0.08)" }}
         >
-          <div className="text-[12px]  tracking-[0.25em]" style={{ color: "rgba(201,168,76,0.7)" }}>
+          <div className="text-[12px] tracking-[0.25em]" style={{ color: "rgba(201,168,76,0.7)" }}>
             Developer Tools
           </div>
 

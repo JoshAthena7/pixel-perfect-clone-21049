@@ -174,7 +174,7 @@ function PipelineCard({
 
       {open && (
         <div className="border-t bg-background/40 px-4 py-3">
-          <p className="text-[12px]   text-muted-foreground mb-2">
+          <p className="text-[12px] text-muted-foreground mb-2">
             Last {job.runs.length} runs
           </p>
           {job.runs.length === 0 ? (

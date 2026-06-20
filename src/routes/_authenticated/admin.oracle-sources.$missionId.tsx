@@ -148,7 +148,7 @@ function SourcesPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
       <div className="mb-6">
-        <div className="text-[12px]   text-muted-foreground">
+        <div className="text-[12px] text-muted-foreground">
           ORACLE · Admin
         </div>
         <h1 className="text-2xl font-medium mt-1">Sources</h1>
@@ -186,7 +186,7 @@ function SourcesPage() {
 
       <div className="rounded-lg border border-border overflow-hidden">
         <table className="w-full text-[14px]">
-          <thead className="bg-muted/40 text-[12px]   text-muted-foreground">
+          <thead className="bg-muted/40 text-[12px] text-muted-foreground">
             <tr>
               <th className="text-left px-3 py-2">Document</th>
               <th className="text-left px-3 py-2">Type</th>

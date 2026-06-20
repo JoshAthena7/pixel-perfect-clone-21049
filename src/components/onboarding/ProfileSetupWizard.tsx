@@ -350,7 +350,7 @@ function ProfileSetupWizard({
       <div className="relative flex h-full max-h-[640px] w-full max-w-[720px] flex-col overflow-hidden rounded-none border border-border bg-surface md:rounded-2xl md:h-auto md:max-h-[90vh]">
         {/* Progress */}
         <div className="border-b border-border px-6 py-4">
-          <div className="flex items-center justify-between text-[12px]   text-muted-foreground">
+          <div className="flex items-center justify-between text-[12px] text-muted-foreground">
             <span>Setup · {stepIdx + 1} of {STEPS.length}</span>
             <span>{Math.round(((stepIdx + 1) / STEPS.length) * 100)}%</span>
           </div>
@@ -414,7 +414,7 @@ function ProfileSetupWizard({
                     IRIS extracted the fields below. Edit anything that needs a tweak, then continue.
                   </div>
                   <div>
-                    <label className="text-[12px] font-medium   text-muted-foreground">
+                    <label className="text-[12px] font-medium text-muted-foreground">
                       Areas of expertise
                     </label>
                     <div className="mt-2 flex flex-wrap gap-1.5">
@@ -447,7 +447,7 @@ function ProfileSetupWizard({
                   </div>
 
                   <div>
-                    <label className="text-[12px] font-medium   text-muted-foreground">
+                    <label className="text-[12px] font-medium text-muted-foreground">
                       Professional summary
                     </label>
                     <textarea
@@ -462,7 +462,7 @@ function ProfileSetupWizard({
                   </div>
 
                   <div>
-                    <label className="text-[12px] font-medium   text-muted-foreground">
+                    <label className="text-[12px] font-medium text-muted-foreground">
                       Years of experience
                     </label>
                     <input
@@ -484,7 +484,7 @@ function ProfileSetupWizard({
                   </div>
 
                   <div>
-                    <label className="text-[12px] font-medium   text-muted-foreground">
+                    <label className="text-[12px] font-medium text-muted-foreground">
                       Certifications & credentials
                     </label>
                     <div className="mt-2 flex flex-wrap gap-1.5">
@@ -691,7 +691,7 @@ function ProfileSetupWizard({
             {step.key === "voice" && (
               <div className="space-y-5">
                 <div>
-                  <label className="text-[12px] font-medium   text-muted-foreground">
+                  <label className="text-[12px] font-medium text-muted-foreground">
                     Writing voice sample
                   </label>
                   <p className="mt-1 text-[12px] text-muted-foreground">
@@ -712,7 +712,7 @@ function ProfileSetupWizard({
                 </div>
 
                 <div>
-                  <label className="text-[12px] font-medium   text-muted-foreground">
+                  <label className="text-[12px] font-medium text-muted-foreground">
                     Preferred point of view
                   </label>
                   <div className="mt-2 grid grid-cols-3 gap-2">
@@ -743,7 +743,7 @@ function ProfileSetupWizard({
                 </div>
 
                 <div>
-                  <label className="text-[12px] font-medium   text-muted-foreground">
+                  <label className="text-[12px] font-medium text-muted-foreground">
                     Banned words & phrases
                   </label>
                   <p className="mt-1 text-[12px] text-muted-foreground">
@@ -781,7 +781,7 @@ function ProfileSetupWizard({
             {step.key === "style" && (
               <div className="space-y-5">
                 <div>
-                  <label className="text-[12px] font-medium   text-muted-foreground">
+                  <label className="text-[12px] font-medium text-muted-foreground">
                     Default role on a mission
                   </label>
                   <p className="mt-1 text-[12px] text-muted-foreground">
@@ -817,7 +817,7 @@ function ProfileSetupWizard({
                 </div>
 
                 <div>
-                  <label className="text-[12px] font-medium   text-muted-foreground">
+                  <label className="text-[12px] font-medium text-muted-foreground">
                     Depth across the 9 IRIS Intelligence Domains
                   </label>
                   <p className="mt-1 text-[12px] text-muted-foreground">
@@ -844,7 +844,7 @@ function ProfileSetupWizard({
                                       domain_depth: { ...form.domain_depth, [d.key]: lvl },
                                     })
                                   }
-                                  className="rounded px-2 py-0.5 text-[11px]   transition"
+                                  className="rounded px-2 py-0.5 text-[11px] transition"
                                   style={{
                                     background: active ? "rgba(59,127,255,0.15)" : "transparent",
                                     color: active ? "var(--accent,#3b7fff)" : "var(--muted-foreground)",
@@ -865,7 +865,7 @@ function ProfileSetupWizard({
                 </div>
 
                 <div>
-                  <label className="text-[12px] font-medium   text-muted-foreground">
+                  <label className="text-[12px] font-medium text-muted-foreground">
                     Timezone
                   </label>
                   <p className="mt-1 text-[12px] text-muted-foreground">

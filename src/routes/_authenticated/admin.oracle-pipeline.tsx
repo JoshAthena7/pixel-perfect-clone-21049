@@ -245,7 +245,7 @@ function StageButton({
 function StatCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
   return (
     <div className="rounded-md border border-white/5 bg-white/[0.02] px-3 py-2.5">
-      <div className="flex items-center gap-1.5 text-[11px]  tracking-wide text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-[11px] tracking-wide text-muted-foreground">
         <span className="[&>svg]:h-3 [&>svg]:w-3">{icon}</span> {label}
       </div>
       <div className="mt-1 text-[14px] font-medium">{value}</div>
@@ -259,7 +259,7 @@ function QueueCount({ label, value, color }: { label: string; value: number; col
       className="rounded-md border px-3 py-2"
       style={{ borderColor: `${color}33`, background: `${color}0a` }}
     >
-      <div className="text-[11px]  tracking-wide" style={{ color }}>
+      <div className="text-[11px] tracking-wide" style={{ color }}>
         {label}
       </div>
       <div className="mt-0.5 text-xl font-medium tabular-nums">{value}</div>

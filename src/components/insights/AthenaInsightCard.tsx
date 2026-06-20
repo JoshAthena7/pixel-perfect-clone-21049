@@ -56,22 +56,22 @@ export function AthenaInsightCard({
       }}
     >
       {sectionLabel && (
-        <div className="mb-2 text-[11px]   text-muted-foreground">{sectionLabel}</div>
+        <div className="mb-2 text-[11px] text-muted-foreground">{sectionLabel}</div>
       )}
       <header className="mb-2 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {isDaily && (
-            <span className="text-[11px] font-medium  " style={{ color: GOLD }}>
+            <span className="text-[11px] font-medium" style={{ color: GOLD }}>
               ✦ Today's Insight
             </span>
           )}
           {isAtRisk && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium  " style={{ color: RED }}>
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium" style={{ color: RED }}>
               <AlertTriangle className="h-3 w-3" /> At Risk
             </span>
           )}
           {!isDaily && !isAtRisk && insight.title && (
-            <span className="text-[11px]   text-muted-foreground/70">{insight.title}</span>
+            <span className="text-[11px] text-muted-foreground/70">{insight.title}</span>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -104,13 +104,13 @@ export function AthenaInsightCard({
         <>
           {insight.why_it_matters && (
             <div className="mt-3">
-              <div className="text-[11px]   text-muted-foreground mb-1">Why it matters</div>
+              <div className="text-[11px] text-muted-foreground mb-1">Why it matters</div>
               <p className="text-[14px] leading-relaxed text-muted-foreground">{insight.why_it_matters}</p>
             </div>
           )}
           {insight.writers_note && (
             <div className="mt-3">
-              <div className="text-[11px]   text-muted-foreground mb-1">Writer's Note</div>
+              <div className="text-[11px] text-muted-foreground mb-1">Writer's Note</div>
               <p className="text-[14px] leading-relaxed text-foreground/90">{insight.writers_note}</p>
             </div>
           )}

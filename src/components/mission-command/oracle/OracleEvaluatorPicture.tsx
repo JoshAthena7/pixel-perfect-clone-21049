@@ -48,7 +48,7 @@ function ConfidenceBadge({ confidence }: { confidence?: Confidence }) {
   const s = styles[c];
   return (
     <span
-      className="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium   border"
+      className="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium border"
       style={{ background: s.bg, color: s.color, borderColor: s.border }}
     >
       {c}
@@ -257,7 +257,7 @@ export function OracleEvaluatorPicture({
           style={{ background: "rgba(196,154,43,0.06)", borderColor: "rgba(196,154,43,0.35)" }}
         >
           <div
-            className="text-[11px]  tracking-[0.15em] font-medium"
+            className="text-[11px] tracking-[0.15em] font-medium"
             style={{ color: GOLD }}
           >
             IRIS — The one thing to know
@@ -350,7 +350,7 @@ export function OracleEvaluatorPicture({
               borderColor: "rgba(239,159,39,0.35)",
             }}
           >
-            <div className="text-[11px]   font-medium text-[#f59e0b] mb-2">
+            <div className="text-[11px] font-medium text-[#f59e0b] mb-2">
               Political environment signal:
             </div>
             <ul className="space-y-1.5">
@@ -370,7 +370,7 @@ export function OracleEvaluatorPicture({
       {/* Section 4 — Scoring lens */}
       {picture.scoring_lens && (
         <div className="rounded-md border border-white/10 bg-white/[0.02] p-5">
-          <div className="text-[12px]   text-white/45 font-medium">
+          <div className="text-[12px] text-white/45 font-medium">
             How IRIS believes this panel approaches the scoring rubric
           </div>
           <p className="mt-3 text-[14px] text-white" style={{ lineHeight: 1.7 }}>
@@ -392,7 +392,7 @@ export function OracleEvaluatorPicture({
         className="rounded-md border px-5 py-4"
         style={{ background: "rgba(239,159,39,0.04)", borderColor: "rgba(239,159,39,0.4)" }}
       >
-        <div className="text-[12px]  tracking-[0.15em] font-medium text-[#f59e0b]">
+        <div className="text-[12px] tracking-[0.15em] font-medium text-[#f59e0b]">
           What IRIS does not know
         </div>
         {picture.what_iris_does_not_know && (

@@ -70,7 +70,7 @@ function MessagingPage() {
       <div className="mx-auto max-w-5xl px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <div className=" tracking-[0.16em] text-[11px] mb-1" style={{ color: "#c9a84c" }}>
+            <div className="tracking-[0.16em] text-[11px] mb-1" style={{ color: "#c9a84c" }}>
               ADMIN · MESSAGING
             </div>
             <h1 className="text-2xl font-medium text-white">Broadcasts</h1>
@@ -186,7 +186,7 @@ function MessageCard({ m, onClick }: { m: Message; onClick?: () => void }) {
           </span>
           {sent && (
             <span
-              className="rounded-full text-[11px] font-medium  "
+              className="rounded-full text-[11px] font-medium"
               style={{
                 padding: "3px 9px",
                 background: openRate >= 75 ? "rgba(34,197,94,0.12)" : openRate >= 40 ? "rgba(201,168,76,0.12)" : "rgba(255,255,255,0.05)",
@@ -403,7 +403,7 @@ function ComposePanel({
         style={{ background: "#0a121f", borderLeft: "1px solid rgba(255,255,255,0.08)" }}
       >
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <div className="text-[12px] font-medium  " style={{ color: "#c9a84c" }}>
+          <div className="text-[12px] font-medium" style={{ color: "#c9a84c" }}>
             {draft ? "Edit draft" : "New message"}
           </div>
           <button type="button" onClick={onClose} className="p-1 rounded hover:bg-white/[0.05]" style={{ color: "rgba(255,255,255,0.5)" }}>
@@ -556,7 +556,7 @@ function toggle(setter: (fn: (prev: string[]) => string[]) => void, value: strin
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[12px] font-medium   mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+    <div className="text-[12px] font-medium mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>
       {children}
     </div>
   );

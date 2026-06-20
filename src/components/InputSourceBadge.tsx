@@ -106,7 +106,7 @@ export function LabeledField({
   return (
     <div className={cn("space-y-1.5", className)}>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-[12px]   text-[var(--athena-gold)] font-medium">
+        <span className="text-[12px] text-[var(--athena-gold)] font-medium">
           {label}
         </span>
         <InputSourceBadge source={source} />

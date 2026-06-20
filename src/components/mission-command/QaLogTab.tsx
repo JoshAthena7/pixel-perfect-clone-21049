@@ -206,7 +206,7 @@ export function QaLogTab({ missionId }: { missionId: string }) {
         />
       ) : (
         <div className="rounded-lg border bg-card divide-y">
-          <div className="grid grid-cols-12 px-4 py-2 text-[12px] font-medium   text-muted-foreground">
+          <div className="grid grid-cols-12 px-4 py-2 text-[12px] font-medium text-muted-foreground">
             <div className="col-span-2">Q&amp;A #</div>
             <div className="col-span-4">Question</div>
             <div className="col-span-2">Date</div>

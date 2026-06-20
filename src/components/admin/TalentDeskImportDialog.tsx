@@ -380,7 +380,7 @@ function Stat({ label, value, color }: { label: string; value: number; color: st
   return (
     <div className="rounded-md p-3" style={{ border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
       <div className="text-2xl font-medium" style={{ color }}>{value}</div>
-      <div className="text-[12px]  tracking-wide text-white/45 mt-0.5">{label}</div>
+      <div className="text-[12px] tracking-wide text-white/45 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -403,7 +403,7 @@ function Section({
     <div className="rounded-md p-3" style={{ border: `1px solid ${borderColor}`, background: "rgba(255,255,255,0.02)" }}>
       <div className="flex items-center gap-1.5 mb-2">
         {tone === "error" || tone === "warn" ? <AlertTriangle className="h-3.5 w-3.5" style={{ color: tone === "error" ? "#ef4444" : "#eab308" }} /> : null}
-        <h3 className="text-[12px] font-medium  tracking-wide text-white/70">{title}</h3>
+        <h3 className="text-[12px] font-medium tracking-wide text-white/70">{title}</h3>
       </div>
       {children}
     </div>

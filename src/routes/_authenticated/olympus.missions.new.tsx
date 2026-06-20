@@ -217,7 +217,7 @@ function MeetIrisIntro() {
           </div>
           <div className="pt-1">
             <div
-              className="text-[12px]  tracking-[0.22em]"
+              className="text-[12px] tracking-[0.22em]"
               style={{ color: "#C49A2B" }}
             >
               IRIS · Mission Intelligence Officer

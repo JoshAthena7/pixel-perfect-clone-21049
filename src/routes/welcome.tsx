@@ -152,7 +152,7 @@ function OnboardingWizard() {
       <div className="mx-auto max-w-2xl px-6 py-12">
         {/* Progress */}
         <div className="mb-10">
-          <div className="mb-3 flex items-center justify-between text-[12px]   text-white/40">
+          <div className="mb-3 flex items-center justify-between text-[12px] text-white/40">
             <span>IRIS Onboarding</span>
             <span>Step {step + 1} of {totalSteps}</span>
           </div>
@@ -175,7 +175,7 @@ function OnboardingWizard() {
               </p>
             )}
             <div className="flex items-center justify-between pt-6">
-              <button className="text-[12px]   text-white/40 hover:text-white/70" onClick={() => persistAndAdvance("done")}>
+              <button className="text-[12px] text-white/40 hover:text-white/70" onClick={() => persistAndAdvance("done")}>
                 Skip for now
               </button>
               <Button onClick={() => setStep(1)} className="bg-amber-400 text-black hover:bg-amber-300">
@@ -274,8 +274,8 @@ function StepNav({ onBack, onNext, onSkip, nextLabel = "Continue", busy }: { onB
   return (
     <div className="flex items-center justify-between pt-6">
       <div className="flex items-center gap-4">
-        <button className="text-[12px]   text-white/40 hover:text-white/70" onClick={onBack}>← Back</button>
-        {onSkip && <button className="text-[12px]   text-white/40 hover:text-white/70" onClick={onSkip}>Skip</button>}
+        <button className="text-[12px] text-white/40 hover:text-white/70" onClick={onBack}>← Back</button>
+        {onSkip && <button className="text-[12px] text-white/40 hover:text-white/70" onClick={onSkip}>Skip</button>}
       </div>
       <Button onClick={onNext} disabled={busy} className="bg-amber-400 text-black hover:bg-amber-300">
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{nextLabel} <ArrowRight className="ml-2 h-4 w-4" /></>}

@@ -71,7 +71,7 @@ export function AddCompetitorIntelModal({
 
         <div className="space-y-3">
           <label className="block">
-            <span className="text-[12px]  tracking-[0.14em] text-white/55 mb-1 block">
+            <span className="text-[12px] tracking-[0.14em] text-white/55 mb-1 block">
               What do you know?
             </span>
             <textarea
@@ -85,7 +85,7 @@ export function AddCompetitorIntelModal({
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="text-[12px]  tracking-[0.14em] text-white/55 mb-1 block">
+              <span className="text-[12px] tracking-[0.14em] text-white/55 mb-1 block">
                 Source (optional)
               </span>
               <input
@@ -96,7 +96,7 @@ export function AddCompetitorIntelModal({
               />
             </label>
             <label className="block">
-              <span className="text-[12px]  tracking-[0.14em] text-white/55 mb-1 block">
+              <span className="text-[12px] tracking-[0.14em] text-white/55 mb-1 block">
                 Confidence
               </span>
               <select

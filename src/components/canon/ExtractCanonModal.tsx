@@ -124,7 +124,7 @@ export function ExtractCanonModal({ onClose }: { onClose: () => void }) {
               </p>
 
               <label className="block space-y-1">
-                <span className="text-[12px] font-medium  tracking-wide text-muted-foreground">
+                <span className="text-[12px] font-medium tracking-wide text-muted-foreground">
                   Document
                 </span>
                 <input
@@ -141,7 +141,7 @@ export function ExtractCanonModal({ onClose }: { onClose: () => void }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-[12px] font-medium  tracking-wide text-muted-foreground">
+                <span className="text-[12px] font-medium tracking-wide text-muted-foreground">
                   Source URL (optional)
                 </span>
                 <input
@@ -154,7 +154,7 @@ export function ExtractCanonModal({ onClose }: { onClose: () => void }) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-[12px] font-medium  tracking-wide text-muted-foreground">
+                <span className="text-[12px] font-medium tracking-wide text-muted-foreground">
                   Default Category
                 </span>
                 <select

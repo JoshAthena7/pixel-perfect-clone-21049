@@ -212,7 +212,7 @@ function TeamSubStep({
 
   return (
     <div>
-      <p className="text-[12px]  tracking-[0.18em] text-amber-300/80 mb-1">
+      <p className="text-[12px] tracking-[0.18em] text-amber-300/80 mb-1">
         Step 7 of 9 — Team &amp; Assignments
       </p>
       <WizardStepHeading
@@ -704,7 +704,7 @@ function AssignmentsSubStep({
       >
         <ArrowLeft className="h-3 w-3" /> Back to Team
       </button>
-      <p className="text-[12px]  tracking-[0.18em] text-amber-300/80 mb-1">
+      <p className="text-[12px] tracking-[0.18em] text-amber-300/80 mb-1">
         Step 7 of 9 — Team &amp; Assignments
       </p>
       <WizardStepHeading

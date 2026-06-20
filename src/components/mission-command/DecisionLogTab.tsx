@@ -197,7 +197,7 @@ export function DecisionLogTab({ missionId, missionName }: { missionId: string; 
           {filtered.map((d) => (
             <div key={d.id} className="rounded-xl border border-border bg-card p-5 space-y-2">
               <div className="flex items-start justify-between gap-4">
-                <div className="text-[12px] font-medium text-primary  tracking-wide">
+                <div className="text-[12px] font-medium text-primary tracking-wide">
                   {format(new Date(d.decided_at ?? d.created_at), "MMMM d, yyyy")}
                 </div>
                 <Badge className={STATUS_COLORS[d.status] ?? ""} variant="outline">

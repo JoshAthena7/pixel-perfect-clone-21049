@@ -18,7 +18,7 @@ function AdminInsightsPage() {
   return (
     <div className="p-8" style={{ background: "#080c14", minHeight: "100vh", color: "rgba(255,255,255,0.9)" }}>
       <div className="max-w-4xl">
-        <div className=" tracking-[0.16em] text-[11px] mb-1" style={{ color: "#c9a84c" }}>
+        <div className="tracking-[0.16em] text-[11px] mb-1" style={{ color: "#c9a84c" }}>
           ADMIN · INSIGHTS
         </div>
         <h1 className="text-2xl font-medium text-white">Debriefs</h1>

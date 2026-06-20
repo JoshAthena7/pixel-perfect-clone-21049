@@ -40,7 +40,7 @@ export function BriefRoomPinned() {
         }}
       >
         <span
-          className="inline-flex items-center gap-1.5 text-[11px] font-medium  tracking-[0.22em]"
+          className="inline-flex items-center gap-1.5 text-[11px] font-medium tracking-[0.22em]"
           style={{ color: "var(--athena-gold, #f59e0b)" }}
         >
           {top.type === "global" ? (
@@ -60,7 +60,7 @@ export function BriefRoomPinned() {
         )}
         <button
           onClick={() => setOpen(true)}
-          className="shrink-0 inline-flex h-7 items-center rounded-md px-3 text-[12px] font-medium  tracking-[0.16em]"
+          className="shrink-0 inline-flex h-7 items-center rounded-md px-3 text-[12px] font-medium tracking-[0.16em]"
           style={{
             background: "var(--athena-gold, #f59e0b)",
             color: "#0a0a0a",
@@ -136,7 +136,7 @@ export function BriefingAckModal({
         {/* Document letterhead */}
         <div className="px-10 pt-10 pb-5">
           <div
-            className="text-[11px] font-medium  tracking-[0.32em]"
+            className="text-[11px] font-medium tracking-[0.32em]"
             style={{ color: "var(--athena-gold, #f59e0b)" }}
           >
             {isGlobal ? "Briefing · Athena Leadership" : "Briefing · Direct"}
@@ -178,7 +178,7 @@ export function BriefingAckModal({
         {/* Signature block */}
         <div className="px-10 pb-2">
           <div
-            className="text-[11px] font-medium  tracking-[0.28em] mb-1"
+            className="text-[11px] font-medium tracking-[0.28em] mb-1"
             style={{ color: "rgba(245,158,11,0.7)" }}
           >
             Signed
@@ -208,7 +208,7 @@ export function BriefingAckModal({
           <Button
             onClick={() => ack.mutate()}
             disabled={ack.isPending}
-            className="h-10 px-6 text-[12px] font-medium  tracking-[0.18em]"
+            className="h-10 px-6 text-[12px] font-medium tracking-[0.18em]"
             style={{
               background: "var(--athena-gold, #f59e0b)",
               color: "#0a0a0a",

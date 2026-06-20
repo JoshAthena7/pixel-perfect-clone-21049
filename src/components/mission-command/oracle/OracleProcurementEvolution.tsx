@@ -100,13 +100,13 @@ export function OracleProcurementEvolution({ missionId }: { missionId: string })
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {data.iris_signals && (
           <div className="rounded border-l-4 border-[#C9A55C] bg-card p-4">
-            <div className="text-[12px] font-medium   mb-2">What These Changes Signal</div>
+            <div className="text-[12px] font-medium mb-2">What These Changes Signal</div>
             <p className="text-[14px]">{data.iris_signals}</p>
           </div>
         )}
         {data.iris_recommendations && (
           <div className="rounded border-l-4 border-primary bg-card p-4">
-            <div className="text-[12px] font-medium   mb-2">What You Should Do Differently</div>
+            <div className="text-[12px] font-medium mb-2">What You Should Do Differently</div>
             <p className="text-[14px]">{data.iris_recommendations}</p>
           </div>
         )}

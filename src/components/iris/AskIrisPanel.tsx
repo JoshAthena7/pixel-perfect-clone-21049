@@ -763,7 +763,7 @@ function HomeState(props: {
       </div>
 
       <div>
-        <div className="text-[12px]   text-white/45 mb-2">What do you need?</div>
+        <div className="text-[12px] text-white/45 mb-2">What do you need?</div>
         <div className="flex flex-col gap-2">
           <ActionCard icon={<FileText className="h-3.5 w-3.5" />} label="Brief me" sub="Today's intel summary" onClick={props.onBriefMe} />
           <ActionCard icon={<Users className="h-3.5 w-3.5" />} label="Find an SME" sub="Get expert help fast" onClick={props.onFindSme} />
@@ -863,7 +863,7 @@ function MessageRow({ m, onNavigate, onOpenInThread }: { m: Msg; onNavigate: (h:
 function DraftCardView({ card, onOpenInThread }: { card: Extract<CardKind, { kind: "draft" }>; onOpenInThread: (d: string) => void }) {
   return (
     <div className="mt-2 rounded-lg p-3" style={{ border: `1px solid ${GOLD}66`, background: "rgba(196,154,43,0.04)" }}>
-      <div className="text-[11px]   mb-2" style={{ color: GOLD }}>Draft response</div>
+      <div className="text-[11px] mb-2" style={{ color: GOLD }}>Draft response</div>
       <div className="whitespace-pre-wrap text-white text-[14px] max-h-44 overflow-y-auto">{card.draft}</div>
       <div className="flex gap-2 mt-2">
         <button className="text-[12px] px-2 py-1 rounded border border-white/15 text-white/80 inline-flex items-center gap-1" onClick={() => { navigator.clipboard.writeText(card.draft); toast.success("Copied"); }}>
@@ -881,7 +881,7 @@ function ScoreCardView({ card }: { card: Extract<CardKind, { kind: "score" }> })
   return (
     <div className="mt-2 rounded-lg p-3" style={{ border: `1px solid ${IRIS}55`, background: "rgba(127,119,221,0.06)" }}>
       <div className="flex items-baseline justify-between">
-        <span className="text-[11px]  " style={{ color: IRIS }}>Quick score</span>
+        <span className="text-[11px]" style={{ color: IRIS }}>Quick score</span>
         <span className="text-2xl font-medium" style={{ color: IRIS }}>{card.total}<span className="text-[14px] text-white/55">/100</span></span>
       </div>
       <div className="mt-2 space-y-1">
@@ -949,7 +949,7 @@ function SourcesCardView({ card }: { card: Extract<CardKind, { kind: "sources" }
     <div className="mt-2">
       {card.research && <ResearchBadge />}
       <div
-        className="my-2 flex items-center gap-2 text-[11px]  tracking-[0.18em] text-white/45"
+        className="my-2 flex items-center gap-2 text-[11px] tracking-[0.18em] text-white/45"
         aria-hidden
       >
         <span className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />

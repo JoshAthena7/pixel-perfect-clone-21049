@@ -22,7 +22,7 @@ export function NotAvailable({
       <p className="text-[14px] text-muted-foreground">{message}</p>
       <Link
         to="/atrium"
-        className="mt-4 text-[12px] font-medium  tracking-[0.18em] text-muted-foreground hover:text-foreground"
+        className="mt-4 text-[12px] font-medium tracking-[0.18em] text-muted-foreground hover:text-foreground"
       >
         Back to Atrium
       </Link>
