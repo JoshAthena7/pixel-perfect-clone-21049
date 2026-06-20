@@ -12,6 +12,11 @@ import {
   Activity,
   Radio,
   ClipboardCheck,
+  Pin,
+  HelpCircle,
+  Construction,
+  Lightbulb,
+  AlarmClock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -33,6 +38,12 @@ type AssistEvent = {
 
 type MissionMeta = { id: string; name: string | null };
 
+function noteLabelFor(e: AssistEvent, verb: string): string {
+  const qn = e.metadata?.question_number ?? "?";
+  const t = (e.metadata?.note_type ?? "note").toString();
+  return `${verb} ${t} on Q${qn}`;
+}
+
 const ACTIVITY: Record<string, { Icon: any; cls: string; label: (e: AssistEvent) => string }> = {
   sos_raised: { Icon: LifeBuoy, cls: "text-red-400", label: () => "SOS raised — SME assignment requested" },
   assist_acknowledged: { Icon: CheckCircle2, cls: "text-green-400", label: () => "Assist acknowledged by lead" },
@@ -41,6 +52,14 @@ const ACTIVITY: Record<string, { Icon: any; cls: string; label: (e: AssistEvent)
   brief_exported: { Icon: Download, cls: "text-primary", label: () => "Brief exported" },
   check_in: { Icon: ClipboardCheck, cls: "text-blue-400", label: () => "Writer check-in submitted" },
   status_updated: { Icon: Activity, cls: "text-primary", label: (e) => `Status updated to ${(e.metadata?.new_status ?? "—").toString().replace(/_/g, " ")}` },
+  // Sticky note routing
+  sticky_note_posted: { Icon: Pin, cls: "text-amber-400", label: (e) => noteLabelFor(e, "Pinned") },
+  sticky_note_question: { Icon: HelpCircle, cls: "text-blue-400", label: (e) => `Question pinned on Q${e.metadata?.question_number ?? "?"}` },
+  sticky_note_blocker: { Icon: Construction, cls: "text-red-400", label: (e) => `Blocker raised on Q${e.metadata?.question_number ?? "?"}` },
+  sticky_note_decision: { Icon: CheckCircle2, cls: "text-amber-400", label: (e) => `Decision posted on Q${e.metadata?.question_number ?? "?"}` },
+  sticky_note_insight: { Icon: Lightbulb, cls: "text-green-400", label: (e) => `Insight shared on Q${e.metadata?.question_number ?? "?"}` },
+  sticky_note_resolved: { Icon: CheckCircle2, cls: "text-green-400", label: (e) => noteLabelFor(e, "Resolved") },
+  sticky_note_escalation: { Icon: AlarmClock, cls: "text-red-400", label: (e) => `Unanswered ${(e.metadata?.note_type ?? "note")} on Q${e.metadata?.question_number ?? "?"} — needs response` },
 };
 
 const DEFAULT_ACTIVITY = { Icon: Radio, cls: "text-muted-foreground", label: (e: AssistEvent) => e.event_type.replace(/_/g, " ") };

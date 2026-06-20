@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
 import { MissionHealthSummaryCard } from "@/components/mission-command/MissionHealthSummaryCard";
 import { MissionClock } from "@/components/briefing/MissionClock";
+import { OpenNotesWidget } from "@/components/war-room/OpenNotesWidget";
 
 import { useMissionAccess } from "@/hooks/useAccess";
 import { useServerFn } from "@tanstack/react-start";
@@ -157,6 +158,7 @@ function BriefingPage() {
               <CompetitorsCard missionId={missionId} />
               <WhatChangedCard missionId={missionId} />
               <MissionLeadersCard missionId={missionId} />
+              <OpenNotesWidget missionId={missionId} />
             </div>
           </div>
         </div>
