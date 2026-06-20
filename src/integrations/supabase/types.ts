@@ -8224,6 +8224,70 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_trivia_scores: {
+        Row: {
+          answer_given: string
+          answered_at: string
+          correct_answer: string
+          id: string
+          is_correct: boolean
+          mission_id: string
+          points_earned: number
+          question_date: string
+          question_text: string
+          streak_day: number
+          user_id: string
+        }
+        Insert: {
+          answer_given: string
+          answered_at?: string
+          correct_answer: string
+          id?: string
+          is_correct: boolean
+          mission_id: string
+          points_earned?: number
+          question_date?: string
+          question_text: string
+          streak_day?: number
+          user_id: string
+        }
+        Update: {
+          answer_given?: string
+          answered_at?: string
+          correct_answer?: string
+          id?: string
+          is_correct?: boolean
+          mission_id?: string
+          points_earned?: number
+          question_date?: string
+          question_text?: string
+          streak_day?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_trivia_scores_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_trivia_scores_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_trivia_scores_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_vault_documents: {
         Row: {
           category: string | null
@@ -13215,6 +13279,19 @@ export type Database = {
       get_engagement_slack_webhook: {
         Args: { _engagement_id: string }
         Returns: string
+      }
+      get_trivia_leaderboard: {
+        Args: { p_mission_id: string; p_window?: string }
+        Returns: {
+          accuracy_pct: number
+          best_streak: number
+          correct_answers: number
+          display_name: string
+          email: string
+          total_answers: number
+          total_points: number
+          user_id: string
+        }[]
       }
       get_user_state: { Args: { _email: string }; Returns: string }
       has_mission_role: {

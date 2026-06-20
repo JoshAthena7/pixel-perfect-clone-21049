@@ -22,7 +22,8 @@ export type ActivityStream =
   | "brief_exported"
   | "nudge"
   | "writer_reviewed"
-  | "writer_flagged";
+  | "writer_flagged"
+  | "trivia";
 
 export type ActivityItem = {
   id: string;
@@ -155,7 +156,7 @@ export const getMissionActivity = createServerFn({ method: "POST" })
           .from("mission_assist_events")
           .select("id,question_id,user_id,event_type,metadata,created_at")
           .eq("mission_id", data.missionId)
-          .in("event_type", ["check_in", "sticky_note_posted", "sticky_note_pinned_slack", "brief_exported", "nudge_sent", "writer_reviewed", "writer_flagged", "oracle_intel_added", "score_me_run", "mission_pulse_signal"])
+          .in("event_type", ["check_in", "sticky_note_posted", "sticky_note_pinned_slack", "brief_exported", "nudge_sent", "writer_reviewed", "writer_flagged", "oracle_intel_added", "score_me_run", "mission_pulse_signal", "trivia_answered"])
           .order("created_at", { ascending: false })
           .limit(200),
       ),
@@ -398,8 +399,30 @@ export const getMissionActivity = createServerFn({ method: "POST" })
           id: `wflag:${r.id}`, stream: "writer_flagged", created_at: r.created_at,
           actor: actorFull, question_id: null,
           question_number: null, question_text: null,
-          summary: `${firstName} flagged ${writerName.split(/[\s@]/)[0] || writerName} for review`,
+          summary: `${firstName} flagged ${writerName.split(/[\s@]/)[0] || writerName}'s questions for review`,
           detail: (meta.reason ?? "").toString().slice(0, 240),
+        });
+      } else if (r.event_type === "trivia_answered") {
+        const correct = !!meta.correct;
+        const points = Number(meta.points ?? 0);
+        const streak = Number(meta.streak ?? 0);
+        const speed = !!meta.speed_bonus;
+        let summary: string;
+        if (!correct) {
+          summary = `${firstName} answered today's trivia`;
+        } else if (streak >= 7) {
+          summary = `${firstName} is on a 🔥 ${streak} day streak (+${points} pts)`;
+        } else if (speed) {
+          summary = `${firstName} got today's trivia right ⚡ +15 pts (speed bonus!)`;
+        } else {
+          summary = `${firstName} got today's trivia right 🎯 +${points} pts`;
+        }
+        items.push({
+          id: `trivia:${r.id}`, stream: "trivia", created_at: r.created_at,
+          actor: actorFull, question_id: null,
+          question_number: null, question_text: null,
+          summary,
+          detail: "",
         });
       }
     });

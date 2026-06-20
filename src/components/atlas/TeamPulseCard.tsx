@@ -6,12 +6,13 @@
  * localStorage. Inspiration & Trivia are IRIS-generated per mission per day.
  * Team tab shows recent wins, supportive nudges, and a shoutout box.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, Brain, Users, Loader2, PartyPopper, Send, Lock } from "lucide-react";
+import { Sparkles, Brain, Users, Loader2, PartyPopper, Send, Lock, Trophy, X, Flame } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureMissionMoment } from "@/lib/atlas-moments.functions";
+import { submitTriviaAnswer, fetchTriviaLeaderboard } from "@/lib/trivia-scoring.functions";
 import { toast } from "sonner";
 
 const GOLD = "#C49A2B";
@@ -113,35 +114,60 @@ function InspirationTab({ missionId }: { missionId: string }) {
 /* -------------------- Trivia -------------------- */
 function TriviaTab({ missionId }: { missionId: string }) {
   const ensure = useServerFn(ensureMissionMoment);
+  const submitAnswer = useServerFn(submitTriviaAnswer);
+  const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
-  const storageKey = `atlas-trivia-pick:${missionId}:${today}`;
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
+  const questionShownAt = useRef<number>(Date.now());
+  const [pendingFeedback, setPendingFeedback] = useState<
+    { points: number; speedBonus: boolean; streak: number; correct: boolean } | null
+  >(null);
+  const [submitting, setSubmitting] = useState(false);
+
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["atlas-moment", "trivia", missionId, today],
     queryFn: () => ensure({ data: { missionId, momentType: "trivia" } }),
     retry: false,
   });
-  const [picked, setPicked] = useState<number | null>(() => {
-    if (typeof window === "undefined") return null;
-    const v = window.localStorage.getItem(storageKey);
-    return v === null ? null : Number(v);
-  });
-  const [rolledUp, setRolledUp] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem(storageKey) !== null;
+
+  // Today's answer (server-side persistence)
+  const { data: todaysAnswer, refetch: refetchTodays } = useQuery({
+    queryKey: ["trivia-today", missionId, today],
+    queryFn: async () => {
+      const { data: me } = await supabase.auth.getUser();
+      if (!me.user) return null;
+      const { data: row } = await supabase
+        .from("mission_trivia_scores")
+        .select("*")
+        .eq("mission_id", missionId)
+        .eq("user_id", me.user.id)
+        .eq("question_date", today)
+        .maybeSingle();
+      return row;
+    },
   });
 
-  function handlePick(i: number) {
-    if (picked !== null) return;
-    setPicked(i);
-    try { window.localStorage.setItem(storageKey, String(i)); } catch { /* ignore */ }
-  }
+  // My total score + streak for this mission
+  const { data: myScore, refetch: refetchScore } = useQuery({
+    queryKey: ["trivia-my-score", missionId],
+    queryFn: async () => {
+      const { data: me } = await supabase.auth.getUser();
+      if (!me.user) return { total: 0, streak: 0 };
+      const { data: rows } = await supabase
+        .from("mission_trivia_scores")
+        .select("points_earned, streak_day, question_date")
+        .eq("mission_id", missionId)
+        .eq("user_id", me.user.id)
+        .order("question_date", { ascending: false });
+      const total = (rows ?? []).reduce((s: number, r: any) => s + (r.points_earned ?? 0), 0);
+      const streak = rows && rows.length > 0 ? (rows[0] as any).streak_day ?? 0 : 0;
+      return { total, streak };
+    },
+  });
 
   useEffect(() => {
-    if (picked === null || rolledUp) return;
-    const t = setTimeout(() => setRolledUp(true), 4000);
-    return () => clearTimeout(t);
-  }, [picked, rolledUp]);
-
+    if (data) questionShownAt.current = Date.now();
+  }, [data]);
 
   if (isLoading) return <Loading text="IRIS is drafting today's trivia…" />;
   if (error) return <ErrorBlock message={String((error as Error).message)} onRetry={() => refetch()} />;
@@ -153,46 +179,100 @@ function TriviaTab({ missionId }: { missionId: string }) {
     explanation?: string;
   };
   const opts = Array.isArray(c.options) ? c.options : [];
-  const correct = picked !== null && picked === c.correct_index;
 
-  if (rolledUp) {
-    return (
-      <button
-        onClick={() => setRolledUp(false)}
-        className="w-full flex items-center justify-between rounded-md px-3 py-2 text-[11.5px] transition-colors"
-        style={{
-          background: correct ? "rgba(61,190,125,0.08)" : "rgba(224,74,74,0.08)",
-          border: `1px solid ${correct ? "rgba(61,190,125,0.3)" : "rgba(224,74,74,0.3)"}`,
-          color: "rgba(255,255,255,0.7)",
-        }}
-      >
-        <span>
-          <span style={{ color: correct ? "#3DBE7D" : "#f08080", fontWeight: 600 }}>
-            {correct ? "✓ Nailed it" : "✗ Missed it"}
-          </span>
-          <span className="ml-2 text-muted-foreground">Today's trivia answered</span>
-        </span>
-        <span className="text-[10px] text-muted-foreground">Show</span>
-      </button>
-    );
+  const pickedAnswer = todaysAnswer?.answer_given ?? null;
+  const pickedIndex = pickedAnswer ? opts.findIndex((o) => o === pickedAnswer) : -1;
+  const answered = !!todaysAnswer;
+  const correctIdx = typeof c.correct_index === "number" ? c.correct_index : -1;
+
+  async function handlePick(i: number) {
+    if (answered || submitting) return;
+    const isCorrect = i === correctIdx;
+    const secondsToAnswer = (Date.now() - questionShownAt.current) / 1000;
+    setSubmitting(true);
+    try {
+      const result: any = await submitAnswer({
+        data: {
+          missionId,
+          questionText: c.question ?? "",
+          answerGiven: opts[i] ?? "",
+          correctAnswer: opts[correctIdx] ?? "",
+          isCorrect,
+          secondsToAnswer,
+        },
+      });
+      setPendingFeedback({
+        points: result.points_earned ?? 0,
+        speedBonus: !!result.speedBonus,
+        streak: result.streak_day ?? 0,
+        correct: isCorrect,
+      });
+      await Promise.all([
+        refetchTodays(),
+        refetchScore(),
+        qc.invalidateQueries({ queryKey: ["trivia-team-today", missionId] }),
+      ]);
+      setTimeout(() => setPendingFeedback(null), 3500);
+    } catch (e: any) {
+      console.error("[trivia] submit failed", e);
+      toast.error("Could not record your answer");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
-    <div>
-      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>{c.question || "—"}</div>
+    <div className="relative">
+      {/* MY SCORE corner */}
+      <div className="absolute right-0 top-0 flex items-start gap-2">
+        <div className="text-right">
+          <div className="text-[8px] uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.45)" }}>My Score</div>
+          <div className="text-[16px] font-bold text-white leading-none mt-0.5">{myScore?.total ?? 0}</div>
+          {myScore && myScore.streak > 0 && (
+            <div className="text-[9px] mt-0.5 flex items-center justify-end gap-0.5" style={{ color: GOLD }}>
+              <Flame className="h-2.5 w-2.5" /> {myScore.streak} day{myScore.streak === 1 ? "" : "s"}
+            </div>
+          )}
+        </div>
+        <button
+          onClick={() => setLeaderboardOpen(true)}
+          className="p-1 rounded-md transition-colors hover:bg-white/10"
+          style={{ color: GOLD }}
+          aria-label="Open leaderboard"
+          title="Leaderboard"
+        >
+          <Trophy className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <div className="pr-24" style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>
+        {c.question || "—"}
+      </div>
       <div className="mt-3 grid grid-cols-1 gap-1.5">
         {opts.map((opt, i) => {
-          const isCorrect = picked !== null && i === c.correct_index;
-          const isWrongPick = picked === i && i !== c.correct_index;
+          const isCorrectOpt = i === correctIdx;
+          const isPicked = pickedIndex === i;
           let bg = "rgba(255,255,255,0.04)";
           let border = "rgba(255,255,255,0.1)";
           let color = "rgba(255,255,255,0.85)";
-          if (isCorrect) { bg = "rgba(61,190,125,0.15)"; border = "rgba(61,190,125,0.5)"; color = "#3DBE7D"; }
-          else if (isWrongPick) { bg = "rgba(224,74,74,0.15)"; border = "rgba(224,74,74,0.5)"; color = "#f08080"; }
+          if (answered) {
+            if (isCorrectOpt) {
+              bg = "rgba(74,222,128,0.2)";
+              border = "rgba(74,222,128,0.6)";
+              color = "#86EFAC";
+            } else if (isPicked) {
+              bg = "rgba(248,113,113,0.15)";
+              border = "rgba(248,113,113,0.5)";
+              color = "#FCA5A5";
+            } else {
+              bg = "rgba(255,255,255,0.02)";
+              color = "rgba(255,255,255,0.4)";
+            }
+          }
           return (
             <button
               key={i}
-              disabled={picked !== null}
+              disabled={answered || submitting}
               onClick={() => handlePick(i)}
               className="text-left rounded-md transition-colors disabled:cursor-default"
               style={{ background: bg, border: `0.5px solid ${border}`, color, padding: "6px 10px", fontSize: 11 }}
@@ -202,12 +282,182 @@ function TriviaTab({ missionId }: { missionId: string }) {
           );
         })}
       </div>
-      {picked !== null && c.explanation && (
+
+      {/* Floating points toast */}
+      {pendingFeedback && (
+        <div
+          className="absolute left-1/2 -translate-x-1/2 -top-7 rounded-md px-3 py-1 text-[11px] font-semibold animate-in fade-in zoom-in"
+          style={{
+            background: pendingFeedback.correct ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.15)",
+            border: `1px solid ${pendingFeedback.correct ? "rgba(74,222,128,0.6)" : "rgba(248,113,113,0.5)"}`,
+            color: pendingFeedback.correct ? "#86EFAC" : "#FCA5A5",
+          }}
+        >
+          {pendingFeedback.correct ? (
+            <>
+              +{pendingFeedback.points} pts
+              {pendingFeedback.speedBonus && " ⚡ Speed bonus!"}
+              {!pendingFeedback.speedBonus && pendingFeedback.streak >= 3 && ` 🔥 ${pendingFeedback.streak} day streak!`}
+            </>
+          ) : (
+            <>Not quite — better luck tomorrow</>
+          )}
+        </div>
+      )}
+
+      {answered && (
+        <div className="mt-2 text-[10px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+          You earned {todaysAnswer?.points_earned ?? 0} pts today
+        </div>
+      )}
+
+      {answered && c.explanation && (
         <div
           className="mt-3 rounded-md px-3 py-2 text-[11px] italic"
           style={{ background: "rgba(196,154,43,0.06)", borderLeft: `2px solid ${GOLD}`, color: "rgba(255,255,255,0.78)", lineHeight: 1.6 }}
         >
           {c.explanation}
+        </div>
+      )}
+
+      {leaderboardOpen && (
+        <LeaderboardPanel missionId={missionId} onClose={() => setLeaderboardOpen(false)} />
+      )}
+    </div>
+  );
+}
+
+/* -------------------- Leaderboard Panel -------------------- */
+type LeaderboardWindow = "all" | "week" | "today";
+
+function LeaderboardPanel({ missionId, onClose }: { missionId: string; onClose: () => void }) {
+  const fetchBoard = useServerFn(fetchTriviaLeaderboard);
+  const [tab, setTab] = useState<LeaderboardWindow>("all");
+  const [missionName, setMissionName] = useState("Mission");
+
+  useEffect(() => {
+    supabase.from("missions").select("name").eq("id", missionId).maybeSingle()
+      .then(({ data }) => { if (data?.name) setMissionName(data.name); });
+  }, [missionId]);
+
+  const { data: me } = useQuery({
+    queryKey: ["auth-me"],
+    queryFn: async () => (await supabase.auth.getUser()).data.user,
+  });
+
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ["trivia-leaderboard", missionId, tab],
+    queryFn: () => fetchBoard({ data: { missionId, window: tab } }),
+  });
+
+  const scoreLabel = tab === "all" ? "pts total" : tab === "week" ? "pts this week" : "pts today";
+  const myRow = me ? rows.find((r: any) => r.user_id === me.id) : null;
+  const top20 = rows.slice(0, 20);
+  const myRankIdx = me ? rows.findIndex((r: any) => r.user_id === me.id) : -1;
+  const showPinned = myRow && myRankIdx >= 20;
+
+  return (
+    <div
+      className="fixed top-0 right-0 h-full z-50 flex flex-col animate-in slide-in-from-right"
+      style={{
+        width: 320,
+        background: "#0a1420",
+        borderLeft: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "-8px 0 24px rgba(0,0,0,0.5)",
+      }}
+    >
+      <div className="flex items-start justify-between px-4 py-3 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+        <div>
+          <div className="text-[14px] font-medium text-white flex items-center gap-1.5">
+            <Trophy className="h-3.5 w-3.5" style={{ color: GOLD }} /> Trivia Leaderboard
+          </div>
+          <div className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>
+            {missionName} · {tab === "all" ? "All time" : tab === "week" ? "This week" : "Today"}
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="p-1 rounded hover:bg-white/10"
+          style={{ color: "rgba(255,255,255,0.6)" }}
+          aria-label="Close"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="flex gap-1 px-3 py-2 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+        {(["all", "week", "today"] as LeaderboardWindow[]).map((w) => (
+          <button
+            key={w}
+            onClick={() => setTab(w)}
+            className="text-[10px] px-2 py-1 rounded-md transition-colors"
+            style={{
+              background: tab === w ? "rgba(196,154,43,0.15)" : "transparent",
+              color: tab === w ? GOLD : "rgba(255,255,255,0.6)",
+            }}
+          >
+            {w === "all" ? "All Time" : w === "week" ? "This Week" : "Today"}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {isLoading ? (
+          <div className="p-4 text-[11px] text-muted-foreground flex items-center gap-2">
+            <Loader2 className="h-3 w-3 animate-spin" /> Loading…
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="p-4 text-[11px] text-muted-foreground">
+            No trivia answers {tab === "today" ? "today" : tab === "week" ? "this week" : "yet"}. Be the first.
+          </div>
+        ) : (
+          <>
+            {top20.map((r: any, i: number) => (
+              <LeaderboardRow key={r.user_id} row={r} rank={i + 1} isMe={me?.id === r.user_id} scoreLabel={scoreLabel} />
+            ))}
+            {showPinned && (
+              <>
+                <div className="text-center text-[10px] py-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>···</div>
+                <LeaderboardRow row={myRow as any} rank={myRankIdx + 1} isMe scoreLabel={scoreLabel} />
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function LeaderboardRow({
+  row, rank, isMe, scoreLabel,
+}: { row: any; rank: number; isMe: boolean; scoreLabel: string }) {
+  const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : null;
+  const name = row.display_name || (row.email ? row.email.split("@")[0] : "Teammate");
+  return (
+    <div
+      className="px-4 py-2 border-b transition-colors hover:bg-white/[0.03]"
+      style={{ borderColor: "rgba(255,255,255,0.05)", minHeight: 56 }}
+    >
+      <div className="flex items-center gap-2">
+        <div className="w-7 text-center" style={{
+          fontSize: medal ? 16 : 11,
+          fontWeight: rank === 1 ? 700 : rank <= 3 ? 600 : 400,
+          color: medal ? undefined : "rgba(255,255,255,0.45)",
+        }}>
+          {medal ?? rank}
+        </div>
+        <div className="flex-1 min-w-0 truncate text-[12px]" style={{
+          color: isMe ? GOLD : "rgba(255,255,255,0.85)",
+          fontWeight: isMe ? 600 : 400,
+        }}>
+          {name}
+          {isMe && <span className="ml-1 text-[9px]" style={{ color: "rgba(255,255,255,0.4)" }}>(you)</span>}
+        </div>
+        <div className="text-[13px] font-semibold text-white w-12 text-right">{row.total_points}</div>
+      </div>
+      {row.total_answers > 0 && (
+        <div className="text-[9px] mt-0.5 pl-9" style={{ color: "rgba(255,255,255,0.4)" }}>
+          {row.correct_answers}/{row.total_answers} correct · {row.accuracy_pct ?? 0}% · 🔥{row.best_streak} · {scoreLabel}
         </div>
       )}
     </div>
@@ -219,8 +469,53 @@ function TriviaTab({ missionId }: { missionId: string }) {
 function TeamTab({ missionId }: { missionId: string }) {
   return (
     <div className="space-y-4">
+      <TeamTriviaStatus missionId={missionId} />
       <IrisNudges missionId={missionId} />
       <ShoutoutBox missionId={missionId} />
+    </div>
+  );
+}
+
+function TeamTriviaStatus({ missionId }: { missionId: string }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const { data } = useQuery({
+    queryKey: ["trivia-team-today", missionId, today],
+    queryFn: async () => {
+      const { data: members } = await supabase
+        .from("mission_team_members")
+        .select("member_id, atlas_team_members:member_id(first_name, last_name)")
+        .eq("mission_id", missionId);
+      const memberIds = (members ?? []).map((m: any) => m.member_id);
+      if (memberIds.length === 0) return [] as Array<{ id: string; name: string; status: "correct" | "wrong" | "pending" }>;
+      const { data: scores } = await supabase
+        .from("mission_trivia_scores")
+        .select("user_id, is_correct")
+        .eq("mission_id", missionId)
+        .eq("question_date", today)
+        .in("user_id", memberIds);
+      const scoreMap = new Map<string, boolean>((scores ?? []).map((s: any) => [s.user_id, s.is_correct]));
+      return (members ?? []).map((m: any) => {
+        const name = `${m.atlas_team_members?.first_name ?? ""} ${m.atlas_team_members?.last_name ?? ""}`.trim() || "Teammate";
+        const ans = scoreMap.get(m.member_id);
+        const status: "correct" | "wrong" | "pending" = ans === true ? "correct" : ans === false ? "wrong" : "pending";
+        return { id: m.member_id as string, name, status };
+      });
+    },
+  });
+
+  if (!data || data.length === 0) return null;
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Today's Trivia</div>
+      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5">
+        {data.map((m) => (
+          <div key={m.id} className="text-[11px] flex items-center gap-1" style={{ color: "rgba(255,255,255,0.78)" }}>
+            <span>{m.name}</span>
+            {m.status === "correct" && <span style={{ color: GOLD }}>⭐</span>}
+            {m.status === "wrong" && <span style={{ color: "rgba(255,255,255,0.35)" }}>●</span>}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
