@@ -724,8 +724,13 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
 
         {open && (
           <div style={{ padding: "14px 16px 16px 16px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-            {/* Full-width alert strip — feedback + need-help only.
-                Everything else lives inside one of the two pillars below. */}
+            {/* IRIS action prompt — deterministic, instant */}
+            <IrisActionBand text={getIrisActionPrompt(q)} />
+
+            {/* Question context strip */}
+            <QuestionContextStrip q={q} />
+
+            {/* Full-width alert strip — feedback + need-help only. */}
             {fbList.length > 0 && (
               <div style={{ marginBottom: 14, display: "flex", flexDirection: "column", gap: 8 }}>
                 {fbList.map((f: any) => (
@@ -742,11 +747,11 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
               </div>
             )}
 
-            {(cockpit?.activeSosQids as Set<string> | undefined)?.has(q.id) && (
-              <div style={{ marginBottom: 14, padding: "8px 12px", background: "rgba(239,68,68,0.1)", border: `1px solid ${RED}`, borderRadius: 6, fontSize: 12, color: "#fecaca" }}>
-                🆘 Awaiting SME Assignment — your Engagement Lead has been notified.
-              </div>
-            )}
+            <SosBanner
+              active={(cockpit?.activeSosQids as Set<string> | undefined)?.has(q.id) ?? false}
+              staleAt={(cockpit?.staleSosMeta as Map<string, string> | undefined)?.get(q.id) ?? null}
+              onDismiss={() => handleDismissSos(q)}
+            />
 
             {/* Two equal pillars: STATUS HUD (left) | BRIEF (right) */}
             <div
@@ -789,30 +794,60 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                   )}
                 </div>
 
-                {/* Compact signal grid — 4 always-visible fields */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <StatusDropdown
-                    current={q.progress_status}
+                {/* Status — 4-pill selector */}
+                <div>
+                  <div style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>Status</div>
+                  <StatusPills
+                    current={dbToSimple(q.progress_status)}
                     pensDown={!!cockpit?.pensDown}
-                    onChange={(next) => handleStatusChange(q, next)}
+                    onChange={(next) => handleSimpleStatusChange(q, next)}
                   />
-                  <SignalRow label="Confidence" value={q.writer_confidence || "Not set"} />
-                  <SignalRow label="Last Activity" value={relTime(q.last_activity_at)} />
-                  <SignalRow label="Brief Status" value={q.iris_brief_status ? `${q.iris_brief_status}${briefAge != null ? ` · ${briefAge}d old` : ""}` : "—"} />
                 </div>
 
-                <details style={{ marginTop: -4 }}>
-                  <summary style={{ cursor: "pointer", fontSize: 10.5, color: "rgba(255,255,255,0.55)", letterSpacing: "0.06em", padding: "4px 0" }}>
-                    More details ↓
-                  </summary>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
-                    <SignalRow label="Draft Score" value={q.mock_score != null ? `${q.mock_score} / ${q.max_score ?? 100}` : "Not yet scored"} />
-                    <SignalRow label="Internal Due" value={q.internal_due_date ? new Date(q.internal_due_date).toLocaleDateString() : "Not set"} />
-                    <SignalRow label="Narrative Alignment" value={q.coherence_status || "Unreviewed"} />
-                    <SignalRow label="Section Weight" value={`${q.evaluation_weight ?? "—"}% · ${q.page_limit ?? "—"}p`} />
-                    <SignalRow label="Brief Exported" value={q.brief_exported_at ? new Date(q.brief_exported_at).toLocaleDateString() : "Not yet exported"} />
+                {/* Confidence — 3-pill selector */}
+                <div>
+                  <div style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>
+                    {q.writer_confidence ? "Confidence" : "How confident are you?"}
                   </div>
-                </details>
+                  <ConfidencePills
+                    current={q.writer_confidence as "high" | "medium" | "low" | null}
+                    onChange={(v) => handleConfidenceChange(q, v)}
+                  />
+                </div>
+
+                {/* Brief + Last Activity */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <SignalRow
+                    label="Brief"
+                    value={
+                      q.brief_exported_at
+                        ? `exported${(q.brief_export_count ?? 0) > 1 ? ` ${q.brief_export_count}×` : ""}`
+                        : q.brief_opened_at
+                          ? "generated"
+                          : "not generated"
+                    }
+                  />
+                  <SignalRow label="Last Activity" value={relTime(q.last_activity_at)} />
+                </div>
+
+                {(() => {
+                  const more: Array<{ label: string; value: string }> = [];
+                  if (q.mock_score != null) more.push({ label: "Draft Score", value: `${q.mock_score} / ${q.max_score ?? 100}` });
+                  if (q.internal_due_date) more.push({ label: "Internal Due", value: new Date(q.internal_due_date).toLocaleDateString() });
+                  if (q.brief_exported_at) more.push({ label: "Brief Exported", value: `${new Date(q.brief_exported_at).toLocaleDateString()}${(q.brief_export_count ?? 0) > 1 ? ` · ${q.brief_export_count}×` : ""}` });
+                  if (q.evaluation_weight != null && q.page_limit != null) more.push({ label: "Section Weight", value: `${q.evaluation_weight}% · ${q.page_limit}p` });
+                  if (more.length === 0) return null;
+                  return (
+                    <details style={{ marginTop: -4 }}>
+                      <summary style={{ cursor: "pointer", fontSize: 10.5, color: "rgba(255,255,255,0.55)", letterSpacing: "0.06em", padding: "4px 0" }}>
+                        More details ↓
+                      </summary>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
+                        {more.map((m) => <SignalRow key={m.label} label={m.label} value={m.value} />)}
+                      </div>
+                    </details>
+                  );
+                })()}
 
                 {/* 4-button assist bar — Check-In / Score Me / Sticky Notes / Mission Pulse */}
                 <div
