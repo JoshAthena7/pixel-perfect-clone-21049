@@ -129,6 +129,8 @@ function TriviaTab({ missionId }: { missionId: string }) {
     { points: number; speedTier: "lightning" | "quick" | "good" | null; correct: boolean; correctText: string; timeout?: boolean } | null
   >(null);
   const [submitting, setSubmitting] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["atlas-moment", "trivia", missionId, today],
