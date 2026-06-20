@@ -47,6 +47,7 @@ import { Route as AuthenticatedAdminOraclePipelineRouteImport } from './routes/_
 import { Route as AuthenticatedAdminOraclePhase2TestRouteImport } from './routes/_authenticated/admin.oracle-phase2-test'
 import { Route as AuthenticatedAdminMessagingRouteImport } from './routes/_authenticated/admin.messaging'
 import { Route as AuthenticatedAdminIrisWriterViewRouteImport } from './routes/_authenticated/admin.iris-writer-view'
+import { Route as AuthenticatedAdminIrisStudioRouteImport } from './routes/_authenticated/admin.iris-studio'
 import { Route as AuthenticatedAdminIrisRefreshRouteImport } from './routes/_authenticated/admin.iris-refresh'
 import { Route as AuthenticatedAdminIrisHealthRouteImport } from './routes/_authenticated/admin.iris-health'
 import { Route as AuthenticatedAdminIrisControlRouteImport } from './routes/_authenticated/admin.iris-control'
@@ -305,6 +306,12 @@ const AuthenticatedAdminIrisWriterViewRoute =
   AuthenticatedAdminIrisWriterViewRouteImport.update({
     id: '/iris-writer-view',
     path: '/iris-writer-view',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminIrisStudioRoute =
+  AuthenticatedAdminIrisStudioRouteImport.update({
+    id: '/iris-studio',
+    path: '/iris-studio',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminIrisRefreshRoute =
@@ -666,6 +673,7 @@ export interface FileRoutesByFullPath {
   '/admin/iris-control': typeof AuthenticatedAdminIrisControlRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
   '/admin/iris-refresh': typeof AuthenticatedAdminIrisRefreshRoute
+  '/admin/iris-studio': typeof AuthenticatedAdminIrisStudioRoute
   '/admin/iris-writer-view': typeof AuthenticatedAdminIrisWriterViewRoute
   '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/admin/oracle-phase2-test': typeof AuthenticatedAdminOraclePhase2TestRoute
@@ -758,6 +766,7 @@ export interface FileRoutesByTo {
   '/admin/iris-control': typeof AuthenticatedAdminIrisControlRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
   '/admin/iris-refresh': typeof AuthenticatedAdminIrisRefreshRoute
+  '/admin/iris-studio': typeof AuthenticatedAdminIrisStudioRoute
   '/admin/iris-writer-view': typeof AuthenticatedAdminIrisWriterViewRoute
   '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/admin/oracle-phase2-test': typeof AuthenticatedAdminOraclePhase2TestRoute
@@ -854,6 +863,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/iris-control': typeof AuthenticatedAdminIrisControlRoute
   '/_authenticated/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
   '/_authenticated/admin/iris-refresh': typeof AuthenticatedAdminIrisRefreshRoute
+  '/_authenticated/admin/iris-studio': typeof AuthenticatedAdminIrisStudioRoute
   '/_authenticated/admin/iris-writer-view': typeof AuthenticatedAdminIrisWriterViewRoute
   '/_authenticated/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/_authenticated/admin/oracle-phase2-test': typeof AuthenticatedAdminOraclePhase2TestRoute
@@ -950,6 +960,7 @@ export interface FileRouteTypes {
     | '/admin/iris-control'
     | '/admin/iris-health'
     | '/admin/iris-refresh'
+    | '/admin/iris-studio'
     | '/admin/iris-writer-view'
     | '/admin/messaging'
     | '/admin/oracle-phase2-test'
@@ -1042,6 +1053,7 @@ export interface FileRouteTypes {
     | '/admin/iris-control'
     | '/admin/iris-health'
     | '/admin/iris-refresh'
+    | '/admin/iris-studio'
     | '/admin/iris-writer-view'
     | '/admin/messaging'
     | '/admin/oracle-phase2-test'
@@ -1137,6 +1149,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/iris-control'
     | '/_authenticated/admin/iris-health'
     | '/_authenticated/admin/iris-refresh'
+    | '/_authenticated/admin/iris-studio'
     | '/_authenticated/admin/iris-writer-view'
     | '/_authenticated/admin/messaging'
     | '/_authenticated/admin/oracle-phase2-test'
@@ -1508,6 +1521,13 @@ declare module '@tanstack/react-router' {
       path: '/iris-writer-view'
       fullPath: '/admin/iris-writer-view'
       preLoaderRoute: typeof AuthenticatedAdminIrisWriterViewRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/iris-studio': {
+      id: '/_authenticated/admin/iris-studio'
+      path: '/iris-studio'
+      fullPath: '/admin/iris-studio'
+      preLoaderRoute: typeof AuthenticatedAdminIrisStudioRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/iris-refresh': {
@@ -1926,6 +1946,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminIrisControlRoute: typeof AuthenticatedAdminIrisControlRoute
   AuthenticatedAdminIrisHealthRoute: typeof AuthenticatedAdminIrisHealthRoute
   AuthenticatedAdminIrisRefreshRoute: typeof AuthenticatedAdminIrisRefreshRoute
+  AuthenticatedAdminIrisStudioRoute: typeof AuthenticatedAdminIrisStudioRoute
   AuthenticatedAdminIrisWriterViewRoute: typeof AuthenticatedAdminIrisWriterViewRoute
   AuthenticatedAdminMessagingRoute: typeof AuthenticatedAdminMessagingRoute
   AuthenticatedAdminOraclePhase2TestRoute: typeof AuthenticatedAdminOraclePhase2TestRoute
@@ -1946,6 +1967,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminIrisControlRoute: AuthenticatedAdminIrisControlRoute,
   AuthenticatedAdminIrisHealthRoute: AuthenticatedAdminIrisHealthRoute,
   AuthenticatedAdminIrisRefreshRoute: AuthenticatedAdminIrisRefreshRoute,
+  AuthenticatedAdminIrisStudioRoute: AuthenticatedAdminIrisStudioRoute,
   AuthenticatedAdminIrisWriterViewRoute: AuthenticatedAdminIrisWriterViewRoute,
   AuthenticatedAdminMessagingRoute: AuthenticatedAdminMessagingRoute,
   AuthenticatedAdminOraclePhase2TestRoute:
