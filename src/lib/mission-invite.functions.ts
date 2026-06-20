@@ -138,22 +138,11 @@ export const sendMissionInvite = createServerFn({ method: "POST" })
         })
       : "TBD";
 
-    // Send the email by calling the existing transactional/send route
-    // We need to forward the caller's bearer token (auth required on that route).
-    const authHeader = (() => {
-      try {
-        const req = (globalThis as any).__lovableRequest as Request | undefined;
-        return req?.headers.get("authorization") ?? null;
-      } catch {
-        return null;
-      }
-    })();
-
-    // Use the auth header from the current server-fn request
+    // Forward this server-fn's auth header to the send route (which requires Bearer)
     const { getRequestHeader } = await import("@tanstack/react-start/server");
-    const bearer = authHeader || getRequestHeader("authorization");
+    const bearer = getRequestHeader("authorization");
 
-    const siteUrl = `${acceptOrigin}`;
+    const siteUrl = acceptOrigin;
     const sendResp = await fetch(`${siteUrl}/lovable/email/transactional/send`, {
       method: "POST",
       headers: {
