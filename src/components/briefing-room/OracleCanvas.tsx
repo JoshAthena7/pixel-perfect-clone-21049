@@ -422,15 +422,6 @@ function ThemeList({
             onCancel={() => setEditingId(null)}
             onSave={updateItem}
           />
-        ) : (
-          <div
-            key={it.id}
-            className="flex items-start gap-2 rounded-lg p-2"
-            style={{ background: "rgba(255,255,255,0.02)" }}
-          >
-            <div className="mt-1 shrink-0">
-              <AuthorityIcon authority={it.signal_authority} />
-            </div>
         ) : collapsible ? (
           (() => {
             const [title, ...rest] = String(it.text ?? "").split(" — ");
@@ -513,24 +504,19 @@ function ThemeList({
             </div>
             {canEdit && (
               <div className="flex items-center gap-1 shrink-0">
-                <button
-                  onClick={() => setEditingId(it.id)}
-                  style={{ color: MUTED }}
-                  aria-label="Edit"
-                >
+                <button onClick={() => setEditingId(it.id)} style={{ color: MUTED }} aria-label="Edit">
                   <Pencil size={12} />
                 </button>
-                <button
-                  onClick={() => removeItem(it.id)}
-                  style={{ color: MUTED }}
-                  aria-label="Remove"
-                >
+                <button onClick={() => removeItem(it.id)} style={{ color: MUTED }} aria-label="Remove">
                   <X size={14} />
                 </button>
               </div>
             )}
           </div>
         ),
+      )}
+      {adding && <ItemForm onCancel={() => setAdding(false)} onSave={addItem} />}
+      {canEdit && !adding && (
         <button
           onClick={() => setAdding(true)}
           className="inline-flex items-center gap-1"
