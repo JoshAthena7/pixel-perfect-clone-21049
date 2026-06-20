@@ -31,6 +31,7 @@ import { ShoutoutToastListener } from "@/components/atlas/ShoutoutToastListener"
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useIsAdmin } from "@/hooks/useAccess";
+import { useMissionNoteCounts } from "@/components/flight-deck/QuestionNoteBadge";
 
 type Props = {
   memberId: string | null;
@@ -421,7 +422,10 @@ function NavStrip({
       <span className="text-muted-foreground/40">·</span>
       {activeQ && (
         <>
-          <span className="font-mono text-[11px] text-[color:var(--athena-gold)]">{activeQ.question_number}</span>
+          <span style={{ display: "inline-flex", alignItems: "center" }}>
+            <span className="font-mono text-[11px] text-[color:var(--athena-gold)]">{activeQ.question_number}</span>
+            <NavStripNoteBadge missionId={missionId} questionId={activeQ.id} />
+          </span>
           <span className="text-[12px] font-medium text-foreground truncate max-w-[40ch]">{activeQ.question_text}</span>
           <span className={cn("rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider", badge.cls)}>
             {badge.label}
@@ -463,6 +467,40 @@ function NavStrip({
         )}
       </div>
     </div>
+  );
+}
+
+function NavStripNoteBadge({ missionId, questionId }: { missionId: string | null; questionId: string }) {
+  const { data } = useMissionNoteCounts(missionId);
+  const entry = data?.[questionId];
+  if (!entry || entry.total === 0) return null;
+  const variant = entry.hasBlocker
+    ? { color: "rgba(248,113,113,0.95)", bg: "rgba(248,113,113,0.15)", icon: "🚧" }
+    : entry.hasQuestion
+      ? { color: "rgba(96,165,250,0.95)", bg: "rgba(96,165,250,0.15)", icon: "❓" }
+      : { color: "rgba(196,154,43,0.95)", bg: "rgba(196,154,43,0.15)", icon: "📌" };
+  return (
+    <span
+      title={`${entry.total} unresolved note${entry.total === 1 ? "" : "s"}`}
+      style={{
+        marginLeft: 4,
+        background: variant.bg,
+        border: `1px solid ${variant.color}`,
+        color: variant.color,
+        fontSize: 9,
+        fontWeight: 700,
+        padding: "1px 5px",
+        borderRadius: 9,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 2,
+        verticalAlign: "middle",
+        lineHeight: 1,
+      }}
+    >
+      <span>{variant.icon}</span>
+      <span>{entry.total}</span>
+    </span>
   );
 }
 
