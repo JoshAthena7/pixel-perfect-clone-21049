@@ -469,8 +469,53 @@ function LeaderboardRow({
 function TeamTab({ missionId }: { missionId: string }) {
   return (
     <div className="space-y-4">
+      <TeamTriviaStatus missionId={missionId} />
       <IrisNudges missionId={missionId} />
       <ShoutoutBox missionId={missionId} />
+    </div>
+  );
+}
+
+function TeamTriviaStatus({ missionId }: { missionId: string }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const { data } = useQuery({
+    queryKey: ["trivia-team-today", missionId, today],
+    queryFn: async () => {
+      const { data: members } = await supabase
+        .from("mission_team_members")
+        .select("member_id, atlas_team_members:member_id(first_name, last_name)")
+        .eq("mission_id", missionId);
+      const memberIds = (members ?? []).map((m: any) => m.member_id);
+      if (memberIds.length === 0) return [] as Array<{ id: string; name: string; status: "correct" | "wrong" | "pending" }>;
+      const { data: scores } = await supabase
+        .from("mission_trivia_scores")
+        .select("user_id, is_correct")
+        .eq("mission_id", missionId)
+        .eq("question_date", today)
+        .in("user_id", memberIds);
+      const scoreMap = new Map<string, boolean>((scores ?? []).map((s: any) => [s.user_id, s.is_correct]));
+      return (members ?? []).map((m: any) => {
+        const name = `${m.atlas_team_members?.first_name ?? ""} ${m.atlas_team_members?.last_name ?? ""}`.trim() || "Teammate";
+        const ans = scoreMap.get(m.member_id);
+        const status: "correct" | "wrong" | "pending" = ans === true ? "correct" : ans === false ? "wrong" : "pending";
+        return { id: m.member_id as string, name, status };
+      });
+    },
+  });
+
+  if (!data || data.length === 0) return null;
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Today's Trivia</div>
+      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5">
+        {data.map((m) => (
+          <div key={m.id} className="text-[11px] flex items-center gap-1" style={{ color: "rgba(255,255,255,0.78)" }}>
+            <span>{m.name}</span>
+            {m.status === "correct" && <span style={{ color: GOLD }}>⭐</span>}
+            {m.status === "wrong" && <span style={{ color: "rgba(255,255,255,0.35)" }}>●</span>}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
