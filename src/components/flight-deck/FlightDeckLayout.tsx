@@ -31,7 +31,7 @@ import { ShoutoutToastListener } from "@/components/atlas/ShoutoutToastListener"
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useIsAdmin } from "@/hooks/useAccess";
-import { useMissionNoteCounts, QuestionNoteBadge } from "@/components/flight-deck/QuestionNoteBadge";
+import { useMissionNoteCounts } from "@/components/flight-deck/QuestionNoteBadge";
 
 type Props = {
   memberId: string | null;
@@ -422,7 +422,7 @@ function NavStrip({
       <span className="text-muted-foreground/40">·</span>
       {activeQ && (
         <>
-          <span style={{ position: "relative", display: "inline-block" }}>
+          <span style={{ display: "inline-flex", alignItems: "center" }}>
             <span className="font-mono text-[11px] text-[color:var(--athena-gold)]">{activeQ.question_number}</span>
             <NavStripNoteBadge missionId={missionId} questionId={activeQ.id} />
           </span>
@@ -474,17 +474,32 @@ function NavStripNoteBadge({ missionId, questionId }: { missionId: string | null
   const { data } = useMissionNoteCounts(missionId);
   const entry = data?.[questionId];
   if (!entry || entry.total === 0) return null;
+  const variant = entry.hasBlocker
+    ? { color: "rgba(248,113,113,0.95)", bg: "rgba(248,113,113,0.15)", icon: "🚧" }
+    : entry.hasQuestion
+      ? { color: "rgba(96,165,250,0.95)", bg: "rgba(96,165,250,0.15)", icon: "❓" }
+      : { color: "rgba(196,154,43,0.95)", bg: "rgba(196,154,43,0.15)", icon: "📌" };
   return (
     <span
+      title={`${entry.total} unresolved note${entry.total === 1 ? "" : "s"}`}
       style={{
-        position: "absolute",
-        top: -8,
-        right: -14,
-        transform: "scale(0.85)",
-        transformOrigin: "top right",
+        marginLeft: 4,
+        background: variant.bg,
+        border: `1px solid ${variant.color}`,
+        color: variant.color,
+        fontSize: 9,
+        fontWeight: 700,
+        padding: "1px 5px",
+        borderRadius: 9,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 2,
+        verticalAlign: "middle",
+        lineHeight: 1,
       }}
     >
-      <QuestionNoteBadge entry={entry} />
+      <span>{variant.icon}</span>
+      <span>{entry.total}</span>
     </span>
   );
 }
