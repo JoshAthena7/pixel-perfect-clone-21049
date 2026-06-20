@@ -41,7 +41,7 @@ function RiskChip({ health }: { health: string | null }) {
   if (health === "at_risk") {
     return (
       <span style={{ fontSize: 9, color: "#f08080", padding: "1px 6px", background: "rgba(224,74,74,0.1)", borderRadius: 2 }}>
-        AT RISK
+        At Risk
       </span>
     );
   }

@@ -1,8 +1,8 @@
 export function HealthBadge({ health, size = "lg" }: { health: "green" | "amber" | "red"; size?: "lg" | "sm" }) {
   const map = {
-    green: { label: "● HEALTHY", bg: "rgba(26,122,74,0.15)", border: "rgba(26,122,74,0.4)", color: "#7DCF7D" },
-    amber: { label: "⚡ AMBER", bg: "rgba(239,159,39,0.15)", border: "rgba(239,159,39,0.4)", color: "#EF9F27" },
-    red: { label: "🔴 AT RISK", bg: "rgba(224,74,74,0.15)", border: "rgba(224,74,74,0.4)", color: "#f08080" },
+    green: { label: "● Healthy", bg: "rgba(26,122,74,0.15)", border: "rgba(26,122,74,0.4)", color: "#7DCF7D" },
+    amber: { label: "⚡ Amber", bg: "rgba(239,159,39,0.15)", border: "rgba(239,159,39,0.4)", color: "#EF9F27" },
+    red: { label: "🔴 At Risk", bg: "rgba(224,74,74,0.15)", border: "rgba(224,74,74,0.4)", color: "#f08080" },
   } as const;
   const s = map[health];
   return (
