@@ -627,7 +627,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
           <div style={{ padding: 60, textAlign: "center", color: "rgba(255,255,255,0.5)" }}>
             <FileText size={36} style={{ opacity: 0.4, marginBottom: 12 }} />
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>No questions assigned yet.</div>
-            <div style={{ fontSize: 12 }}>Your Engagement Lead will assign your questions during mission setup.<br/>Check back after BLAST OFF.</div>
+            <div style={{ fontSize: 12 }}>Check back once your Engagement Lead assigns your questions.</div>
           </div>
         ) : (
           <>
