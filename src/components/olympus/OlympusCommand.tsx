@@ -116,21 +116,51 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
 
   return (
     <div className="min-h-screen w-full" style={{ background: "#070f1c", color: "#e5e7eb" }}>
-      {/* Top status bar */}
+      {/* Top status bar — three zones */}
       <div
-        className="sticky top-0 z-20 flex items-center justify-between px-4 border-b"
+        className="sticky top-0 z-20 flex items-center justify-between gap-4 px-4 border-b"
         style={{ height: 48, borderColor: "rgba(255,255,255,0.06)", background: "#070f1c" }}
       >
-        <div className="flex items-center gap-3">
+        {/* LEFT zone */}
+        <div className="flex items-center gap-3 shrink-0">
           <span style={{ color: "#d4af37", fontSize: 13, fontWeight: 600 }}>
-            {initialMissionId ? "⚡ ORACLE" : "⚡ Olympus · ORACLE Command"}
+            ◈ ORACLE
           </span>
+          {selectedMission?.name && (
+            <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "ui-monospace, monospace" }} title={selectedMission.name}>
+              {(selectedMission.name.split(/\s*-\s*/)[0] ?? "").slice(0, 14) || "—"}
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-4 text-[11px] text-white/60">
+
+        {/* CENTER zone — pipeline status */}
+        <div className="flex-1 flex items-center justify-center gap-3 text-[10px] text-white/55 min-w-0" style={{ fontFamily: "ui-monospace, monospace", letterSpacing: "0.06em" }}>
+          {(() => {
+            const last = lastRunQ.data ? new Date(lastRunQ.data).getTime() : null;
+            const hrs = last ? (Date.now() - last) / 3600_000 : null;
+            const dot = hrs == null ? null : hrs < 4 ? { c: "#22c55e", text: "Pipeline active" } : hrs > 24 ? { c: "#fbbf24", text: "Pipeline stale" } : { c: "rgba(255,255,255,0.4)", text: "" };
+            return (
+              <>
+                {dot && dot.c && (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: 9999, background: dot.c, boxShadow: `0 0 6px ${dot.c}` }} />
+                    {dot.text}
+                  </span>
+                )}
+                <span>DEADLINE: <span className="text-white/80">{formatCountdown(selectedMission?.submission_deadline ?? null)}</span></span>
+                <span>·</span>
+                <span>LAST PIPELINE: <span className="text-white/80">{formatRelative(lastRunQ.data)}</span></span>
+              </>
+            );
+          })()}
+        </div>
+
+        {/* RIGHT zone — mission switcher + actions */}
+        <div className="flex items-center gap-2 shrink-0 text-[11px] text-white/60">
           <select
             value={missionId ?? ""}
             onChange={(e) => setMissionId(e.target.value)}
-            className="bg-transparent border border-white/10 rounded px-2 py-1 text-white/80"
+            className="bg-transparent border border-white/10 rounded px-2 py-1 text-white/80 max-w-[180px]"
           >
             {missionsQ.data?.map((m) => (
               <option key={m.id} value={m.id} className="bg-[#070f1c]">
@@ -138,26 +168,15 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
               </option>
             ))}
           </select>
-          <span>
-            Deadline:{" "}
-            <span className="text-white/80">
-              {formatCountdown(selectedMission?.submission_deadline ?? null)}
-            </span>
-          </span>
-          <span>
-            Last pipeline:{" "}
-            <span className="text-white/80">{formatRelative(lastRunQ.data)}</span>
-          </span>
           <button
             onClick={() => pipeline.mutate()}
             disabled={pipeline.isPending}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border text-white/90 hover:bg-white/5 disabled:opacity-50"
-            style={{ borderColor: "#d4af37" }}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-white/15 text-white/80 hover:bg-white/5 disabled:opacity-50"
           >
             {pipeline.isPending ? (
               <Loader2 className="h-3 w-3 animate-spin" />
             ) : (
-              <Zap className="h-3 w-3" style={{ color: "#d4af37" }} />
+              <Zap className="h-3 w-3" />
             )}
             Run Pipeline
           </button>
