@@ -30,6 +30,7 @@ const MAIN_TABS: Tab[] = [
 
 const PLATFORM_TOOLS: Tab[] = [
   { id: "iris-control", label: "IRIS Control", to: "/admin/iris-control", match: (p) => p.startsWith("/admin/iris-control") },
+  { id: "iris-studio", label: "IRIS Studio", to: "/admin/iris-studio", match: (p) => p.startsWith("/admin/iris-studio") },
   { id: "iris-writer-view", label: "IRIS Writer View", to: "/admin/iris-writer-view", match: (p) => p.startsWith("/admin/iris-writer-view") },
   { id: "iris-refresh", label: "IRIS Refresh", to: "/admin/iris-refresh", match: (p) => p.startsWith("/admin/iris-refresh") },
   { id: "settings", label: "Settings", to: "/admin/settings", match: (p) => p.startsWith("/admin/settings") },
@@ -88,8 +89,8 @@ function AdminLayout() {
         <span className="mr-3" style={{ color: "rgba(255,255,255,0.2)", fontSize: 12 }}>·</span>
         {MAIN_TABS.map((t) => renderTab(t))}
 
-        {/* Platform Tools collapsible group, pushed to the far right */}
-        <div className="ml-auto flex items-center gap-1 relative">
+        {/* Platform Tools collapsible group, inline after the main tabs */}
+        <div className="flex items-center gap-1 relative ml-2">
           <button
             type="button"
             onClick={() => setToolsOpen((v) => !v)}
@@ -108,7 +109,7 @@ function AdminLayout() {
           </button>
           {toolsOpen && (
             <div
-              className="absolute right-0 top-full mt-1 flex flex-col gap-0.5 py-1.5 px-1.5 rounded-md z-40"
+              className="absolute left-0 top-full mt-1 flex flex-col gap-0.5 py-1.5 px-1.5 rounded-md z-40"
               style={{
                 background: "#0c1626",
                 border: "1px solid rgba(255,255,255,0.08)",
