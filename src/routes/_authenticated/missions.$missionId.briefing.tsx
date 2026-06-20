@@ -1323,10 +1323,7 @@ function WhatChangedCard({ missionId }: { missionId: string }) {
       <div className="flex items-center gap-2 mb-4" style={cardLabel}>
         <RefreshCw size={14} /> What Changed
       </div>
-      {events.length === 0 ? (
-        <EmptyState>No updates yet. Changes to mission intelligence will appear here.</EmptyState>
-
-      ) : (
+      {events.length === 0 ? null : (
         <>
           <ul className="space-y-3">
             {events.map((ev: any) => {
