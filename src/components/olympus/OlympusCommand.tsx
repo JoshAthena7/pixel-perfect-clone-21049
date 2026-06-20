@@ -181,14 +181,24 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
       </div>
 
       {missionId && (
-        <FeedAtlasDrawer
-          open={feedOpen}
-          onOpenChange={setFeedOpen}
-          missionId={missionId}
-          activeTab={feedTab}
-          onTabChange={setFeedTab}
-        />
+        <>
+          <OracleMissingDocsBanner
+            missionId={missionId}
+            onOpenUpload={() => {
+              setFeedTab("documents");
+              setFeedOpen(true);
+            }}
+          />
+          <FeedAtlasDrawer
+            open={feedOpen}
+            onOpenChange={setFeedOpen}
+            missionId={missionId}
+            activeTab={feedTab}
+            onTabChange={setFeedTab}
+          />
+        </>
       )}
+
 
       {/* 3-column shell */}
       <div className="grid" style={{ gridTemplateColumns: "24% 48% 28%", height: "calc(100vh - 48px)" }}>
