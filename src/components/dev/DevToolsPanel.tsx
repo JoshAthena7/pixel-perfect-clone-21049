@@ -532,7 +532,7 @@ export function DevToolsPanel() {
       <div
         role="dialog"
         aria-hidden={!open}
-        inert={!open as any}
+        {...(!open ? { inert: "" as any } : {})}
         style={{
           position: "fixed",
           left: 0,
