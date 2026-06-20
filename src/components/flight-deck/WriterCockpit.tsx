@@ -475,6 +475,8 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
           )}
         </div>
 
+        <LeadershipBroadcastBand missionId={missionId} />
+
         {cockpit?.pensDown && (
           <div style={{
             padding: "12px 14px", marginBottom: 16, borderRadius: 8,
