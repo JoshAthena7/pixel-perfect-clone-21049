@@ -23,7 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { MomentumScorePill } from "@/components/momentum/MomentumScore";
 import {
-  Radar, RefreshCw, MessageSquare, Eye, Flag, MessageCircle, Zap, RotateCcw,
+  Radar, MessageSquare, Eye, Flag, MessageCircle, Zap, RotateCcw,
   Users, ChevronDown, ChevronUp,
 } from "lucide-react";
 
