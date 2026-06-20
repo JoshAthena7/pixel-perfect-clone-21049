@@ -50,9 +50,15 @@ export const submitTriviaAnswer = createServerFn({ method: "POST" })
       }
     }
 
-    const newStreak = data.isCorrect ? priorStreak + 1 : 0;
-    const speedBonus = data.isCorrect && data.secondsToAnswer <= 10;
-    const basePoints = data.isCorrect ? (speedBonus ? 15 : 10) : 0;
+    const newStreak = data.isCorrect ? priorStreak + 1 : (data.timeout ? 1 : 0);
+    // Speed tiers: 0-3s = 15 ⚡, 3-6s = 12 🏃, 6-10s = 10 ✓
+    let basePoints = 0;
+    let speedTier: "lightning" | "quick" | "good" | null = null;
+    if (data.isCorrect) {
+      if (data.secondsToAnswer <= 3) { basePoints = 15; speedTier = "lightning"; }
+      else if (data.secondsToAnswer <= 6) { basePoints = 12; speedTier = "quick"; }
+      else { basePoints = 10; speedTier = "good"; }
+    }
     let streakBonusPoints = 0;
     if (data.isCorrect) {
       if (newStreak >= 7) streakBonusPoints = 20;
@@ -67,7 +73,7 @@ export const submitTriviaAnswer = createServerFn({ method: "POST" })
         user_id: userId,
         question_date: todayUTC(),
         question_text: data.questionText,
-        answer_given: data.answerGiven,
+        answer_given: data.timeout ? "TIMEOUT" : data.answerGiven,
         correct_answer: data.correctAnswer,
         is_correct: data.isCorrect,
         points_earned: totalPoints,
@@ -77,7 +83,6 @@ export const submitTriviaAnswer = createServerFn({ method: "POST" })
       .single();
 
     if (error) {
-      // Likely unique violation = already answered today; return existing row
       const { data: existing } = await supabase
         .from("mission_trivia_scores")
         .select("*")
@@ -89,7 +94,6 @@ export const submitTriviaAnswer = createServerFn({ method: "POST" })
       throw error;
     }
 
-    // Log to mission_assist_events for ATC Radar
     try {
       await supabase.from("mission_assist_events").insert({
         mission_id: data.missionId,
@@ -99,7 +103,8 @@ export const submitTriviaAnswer = createServerFn({ method: "POST" })
           correct: data.isCorrect,
           points: totalPoints,
           streak: newStreak,
-          speed_bonus: speedBonus,
+          speed_tier: speedTier,
+          timeout: data.timeout,
           question_date: todayUTC(),
         },
       });
@@ -107,7 +112,7 @@ export const submitTriviaAnswer = createServerFn({ method: "POST" })
       console.warn("[trivia] failed to log mission_assist_events", e);
     }
 
-    return { ...row, speedBonus, streakBonus: streakBonusPoints > 0 } as any;
+    return { ...row, speedTier, streakBonus: streakBonusPoints > 0 } as any;
   });
 
 const LeaderboardInput = z.object({
