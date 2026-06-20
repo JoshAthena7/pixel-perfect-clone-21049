@@ -44,7 +44,28 @@ function AdminSettingsPage() {
           <div className="text-xs uppercase tracking-[0.25em]" style={{ color: "rgba(201,168,76,0.7)" }}>
             Developer Tools
           </div>
+
           <div className="mt-3 flex items-center justify-between gap-6">
+            <div>
+              <div className="text-sm font-medium text-white">Screen Previewer & Dev Panel</div>
+              <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
+                Opens the full dev drawer: 8 categories of screens, role simulator, modal/animation triggers, quick actions.
+              </div>
+            </div>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("atlas-devtools-open"))}
+              className="rounded-md px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap"
+              style={{
+                background: "rgba(201,168,76,0.15)",
+                color: "#c9a84c",
+                border: "1px solid rgba(201,168,76,0.4)",
+              }}
+            >
+              Open Developer Tools
+            </button>
+          </div>
+
+          <div className="mt-4 pt-4 flex items-center justify-between gap-6" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
             <div>
               <div className="text-sm font-medium text-white">Replay ATLAS splash</div>
               <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
@@ -53,7 +74,7 @@ function AdminSettingsPage() {
             </div>
             <button
               onClick={replaySplash}
-              className="rounded-md px-4 py-2 text-sm font-medium transition-colors"
+              className="rounded-md px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap"
               style={{
                 background: "rgba(201,168,76,0.15)",
                 color: "#c9a84c",

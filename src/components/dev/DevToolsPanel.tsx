@@ -233,6 +233,12 @@ export function DevToolsPanel() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, preview, playSplash]);
 
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener("atlas-devtools-open", onOpen);
+    return () => window.removeEventListener("atlas-devtools-open", onOpen);
+  }, []);
+
   if (!isAdmin) return null;
 
   const resolveRoute = (s: ScreenCard): string | null => {
