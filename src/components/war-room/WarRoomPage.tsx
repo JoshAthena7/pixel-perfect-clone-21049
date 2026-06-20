@@ -126,8 +126,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   const [reassignFor, setReassignFor] = useState<string | null>(null);
   const [highlightedWriterId, setHighlightedWriterId] = useState<string | null>(null);
   const [statsOpen, setStatsOpen] = useState(false);
-  const [intelTab, setIntelTab] = useState<"iris" | "live" | "sticky">("iris");
-  const [mobileTab, setMobileTab] = useState<"team" | "radar" | "alerts">("radar");
+  const [teamSearch, setTeamSearch] = useState("");
   const [alertCount, setAlertCount] = useState(0);
   const [drawerTarget, setDrawerTarget] = useState<WriterDrawerTarget | null>(null);
 
@@ -299,26 +298,27 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
       ) : (
         <>
           {allWritersUnassigned && <TeamPulseNoAssignmentsBanner />}
-          {ROLE_GROUPS.map((g) => {
-            const rows = groups[g.key];
-            if (!rows || rows.length === 0) return null;
-            return (
-              <div key={g.key}>
-                <div className="sticky top-0 z-[1] px-3 py-1 text-[9px] font-semibold uppercase tracking-wider text-white/40 bg-[#070f1c]/95 backdrop-blur border-b border-white/[0.04]">
-                  {g.label} · {rows.length}
-                </div>
-                {rows.map(renderWriterRow)}
-              </div>
-            );
-          })}
-          {groups.other.length > 0 && (
-            <div>
-              <div className="sticky top-0 z-[1] px-3 py-1 text-[9px] font-semibold uppercase tracking-wider text-white/40 bg-[#070f1c]/95 backdrop-blur border-b border-white/[0.04]">
-                OTHER · {groups.other.length}
-              </div>
-              {groups.other.map(renderWriterRow)}
-            </div>
-          )}
+          <div className="sticky top-0 z-[2] bg-[#070f1c]/95 backdrop-blur px-3 py-2 border-b border-white/[0.06]">
+            <input
+              type="text"
+              value={teamSearch}
+              onChange={(e) => setTeamSearch(e.target.value)}
+              placeholder="Search team…"
+              className="w-full text-[11px] px-2 py-1.5 rounded bg-white/[0.04] border border-white/10 text-white placeholder:text-white/35 focus:outline-none focus:border-white/25"
+            />
+          </div>
+          {(() => {
+            const q = teamSearch.trim().toLowerCase();
+            const rows = q
+              ? d.writers.filter((w: any) =>
+                  String(w.name ?? "").toLowerCase().includes(q) ||
+                  String(w.role ?? "").toLowerCase().includes(q))
+              : d.writers;
+            if (rows.length === 0) {
+              return <div className="text-center text-xs py-6 text-white/40">No matches.</div>;
+            }
+            return rows.map(renderWriterRow);
+          })()}
         </>
       )}
     </ColumnShell>
@@ -394,92 +394,56 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
     </ColumnShell>
   );
 
-  // ---------------- COLUMN: ALERTS ----------------
+  // ---------------- COLUMN: IRIS (merged alerts + intel) ----------------
+  const mergedIntel: any[] = [];
+  for (const it of (d.digest ?? []) as any[]) {
+    mergedIntel.push({ id: `d-${it.title}-${it.ts}`, kind: it.kind, title: it.title, summary: it.summary, source: it.source, ts: it.ts });
+  }
+  for (const e of (d.intelFeed ?? []) as any[]) {
+    mergedIntel.push({ id: `i-${e.id}`, kind: "intel", title: e.title, summary: null, source: e.source ?? e.type, ts: e.ts });
+  }
+  for (const s of (stickyActivityQ.data ?? []) as any[]) {
+    mergedIntel.push({
+      id: `s-${s.id}`,
+      kind: "sticky",
+      title: (s.metadata?.summary as string) ?? "Pinned a sticky note",
+      summary: null,
+      source: "Sticky",
+      ts: s.created_at,
+    });
+  }
+  mergedIntel.sort((a, b) => new Date(b.ts ?? 0).getTime() - new Date(a.ts ?? 0).getTime());
+
   const alertsColumn = (
-    <ColumnShell header={`IRIS ALERTS · ${alertCount} ACTIVE`}>
+    <ColumnShell header={`IRIS · ${alertCount} PINNED`}>
       <div className="flex flex-col h-full">
-        <div style={{ flex: "0 0 55%", minHeight: 0 }} className="flex flex-col border-b border-white/[0.06]">
+        {/* Pinned: SOS + IRIS alerts */}
+        <div style={{ flex: "0 1 auto", maxHeight: "55%", minHeight: 0 }} className="flex flex-col border-b border-white/[0.06]">
           <IrisAlertsPanel missionId={missionId} bare onCountChange={setAlertCount} missionTooNew={missionTooNew} />
         </div>
-        <div style={{ flex: "0 0 45%", minHeight: 0 }} className="flex flex-col">
+        {/* Unified intel stream — no tabs */}
+        <div style={{ flex: "1 1 auto", minHeight: 0 }} className="flex flex-col">
           <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-white/40 bg-[#050d18] border-b border-white/[0.06]">
-            Intel Feed
-          </div>
-          <div className="flex border-b border-white/[0.04] bg-[#050d18]">
-            {([
-              ["iris", "What IRIS Found"],
-              ["live", "Live Intelligence"],
-              ["sticky", "Sticky Notes"],
-            ] as const).map(([key, label]) => (
-              <button
-                key={key}
-                onClick={() => setIntelTab(key)}
-                className={`flex-1 text-[10px] px-2 py-1.5 ${intelTab === key
-                  ? "text-amber-200 border-b-2 border-amber-400/60 bg-white/[0.03]"
-                  : "text-white/55 hover:text-white/80 hover:bg-white/[0.02]"}`}
-              >
-                {label}
-              </button>
-            ))}
+            Intel Stream
           </div>
           <div className="flex-1 overflow-y-auto p-3">
-            {intelTab === "iris" && (
-              d.digest.length === 0 ? (
-                <Empty>IRIS has been quiet. Everything looks stable.</Empty>
-              ) : (
-                <ul className="space-y-2">
-                  {d.digest.map((item: any, i: number) => (
-                    <li key={i} className="flex items-start gap-2 text-xs">
-                      <span className="shrink-0">{digestIcon(item.kind)}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-white/90 truncate">{item.title}</div>
-                        {item.summary && <div className="text-white/45 text-[11px] line-clamp-2">{item.summary}</div>}
-                        <div className="text-[10px] text-white/35 mt-0.5" style={{ fontFamily: "'Courier New', monospace" }}>
-                          {item.source && <span className="mr-1.5">{item.source}</span>}· {relTime(item.ts)}
-                        </div>
+            {mergedIntel.length === 0 ? (
+              <Empty>IRIS has been quiet. Everything looks stable.</Empty>
+            ) : (
+              <ul className="space-y-2">
+                {mergedIntel.map((item) => (
+                  <li key={item.id} className="flex items-start gap-2 text-xs">
+                    <span className="shrink-0">{digestIcon(item.kind)}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-white/90 line-clamp-2">{item.title}</div>
+                      {item.summary && <div className="text-white/45 text-[11px] line-clamp-2">{item.summary}</div>}
+                      <div className="text-[10px] text-white/35 mt-0.5" style={{ fontFamily: "'Courier New', monospace" }}>
+                        {item.source && <span className="mr-1.5">{item.source}</span>}· {relTime(item.ts)}
                       </div>
-                    </li>
-                  ))}
-                </ul>
-              )
-            )}
-            {intelTab === "live" && (
-              d.intelFeed.length === 0 ? (
-                <Empty>No intelligence events yet for this mission.</Empty>
-              ) : (
-                <ul className="space-y-2">
-                  {d.intelFeed.map((e: any) => (
-                    <li key={e.id} className="text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-white/70 uppercase tracking-wide">{e.type}</span>
-                        <span className="text-[10px] text-white/40" style={{ fontFamily: "'Courier New', monospace" }}>{relTime(e.ts)}</span>
-                      </div>
-                      <div className="text-white/85 mt-1 line-clamp-2">{e.title}</div>
-                      {e.source && <div className="text-[10px] text-white/40 mt-0.5">{e.source}</div>}
-                    </li>
-                  ))}
-                </ul>
-              )
-            )}
-            {intelTab === "sticky" && (
-              (stickyActivityQ.data ?? []).length === 0 ? (
-                <Empty>No sticky notes pinned yet.</Empty>
-              ) : (
-                <ul className="space-y-2">
-                  {(stickyActivityQ.data ?? []).map((e: any) => {
-                    const summary = (e.metadata?.summary as string) ?? "Pinned a sticky note";
-                    return (
-                      <li key={e.id} className="text-xs flex items-start gap-2">
-                        <span className="shrink-0" style={{ color: "#C49A2B" }}>📌</span>
-                        <div className="flex-1 min-w-0">
-                          <div style={{ color: "#E6C97A" }}>{summary}</div>
-                          <div className="text-[10px] text-white/40 mt-0.5" style={{ fontFamily: "'Courier New', monospace" }}>{relTime(e.created_at)}</div>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         </div>
@@ -648,56 +612,18 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         </div>
       )}
 
-      {/* Mobile tab bar */}
-      <div className="atc-mobile shrink-0 flex border-b border-white/[0.06] bg-[#050d18]">
-        {([
-          ["team", `Team · ${d.writers.length}`],
-          ["radar", "Radar"],
-          ["alerts", `Alerts · ${alertCount}`],
-        ] as const).map(([key, label]) => (
-          <button
-            key={key}
-            onClick={() => setMobileTab(key)}
-            className={`flex-1 text-[11px] py-2 ${mobileTab === key
-              ? "text-amber-200 border-b-2 border-amber-400/60"
-              : "text-white/55"}`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Three columns */}
-      <div className="flex-1 min-h-0 flex atc-cols">
-        <div
-          className={`atc-col-team h-full overflow-hidden border-r border-white/[0.06] ${mobileTab === "team" ? "" : "atc-hidden-mobile"}`}
-          style={{ width: "26%" }}
-        >
+      {/* Columns — single-column stack on mobile, three columns on desktop */}
+      <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
+        <div className="w-full md:w-[26%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden border-b md:border-b-0 md:border-r border-white/[0.06]">
           {teamColumn}
         </div>
-        <div
-          className={`atc-col-radar h-full overflow-hidden border-r border-white/[0.06] ${mobileTab === "radar" ? "" : "atc-hidden-mobile"}`}
-          style={{ width: "44%" }}
-        >
+        <div className="w-full md:w-[44%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden border-b md:border-b-0 md:border-r border-white/[0.06]">
           {radarColumn}
         </div>
-        <div
-          className={`atc-col-alerts h-full overflow-hidden ${mobileTab === "alerts" ? "" : "atc-hidden-mobile"}`}
-          style={{ width: "30%" }}
-        >
+        <div className="w-full md:w-[30%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden">
           {alertsColumn}
         </div>
       </div>
-
-      <style>{`
-        @media (max-width: 899px) {
-          .atc-cols > div { width: 100% !important; border-right: none !important; }
-          .atc-hidden-mobile { display: none !important; }
-        }
-        @media (min-width: 900px) {
-          .atc-mobile { display: none !important; }
-        }
-      `}</style>
 
       <NudgeModal
         open={!!nudgeTarget}
