@@ -40,7 +40,7 @@ export const extractMissionLessons = createServerFn({ method: "POST" })
     const [{ data: scores }, { data: feedback }, { data: config }] = await Promise.all([
       supabaseAdmin
         .from("score_me_history")
-        .select("score, full_analysis, question_id, type")
+        .select("score, full_analysis, question_id")
         .eq("mission_id", data.missionId)
         .order("score", { ascending: false }),
       supabaseAdmin
