@@ -119,8 +119,14 @@ function TriviaTab({ missionId }: { missionId: string }) {
   const today = new Date().toISOString().slice(0, 10);
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const questionShownAt = useRef<number>(Date.now());
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState<number>(10);
+  const [timerActive, setTimerActive] = useState(false);
+  const [timerFrozen, setTimerFrozen] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
   const [pendingFeedback, setPendingFeedback] = useState<
-    { points: number; speedBonus: boolean; streak: number; correct: boolean } | null
+    { points: number; speedTier: "lightning" | "quick" | "good" | null; correct: boolean; correctText: string; timeout?: boolean } | null
   >(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -130,7 +136,6 @@ function TriviaTab({ missionId }: { missionId: string }) {
     retry: false,
   });
 
-  // Today's answer (server-side persistence)
   const { data: todaysAnswer, refetch: refetchTodays } = useQuery({
     queryKey: ["trivia-today", missionId, today],
     queryFn: async () => {
@@ -147,7 +152,6 @@ function TriviaTab({ missionId }: { missionId: string }) {
     },
   });
 
-  // My total score + streak for this mission
   const { data: myScore, refetch: refetchScore } = useQuery({
     queryKey: ["trivia-my-score", missionId],
     queryFn: async () => {
@@ -165,13 +169,6 @@ function TriviaTab({ missionId }: { missionId: string }) {
     },
   });
 
-  useEffect(() => {
-    if (data) questionShownAt.current = Date.now();
-  }, [data]);
-
-  if (isLoading) return <Loading text="IRIS is drafting today's trivia…" />;
-  if (error) return <ErrorBlock message={String((error as Error).message)} onRetry={() => refetch()} />;
-
   const c = (data?.content ?? {}) as {
     question?: string;
     options?: string[];
@@ -179,14 +176,99 @@ function TriviaTab({ missionId }: { missionId: string }) {
     explanation?: string;
   };
   const opts = Array.isArray(c.options) ? c.options : [];
-
   const pickedAnswer = todaysAnswer?.answer_given ?? null;
-  const pickedIndex = pickedAnswer ? opts.findIndex((o) => o === pickedAnswer) : -1;
+  const pickedIndex = pickedAnswer && pickedAnswer !== "TIMEOUT" ? opts.findIndex((o) => o === pickedAnswer) : -1;
   const answered = !!todaysAnswer;
+  const wasTimeout = todaysAnswer?.answer_given === "TIMEOUT";
   const correctIdx = typeof c.correct_index === "number" ? c.correct_index : -1;
 
+  function clearTimers() {
+    if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
+    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+  }
+
+  async function handleTimeout() {
+    if (submitting) return;
+    clearTimers();
+    setTimerFrozen(true);
+    setTimedOut(true);
+    setSecondsLeft(0);
+    setSubmitting(true);
+    try {
+      await submitAnswer({
+        data: {
+          missionId,
+          questionText: c.question ?? "",
+          answerGiven: "TIMEOUT",
+          correctAnswer: opts[correctIdx] ?? "",
+          isCorrect: false,
+          secondsToAnswer: 10,
+          timeout: true,
+        },
+      });
+      setPendingFeedback({
+        points: 0,
+        speedTier: null,
+        correct: false,
+        correctText: opts[correctIdx] ?? "",
+        timeout: true,
+      });
+      toast.error("⏱ Too slow! Streak reset.");
+      await Promise.all([
+        refetchTodays(),
+        refetchScore(),
+        qc.invalidateQueries({ queryKey: ["trivia-team-today", missionId] }),
+      ]);
+      setTimeout(() => setPendingFeedback(null), 3500);
+    } catch (e: any) {
+      console.error("[trivia] timeout submit failed", e);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  // Start countdown when question loads and not answered
+  useEffect(() => {
+    if (!data || answered || timedOut) return;
+    questionShownAt.current = Date.now();
+    setSecondsLeft(10);
+    setTimerActive(true);
+    setTimerFrozen(false);
+    intervalRef.current = setInterval(() => {
+      setSecondsLeft((s) => {
+        const elapsed = Math.floor((Date.now() - questionShownAt.current) / 1000);
+        const remaining = Math.max(0, 10 - elapsed);
+        if (remaining <= 0 && intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+        return remaining;
+      });
+    }, 250);
+    timeoutRef.current = setTimeout(() => {
+      handleTimeout();
+    }, 10000);
+    return () => clearTimers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, answered]);
+
+  // Hide countdown number 300ms after hitting 0
+  const [showCountdown, setShowCountdown] = useState(true);
+  useEffect(() => {
+    if (secondsLeft === 0 && timerActive) {
+      const t = setTimeout(() => setShowCountdown(false), 300);
+      return () => clearTimeout(t);
+    }
+    setShowCountdown(true);
+  }, [secondsLeft, timerActive]);
+
+  if (isLoading) return <Loading text="IRIS is drafting today's trivia…" />;
+  if (error) return <ErrorBlock message={String((error as Error).message)} onRetry={() => refetch()} />;
+
   async function handlePick(i: number) {
-    if (answered || submitting) return;
+    if (answered || submitting || timedOut) return;
+    clearTimers();
+    setTimerFrozen(true);
     const isCorrect = i === correctIdx;
     const secondsToAnswer = (Date.now() - questionShownAt.current) / 1000;
     setSubmitting(true);
@@ -203,9 +285,9 @@ function TriviaTab({ missionId }: { missionId: string }) {
       });
       setPendingFeedback({
         points: result.points_earned ?? 0,
-        speedBonus: !!result.speedBonus,
-        streak: result.streak_day ?? 0,
+        speedTier: result.speedTier ?? null,
         correct: isCorrect,
+        correctText: opts[correctIdx] ?? "",
       });
       await Promise.all([
         refetchTodays(),
@@ -221,10 +303,65 @@ function TriviaTab({ missionId }: { missionId: string }) {
     }
   }
 
+  // Color for countdown number based on seconds left
+  const countdownColor =
+    secondsLeft >= 5 ? "rgba(74,222,128,0.9)"
+    : secondsLeft >= 2 ? "rgba(251,191,36,0.9)"
+    : "rgba(248,113,113,0.9)";
+
+  const showTimerBar = !answered && timerActive;
+
   return (
     <div className="relative">
+      {/* Timer bar */}
+      {showTimerBar && (
+        <div className="absolute left-0 right-0 top-0 overflow-hidden" style={{ height: 3 }}>
+          <div
+            className="trivia-timer-bar"
+            style={{
+              height: 3,
+              width: timerFrozen ? undefined : "100%",
+              animation: timerFrozen
+                ? "none"
+                : "trivia-timer-deplete 10s linear forwards, trivia-timer-color 10s linear forwards",
+              animationPlayState: timerFrozen ? "paused" : "running",
+              background: "rgba(74,222,128,0.8)",
+              transition: timerFrozen ? "opacity 800ms ease-out" : undefined,
+              opacity: timerFrozen && (answered || timedOut) ? 0 : 1,
+            }}
+          />
+          <style>{`
+            @keyframes trivia-timer-deplete {
+              from { width: 100%; }
+              to { width: 0%; }
+            }
+            @keyframes trivia-timer-color {
+              0%   { background-color: rgba(74,222,128,0.8); }
+              50%  { background-color: rgba(74,222,128,0.8); }
+              70%  { background-color: rgba(251,191,36,0.8); }
+              85%  { background-color: rgba(248,113,113,0.8); }
+              100% { background-color: rgba(248,113,113,0.8); }
+            }
+          `}</style>
+        </div>
+      )}
+
       {/* MY SCORE corner */}
-      <div className="absolute right-0 top-0 flex items-start gap-2">
+      <div className="absolute right-0 top-0 flex items-start gap-2" style={{ marginTop: showTimerBar ? 6 : 0 }}>
+        {showTimerBar && showCountdown && (
+          <div
+            style={{
+              fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+              fontSize: 11,
+              color: countdownColor,
+              fontWeight: 600,
+              lineHeight: 1,
+              alignSelf: "center",
+            }}
+          >
+            {secondsLeft}
+          </div>
+        )}
         <div className="text-right">
           <div className="text-[8px] uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.45)" }}>My Score</div>
           <div className="text-[16px] font-bold text-white leading-none mt-0.5">{myScore?.total ?? 0}</div>
@@ -245,17 +382,27 @@ function TriviaTab({ missionId }: { missionId: string }) {
         </button>
       </div>
 
-      <div className="pr-24" style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>
+      <div className="pr-32 pt-2" style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>
         {c.question || "—"}
       </div>
       <div className="mt-3 grid grid-cols-1 gap-1.5">
         {opts.map((opt, i) => {
           const isCorrectOpt = i === correctIdx;
           const isPicked = pickedIndex === i;
+          const isLocked = answered || submitting || timedOut;
           let bg = "rgba(255,255,255,0.04)";
           let border = "rgba(255,255,255,0.1)";
           let color = "rgba(255,255,255,0.85)";
-          if (answered) {
+          let opacity = 1;
+          if (timedOut && !answered) {
+            if (isCorrectOpt) {
+              bg = "rgba(74,222,128,0.1)";
+              border = "rgba(74,222,128,0.4)";
+              color = "#86EFAC";
+            } else {
+              opacity = 0.4;
+            }
+          } else if (answered) {
             if (isCorrectOpt) {
               bg = "rgba(74,222,128,0.2)";
               border = "rgba(74,222,128,0.6)";
@@ -272,16 +419,32 @@ function TriviaTab({ missionId }: { missionId: string }) {
           return (
             <button
               key={i}
-              disabled={answered || submitting}
+              disabled={isLocked}
               onClick={() => handlePick(i)}
-              className="text-left rounded-md transition-colors disabled:cursor-default"
-              style={{ background: bg, border: `0.5px solid ${border}`, color, padding: "6px 10px", fontSize: 11 }}
+              className="text-left rounded-md transition-colors"
+              style={{
+                background: bg,
+                border: `0.5px solid ${border}`,
+                color,
+                padding: "6px 10px",
+                fontSize: 11,
+                opacity,
+                cursor: isLocked ? "not-allowed" : "pointer",
+                pointerEvents: isLocked ? "none" : "auto",
+              }}
             >
               {opt}
             </button>
           );
         })}
       </div>
+
+      {/* Timeout inline message */}
+      {timedOut && !answered && (
+        <div className="mt-2 text-center text-[11px]" style={{ color: "rgba(255,255,255,0.55)" }}>
+          ⏱ Time's up — {opts[correctIdx] ?? ""} was correct
+        </div>
+      )}
 
       {/* Floating points toast */}
       {pendingFeedback && (
@@ -294,20 +457,22 @@ function TriviaTab({ missionId }: { missionId: string }) {
           }}
         >
           {pendingFeedback.correct ? (
-            <>
-              +{pendingFeedback.points} pts
-              {pendingFeedback.speedBonus && " ⚡ Speed bonus!"}
-              {!pendingFeedback.speedBonus && pendingFeedback.streak >= 3 && ` 🔥 ${pendingFeedback.streak} day streak!`}
-            </>
+            pendingFeedback.speedTier === "lightning" ? <>+{pendingFeedback.points} pts ⚡ Lightning fast!</>
+            : pendingFeedback.speedTier === "quick" ? <>+{pendingFeedback.points} pts 🏃 Quick answer!</>
+            : <>+{pendingFeedback.points} pts ✓ Good timing!</>
+          ) : pendingFeedback.timeout ? (
+            <>⏱ Too slow! Streak reset.</>
           ) : (
-            <>Not quite — better luck tomorrow</>
+            <>Not quite — {pendingFeedback.correctText} was right</>
           )}
         </div>
       )}
 
       {answered && (
         <div className="mt-2 text-[10px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-          You earned {todaysAnswer?.points_earned ?? 0} pts today
+          {wasTimeout
+            ? "⏱ Timed out today"
+            : `You earned ${todaysAnswer?.points_earned ?? 0} pts today`}
         </div>
       )}
 

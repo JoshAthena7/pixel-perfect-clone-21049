@@ -405,17 +405,18 @@ export const getMissionActivity = createServerFn({ method: "POST" })
       } else if (r.event_type === "trivia_answered") {
         const correct = !!meta.correct;
         const points = Number(meta.points ?? 0);
-        const streak = Number(meta.streak ?? 0);
-        const speed = !!meta.speed_bonus;
+        const timeout = !!meta.timeout;
         let summary: string;
-        if (!correct) {
+        if (timeout) {
+          summary = `${firstName} ran out of time on today's trivia ⏱`;
+        } else if (!correct) {
           summary = `${firstName} answered today's trivia`;
-        } else if (streak >= 7) {
-          summary = `${firstName} is on a 🔥 ${streak} day streak (+${points} pts)`;
-        } else if (speed) {
-          summary = `${firstName} got today's trivia right ⚡ +15 pts (speed bonus!)`;
+        } else if (points === 15) {
+          summary = `${firstName} crushed today's trivia ⚡ +15 pts`;
+        } else if (points === 12) {
+          summary = `${firstName} nailed today's trivia 🏃 +12 pts`;
         } else {
-          summary = `${firstName} got today's trivia right 🎯 +${points} pts`;
+          summary = `${firstName} answered today's trivia ✓ +${points} pts`;
         }
         items.push({
           id: `trivia:${r.id}`, stream: "trivia", created_at: r.created_at,
