@@ -59,6 +59,12 @@ export const updateProgressStatus = createServerFn({ method: "POST" })
       .eq("id", data.progressId);
     if (updErr) throw updErr;
 
+    // Keep mission_questions.status in sync so ATC health calcs / coverage see fresh data.
+    await supabase
+      .from("mission_questions")
+      .update({ status: data.newStatus } as never)
+      .eq("id", row.question_id);
+
     await supabase.from("mission_assist_events").insert({
       mission_id: row.mission_id,
       question_id: row.question_id,
