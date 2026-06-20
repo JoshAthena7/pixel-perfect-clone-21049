@@ -90,13 +90,20 @@ function Section({
   );
 }
 
+export type OracleCanvasSection = "northStar" | "winThemes" | "risks" | "competitors" | "badge";
+
 export function OracleCanvas({
   missionId,
   canEdit,
+  only,
+  winThemesCollapsed = false,
 }: {
   missionId: string;
   canEdit: boolean;
+  only?: OracleCanvasSection[];
+  winThemesCollapsed?: boolean;
 }) {
+  const show = (s: OracleCanvasSection) => !only || only.includes(s);
   const { data: oracleConfig, refetch } = useQuery({
     queryKey: ["oracle-canvas", missionId],
     queryFn: async () => {
@@ -210,7 +217,7 @@ export function OracleCanvas({
   return (
     <div className="space-y-3">
       {/* North Star */}
-      {oracleConfig.north_star ? (
+      {show("northStar") && (oracleConfig.north_star ? (
         <Section title="North Star">
           <div
             style={{
@@ -228,34 +235,39 @@ export function OracleCanvas({
         <Section title="North Star">
           <NorthStarEditor onSave={(v) => save({ north_star: v })} />
         </Section>
-      ) : null}
+      ) : null)}
 
       {/* Win Themes */}
-      <Section title="How We Win" icon={<Star size={11} />}>
-        <ThemeList
-          items={winThemes}
-          canEdit={canEdit}
-          emptyEdit="No win themes configured. Add your first win theme."
-          emptyRead="Win themes will appear here once configured."
-          addLabel="Add win theme"
-          onChange={(next) => save({ win_themes: next as never })}
-        />
-      </Section>
+      {show("winThemes") && (
+        <Section title="How We Win" icon={<Star size={11} />}>
+          <ThemeList
+            items={winThemes}
+            canEdit={canEdit}
+            collapsible={winThemesCollapsed}
+            emptyEdit="No win themes configured. Add your first win theme."
+            emptyRead="Win themes will appear here once configured."
+            addLabel="Add win theme"
+            onChange={(next) => save({ win_themes: next as never })}
+          />
+        </Section>
+      )}
 
       {/* Strategic Risks */}
-      <Section title="Strategic Risks" icon={<ShieldAlert size={11} />}>
-        <ThemeList
-          items={topRisks}
-          canEdit={canEdit}
-          emptyEdit="No strategic risks tracked. Add your first risk."
-          emptyRead="Strategic risks will appear here once configured."
-          addLabel="Add risk"
-          onChange={(next) => save({ top_risks: next as never })}
-        />
-      </Section>
+      {show("risks") && (
+        <Section title="Strategic Risks" icon={<ShieldAlert size={11} />}>
+          <ThemeList
+            items={topRisks}
+            canEdit={canEdit}
+            emptyEdit="No strategic risks tracked. Add your first risk."
+            emptyRead="Strategic risks will appear here once configured."
+            addLabel="Add risk"
+            onChange={(next) => save({ top_risks: next as never })}
+          />
+        </Section>
+      )}
 
       {/* Competitors */}
-      {(competitors.length > 0 || canEdit) && (
+      {show("competitors") && (competitors.length > 0 || canEdit) && (
         <Section title="Monitored Competitors" icon={<Eye size={11} />}>
           <CompetitorChips
             items={competitors}
@@ -266,31 +278,33 @@ export function OracleCanvas({
       )}
 
       {/* Status badge */}
-      <div className="flex justify-end items-center gap-2">
-        <span
-          className="inline-flex items-center gap-2 rounded-full"
-          style={{
-            fontSize: 10,
-            padding: "4px 10px",
-            background: "rgba(255,255,255,0.04)",
-            border: `0.5px solid ${CARD_BORDER}`,
-            color: MUTED,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-          }}
-        >
+      {show("badge") && (
+        <div className="flex justify-end items-center gap-2">
           <span
+            className="inline-flex items-center gap-2 rounded-full"
             style={{
-              width: 6,
-              height: 6,
-              borderRadius: 999,
-              background: oracleConfig.status === "active" ? "#4ade80" : "#888",
+              fontSize: 10,
+              padding: "4px 10px",
+              background: "rgba(255,255,255,0.04)",
+              border: `0.5px solid ${CARD_BORDER}`,
+              color: MUTED,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
             }}
-          />
-          <Activity size={10} />
-          ORACLE · {capitalize(oracleConfig.monitoring_mode ?? "balanced")}
-        </span>
-      </div>
+          >
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 999,
+                background: oracleConfig.status === "active" ? "#4ade80" : "#888",
+              }}
+            />
+            <Activity size={10} />
+            ORACLE · {capitalize(oracleConfig.monitoring_mode ?? "balanced")}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -346,6 +360,7 @@ function ThemeList({
   emptyRead,
   addLabel,
   onChange,
+  collapsible = false,
 }: {
   items: TaggedItem[];
   canEdit: boolean;
@@ -353,9 +368,18 @@ function ThemeList({
   emptyRead: string;
   addLabel: string;
   onChange: (next: TaggedItem[]) => Promise<boolean>;
+  collapsible?: boolean;
 }) {
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const toggleExpand = (id: string) =>
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   async function removeItem(id: string) {
     await onChange(items.filter((i) => i.id !== id));
@@ -398,6 +422,67 @@ function ThemeList({
             onCancel={() => setEditingId(null)}
             onSave={updateItem}
           />
+        ) : collapsible ? (
+          (() => {
+            const [title, ...rest] = String(it.text ?? "").split(" — ");
+            const detail = rest.join(" — ").trim();
+            const isExpanded = expandedIds.has(it.id);
+            return (
+              <div key={it.id} style={{ background: "rgba(255,255,255,0.02)", borderRadius: 6 }}>
+                <button
+                  type="button"
+                  onClick={() => toggleExpand(it.id)}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 text-left"
+                >
+                  <span
+                    style={{
+                      width: 4,
+                      height: 4,
+                      borderRadius: 999,
+                      background: GOLD,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span
+                    style={{
+                      color: "white",
+                      fontSize: 12,
+                      fontWeight: 500,
+                      flex: 1,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {title}
+                  </span>
+                  <span style={{ color: MUTED, fontSize: 10 }}>{isExpanded ? "▲" : "↓"}</span>
+                </button>
+                {isExpanded && (
+                  <div className="px-3 pb-2 pt-1" style={{ borderTop: `1px solid ${CARD_BORDER}` }}>
+                    {detail && (
+                      <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 11.5, lineHeight: 1.5 }}>
+                        {detail}
+                      </div>
+                    )}
+                    {it.rfp_reference && (
+                      <div style={{ color: MUTED, fontSize: 10, marginTop: 4 }}>{it.rfp_reference}</div>
+                    )}
+                    {canEdit && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <button onClick={() => setEditingId(it.id)} style={{ color: MUTED }} aria-label="Edit">
+                          <Pencil size={11} />
+                        </button>
+                        <button onClick={() => removeItem(it.id)} style={{ color: MUTED }} aria-label="Remove">
+                          <X size={12} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()
         ) : (
           <div
             key={it.id}
@@ -419,18 +504,10 @@ function ThemeList({
             </div>
             {canEdit && (
               <div className="flex items-center gap-1 shrink-0">
-                <button
-                  onClick={() => setEditingId(it.id)}
-                  style={{ color: MUTED }}
-                  aria-label="Edit"
-                >
+                <button onClick={() => setEditingId(it.id)} style={{ color: MUTED }} aria-label="Edit">
                   <Pencil size={12} />
                 </button>
-                <button
-                  onClick={() => removeItem(it.id)}
-                  style={{ color: MUTED }}
-                  aria-label="Remove"
-                >
+                <button onClick={() => removeItem(it.id)} style={{ color: MUTED }} aria-label="Remove">
                   <X size={14} />
                 </button>
               </div>
@@ -438,9 +515,7 @@ function ThemeList({
           </div>
         ),
       )}
-      {adding && (
-        <ItemForm onCancel={() => setAdding(false)} onSave={addItem} />
-      )}
+      {adding && <ItemForm onCancel={() => setAdding(false)} onSave={addItem} />}
       {canEdit && !adding && (
         <button
           onClick={() => setAdding(true)}

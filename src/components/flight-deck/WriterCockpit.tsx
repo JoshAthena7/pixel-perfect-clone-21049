@@ -475,6 +475,8 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
           )}
         </div>
 
+        <LeadershipBroadcastBand missionId={missionId} />
+
         {cockpit?.pensDown && (
           <div style={{
             padding: "12px 14px", marginBottom: 16, borderRadius: 8,
@@ -1256,4 +1258,57 @@ function renderBriefMarkdown(q: Q): string {
     lines.push("");
   }
   return lines.join("\n");
+}
+
+/* ───────── Leadership Broadcast band (read-only, slim) ───────── */
+function LeadershipBroadcastBand({ missionId }: { missionId: string }) {
+  const { data } = useQuery({
+    queryKey: ["cockpit-leadership-broadcast", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("missions")
+        .select("leadership_broadcast, leadership_broadcast_author")
+        .eq("id", missionId)
+        .maybeSingle();
+      return data;
+    },
+  });
+  const text = (data?.leadership_broadcast ?? "").trim();
+  if (!text) return null;
+  const author = (data?.leadership_broadcast_author ?? "").trim() || "Leadership";
+  return (
+    <div
+      style={{
+        height: 32,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "0 14px",
+        marginBottom: 12,
+        background: "rgba(196,154,43,0.04)",
+        borderTop: "1px solid rgba(196,154,43,0.1)",
+        borderBottom: "1px solid rgba(196,154,43,0.1)",
+      }}
+    >
+      <span style={{ color: "rgba(196,154,43,0.5)", fontSize: 14, lineHeight: 1, fontFamily: "Georgia, serif" }}>
+        “
+      </span>
+      <span
+        style={{
+          flex: 1,
+          color: "white",
+          fontSize: 11,
+          fontStyle: "italic",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {text}
+      </span>
+      <span style={{ color: "rgba(255,255,255,0.45)", fontSize: 9, whiteSpace: "nowrap" }}>
+        — {author}
+      </span>
+    </div>
+  );
 }

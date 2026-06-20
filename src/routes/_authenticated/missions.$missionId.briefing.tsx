@@ -124,39 +124,46 @@ function BriefingPage() {
         }
       `}</style>
       <div style={{ background: NAVY, color: TEXT, minHeight: "100vh" }}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-8 py-8" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-8 py-8" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <HeroCard missionId={missionId} mission={mission} />
 
-          <OracleCanvasSlot missionId={missionId} />
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: "60fr 40fr",
+              gap: 24,
+              alignItems: "start",
+            }}
+          >
+            {/* LEFT COLUMN — strategic content */}
+            <div className="flex flex-col gap-6 min-w-0">
+              <NorthStarCompactCard missionId={missionId} />
+              <EvaluatorLensCard missionId={missionId} />
+              <OracleCanvas
+                missionId={missionId}
+                canEdit={canEditBroadcast}
+                only={["winThemes"]}
+                winThemesCollapsed
+              />
+              <IrisBriefCard missionId={missionId} mission={mission} />
+              <WatchItemsCard missionId={missionId} mission={mission} />
+            </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-            <div className="lg:col-span-3"><IrisBriefCard missionId={missionId} mission={mission} /></div>
-            <div className="lg:col-span-2 flex flex-col gap-4">
+            {/* RIGHT COLUMN — operational status */}
+            <div className="flex flex-col gap-6 min-w-0">
               <MissionHealthSummaryCard missionId={missionId} />
-              <LeadershipBroadcastCard missionId={missionId} mission={mission} canEdit={canEditBroadcast} />
+              <CompactMissionJourneyCard missionId={missionId} mission={mission} />
+              <StrategicRisksCard missionId={missionId} />
+              <CompetitorsCard missionId={missionId} />
+              <WhatChangedCard missionId={missionId} />
+              <MissionLeadersCard missionId={missionId} />
             </div>
           </div>
-
-          <MissionJourneyCard missionId={missionId} mission={mission} />
-
-          <div className="grid grid-cols-1">
-            <EvaluatorLensCard missionId={missionId} />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <StrategicRisksCard missionId={missionId} />
-            <CompetitorsCard missionId={missionId} />
-          </div>
-
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <WatchItemsCard missionId={missionId} mission={mission} />
-            <WhatChangedCard missionId={missionId} />
-          </div>
-
-          <MissionLeadersCard missionId={missionId} />
         </div>
       </div>
+      {/* Unused for now — kept so admin edit flows still compile */}
+      {false && canEditBroadcast && <LeadershipBroadcastCard missionId={missionId} mission={mission} canEdit={canEditBroadcast} />}
+      {false && <OracleCanvasSlot missionId={missionId} />}
     </>
   );
 }
@@ -461,7 +468,7 @@ function extractFocusItems(content: any, summary?: string | null): string[] {
 
 /* ───────────────── 2c. IRIS Brief (combined: Today's Focus + IRIS Guidance) ───────────────── */
 function IrisBriefCard({ missionId, mission }: { missionId: string; mission: any }) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(true);
   const { data: brief } = useQuery({
     queryKey: ["briefing-todays-focus", missionId],
     queryFn: async () => {
@@ -1311,15 +1318,15 @@ function WhatChangedCard({ missionId }: { missionId: string }) {
     },
   });
 
+  if (events.length === 0) return null;
+
   return (
     <section style={glass}>
       <div className="flex items-center gap-2 mb-4" style={cardLabel}>
         <RefreshCw size={14} /> What Changed
       </div>
-      {events.length === 0 ? (
-        <EmptyState>No updates yet. Changes to mission intelligence will appear here.</EmptyState>
+      {(
 
-      ) : (
         <>
           <ul className="space-y-3">
             {events.map((ev: any) => {
@@ -1823,6 +1830,177 @@ function MessageLeaderDialog({
     </Dialog>
   );
 }
+
+
+/* ───────────────── Compact North Star ───────────────── */
+function NorthStarCompactCard({ missionId }: { missionId: string }) {
+  const { data: cfg } = useQuery({
+    queryKey: ["briefing-north-star-compact", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("oracle_engagement_config")
+        .select("north_star")
+        .eq("mission_id", missionId)
+        .maybeSingle();
+      return data;
+    },
+  });
+  const quote = (cfg?.north_star ?? "").trim();
+  if (!quote) return null;
+  return (
+    <section>
+      <div
+        style={{
+          color: GOLD,
+          fontSize: 8,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          fontWeight: 700,
+          marginBottom: 8,
+        }}
+      >
+        North Star
+      </div>
+      <div
+        style={{
+          color: "white",
+          fontSize: 14,
+          fontStyle: "italic",
+          fontFamily: "Georgia, serif",
+          lineHeight: 1.5,
+        }}
+      >
+        {quote}
+      </div>
+    </section>
+  );
+}
+
+/* ───────────────── Compact Mission Journey ───────────────── */
+function CompactMissionJourneyCard({ missionId, mission }: { missionId: string; mission: any }) {
+  const [expanded, setExpanded] = React.useState(false);
+
+  const { data: phaseRows = [] } = useQuery({
+    queryKey: ["briefing-compact-journey-phases", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_journey_phases")
+        .select("name, kind, order_index, start_date, end_date")
+        .eq("mission_id", missionId)
+        .eq("kind", "phase")
+        .order("order_index", { ascending: true });
+      return data ?? [];
+    },
+  });
+
+  const { data: milestones = [] } = useQuery({
+    queryKey: ["briefing-compact-journey-milestones", missionId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mission_milestones")
+        .select("id, title, milestone_date")
+        .eq("mission_id", missionId)
+        .order("milestone_date", { ascending: true });
+      return data ?? [];
+    },
+  });
+
+  const now = Date.now();
+  const currentPhase = (phaseRows as any[]).find((p) => {
+    const start = p.start_date ? new Date(p.start_date).getTime() : null;
+    const end = p.end_date ? new Date(p.end_date).getTime() : null;
+    if (start && end) return now >= start && now <= end;
+    if (start && !end) return now >= start;
+    return false;
+  }) ?? (phaseRows as any[])[0];
+
+  const nextMilestone = (milestones as any[]).find(
+    (m) => m.milestone_date && new Date(m.milestone_date).getTime() >= now,
+  );
+  const nextDays = nextMilestone?.milestone_date
+    ? Math.max(0, Math.ceil((new Date(nextMilestone.milestone_date).getTime() - now) / 86400000))
+    : null;
+
+  const subDate = mission?.submission_deadline ? new Date(mission.submission_deadline) : null;
+  const subDays = subDate ? Math.max(0, Math.ceil((subDate.getTime() - now) / 86400000)) : null;
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: 9,
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    color: META_SOFT,
+    fontWeight: 600,
+  };
+  const valueStyle: React.CSSProperties = {
+    fontSize: 12,
+    color: "white",
+    textAlign: "right",
+    fontWeight: 500,
+  };
+
+  return (
+    <section>
+      <div
+        style={{
+          background: "rgba(255,255,255,0.03)",
+          border: "1px solid rgba(255,255,255,0.06)",
+          borderRadius: 6,
+          padding: "14px 16px",
+        }}
+      >
+        <div className="flex items-center justify-between mb-3" style={cardLabel}>
+          <span className="flex items-center gap-2">
+            <Plane size={12} /> Mission Journey
+          </span>
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            style={{
+              fontSize: 9,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              color: META_SOFT,
+              fontWeight: 500,
+            }}
+          >
+            {expanded ? "Hide timeline ▲" : "View timeline ↓"}
+          </button>
+        </div>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <span style={labelStyle}>Current Phase</span>
+            <span style={valueStyle}>{currentPhase?.name ?? "—"}</span>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span style={labelStyle}>Next Milestone</span>
+            <span style={valueStyle}>
+              {nextMilestone
+                ? `${truncate(nextMilestone.title ?? "Milestone", 40)} — ${nextDays}d`
+                : "—"}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span style={labelStyle}>Submission</span>
+            <span style={valueStyle}>
+              {subDate
+                ? `${subDate.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}${
+                    subDays !== null ? ` — ${subDays}d` : ""
+                  }`
+                : "—"}
+            </span>
+          </div>
+        </div>
+      </div>
+      {expanded && (
+        <div className="mt-3">
+          <MissionJourneyCard missionId={missionId} mission={mission} />
+        </div>
+      )}
+    </section>
+  );
+}
+
+
 
 
 /* ───────────────── Shared bits ───────────────── */
