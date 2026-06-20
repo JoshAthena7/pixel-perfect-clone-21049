@@ -32,6 +32,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { askIrisWithSources } from "@/lib/iris/perplexity.functions";
 import ReactMarkdown from "react-markdown";
 import { IrisMark } from "@/components/iris/IrisMark";
+import { ReadAloudToggle } from "@/components/iris/ReadAloudToggle";
 import { useIris, getPageLabel } from "@/components/iris/IrisContext";
 
 const IRIS = "#A78BFA";
