@@ -69,6 +69,10 @@ export function IntelStatusWidget({ missionId }: { missionId: string }) {
 
       <MomentumScoreCompact missionId={missionId} />
 
+      <OracleMissingCompactWarning missionId={missionId} />
+
+
+
 
 
       {ready ? (
