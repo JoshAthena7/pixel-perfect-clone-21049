@@ -40,7 +40,7 @@ function useCrumbs(): Crumb[] {
     return [
       { label: "Olympus", to: "/olympus/missions" },
       { label: "Missions", to: "/olympus/missions" },
-      { label: missionName ?? "Mission" },
+      { label: shortMissionCode(missionName), fullLabel: missionName ?? undefined },
       { label: "Setup" },
     ];
   }
@@ -49,7 +49,7 @@ function useCrumbs(): Crumb[] {
     return [
       { label: "Olympus", to: "/olympus/missions" },
       { label: "Missions", to: "/olympus/missions" },
-      { label: missionName ?? "Mission", to: "/olympus/missions/$missionId", params: { missionId } },
+      { label: shortMissionCode(missionName), fullLabel: missionName ?? undefined, to: "/olympus/missions/$missionId", params: { missionId } },
       { label: tabLabel(tab) },
     ];
   }
