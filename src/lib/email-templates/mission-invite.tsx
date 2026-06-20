@@ -20,15 +20,26 @@ interface Props {
   engagementLeadName?: string
   expectedStartDate?: string
   acceptUrl?: string
+  // Customizable copy (fully resolved — tokens already substituted server-side)
+  intro?: string
+  body?: string
+  ctaLabel?: string
+  signoff?: string
 }
 
+const splitParas = (s: string) =>
+  s.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
+
 const MissionInviteEmail = ({
-  recipientName = 'there',
   missionName = 'your pursuit',
   role = 'Team Member',
   engagementLeadName = 'Your Engagement Lead',
   expectedStartDate = 'TBD',
   acceptUrl = 'https://athenacommandcenter.com/onboarding',
+  intro = 'Hi there,',
+  body = "You've been selected to join the pursuit team at Athena Strategy Command.",
+  ctaLabel = 'CREATE YOUR ACCOUNT →',
+  signoff = '— Athena Strategy Command',
 }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
@@ -42,12 +53,18 @@ const MissionInviteEmail = ({
         <Heading style={h1}>Your Mission Awaits</Heading>
         <Text style={subhead}>{missionName}</Text>
 
-        <Text style={greeting}>Hi {recipientName},</Text>
+        <Text style={greeting}>{intro}</Text>
 
-        <Text style={paragraph}>
-          You've been selected to join the <strong>{missionName}</strong> pursuit
-          team at Athena Strategy Command.
-        </Text>
+        {splitParas(body).map((p, i) => (
+          <Text key={i} style={paragraph}>
+            {p.split('\n').map((line, j, arr) => (
+              <React.Fragment key={j}>
+                {line}
+                {j < arr.length - 1 ? <br /> : null}
+              </React.Fragment>
+            ))}
+          </Text>
+        ))}
 
         <Section style={detailBox}>
           <Text style={detailRow}>
@@ -61,27 +78,20 @@ const MissionInviteEmail = ({
           </Text>
         </Section>
 
-        <Text style={paragraph}>
-          <strong>Atlas</strong> is the operational command platform where your
-          team coordinates, strategizes, and executes this pursuit.{' '}
-          <strong>IRIS</strong> — Athena's intelligence engine — will brief you,
-          flag what matters, and keep the mission moving.
-        </Text>
-
         <Section style={ctaWrap}>
           <Button href={acceptUrl} style={ctaButton}>
-            CREATE YOUR ACCOUNT →
+            {ctaLabel}
           </Button>
         </Section>
 
         <Text style={fineprint}>
-          This link expires in 72 hours. If you have questions, contact your
+          This link expires in 14 days. If you have questions, contact your
           Engagement Lead directly.
         </Text>
 
         <Hr style={divider} />
 
-        <Text style={signoff}>— Athena Strategy Command</Text>
+        <Text style={signoffStyle}>{signoff}</Text>
 
         <Text style={footer}>
           This invitation was sent by Athena Strategy Command. If you were not
@@ -95,6 +105,7 @@ const MissionInviteEmail = ({
 export const template = {
   component: MissionInviteEmail,
   subject: (data: Record<string, any>) =>
+    data?.resolvedSubject ||
     `Your Mission Awaits — ${data?.missionName ?? 'Athena Strategy Command'}`,
   displayName: 'Mission Invitation',
   previewData: {
@@ -104,6 +115,10 @@ export const template = {
     engagementLeadName: 'Jordan Reyes',
     expectedStartDate: 'June 15, 2026',
     acceptUrl: 'https://athenacommandcenter.com/onboarding?token=preview',
+    intro: 'Hi Alex,',
+    body: "You've been selected to join the NJ CSOC Cyber Defense Modernization pursuit team at Athena Strategy Command.\n\nAtlas is the operational command platform where your team coordinates, strategizes, and executes this pursuit. IRIS — Athena's intelligence engine — will brief you, flag what matters, and keep the mission moving.",
+    ctaLabel: 'CREATE YOUR ACCOUNT →',
+    signoff: '— Athena Strategy Command',
   },
 } satisfies TemplateEntry
 
@@ -181,7 +196,7 @@ const fineprint = {
   marginTop: '8px',
 }
 const divider = { borderColor: 'rgba(255,255,255,0.1)', margin: '32px 0 20px' }
-const signoff = { fontSize: '13px', color: '#C3C8D1', fontStyle: 'italic' as const }
+const signoffStyle = { fontSize: '13px', color: '#C3C8D1', fontStyle: 'italic' as const }
 const footer = {
   fontSize: '11px',
   color: '#6B7280',

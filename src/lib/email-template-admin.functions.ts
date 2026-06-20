@@ -14,20 +14,19 @@ const SaveInput = z.object({
 });
 
 async function assertAdmin(supabase: any, userId: string) {
-  const { data } = await supabase
+  const { data: role } = await supabase
     .from("user_roles")
     .select("role")
     .eq("user_id", userId)
     .eq("role", "admin")
     .maybeSingle();
-  if (!data) {
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("is_platform_admin")
-      .eq("id", userId)
-      .maybeSingle();
-    if (!prof?.is_platform_admin) throw new Error("Admin only");
-  }
+  if (role) return;
+  const { data: prof } = await supabase
+    .from("profiles")
+    .select("is_platform_admin")
+    .eq("id", userId)
+    .maybeSingle();
+  if (!prof?.is_platform_admin) throw new Error("Admin only");
 }
 
 export const getEmailTemplateOverride = createServerFn({ method: "POST" })
@@ -51,19 +50,19 @@ export const saveEmailTemplateOverride = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
     await assertAdmin(supabase, userId);
-    const row = {
-      template_key: data.templateKey,
-      subject: data.subject,
-      intro: data.intro,
-      body: data.body,
-      cta_label: data.cta_label,
-      signoff: data.signoff,
-      updated_at: new Date().toISOString(),
-      updated_by: userId,
-    };
-    const { error } = await supabase
-      .from("email_template_overrides")
-      .upsert(row, { onConflict: "template_key" });
+    const { error } = await supabase.from("email_template_overrides").upsert(
+      {
+        template_key: data.templateKey,
+        subject: data.subject,
+        intro: data.intro,
+        body: data.body,
+        cta_label: data.cta_label,
+        signoff: data.signoff,
+        updated_at: new Date().toISOString(),
+        updated_by: userId,
+      },
+      { onConflict: "template_key" }
+    );
     if (error) throw new Error(error.message);
     return { ok: true };
   });
