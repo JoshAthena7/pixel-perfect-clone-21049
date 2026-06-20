@@ -87,7 +87,7 @@ export const updateProgressStatus = createServerFn({ method: "POST" })
     const { error: updErr } = await supabase
       .from("question_progress")
       .update({
-        status: data.newStatus,
+        status: resolved,
         status_changed_at: now,
         status_changed_by: userId,
         last_activity_at: now,
@@ -95,10 +95,9 @@ export const updateProgressStatus = createServerFn({ method: "POST" })
       .eq("id", data.progressId);
     if (updErr) throw updErr;
 
-    // Keep mission_questions.status in sync so ATC health calcs / coverage see fresh data.
     await supabase
       .from("mission_questions")
-      .update({ status: data.newStatus } as never)
+      .update({ status: resolved } as never)
       .eq("id", row.question_id);
 
     await supabase.from("mission_assist_events").insert({
@@ -106,7 +105,7 @@ export const updateProgressStatus = createServerFn({ method: "POST" })
       question_id: row.question_id,
       user_id: userId,
       event_type: "status_updated",
-      metadata: { from: row.status, to: data.newStatus } as never,
+      metadata: { from: row.status, to: resolved } as never,
     });
     return { ok: true };
   });
