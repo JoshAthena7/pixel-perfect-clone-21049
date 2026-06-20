@@ -638,7 +638,8 @@ function LeaderboardPanel({ missionId, onClose }: { missionId: string; onClose: 
           </>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
