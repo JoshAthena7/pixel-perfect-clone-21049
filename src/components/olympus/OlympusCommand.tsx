@@ -215,6 +215,7 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
                 missionId={missionId}
                 selectedNodeId={selectedNodeId}
                 onSelect={setSelectedNodeId}
+                onFeed={() => openFeed("documents")}
               />
             ) : (
               <TaxonomyBrowser selectedNodeId={selectedNodeId} onSelect={setSelectedNodeId} />
