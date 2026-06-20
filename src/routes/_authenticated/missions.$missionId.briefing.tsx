@@ -15,7 +15,7 @@ import {
   RefreshCw,
   Megaphone,
   Users,
-  Mail,
+  Mail as _Mail,
   ArrowRight,
   Check,
   Plus,
@@ -25,7 +25,13 @@ import {
   Zap,
   AlertCircle,
   Pencil,
+  MessageSquare,
+  AlertOctagon,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
 import { MissionHealthSummaryCard } from "@/components/mission-command/MissionHealthSummaryCard";
 import { MissionClock } from "@/components/briefing/MissionClock";
@@ -1676,21 +1682,10 @@ function MissionLeadersCard({ missionId }: { missionId: string }) {
                   {name}
                 </div>
                 <div style={{ fontSize: 11.5, color: GOLD, marginTop: 2 }}>{l.role}</div>
-                {l.member.email && (
-                  <a
-                    href={`mailto:${l.member.email}`}
-                    className="mt-2 grid place-items-center"
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: "50%",
-                      background: "rgba(255,255,255,0.06)",
-                      color: META,
-                    }}
-                  >
-                    <Mail size={12} />
-                  </a>
-                )}
+                <LeaderActions
+                  missionId={missionId}
+                  leader={l}
+                />
               </div>
             );
           })}
@@ -1699,6 +1694,136 @@ function MissionLeadersCard({ missionId }: { missionId: string }) {
     </section>
   );
 }
+
+/* In-app message to a mission leader (writes to atlas_notifications).
+   Email is kept as a separate, explicit "critical only" action. */
+function LeaderActions({ missionId, leader }: { missionId: string; leader: LeaderRow }) {
+  const [msgOpen, setMsgOpen] = React.useState(false);
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => setMsgOpen(true)}
+        title={`Message ${leader.member.name} in Atlas`}
+        className="grid place-items-center transition-colors hover:text-foreground"
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: "50%",
+          background: "rgba(255,255,255,0.06)",
+          color: META,
+        }}
+      >
+        <MessageSquare size={12} />
+      </button>
+      {leader.member.email && (
+        <a
+          href={`mailto:${leader.member.email}?subject=${encodeURIComponent("[CRITICAL] Mission escalation")}`}
+          title="Critical email (external) — use sparingly"
+          className="grid place-items-center transition-colors hover:text-foreground"
+          style={{
+            width: 22,
+            height: 22,
+            borderRadius: "50%",
+            background: "rgba(220, 70, 70, 0.10)",
+            color: "rgba(220, 70, 70, 0.85)",
+          }}
+        >
+          <AlertOctagon size={10} />
+        </a>
+      )}
+      <MessageLeaderDialog
+        open={msgOpen}
+        onOpenChange={setMsgOpen}
+        missionId={missionId}
+        leader={leader}
+      />
+    </div>
+  );
+}
+
+function MessageLeaderDialog({
+  open,
+  onOpenChange,
+  missionId,
+  leader,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  missionId: string;
+  leader: LeaderRow;
+}) {
+  const [text, setText] = React.useState("");
+  const [busy, setBusy] = React.useState(false);
+
+  const submit = async () => {
+    const body = text.trim();
+    if (!body) return;
+    setBusy(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      let senderName = "Team member";
+      if (user?.id) {
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("display_name,email")
+          .eq("id", user.id)
+          .maybeSingle();
+        senderName = (prof?.display_name as string | null) || (prof?.email as string | null) || senderName;
+      }
+      const { error } = await supabase.from("atlas_notifications").insert({
+        recipient_id: leader.member.id,
+        recipient_role: leader.role.toLowerCase(),
+        type: "direct_message",
+        message: `${senderName} → ${leader.role}: ${body.slice(0, 240)}`,
+        metadata: {
+          mission_id: missionId,
+          sender_id: user?.id ?? null,
+          sender_name: senderName,
+          full_body: body,
+          channel: "atlas_inbox",
+        },
+      });
+      if (error) throw error;
+      toast.success(`Message sent to ${leader.member.name} in Atlas.`);
+      setText("");
+      onOpenChange(false);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !busy && onOpenChange(v)}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Message {leader.member.name}</DialogTitle>
+        </DialogHeader>
+        <p className="text-xs text-muted-foreground">
+          Delivered inside Atlas — no external email is sent. For critical escalations
+          that need email, use the red alert icon on the leader card.
+        </p>
+        <Textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={`Message to ${leader.role}…`}
+          rows={6}
+        />
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={busy}>
+            Cancel
+          </Button>
+          <Button onClick={submit} disabled={busy || !text.trim()}>
+            {busy ? "Sending…" : "Send in Atlas"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 /* ───────────────── Shared bits ───────────────── */
 function EmptyState({ children }: { children: React.ReactNode }) {
