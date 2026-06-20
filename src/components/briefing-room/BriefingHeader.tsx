@@ -57,8 +57,10 @@ export function BriefingHeader({
             {missionName}
           </h1>
           {clientName && (
-            <div className="mt-0.5" style={{ color: "rgba(255,255,255,0.45)", fontSize: 12 }}>
-              {clientName}
+            <div className="mt-1 space-y-0.5" style={{ color: "rgba(255,255,255,0.45)", fontSize: 9, lineHeight: 1.4 }}>
+              {splitAgencies(clientName).map((agency, i) => (
+                <div key={i} className="break-words">{agency}</div>
+              ))}
             </div>
           )}
         </div>
