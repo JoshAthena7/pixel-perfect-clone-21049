@@ -51,6 +51,7 @@ import { Route as AuthenticatedAdminIrisRefreshRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminIrisHealthRouteImport } from './routes/_authenticated/admin.iris-health'
 import { Route as AuthenticatedAdminIrisControlRouteImport } from './routes/_authenticated/admin.iris-control'
 import { Route as AuthenticatedAdminInsightsRouteImport } from './routes/_authenticated/admin.insights'
+import { Route as AuthenticatedAdminEmailTemplatesRouteImport } from './routes/_authenticated/admin.email-templates'
 import { Route as AuthenticatedAdminActivityRouteImport } from './routes/_authenticated/admin.activity'
 import { Route as AuthenticatedOlympusMissionsIndexRouteImport } from './routes/_authenticated/olympus.missions.index'
 import { Route as AuthenticatedMissionsMissionIdIndexRouteImport } from './routes/_authenticated/missions.$missionId.index'
@@ -328,6 +329,12 @@ const AuthenticatedAdminInsightsRoute =
   AuthenticatedAdminInsightsRouteImport.update({
     id: '/insights',
     path: '/insights',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminEmailTemplatesRoute =
+  AuthenticatedAdminEmailTemplatesRouteImport.update({
+    id: '/email-templates',
+    path: '/email-templates',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminActivityRoute =
@@ -654,6 +661,7 @@ export interface FileRoutesByFullPath {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/welcome/$token': typeof WelcomeTokenRoute
   '/admin/activity': typeof AuthenticatedAdminActivityRoute
+  '/admin/email-templates': typeof AuthenticatedAdminEmailTemplatesRoute
   '/admin/insights': typeof AuthenticatedAdminInsightsRoute
   '/admin/iris-control': typeof AuthenticatedAdminIrisControlRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
@@ -745,6 +753,7 @@ export interface FileRoutesByTo {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/welcome/$token': typeof WelcomeTokenRoute
   '/admin/activity': typeof AuthenticatedAdminActivityRoute
+  '/admin/email-templates': typeof AuthenticatedAdminEmailTemplatesRoute
   '/admin/insights': typeof AuthenticatedAdminInsightsRoute
   '/admin/iris-control': typeof AuthenticatedAdminIrisControlRoute
   '/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
@@ -840,6 +849,7 @@ export interface FileRoutesById {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/welcome/$token': typeof WelcomeTokenRoute
   '/_authenticated/admin/activity': typeof AuthenticatedAdminActivityRoute
+  '/_authenticated/admin/email-templates': typeof AuthenticatedAdminEmailTemplatesRoute
   '/_authenticated/admin/insights': typeof AuthenticatedAdminInsightsRoute
   '/_authenticated/admin/iris-control': typeof AuthenticatedAdminIrisControlRoute
   '/_authenticated/admin/iris-health': typeof AuthenticatedAdminIrisHealthRoute
@@ -935,6 +945,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/welcome/$token'
     | '/admin/activity'
+    | '/admin/email-templates'
     | '/admin/insights'
     | '/admin/iris-control'
     | '/admin/iris-health'
@@ -1026,6 +1037,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/welcome/$token'
     | '/admin/activity'
+    | '/admin/email-templates'
     | '/admin/insights'
     | '/admin/iris-control'
     | '/admin/iris-health'
@@ -1120,6 +1132,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/welcome/$token'
     | '/_authenticated/admin/activity'
+    | '/_authenticated/admin/email-templates'
     | '/_authenticated/admin/insights'
     | '/_authenticated/admin/iris-control'
     | '/_authenticated/admin/iris-health'
@@ -1525,6 +1538,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminInsightsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/email-templates': {
+      id: '/_authenticated/admin/email-templates'
+      path: '/email-templates'
+      fullPath: '/admin/email-templates'
+      preLoaderRoute: typeof AuthenticatedAdminEmailTemplatesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/activity': {
       id: '/_authenticated/admin/activity'
       path: '/activity'
@@ -1901,6 +1921,7 @@ const AuthenticatedAdminTeamRouteWithChildren =
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminActivityRoute: typeof AuthenticatedAdminActivityRoute
+  AuthenticatedAdminEmailTemplatesRoute: typeof AuthenticatedAdminEmailTemplatesRoute
   AuthenticatedAdminInsightsRoute: typeof AuthenticatedAdminInsightsRoute
   AuthenticatedAdminIrisControlRoute: typeof AuthenticatedAdminIrisControlRoute
   AuthenticatedAdminIrisHealthRoute: typeof AuthenticatedAdminIrisHealthRoute
@@ -1920,6 +1941,7 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminActivityRoute: AuthenticatedAdminActivityRoute,
+  AuthenticatedAdminEmailTemplatesRoute: AuthenticatedAdminEmailTemplatesRoute,
   AuthenticatedAdminInsightsRoute: AuthenticatedAdminInsightsRoute,
   AuthenticatedAdminIrisControlRoute: AuthenticatedAdminIrisControlRoute,
   AuthenticatedAdminIrisHealthRoute: AuthenticatedAdminIrisHealthRoute,
