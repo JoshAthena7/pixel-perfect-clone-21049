@@ -7,6 +7,8 @@ type Signal = {
   title: string;
   category: string;
   status?: string;
+  relevance_score?: number | null;
+  urgency_level?: string | null;
 };
 
 const CATEGORY_STYLES: Record<string, { color: string; rgb: string; label: string }> = {
@@ -24,8 +26,9 @@ const CATEGORY_KEYS = Object.keys(CATEGORY_STYLES);
 const GOLD = "196,154,43";
 const PURPLE = "167,139,250";
 const GREEN = "74,222,128";
+const BLUE = "96,165,250";
 
-type AtlasNode = { id: string; label: string; cat: "input" | "processing" | "data" | "core" | "output" | "terminal"; stat: string };
+type AtlasNode = { id: string; label: string; cat: "input" | "processing" | "data" | "core" | "output" | "terminal"; stat: string; hasActivity: boolean };
 
 function liveClock(): string {
   const d = new Date();
@@ -45,6 +48,29 @@ const IRIS_STATUS = [
   "DETECTING SIGNAL CONFLICTS...",
   "UPDATING MISSION MOMENTUM...",
 ];
+
+// Deterministic pseudo-random based on string for missing fields
+function hashFloat(s: string, salt = 0): number {
+  let h = 2166136261 ^ salt;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return ((h >>> 0) % 10000) / 10000;
+}
+
+function relevanceFor(s: Signal): number {
+  if (typeof s.relevance_score === "number") return Math.max(0, Math.min(100, s.relevance_score));
+  return 45 + Math.floor(hashFloat(s.id, 1) * 50); // 45..95
+}
+function urgencyFor(s: Signal): "immediate" | "high" | "normal" | "low" {
+  const u = (s.urgency_level ?? "").toLowerCase();
+  if (u === "immediate" || u === "high" || u === "normal" || u === "low") return u as "immediate" | "high" | "normal" | "low";
+  const r = relevanceFor(s);
+  if (r >= 85) return "high";
+  if (r >= 70) return "normal";
+  return "low";
+}
 
 function ATLASCommandSurfaceInner({ missionId, signals }: { missionId: string; signals: Signal[] }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -72,7 +98,7 @@ function ATLASCommandSurfaceInner({ missionId, signals }: { missionId: string; s
     queryFn: async () => {
       const { data } = await supabase
         .from("missions")
-        .select("name, submission_deadline, state_code")
+        .select("name, submission_deadline, state_code, created_at")
         .eq("id", missionId)
         .maybeSingle();
       return data;
@@ -118,6 +144,54 @@ function ATLASCommandSurfaceInner({ missionId, signals }: { missionId: string; s
   const missionLabel = (mission?.name ?? "MISSION").slice(0, 20).toUpperCase();
   const stateLabel = mission?.state_code ?? "—";
 
+  const coverage = Math.min(100, signalCount * 4);
+  const momentumScore = Math.min(100, (counts?.briefs ?? 0) * 3 + signalCount);
+  const briefCount = counts?.briefs ?? 0;
+
+  // Approximate signals/hr throughput
+  const throughput = useMemo(() => {
+    const created = (mission as { created_at?: string } | null | undefined)?.created_at;
+    if (!created) return Math.max(0, Math.round(signalCount * 0.4));
+    const days = Math.max(1, (Date.now() - new Date(created).getTime()) / 86400000);
+    return Math.max(0, Math.round((signalCount / days) * 24));
+  }, [mission, signalCount]);
+
+  // Header status flasher
+  const statusFlashes = useMemo(
+    () => [
+      "ORACLE PIPELINE: PROCESSING",
+      `IRIS: ${briefCount} BRIEFS ACTIVE`,
+      `SIGNAL COVERAGE: ${coverage}%`,
+      "WRITER COCKPIT: STANDBY",
+      "STATE INTELLIGENCE: SYNCHRONIZED",
+      `MOMENTUM SCORE: ${momentumScore}`,
+    ],
+    [briefCount, coverage, momentumScore]
+  );
+  const [flashIdx, setFlashIdx] = useState<number | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    let timeout: ReturnType<typeof setTimeout>;
+    const cycle = () => {
+      const delay = 8000 + Math.random() * 4000;
+      timeout = setTimeout(() => {
+        if (cancelled) return;
+        const idx = Math.floor(Math.random() * statusFlashes.length);
+        setFlashIdx(idx);
+        timeout = setTimeout(() => {
+          if (cancelled) return;
+          setFlashIdx(null);
+          cycle();
+        }, 2100);
+      }, delay);
+    };
+    cycle();
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [statusFlashes.length]);
+
   // Layout
   const HEADER_H = 36;
   const FOOTER_H = 28;
@@ -132,13 +206,27 @@ function ATLASCommandSurfaceInner({ missionId, signals }: { missionId: string; s
       style={{
         height: TOTAL_H,
         background:
-          "repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(255,255,255,0.012) 2px, rgba(255,255,255,0.012) 3px), #000000",
+          "repeating-linear-gradient(0deg, transparent 0px, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px)," +
+          "repeating-linear-gradient(90deg, transparent 0px, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px)," +
+          "#000000",
         borderBottom: "1px solid rgba(196,154,43,0.3)",
         overflow: "hidden",
         fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
       }}
     >
       <style>{KEYFRAMES}</style>
+
+      {/* Edge vignette */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%)",
+          pointerEvents: "none",
+          zIndex: 2,
+        }}
+      />
 
       {/* Corner brackets */}
       <CornerBrackets />
@@ -161,22 +249,58 @@ function ATLASCommandSurfaceInner({ missionId, signals }: { missionId: string; s
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span
-            style={{
-              width: 5,
-              height: 5,
-              borderRadius: 999,
-              background: `rgba(${GREEN},1)`,
-              animation: "atlas-blink 0.8s steps(2) infinite",
-              display: "inline-block",
-            }}
-          />
+          {/* Broadcast signal: solid inner + expanding ring */}
+          <span style={{ position: "relative", width: 14, height: 14, display: "inline-block" }}>
+            <span
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 8,
+                height: 8,
+                marginTop: -4,
+                marginLeft: -4,
+                borderRadius: 999,
+                background: `rgba(${GREEN},0.3)`,
+                animation: "atlas-broadcast 1.5s ease-out infinite",
+              }}
+            />
+            <span
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 5,
+                height: 5,
+                marginTop: -2.5,
+                marginLeft: -2.5,
+                borderRadius: 999,
+                background: `rgba(${GREEN},1)`,
+              }}
+            />
+          </span>
           <span style={{ color: `rgba(${GOLD},1)`, fontSize: 9, letterSpacing: "0.2em" }}>
             ◈ ATLAS INTELLIGENCE COMMAND
           </span>
         </div>
-        <div style={{ color: `rgba(${GOLD},0.5)`, fontSize: 7, letterSpacing: "0.15em" }}>
-          CLASSIFICATION: RESTRICTED · MISSION {missionId.slice(0, 8).toUpperCase()} · {stateLabel} MEDICAID
+        <div style={{ position: "relative", color: `rgba(${GOLD},0.5)`, fontSize: 7, letterSpacing: "0.15em", minHeight: 10 }}>
+          <span style={{ opacity: flashIdx === null ? 1 : 0, transition: "opacity 300ms" }}>
+            CLASSIFICATION: RESTRICTED · MISSION {missionId.slice(0, 8).toUpperCase()} · {stateLabel} MEDICAID
+          </span>
+          {flashIdx !== null && (
+            <span
+              style={{
+                position: "absolute",
+                inset: 0,
+                textAlign: "center",
+                color: `rgba(${GOLD},0.95)`,
+                animation: "atlas-flash-in 100ms ease-out",
+                letterSpacing: "0.2em",
+              }}
+            >
+              ⟢ {statusFlashes[flashIdx]} ⟣
+            </span>
+          )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ color: `rgba(${GOLD},0.6)`, fontSize: 9 }}>{clock}</span>
@@ -197,6 +321,7 @@ function ATLASCommandSurfaceInner({ missionId, signals }: { missionId: string; s
               briefs={counts?.briefs ?? 0}
               writers={counts?.writers ?? 0}
               stateLabel={stateLabel}
+              throughput={throughput}
             />
           )}
         </div>
@@ -209,11 +334,11 @@ function ATLASCommandSurfaceInner({ missionId, signals }: { missionId: string; s
           {panelW > 0 && <IrisPanel w={panelW} h={BODY_H} briefs={counts?.briefs ?? 0} />}
         </div>
 
-        {/* Inter-panel data flow indicators */}
+        {/* Inter-panel data flow indicators — burst-style */}
         {panelW > 0 && (
           <>
-            <DividerFlow left={panelW} h={BODY_H} colorRgb={GOLD} delay={0} />
-            <DividerFlow left={panelW * 2} h={BODY_H} colorRgb={PURPLE} delay={2} />
+            <DividerBurst left={panelW} h={BODY_H} colorRgb={BLUE} dotSize={2} interval={[3500, 5000]} />
+            <DividerBurst left={panelW * 2} h={BODY_H} colorRgb={GOLD} dotSize={3} interval={[3200, 4800]} />
           </>
         )}
       </div>
@@ -240,10 +365,10 @@ function ATLASCommandSurfaceInner({ missionId, signals }: { missionId: string; s
           ATLAS · {missionLabel} · {daysRemaining ?? "—"} DAYS REMAINING
         </div>
         <div style={{ flex: 1, textAlign: "center", color: `rgba(${GOLD},0.6)` }}>
-          ORACLE · {signalCount} SIGNALS · {Math.min(100, signalCount * 4)}% COVERAGE · PIPELINE ACTIVE
+          ORACLE · {signalCount} SIGNALS · {coverage}% COVERAGE · PIPELINE ACTIVE
         </div>
         <div style={{ flex: 1, textAlign: "right", color: `rgba(${PURPLE},0.6)` }}>
-          IRIS · {counts?.briefs ?? 0} BRIEFS · MOMENTUM {Math.min(100, (counts?.briefs ?? 0) * 3 + signalCount)} · {counts?.writers ?? 0} WRITERS
+          IRIS · {counts?.briefs ?? 0} BRIEFS · MOMENTUM {momentumScore} · {counts?.writers ?? 0} WRITERS
         </div>
       </div>
     </div>
@@ -255,22 +380,26 @@ export const ATLASCommandSurface = memo(ATLASCommandSurfaceInner);
 // ─────────────────────────────────────────────────────────────
 // ATLAS panel
 function AtlasPanel({
-  w, h, docs, questions, signals, briefs, writers, stateLabel,
+  w, h, docs, questions, signals, briefs, writers, stateLabel, throughput,
 }: {
-  w: number; h: number; docs: number; questions: number; signals: number; briefs: number; writers: number; stateLabel: string;
+  w: number; h: number; docs: number; questions: number; signals: number; briefs: number; writers: number; stateLabel: string; throughput: number;
 }) {
+  void questions;
   const HEADER = 32;
   const FOOTER = 22;
   const innerH = h - HEADER - FOOTER;
   const nodes: AtlasNode[] = [
-    { id: "rfp", label: "RFP DOCUMENTS", cat: "input", stat: `${docs} DOCS` },
-    { id: "pipe", label: "ORACLE PIPELINE", cat: "processing", stat: "ACTIVE" },
-    { id: "sig", label: "SIGNAL EXTRACTION", cat: "processing", stat: `${signals} SIG` },
-    { id: "state", label: "STATE INTELLIGENCE", cat: "data", stat: stateLabel.toUpperCase() },
-    { id: "core", label: "MISSION ORACLE", cat: "core", stat: `${signals}` },
-    { id: "iris", label: "IRIS BRIEFING LAYER", cat: "output", stat: `${briefs} BRIEFS` },
-    { id: "cock", label: "WRITER COCKPIT", cat: "terminal", stat: `${writers} WRITERS` },
+    { id: "rfp", label: "RFP DOCUMENTS",      cat: "input",      stat: `${docs} DOCS`,        hasActivity: docs > 0 },
+    { id: "pipe", label: "ORACLE PIPELINE",   cat: "processing", stat: "ACTIVE",              hasActivity: true },
+    { id: "sig", label: "SIGNAL EXTRACTION",  cat: "processing", stat: `${signals} SIG`,      hasActivity: signals > 0 },
+    { id: "state", label: "STATE INTELLIGENCE", cat: "data",     stat: stateLabel.toUpperCase(), hasActivity: stateLabel !== "—" },
+    { id: "core", label: "MISSION ORACLE",    cat: "core",       stat: `${signals}`,          hasActivity: signals > 0 },
+    { id: "iris", label: "IRIS BRIEFING LAYER", cat: "output",   stat: `${briefs} BRIEFS`,    hasActivity: briefs > 0 },
+    { id: "cock", label: "WRITER COCKPIT",    cat: "terminal",   stat: `${writers} WRITERS`,  hasActivity: writers > 0 },
   ];
+
+  // Per-stage connector speeds (seconds per cycle)
+  const CONNECTOR_SPEEDS = [1.2, 0.9, 2.1, 1.8, 0.7, 1.5];
 
   const NODE_H = 28;
   const slotH = innerH / nodes.length;
@@ -288,17 +417,26 @@ function AtlasPanel({
 
   return (
     <div style={{ position: "relative", width: w, height: h }}>
-      {/* Header */}
-      <PanelHeader title="ATLAS" subtitle="MISSION ARCHITECTURE" subtitleColorRgb={GOLD}
-        right={<span style={{ fontSize: 7, color: `rgba(${GREEN},0.8)`, border: `1px solid rgba(${GREEN},0.4)`, padding: "2px 6px", borderRadius: 2 }}>HEALTHY</span>} />
+      <PanelHeader
+        title="ATLAS"
+        subtitle="MISSION ARCHITECTURE"
+        subtitleColorRgb={GOLD}
+        right={
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 7, color: `rgba(${GOLD},0.8)`, letterSpacing: "0.15em" }}>↑ {throughput} SIG/HR</span>
+            <span style={{ fontSize: 7, color: `rgba(${GREEN},0.8)`, border: `1px solid rgba(${GREEN},0.4)`, padding: "2px 6px", borderRadius: 2 }}>HEALTHY</span>
+          </div>
+        }
+      />
 
-      {/* Pipeline */}
+      {/* Pipeline connectors */}
       <svg width={w} height={innerH} style={{ position: "absolute", top: HEADER, left: 0 }}>
-        {/* connectors */}
         {nodes.slice(0, -1).map((_, i) => {
           const y1 = slotH * i + slotH / 2 + NODE_H / 2;
           const y2 = slotH * (i + 1) + slotH / 2 - NODE_H / 2;
-          const isCritical = nodes[i].id === "core";
+          // Critical path is the MISSION ORACLE → IRIS BRIEFING LAYER connector (i === 4)
+          const isCritical = i === 4;
+          const speed = CONNECTOR_SPEEDS[i] ?? 1.5;
           return (
             <line
               key={i}
@@ -309,17 +447,18 @@ function AtlasPanel({
               stroke={isCritical ? `rgba(${GOLD},1)` : `rgba(${GOLD},0.6)`}
               strokeWidth={isCritical ? 2.5 : 2}
               strokeDasharray={isCritical ? "12 28" : "8 32"}
-              style={{ animation: `atlas-flow ${isCritical ? 1.0 : 1.2}s linear infinite` }}
+              style={{ animation: `atlas-flow ${speed}s linear infinite` }}
             />
           );
         })}
       </svg>
 
-      {/* nodes (HTML overlay for crisp text) */}
+      {/* Nodes (HTML overlay) */}
       <div style={{ position: "absolute", top: HEADER, left: 0, width: w, height: innerH }}>
         {nodes.map((n, i) => {
           const p = palette[n.cat];
           const top = slotH * i + slotH / 2 - NODE_H / 2;
+          const isOracle = n.id === "core";
           return (
             <div
               key={n.id}
@@ -329,7 +468,6 @@ function AtlasPanel({
                 left: xPad,
                 width: nodeW,
                 height: NODE_H,
-                border: `1px solid ${p.border}`,
                 background: p.bg,
                 display: "flex",
                 alignItems: "center",
@@ -340,16 +478,32 @@ function AtlasPanel({
                 color: p.label,
                 fontWeight: p.weight,
                 transition: "box-shadow 200ms, transform 200ms",
+                border: `1px solid ${p.border}`,
+                // Pulsing 3px left border when node has activity
+                borderLeft: `3px solid ${p.border}`,
+                animation: n.hasActivity && !isOracle ? "atlas-border-pulse 3s ease-in-out infinite" : undefined,
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = `0 0 12px rgba(${GOLD},0.4)`;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "none";
-              }}
+              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = `0 0 12px rgba(${GOLD},0.4)`; }}
+              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; }}
             >
-              <span>{n.label}</span>
-              <span style={{ opacity: 0.7 }}>{n.stat}</span>
+              {isOracle && (
+                <svg
+                  width={nodeW} height={NODE_H}
+                  style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none", overflow: "visible" }}
+                >
+                  <rect
+                    x={0.5} y={0.5}
+                    width={nodeW - 1} height={NODE_H - 1}
+                    fill="none"
+                    stroke={`rgba(${GOLD},1)`}
+                    strokeWidth={1.5}
+                    strokeDasharray={`30 ${(nodeW + NODE_H) * 2 - 30}`}
+                    style={{ animation: "atlas-orbit-border 4s linear infinite" }}
+                  />
+                </svg>
+              )}
+              <span style={{ position: "relative", zIndex: 1 }}>{n.label}</span>
+              <span style={{ position: "relative", zIndex: 1, opacity: 0.7 }}>{n.stat}</span>
             </div>
           );
         })}
@@ -380,41 +534,112 @@ function OraclePanel({
 }: {
   w: number; h: number; sigByCat: Map<string, Signal[]>; approved: Signal[]; signalCount: number;
 }) {
+  void sigByCat;
   const HEADER = 32;
-  const FEED_H = 70;
+  const FEED_H = 78;
   const innerH = h - HEADER - FEED_H;
   const cx = w / 2;
   const cy = HEADER + innerH / 2;
   const R_CORE = 80;
   const R_ORBIT = 110;
-  const R_ARM = 145;
-  const R_DOTS = 158;
+  const R_LABEL = 152;
+  const R_DOTS = 132;
 
   const cats = CATEGORY_KEYS;
   const slotAngle = (2 * Math.PI) / cats.length;
 
-  // signal dots (counter-rotating)
-  const signalDots = approved.slice(0, 20).map((s, i) => {
-    const catIdx = cats.indexOf(s.category);
-    const baseA = catIdx >= 0 ? catIdx * slotAngle : (i / 20) * 2 * Math.PI;
-    const jitter = ((i * 137) % 60 - 30) * (Math.PI / 180) * 0.1;
-    const a = baseA + jitter;
-    const r = R_DOTS + ((i * 7) % 14) - 5;
-    return {
-      x: Math.cos(a) * r,
-      y: Math.sin(a) * r,
-      color: CATEGORY_STYLES[s.category]?.color ?? "#94A3B8",
-      id: s.id,
+  // Animation clock for breathing + sweep position
+  const [now, setNow] = useState(() => performance.now());
+  useEffect(() => {
+    let raf = 0;
+    const tick = () => {
+      setNow(performance.now());
+      raf = requestAnimationFrame(tick);
     };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // Sweep angle in degrees (0 at top, increasing clockwise). 6s per revolution.
+  const sweepDeg = ((now / 6000) * 360) % 360;
+  const sweepRad = ((sweepDeg - 90) * Math.PI) / 180;
+
+  // Inner ring (1px) at slightly different rotation speed
+  const innerRingDeg = ((now / 9000) * 360) % 360;
+
+  // Build signal dot data with size/phase/period
+  const signalDots = useMemo(() => {
+    return approved.slice(0, 24).map((s, i) => {
+      const catIdx = cats.indexOf(s.category);
+      const baseA = catIdx >= 0 ? catIdx * slotAngle : (i / 24) * 2 * Math.PI;
+      const jitter = (hashFloat(s.id, 7) - 0.5) * 0.4;
+      const a = baseA + jitter;
+      const r = R_DOTS + (hashFloat(s.id, 9) - 0.5) * 22;
+      const rel = relevanceFor(s);
+      const radius = 3 + ((Math.max(40, Math.min(100, rel)) - 40) / 60) * 9; // 3..12px
+      const phase = hashFloat(s.id, 11) * Math.PI * 2;
+      const period = 1.8 + hashFloat(s.id, 13) * 4.3; // 1.8..6.1s
+      const urgency = urgencyFor(s);
+      return {
+        id: s.id,
+        x: Math.cos(a) * r,
+        y: Math.sin(a) * r,
+        a,
+        radius,
+        phase,
+        period,
+        urgency,
+        color: CATEGORY_STYLES[s.category]?.color ?? "#94A3B8",
+        rgb: CATEGORY_STYLES[s.category]?.rgb ?? "148,163,184",
+      };
+    });
+  }, [approved, cats, slotAngle]);
+
+  // Track recently-pinged dots (sonar) — when sweep passes within ~7° of a dot's angle
+  const pingRef = useRef<Map<string, number>>(new Map());
+  for (const d of signalDots) {
+    // dot angle in degrees, 0 at right (cos/sin). Convert to "0 at top" coord matching sweepDeg.
+    const dotDeg = ((d.a * 180) / Math.PI + 90 + 360) % 360;
+    const diff = Math.min(Math.abs(dotDeg - sweepDeg), 360 - Math.abs(dotDeg - sweepDeg));
+    if (diff < 4 && (pingRef.current.get(d.id) ?? -Infinity) < now - 700) {
+      pingRef.current.set(d.id, now);
+    }
+  }
+
+  // Track recently-hit category labels (within sweep cone)
+  const labelHitRef = useRef<Map<string, number>>(new Map());
+  cats.forEach((k, i) => {
+    const a = i * slotAngle;
+    const labelDeg = ((a * 180) / Math.PI + 90 + 360) % 360;
+    const diff = Math.min(Math.abs(labelDeg - sweepDeg), 360 - Math.abs(labelDeg - sweepDeg));
+    if (diff < 6 && (labelHitRef.current.get(k) ?? -Infinity) < now - 700) {
+      labelHitRef.current.set(k, now);
+    }
   });
 
-  // scrolling feed
+  // Arc flicker every 90° of rotation
+  const sweepQuadrant = Math.floor(sweepDeg / 90);
+  const inFlickerWindow = (sweepDeg - sweepQuadrant * 90) < 2; // ~50ms
+  const sweepOpacity = inFlickerWindow ? 0.8 : 0.65;
+
+  // ─── Feed: variable scroll speed + enter flicker ───
   const [feedIdx, setFeedIdx] = useState(0);
+  const feedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (approved.length === 0) return;
-    const t = setInterval(() => setFeedIdx((i) => i + 1), 2000);
-    return () => clearInterval(t);
-  }, [approved.length]);
+    const advance = () => {
+      const top = approved[feedIdx % approved.length];
+      const u = urgencyFor(top);
+      const delay = u === "immediate" ? 2500 : u === "high" ? 2000 : u === "low" ? 1000 : 1500;
+      feedTimer.current = setTimeout(() => {
+        setFeedIdx((i) => i + 1);
+      }, delay);
+    };
+    advance();
+    return () => {
+      if (feedTimer.current) clearTimeout(feedTimer.current);
+    };
+  }, [feedIdx, approved]);
 
   const feedItems = approved.length > 0
     ? Array.from({ length: 5 }, (_, k) => approved[(feedIdx + k) % approved.length])
@@ -426,80 +651,144 @@ function OraclePanel({
         title="ORACLE"
         subtitle="INTELLIGENCE NETWORK"
         subtitleColorRgb={GOLD}
-        right={<span style={{ fontSize: 7, color: `rgba(${GOLD},0.7)`, letterSpacing: "0.15em" }}>
-          {signalCount > 0 ? `${signalCount} SIGNALS ACTIVE` : "AWAITING INTELLIGENCE"}
-        </span>}
+        right={
+          <span style={{ fontSize: 7, color: `rgba(${GOLD},0.7)`, letterSpacing: "0.15em" }}>
+            {signalCount > 0 ? `${signalCount} SIGNALS ACTIVE` : "AWAITING INTELLIGENCE"}
+          </span>
+        }
       />
 
-      <svg width={w} height={innerH + HEADER} style={{ position: "absolute", top: 0, left: 0 }}>
-        {/* sweeping arc */}
-        <g style={{ transformOrigin: `${cx}px ${cy}px`, animation: "atlas-sweep 6s linear infinite" }}>
+      {/* Hot spot glow behind core */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          left: cx - 50,
+          top: cy - 30,
+          width: 100,
+          height: 60,
+          background: `radial-gradient(ellipse at center, rgba(${GOLD},0.04), transparent 70%)`,
+          filter: "blur(8px)",
+          pointerEvents: "none",
+        }}
+      />
+
+      <svg width={w} height={innerH + HEADER} style={{ position: "absolute", top: 0, left: 0, overflow: "visible" }}>
+        <defs>
+          <linearGradient id="sweepGrad" gradientUnits="userSpaceOnUse" x1={cx} y1={cy - R_ORBIT} x2={cx} y2={cy}>
+            <stop offset="0%" stopColor={`rgba(${GOLD},${sweepOpacity})`} />
+            <stop offset="100%" stopColor={`rgba(${GOLD},0)`} />
+          </linearGradient>
+        </defs>
+
+        {/* Sweeping wedge */}
+        <g style={{ transform: `rotate(${sweepDeg}deg)`, transformOrigin: `${cx}px ${cy}px` }}>
+          {/* Trailing 30° gradient wedge */}
           <path
-            d={describeArc(cx, cy, R_ORBIT, -7.5, 7.5)}
-            stroke={`rgba(${GOLD},0.8)`}
-            strokeWidth={1.2}
-            fill="none"
+            d={`M ${cx} ${cy} L ${cx} ${cy - R_ORBIT} A ${R_ORBIT} ${R_ORBIT} 0 0 0 ${cx + Math.sin(-30 * Math.PI / 180) * R_ORBIT} ${cy - Math.cos(-30 * Math.PI / 180) * R_ORBIT} Z`}
+            fill={`rgba(${GOLD},${sweepOpacity * 0.18})`}
+          />
+          {/* Bright leading edge (first 5°) */}
+          <line
+            x1={cx} y1={cy}
+            x2={cx} y2={cy - R_ORBIT}
+            stroke={`rgba(${GOLD},${Math.min(1, sweepOpacity + 0.2)})`}
+            strokeWidth={1.6}
           />
         </g>
 
-        {/* core */}
+        {/* Core circle */}
         <circle cx={cx} cy={cy} r={R_CORE} fill="none" stroke={`rgba(${GOLD},0.8)`} strokeWidth={1.5} />
+        {/* Inner thin ring rotating at different speed (visualized via a dashed circle that rotates) */}
+        <g style={{ transform: `rotate(${innerRingDeg}deg)`, transformOrigin: `${cx}px ${cy}px` }}>
+          <circle
+            cx={cx} cy={cy} r={R_CORE - 6}
+            fill="none"
+            stroke={`rgba(${GOLD},0.4)`}
+            strokeWidth={1}
+            strokeDasharray="6 10"
+          />
+        </g>
         <circle cx={cx} cy={cy} r={4} fill={`rgba(${GOLD},1)`} style={{ animation: "atlas-pulse 1.8s ease-in-out infinite" }} />
 
-        {/* orbital nodes group (clockwise) */}
-        <g style={{ transformOrigin: `${cx}px ${cy}px`, animation: "atlas-orbit-cw 20s linear infinite" }}>
-          {cats.map((k, i) => {
-            const a = i * slotAngle;
-            const x = cx + Math.cos(a) * R_ORBIT;
-            const y = cy + Math.sin(a) * R_ORBIT;
-            const style = CATEGORY_STYLES[k];
-            const count = sigByCat.get(k)?.length ?? 0;
-            const active = count > 0;
-            const ax = cx + Math.cos(a) * R_ARM;
-            const ay = cy + Math.sin(a) * R_ARM;
-            return (
-              <g key={k}>
-                <line x1={cx} y1={cy} x2={x} y2={y} stroke={`rgba(${style.rgb},${active ? 0.25 : 0.1})`} strokeWidth={0.5} />
+        {/* Static category label arms */}
+        {cats.map((k, i) => {
+          const a = i * slotAngle;
+          const lx = cx + Math.cos(a) * R_LABEL;
+          const ly = cy + Math.sin(a) * R_LABEL;
+          const tx = cx + Math.cos(a) * R_ORBIT;
+          const ty = cy + Math.sin(a) * R_ORBIT;
+          const style = CATEGORY_STYLES[k];
+          const hit = labelHitRef.current.get(k);
+          const sinceHit = hit ? now - hit : Infinity;
+          const hot = sinceHit < 600;
+          const labelOpacity = hot ? 1.0 : 0.2;
+          const lineOpacity = hot ? 0.6 : 0.15;
+          return (
+            <g key={k}>
+              <line x1={cx} y1={cy} x2={tx} y2={ty} stroke={`rgba(${style.rgb},${lineOpacity * 0.5})`} strokeWidth={0.5} />
+              <text
+                x={lx + Math.cos(a) * 6}
+                y={ly + Math.sin(a) * 6 + 2}
+                fontSize={7}
+                fill={hot ? `rgba(${GOLD},1)` : `rgba(${style.rgb},${labelOpacity})`}
+                textAnchor={Math.cos(a) < -0.2 ? "end" : Math.cos(a) > 0.2 ? "start" : "middle"}
+                style={{ letterSpacing: "0.1em", transition: "fill 250ms" }}
+              >
+                {style.label}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Signal dots — sized by relevance, asynchronous breathing */}
+        {signalDots.map((d) => {
+          const t = now / 1000;
+          const breath = 0.5 + 0.5 * Math.sin((t * (2 * Math.PI)) / d.period + d.phase);
+          const ping = pingRef.current.get(d.id);
+          const sincePing = ping ? now - ping : Infinity;
+          const pingActive = sincePing < 600;
+          const pingT = pingActive ? sincePing / 600 : 0; // 0..1
+          const isUrgent = d.urgency === "immediate" || d.urgency === "high";
+          const pingMaxExtra = isUrgent ? 26 : 20;
+          const pingR = d.radius + pingT * pingMaxExtra;
+          const pingOpacity = pingActive ? (1 - pingT) * (isUrgent ? 0.95 : 0.8) : 0;
+          return (
+            <g key={d.id}>
+              {pingActive && (
                 <circle
-                  cx={x} cy={y} r={8}
-                  fill={`rgba(${style.rgb},${active ? 0.9 : 0.3})`}
-                  style={active ? { animation: `atlas-node-pulse 2.2s ease-in-out infinite`, animationDelay: `${i * 0.2}s` } : undefined}
+                  cx={cx + d.x}
+                  cy={cy + d.y}
+                  r={pingR}
+                  fill="none"
+                  stroke={`rgba(${d.rgb},${pingOpacity})`}
+                  strokeWidth={isUrgent ? 1.4 : 1}
                 />
-                <line x1={x} y1={y} x2={ax} y2={ay} stroke={`rgba(${style.rgb},0.3)`} strokeWidth={0.5} />
-                <text
-                  x={ax + Math.cos(a) * 6}
-                  y={ay + Math.sin(a) * 6 + 2}
-                  fontSize={7}
-                  fill={`rgba(${style.rgb},${active ? 0.9 : 0.4})`}
-                  textAnchor={Math.cos(a) < -0.2 ? "end" : Math.cos(a) > 0.2 ? "start" : "middle"}
-                  style={{ letterSpacing: "0.1em" }}
-                >
-                  {style.label}
-                </text>
-              </g>
-            );
-          })}
-        </g>
+              )}
+              <circle
+                cx={cx + d.x}
+                cy={cy + d.y}
+                r={d.radius}
+                fill={d.color}
+                opacity={0.4 + breath * 0.55}
+              />
+            </g>
+          );
+        })}
 
-        {/* signal dots (counter-clockwise, slower) */}
-        <g style={{ transformOrigin: `${cx}px ${cy}px`, animation: "atlas-orbit-ccw 35s linear infinite" }}>
-          {signalDots.map((d, i) => (
-            <circle
-              key={d.id + i}
-              cx={cx + d.x}
-              cy={cy + d.y}
-              r={3}
-              fill={d.color}
-              opacity={0.85}
-            />
-          ))}
-        </g>
-
-        {/* core text */}
+        {/* Core text */}
         <text x={cx} y={cy - 14} textAnchor="middle" fontSize={8} fill={`rgba(${GOLD},0.6)`} style={{ letterSpacing: "0.2em" }}>
           ORACLE
         </text>
-        <text x={cx} y={cy + 8} textAnchor="middle" fontSize={20} fontWeight={700} fill="#ffffff">
+        <text
+          key={signalCount}
+          x={cx} y={cy + 8}
+          textAnchor="middle"
+          fontSize={20}
+          fontWeight={700}
+          fill="#ffffff"
+          style={{ animation: "atlas-count-pulse 500ms ease-out" }}
+        >
           {signalCount}
         </text>
         <text x={cx} y={cy + 22} textAnchor="middle" fontSize={7} fill={`rgba(${GOLD},0.4)`} style={{ letterSpacing: "0.2em" }}>
@@ -515,34 +804,51 @@ function OraclePanel({
           left: 0,
           right: 0,
           height: FEED_H,
-          padding: "8px 14px",
+          padding: "8px 14px 12px",
           borderTop: "1px solid rgba(196,154,43,0.1)",
           overflow: "hidden",
         }}
       >
         {feedItems.length > 0 ? (
-          feedItems.map((s, i) => (
-            <div
-              key={`${s.id}-${feedIdx}-${i}`}
-              style={{
-                fontSize: 7,
-                color: `rgba(${GOLD},${0.5 - i * 0.08})`,
-                letterSpacing: "0.1em",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                animation: i === 0 ? "atlas-fade-up 600ms ease-out" : undefined,
-                lineHeight: "11px",
-              }}
-            >
-              [{(s.category ?? "").toUpperCase().slice(0, 12)}] {(s.title ?? "").slice(0, 35)}
-            </div>
-          ))
+          feedItems.map((s, i) => {
+            const style = CATEGORY_STYLES[s.category];
+            const catLabel = (style?.label ?? (s.category ?? "").toUpperCase()).replace(/[· ]+/g, "_").slice(0, 12);
+            const catColor = style ? `rgba(${style.rgb},${0.9 - i * 0.12})` : `rgba(${GOLD},${0.6 - i * 0.1})`;
+            const titleColor = `rgba(255,255,255,${0.85 - i * 0.15})`;
+            return (
+              <div
+                key={`${s.id}-${feedIdx}-${i}`}
+                style={{
+                  fontSize: 7,
+                  letterSpacing: "0.1em",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  animation: i === 0 ? "atlas-feed-flicker 400ms ease-out" : undefined,
+                  lineHeight: "11px",
+                }}
+              >
+                <span style={{ color: catColor }}>[{catLabel}]</span>
+                <span style={{ color: titleColor }}> {(s.title ?? "").slice(0, 38)}</span>
+              </div>
+            );
+          })
         ) : (
           <div style={{ fontSize: 7, color: `rgba(${GOLD},0.4)`, letterSpacing: "0.15em" }}>
             SYSTEM READY — AWAITING INPUT
           </div>
         )}
+        {/* Intake cursor line */}
+        <div
+          style={{
+            position: "absolute",
+            left: 14,
+            right: 14,
+            bottom: 6,
+            height: 1,
+            background: `rgba(${GOLD},0.4)`,
+          }}
+        />
       </div>
     </div>
   );
@@ -557,14 +863,15 @@ function IrisPanel({ w, h, briefs }: { w: number; h: number; briefs: number }) {
 
   const NODES = useMemo(() => {
     const phi = (1 + Math.sqrt(5)) / 2;
-    const arr: { x: number; y: number; type: "in" | "syn" | "out"; idx: number }[] = [];
+    const arr: { x: number; y: number; type: "in" | "syn" | "out"; idx: number; relevance: number }[] = [];
     for (let i = 0; i < 18; i++) {
       const angle = i * phi * Math.PI * 2;
       const radius = Math.sqrt(i / 18) * (innerH * 0.35);
       const x = w / 2 + Math.cos(angle) * radius * 1.4;
       const y = innerH * 0.45 + Math.sin(angle) * radius;
       const type = i < 5 ? "in" : i < 13 ? "syn" : "out";
-      arr.push({ x, y, type, idx: i });
+      const relevance = 40 + Math.floor(hashFloat(`iris-${i}`, 3) * 60); // 40..100
+      arr.push({ x, y, type, idx: i, relevance });
     }
     return arr;
   }, [w, innerH]);
@@ -574,34 +881,94 @@ function IrisPanel({ w, h, briefs }: { w: number; h: number; briefs: number }) {
   const outputs = NODES.filter((n) => n.type === "out");
 
   const connections = useMemo(() => {
-    const out: { x1: number; y1: number; x2: number; y2: number; key: string }[] = [];
-    for (const a of inputs) for (const b of synth) out.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, key: `${a.idx}-${b.idx}` });
-    for (const a of synth) for (const b of outputs) out.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, key: `${a.idx}-${b.idx}` });
+    const out: { x1: number; y1: number; x2: number; y2: number; key: string; srcRel: number; fromIdx: number; toIdx: number; phase: "in-syn" | "syn-out" }[] = [];
+    for (const a of inputs) for (const b of synth) out.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, key: `${a.idx}-${b.idx}`, srcRel: a.relevance, fromIdx: a.idx, toIdx: b.idx, phase: "in-syn" });
+    for (const a of synth) for (const b of outputs) out.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, key: `${a.idx}-${b.idx}`, srcRel: a.relevance, fromIdx: a.idx, toIdx: b.idx, phase: "syn-out" });
     return out;
   }, [inputs, synth, outputs]);
 
-  // Traveling signals: pick a fresh path every 3s
-  const [paths, setPaths] = useState<{ id: number; pts: { x: number; y: number }[]; outIdx: number }[]>([]);
+  // Animation clock
+  const [now, setNow] = useState(() => performance.now());
+  useEffect(() => {
+    let raf = 0;
+    const tick = () => { setNow(performance.now()); raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // Traveling signals — 2-3 in flight at once
+  type Path = { id: number; pts: { x: number; y: number; idx: number }[]; outIdx: number; synIdx: number; started: number; duration: number };
+  const [paths, setPaths] = useState<Path[]>([]);
   const idRef = useRef(0);
   useEffect(() => {
-    if (inputs.length === 0) return;
-    const t = setInterval(() => {
+    if (inputs.length === 0 || synth.length === 0 || outputs.length === 0) return;
+    const spawn = () => {
       const i = inputs[Math.floor(Math.random() * inputs.length)];
       const s = synth[Math.floor(Math.random() * synth.length)];
       const o = outputs[Math.floor(Math.random() * outputs.length)];
       const id = ++idRef.current;
-      setPaths((cur) => [...cur, { id, pts: [i, s, o].map((n) => ({ x: n.x, y: n.y })), outIdx: o.idx }]);
-      setTimeout(() => setPaths((cur) => cur.filter((p) => p.id !== id)), 2600);
-    }, 1500);
+      const duration = 2400;
+      const newPath: Path = { id, pts: [{ x: i.x, y: i.y, idx: i.idx }, { x: s.x, y: s.y, idx: s.idx }, { x: o.x, y: o.y, idx: o.idx }], outIdx: o.idx, synIdx: s.idx, started: performance.now(), duration };
+      setPaths((cur) => [...cur, newPath]);
+      setTimeout(() => setPaths((cur) => cur.filter((p) => p.id !== id)), duration + 800);
+    };
+    spawn();
+    const t = setInterval(spawn, 900);
     return () => clearInterval(t);
   }, [inputs, synth, outputs]);
 
-  // Status cycle
+  // For each active path, compute head position + 6-frame trail
+  const sampleAt = (p: Path, tProgress: number) => {
+    const tt = Math.max(0, Math.min(1, tProgress));
+    if (tt <= 0.5) {
+      const u = tt / 0.5;
+      return { x: p.pts[0].x + (p.pts[1].x - p.pts[0].x) * u, y: p.pts[0].y + (p.pts[1].y - p.pts[0].y) * u };
+    }
+    const u = (tt - 0.5) / 0.5;
+    return { x: p.pts[1].x + (p.pts[2].x - p.pts[1].x) * u, y: p.pts[1].y + (p.pts[2].y - p.pts[1].y) * u };
+  };
+
+  // Track which synth nodes have a signal approaching (pre-activate downstream lines)
+  const preActivateSyn = new Set<number>();
+  const deliveredOuts = new Map<number, number>(); // outIdx -> timestamp when delivered
+  for (const p of paths) {
+    const prog = (now - p.started) / p.duration;
+    if (prog >= 0.35 && prog < 0.55) preActivateSyn.add(p.synIdx);
+    if (prog >= 0.98 && !deliveredOuts.has(p.outIdx)) deliveredOuts.set(p.outIdx, now);
+  }
+
+  // Persistent delivery labels for 1200ms
+  const deliveryRef = useRef<Map<number, number>>(new Map());
+  for (const [idx, ts] of deliveredOuts) deliveryRef.current.set(idx, ts);
+  for (const [idx, ts] of deliveryRef.current) {
+    if (now - ts > 1200) deliveryRef.current.delete(idx);
+  }
+
+  // ─── Typewriter status text ───
   const [statusIdx, setStatusIdx] = useState(0);
+  const [typed, setTyped] = useState("");
+  const [phase, setPhase] = useState<"type" | "hold" | "delete">("type");
   useEffect(() => {
-    const t = setInterval(() => setStatusIdx((i) => (i + 1) % IRIS_STATUS.length), 3000);
-    return () => clearInterval(t);
-  }, []);
+    const target = IRIS_STATUS[statusIdx];
+    let timer: ReturnType<typeof setTimeout>;
+    if (phase === "type") {
+      if (typed.length < target.length) {
+        timer = setTimeout(() => setTyped(target.slice(0, typed.length + 1)), 35);
+      } else {
+        timer = setTimeout(() => setPhase("hold"), 50);
+      }
+    } else if (phase === "hold") {
+      timer = setTimeout(() => setPhase("delete"), 1500);
+    } else {
+      if (typed.length > 0) {
+        timer = setTimeout(() => setTyped(target.slice(0, typed.length - 1)), 15);
+      } else {
+        setPhase("type");
+        setStatusIdx((i) => (i + 1) % IRIS_STATUS.length);
+      }
+    }
+    return () => clearTimeout(timer);
+  }, [typed, phase, statusIdx]);
 
   return (
     <div style={{ position: "relative", width: w, height: h }}>
@@ -612,48 +979,73 @@ function IrisPanel({ w, h, briefs }: { w: number; h: number; briefs: number }) {
         right={<span style={{ fontSize: 7, color: `rgba(${PURPLE},0.7)`, letterSpacing: "0.15em" }}>{briefs} BRIEFS GENERATED</span>}
       />
 
-      <svg width={w} height={innerH} style={{ position: "absolute", top: HEADER, left: 0 }}>
-        {connections.map((c) => (
-          <line key={c.key} x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2} stroke={`rgba(${PURPLE},0.15)`} strokeWidth={0.5} />
-        ))}
+      <svg width={w} height={innerH} style={{ position: "absolute", top: HEADER, left: 0, overflow: "visible" }}>
+        {/* Connection lines — opacity by source relevance, with pre-activation boost on syn→out */}
+        {connections.map((c) => {
+          let opacity = 0.05 + (c.srcRel / 100) * 0.20;
+          if (c.phase === "syn-out" && preActivateSyn.has(c.fromIdx)) opacity = Math.min(0.55, opacity + 0.1);
+          return (
+            <line
+              key={c.key}
+              x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
+              stroke={`rgba(${PURPLE},${opacity})`}
+              strokeWidth={c.srcRel >= 80 ? 0.8 : 0.5}
+              style={{ transition: "stroke 200ms" }}
+            />
+          );
+        })}
 
+        {/* Traveling comets */}
         {paths.map((p) => {
-          // total length approx
-          const seg1 = Math.hypot(p.pts[1].x - p.pts[0].x, p.pts[1].y - p.pts[0].y);
-          const seg2 = Math.hypot(p.pts[2].x - p.pts[1].x, p.pts[2].y - p.pts[1].y);
-          const total = seg1 + seg2;
-          const polyline = `${p.pts[0].x},${p.pts[0].y} ${p.pts[1].x},${p.pts[1].y} ${p.pts[2].x},${p.pts[2].y}`;
+          const prog = (now - p.started) / p.duration;
+          if (prog < 0 || prog > 1) return null;
+          const head = sampleAt(p, prog);
+          // 6-frame trail at ~24ms spacing
+          const trailOpacities = [0.8, 0.6, 0.4, 0.3, 0.2, 0.1];
+          const trailDelta = 0.018;
           return (
             <g key={p.id}>
-              <polyline
-                points={polyline}
-                fill="none"
-                stroke={`rgba(${PURPLE},0.55)`}
-                strokeWidth={1}
-                strokeDasharray={`8 ${Math.max(total, 1)}`}
-                strokeDashoffset={total + 8}
-                style={{ animation: `atlas-trace 2.5s linear forwards` }}
-              />
+              {trailOpacities.map((op, i) => {
+                const tp = sampleAt(p, prog - trailDelta * (i + 1));
+                return (
+                  <circle key={i} cx={tp.x} cy={tp.y} r={2.4 - i * 0.2} fill={`rgba(${GOLD},${op})`} />
+                );
+              })}
+              <circle cx={head.x} cy={head.y} r={3} fill={`rgba(${GOLD},1)`} style={{ filter: `drop-shadow(0 0 4px rgba(${GOLD},0.8))` }} />
             </g>
           );
         })}
 
+        {/* Nodes with glow */}
         {NODES.map((n) => {
-          const r = n.type === "in" ? 7 : n.type === "out" ? 6 : 5;
-          const color = n.type === "in" ? `rgba(${GOLD},0.85)` : n.type === "out" ? `rgba(${GREEN},0.85)` : `rgba(${PURPLE},0.8)`;
-          const flaring = paths.some((p) => p.outIdx === n.idx);
+          const r = n.type === "in" ? 8 : n.type === "out" ? 6 : 5;
+          const rgb = n.type === "in" ? GOLD : n.type === "out" ? GREEN : PURPLE;
+          const flaring = paths.some((p) => p.outIdx === n.idx && (now - p.started) / p.duration > 0.95);
           return (
-            <circle
-              key={n.idx}
-              cx={n.x} cy={n.y} r={r}
-              fill={color}
-              style={flaring ? { animation: "atlas-flare 600ms ease-out" } : undefined}
-            />
+            <g key={n.idx}>
+              <circle cx={n.x} cy={n.y} r={r + 4} fill={`rgba(${rgb},0.1)`} />
+              <circle
+                cx={n.x} cy={n.y} r={r}
+                fill={`rgba(${rgb},0.9)`}
+                style={flaring ? { animation: "atlas-flare 600ms ease-out" } : undefined}
+              />
+              {n.type === "out" && deliveryRef.current.has(n.idx) && (
+                <text
+                  x={n.x} y={n.y - r - 6}
+                  textAnchor="middle"
+                  fontSize={7}
+                  fill={`rgba(${GREEN},0.8)`}
+                  style={{ letterSpacing: "0.1em" }}
+                >
+                  BRIEF DELIVERED
+                </text>
+              )}
+            </g>
           );
         })}
       </svg>
 
-      {/* Status text */}
+      {/* Typewriter status text */}
       <div
         style={{
           position: "absolute",
@@ -662,13 +1054,13 @@ function IrisPanel({ w, h, briefs }: { w: number; h: number; briefs: number }) {
           right: 0,
           textAlign: "center",
           fontSize: 8,
-          color: `rgba(${PURPLE},0.7)`,
+          color: `rgba(${PURPLE},0.85)`,
           letterSpacing: "0.18em",
-          animation: "atlas-fade-soft 600ms ease-out",
+          fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
         }}
-        key={statusIdx}
       >
-        {IRIS_STATUS[statusIdx]}
+        {typed}
+        <span style={{ color: `rgba(${GOLD},1)`, animation: "atlas-cursor 1.2s steps(2) infinite" }}>|</span>
       </div>
       <div
         style={{
@@ -739,6 +1131,7 @@ function CornerBrackets() {
 }
 
 function ParticleLayer({ w, h }: { w: number; h: number }) {
+  void h;
   const particles = useMemo(
     () =>
       Array.from({ length: 40 }, (_, i) => ({
@@ -762,9 +1155,8 @@ function ParticleLayer({ w, h }: { w: number; h: number }) {
             width: 1, height: 1,
             background: `rgba(${GOLD},0.15)`,
             animation: `atlas-drift ${p.dur}s linear ${p.delay}s infinite`,
-            // CSS var consumed by keyframes
-            ["--atlas-drift-x" as any]: `${w + 20}px`,
-            ["--atlas-drift-y" as any]: `${Math.tan((p.angle * Math.PI) / 180) * w}px`,
+            ["--atlas-drift-x" as string]: `${w + 20}px`,
+            ["--atlas-drift-y" as string]: `${Math.tan((p.angle * Math.PI) / 180) * w}px`,
           } as React.CSSProperties}
         />
       ))}
@@ -772,39 +1164,77 @@ function ParticleLayer({ w, h }: { w: number; h: number }) {
   );
 }
 
-function DividerFlow({ left, h, colorRgb, delay }: { left: number; h: number; colorRgb: string; delay: number }) {
+// Sporadic burst-based divider flow with impact flash on the far side
+function DividerBurst({ left, h, colorRgb, dotSize, interval }: { left: number; h: number; colorRgb: string; dotSize: number; interval: [number, number] }) {
+  type Dot = { id: number; key: string; top: number };
+  const [dots, setDots] = useState<Dot[]>([]);
+  const [flash, setFlash] = useState<{ id: number; top: number } | null>(null);
+  const idRef = useRef(0);
+  useEffect(() => {
+    let cancelled = false;
+    let timeout: ReturnType<typeof setTimeout>;
+    const burst = () => {
+      const count = 3 + Math.floor(Math.random() * 3); // 3..5
+      const top = 25 + Math.random() * 50; // % within panel
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          if (cancelled) return;
+          const id = ++idRef.current;
+          setDots((cur) => [...cur, { id, key: `${id}`, top }]);
+          // remove after animation
+          setTimeout(() => setDots((cur) => cur.filter((d) => d.id !== id)), 1300);
+          // schedule impact flash to land ~1100ms later
+          setTimeout(() => {
+            if (cancelled) return;
+            const fid = id;
+            setFlash({ id: fid, top });
+            setTimeout(() => setFlash((cur) => (cur && cur.id === fid ? null : cur)), 120);
+          }, 1050);
+        }, i * 50);
+      }
+      const delay = interval[0] + Math.random() * (interval[1] - interval[0]);
+      timeout = setTimeout(burst, delay);
+    };
+    timeout = setTimeout(burst, 800 + Math.random() * 1200);
+    return () => { cancelled = true; clearTimeout(timeout); };
+  }, [interval]);
+
   return (
     <div style={{ position: "absolute", top: 0, left, width: 0, height: h, zIndex: 6, pointerEvents: "none" }}>
-      {[0, 1, 2].map((i) => (
+      {dots.map((d) => (
         <span
-          key={i}
+          key={d.key}
           style={{
             position: "absolute",
-            top: "30%",
-            left: -2,
-            width: 4, height: 4,
+            top: `${d.top}%`,
+            left: -dotSize,
+            width: dotSize * 2,
+            height: dotSize * 2,
             borderRadius: 999,
-            background: `rgba(${colorRgb},0.7)`,
-            boxShadow: `0 0 6px rgba(${colorRgb},0.6)`,
-            animation: `atlas-cross 4s linear ${delay + i * 0.25}s infinite`,
-            ["--atlas-cross-y" as any]: `${h * 0.4}px`,
-          } as React.CSSProperties}
+            background: `rgba(${colorRgb},0.8)`,
+            boxShadow: `0 0 6px rgba(${colorRgb},0.7)`,
+            animation: "atlas-cross-burst 1.1s ease-out forwards",
+          }}
         />
       ))}
+      {flash && (
+        <span
+          style={{
+            position: "absolute",
+            top: `${flash.top}%`,
+            left: 60,
+            width: 10,
+            height: 10,
+            marginTop: -5,
+            marginLeft: -5,
+            borderRadius: 999,
+            background: `rgba(${colorRgb},0.4)`,
+            boxShadow: `0 0 10px rgba(${colorRgb},0.5)`,
+          }}
+        />
+      )}
     </div>
   );
-}
-
-// SVG arc helper
-function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
-  const a = ((angleDeg - 90) * Math.PI) / 180;
-  return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
-}
-function describeArc(cx: number, cy: number, r: number, startDeg: number, endDeg: number) {
-  const start = polarToCartesian(cx, cy, r, endDeg);
-  const end = polarToCartesian(cx, cy, r, startDeg);
-  const largeArcFlag = endDeg - startDeg <= 180 ? "0" : "1";
-  return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
 }
 
 const KEYFRAMES = `
@@ -825,10 +1255,39 @@ const KEYFRAMES = `
   90% { opacity: 1 }
   to { transform: translate(var(--atlas-drift-x), var(--atlas-drift-y)); opacity: 0 }
 }
-@keyframes atlas-cross {
-  from { transform: translate(-20px, 0); opacity: 0 }
-  10% { opacity: 1 }
-  90% { opacity: 1 }
-  to { transform: translate(40px, var(--atlas-cross-y, 0)); opacity: 0 }
+@keyframes atlas-cross-burst {
+  from { transform: translateX(0); opacity: 0 }
+  20% { opacity: 1 }
+  80% { opacity: 1 }
+  to { transform: translateX(60px); opacity: 0 }
+}
+@keyframes atlas-border-pulse {
+  0%, 100% { border-left-color: rgba(255,255,255,0.3) }
+  50% { border-left-color: rgba(255,255,255,0.8) }
+}
+@keyframes atlas-orbit-border {
+  from { stroke-dashoffset: 0 }
+  to { stroke-dashoffset: -${1000} }
+}
+@keyframes atlas-broadcast {
+  0% { transform: scale(1); opacity: 0.6 }
+  100% { transform: scale(2); opacity: 0 }
+}
+@keyframes atlas-flash-in {
+  from { opacity: 0 }
+  to { opacity: 1 }
+}
+@keyframes atlas-count-pulse {
+  0% { transform: scale(1); filter: brightness(1) }
+  40% { transform: scale(1.15); filter: brightness(1.4) }
+  100% { transform: scale(1); filter: brightness(1) }
+}
+@keyframes atlas-feed-flicker {
+  0% { opacity: 1; filter: brightness(1.4) }
+  100% { opacity: 1; filter: brightness(1) }
+}
+@keyframes atlas-cursor {
+  0%, 49% { opacity: 1 }
+  50%, 100% { opacity: 0 }
 }
 `;
