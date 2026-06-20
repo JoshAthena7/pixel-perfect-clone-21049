@@ -6057,6 +6057,7 @@ export type Database = {
           amendment_processed_at: string | null
           content_summary: string | null
           created_at: string
+          document_checklist_category: string | null
           document_purpose: string
           document_type: string
           file_url: string | null
@@ -6068,6 +6069,7 @@ export type Database = {
           mission_id: string
           processed_at: string | null
           processing_error: string | null
+          processing_error_message: string | null
           processing_status: string
           section_tags: string[]
           source_url: string | null
@@ -6081,6 +6083,7 @@ export type Database = {
           amendment_processed_at?: string | null
           content_summary?: string | null
           created_at?: string
+          document_checklist_category?: string | null
           document_purpose?: string
           document_type: string
           file_url?: string | null
@@ -6092,6 +6095,7 @@ export type Database = {
           mission_id: string
           processed_at?: string | null
           processing_error?: string | null
+          processing_error_message?: string | null
           processing_status?: string
           section_tags?: string[]
           source_url?: string | null
@@ -6105,6 +6109,7 @@ export type Database = {
           amendment_processed_at?: string | null
           content_summary?: string | null
           created_at?: string
+          document_checklist_category?: string | null
           document_purpose?: string
           document_type?: string
           file_url?: string | null
@@ -6116,6 +6121,7 @@ export type Database = {
           mission_id?: string
           processed_at?: string | null
           processing_error?: string | null
+          processing_error_message?: string | null
           processing_status?: string
           section_tags?: string[]
           source_url?: string | null
