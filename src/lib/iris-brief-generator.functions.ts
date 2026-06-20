@@ -437,9 +437,14 @@ CONTENT RULES:
           question_id: data.questionId,
           signal_id: n.id,
           mission_id: data.missionId,
-          relevance_score: n.boosted_score ?? n.oracle_score ?? null,
+          relevance_score: (() => {
+            const v = n.boosted_score ?? n.oracle_score ?? null;
+            if (v == null) return null;
+            return Math.max(0, Math.min(100, Math.round(v)));
+          })(),
           briefing_layer: n._branch,
-          added_by: context.userId,
+          // CHECK constraint requires one of: iris_suggested | admin_added | leader_added
+          added_by: "iris_suggested" as const,
         }));
         const { error: linkErr } = await supabase
           .from("question_intel_links")

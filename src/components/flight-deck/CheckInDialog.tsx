@@ -45,14 +45,21 @@ export function CheckInDialog({ open, onOpenChange, missionId, questionId, quest
     if (!missionId || !questionId) return;
     setSending(true);
     try {
+      const acceptance =
+        status === "blocked" ? "need_help" : status === "need_sme" ? "need_help" : "accepted";
       if (progressId) {
         await supabase.from("question_progress").update({
           last_activity_at: new Date().toISOString(),
           writer_confidence: confidence,
+          acceptance_status: acceptance,
+          ...(status === "need_sme" ? { sme_assigned: false } : {}),
         } as never).eq("id", progressId);
       }
       await fireAssistEvent(missionId, questionId, null, "check_in", {
         status, confidence, note: note.slice(0, 500), next_status: nextStatus || null,
+      });
+      await fireAssistEvent(missionId, questionId, null, "confidence_updated", {
+        confidence, source: "check_in",
       });
       if (status !== "on_track") {
         await fireAssistEvent(missionId, questionId, null, "sos_raised", { source: "check_in", reason: status });

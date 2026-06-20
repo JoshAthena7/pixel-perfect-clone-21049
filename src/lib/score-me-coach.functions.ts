@@ -285,6 +285,22 @@ export const scoreMeCoach = createServerFn({ method: "POST" })
       console.error("[score-me] history insert failed", e);
     }
 
+    // Reflect latest score on question_progress so the cockpit STATUS HUD shows it.
+    try {
+      await supabase
+        .from("question_progress")
+        .update({
+          mock_score: result.overall_score,
+          max_score: 10,
+          last_activity_at: new Date().toISOString(),
+        } as never)
+        .eq("question_id", data.questionId)
+        .eq("mission_id", data.missionId)
+        .eq("assignee_id", userId);
+    } catch (e) {
+      console.warn("[score-me] question_progress mock_score update failed", e);
+    }
+
     // Mission Radar event log (silent on failure — observability only)
     try {
       await supabase.from("mission_assist_events").insert({

@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { fireAssistEvent } from "@/lib/fireAssistEvent";
 import {
-  updateProgressStatus, nextStatuses, type ProgressStatus,
+  updateProgressStatus, nextStatuses, dbToSimple, type ProgressStatus, type SimpleStatus,
 } from "@/lib/writer-cockpit.functions";
 import { buildLineOfSight } from "@/lib/iris-line-of-sight.functions";
 import { ScoreMeDialog } from "@/components/flight-deck/ScoreMeDialog";
@@ -65,6 +65,37 @@ function relTime(d: string | null): string {
   return "just now";
 }
 
+function getIrisActionPrompt(q: {
+  progress_status: string;
+  writer_confidence: string | null;
+  brief_exported_at: string | null;
+  brief_opened_at: string | null;
+  acceptance_status: string | null;
+}): string {
+  if (q.acceptance_status === "need_help") {
+    return "You flagged this question for help. Your Engagement Lead has been notified — check for a response before proceeding.";
+  }
+  if (!q.brief_opened_at) {
+    return "Start here — generate or open your IRIS brief to understand what the evaluator wants.";
+  }
+  if (!q.brief_exported_at) {
+    return "Your brief is ready. Export it to your writing environment before you start drafting.";
+  }
+  const simple = dbToSimple(q.progress_status);
+  if (simple === "drafting" && !q.writer_confidence) {
+    return "Drafting is underway. Set your confidence so your lead knows how you're feeling about this one.";
+  }
+  if (simple === "drafting" && q.writer_confidence === "low") {
+    return "Low confidence flagged. Consider running Score Me on your draft or requesting SME support.";
+  }
+  if (simple === "drafting" && q.writer_confidence === "high") {
+    return "Looking strong. When your draft is complete, move to In Review so your lead can check it.";
+  }
+  if (simple === "in_review") return "In review with your lead. No action needed until feedback comes back.";
+  if (simple === "finalized") return "Finalized ✓ — this question is complete.";
+  return "Open your IRIS brief, draft your response, and check in when done.";
+}
+
 type Q = {
   id: string;
   question_number: string;
@@ -80,6 +111,9 @@ type Q = {
   iris_brief_generated_at: string | null;
   evaluation_weight: number | null;
   page_limit: number | null;
+  word_limit: number | null;
+  point_value: number | null;
+  requires_exhibit: boolean | null;
   progress_id: string;
   progress_status: string;
   acceptance_status: string | null;
@@ -90,6 +124,7 @@ type Q = {
   assigned_at: string | null;
   brief_opened_at: string | null;
   brief_exported_at: string | null;
+  brief_export_count: number | null;
   last_activity_at: string | null;
   sme_assigned: boolean | null;
   primary_win_theme: string | null;
@@ -156,17 +191,23 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
         supabase.from("mission_pulse_updates").select("domain,created_at").eq("mission_id", missionId).order("created_at", { ascending: false }),
         supabase.from("oracle_engagement_config").select("win_themes").eq("mission_id", missionId).maybeSingle(),
         supabase.from("mission_win_themes").select("id,title,why_it_matters,status,display_order").eq("mission_id", missionId).order("display_order", { ascending: true }),
-        supabase.from("mission_assist_events").select("question_id,event_type,created_at").eq("mission_id", missionId).in("event_type", ["sos_raised", "sos_acknowledged"]).in("question_id", qids).order("created_at", { ascending: true }),
+        supabase.from("mission_assist_events").select("question_id,event_type,created_at").eq("mission_id", missionId).in("event_type", ["sos_raised", "sos_acknowledged", "sos_dismissed"]).in("question_id", qids).order("created_at", { ascending: true }),
       ]);
 
-      // Determine active (unacknowledged) SOS per question: last event must be sos_raised.
-      const lastSosByQid = new Map<string, string>();
+      // Determine active (unacknowledged, undismissed, <72h) SOS per question.
+      const lastSosByQid = new Map<string, { type: string; at: string }>();
       for (const ev of ((assistEvents.data ?? []) as any[])) {
         if (!ev.question_id) continue;
-        lastSosByQid.set(ev.question_id, ev.event_type);
+        lastSosByQid.set(ev.question_id, { type: ev.event_type, at: ev.created_at });
       }
       const activeSosQids = new Set<string>();
-      lastSosByQid.forEach((type, qid) => { if (type === "sos_raised") activeSosQids.add(qid); });
+      const staleSosMeta = new Map<string, string>(); // qid -> raisedAt (older than 72h, unacked)
+      lastSosByQid.forEach((info, qid) => {
+        if (info.type !== "sos_raised") return;
+        const ageHours = (Date.now() - new Date(info.at).getTime()) / 3_600_000;
+        if (ageHours <= 72) activeSosQids.add(qid);
+        else staleSosMeta.set(qid, info.at);
+      });
 
 
       const sectionMap = new Map<string, any>((ms.data ?? []).map((s: any) => [s.id, s]));
@@ -192,6 +233,9 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
             iris_brief_generated_at: q.iris_brief_generated_at,
             evaluation_weight: q.evaluation_weight,
             page_limit: q.page_limit,
+            word_limit: q.word_limit ?? null,
+            point_value: q.point_value ?? null,
+            requires_exhibit: q.requires_exhibit ?? null,
             progress_id: qp.id,
             progress_status: qp.status ?? "not_started",
             acceptance_status: qp.acceptance_status,
@@ -202,6 +246,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
             assigned_at: qp.assigned_at,
             brief_opened_at: qp.brief_opened_at,
             brief_exported_at: qp.brief_exported_at,
+            brief_export_count: qp.brief_export_count ?? 0,
             last_activity_at: qp.last_activity_at,
             sme_assigned: qp.sme_assigned,
             primary_win_theme: q.primary_win_theme ?? null,
@@ -292,6 +337,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
         writerByQid,
         myQids: Array.from(myQids),
         activeSosQids,
+        staleSosMeta,
       };
     },
   });
@@ -407,6 +453,60 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
     toast("SOS raised — your Engagement Lead has been notified");
     qc.invalidateQueries({ queryKey: refreshKey });
   }
+
+  async function handleSimpleStatusChange(q: Q, next: SimpleStatus) {
+    const currentSimple = dbToSimple(q.progress_status);
+    if (currentSimple === next) return;
+    const isBackward =
+      (currentSimple === "in_review" && next === "drafting") ||
+      (currentSimple === "finalized" && next !== "finalized") ||
+      (currentSimple === "drafting" && next === "not_started");
+    if (isBackward) {
+      const label = next === "drafting" ? "Drafting" : next === "not_started" ? "Not Started" : "In Review";
+      const ok = window.confirm(`Moving back to ${label}. Your lead will see this change.`);
+      if (!ok) return;
+    }
+    try {
+      await updateStatus({
+        data: {
+          progressId: q.progress_id,
+          newStatus: next as unknown as ProgressStatus,
+          pensDown: !!cockpit?.pensDown,
+          allowBackward: isBackward,
+        },
+      });
+      qc.invalidateQueries({ queryKey: refreshKey });
+    } catch (e: any) {
+      toast.error(e.message || "Could not update status");
+    }
+  }
+
+  async function handleConfidenceChange(q: Q, v: "high" | "medium" | "low") {
+    try {
+      await supabase.from("question_progress")
+        .update({ writer_confidence: v, last_activity_at: new Date().toISOString() } as never)
+        .eq("id", q.progress_id);
+      await fireAssistEvent(missionId, q.id, userId, "confidence_updated", {
+        confidence: v, question_number: q.question_number,
+      });
+      qc.invalidateQueries({ queryKey: refreshKey });
+    } catch (e: any) {
+      toast.error(e.message || "Could not save confidence");
+    }
+  }
+
+  async function handleDismissSos(q: Q) {
+    try {
+      await fireAssistEvent(missionId, q.id, userId, "sos_dismissed", {
+        dismissed_by: userId, question_number: q.question_number,
+      });
+      qc.invalidateQueries({ queryKey: refreshKey });
+    } catch (e: any) {
+      toast.error(e.message || "Could not dismiss");
+    }
+  }
+
+
 
   async function handleAckFeedback(fbId: string, questionId: string) {
     await supabase.from("question_feedback")
@@ -678,8 +778,13 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
 
         {open && (
           <div style={{ padding: "14px 16px 16px 16px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-            {/* Full-width alert strip — feedback + need-help only.
-                Everything else lives inside one of the two pillars below. */}
+            {/* IRIS action prompt — deterministic, instant */}
+            <IrisActionBand text={getIrisActionPrompt(q)} />
+
+            {/* Question context strip */}
+            <QuestionContextStrip q={q} />
+
+            {/* Full-width alert strip — feedback + need-help only. */}
             {fbList.length > 0 && (
               <div style={{ marginBottom: 14, display: "flex", flexDirection: "column", gap: 8 }}>
                 {fbList.map((f: any) => (
@@ -696,11 +801,11 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
               </div>
             )}
 
-            {(cockpit?.activeSosQids as Set<string> | undefined)?.has(q.id) && (
-              <div style={{ marginBottom: 14, padding: "8px 12px", background: "rgba(239,68,68,0.1)", border: `1px solid ${RED}`, borderRadius: 6, fontSize: 12, color: "#fecaca" }}>
-                🆘 Awaiting SME Assignment — your Engagement Lead has been notified.
-              </div>
-            )}
+            <SosBanner
+              active={(cockpit?.activeSosQids as Set<string> | undefined)?.has(q.id) ?? false}
+              staleAt={(cockpit?.staleSosMeta as Map<string, string> | undefined)?.get(q.id) ?? null}
+              onDismiss={() => handleDismissSos(q)}
+            />
 
             {/* Two equal pillars: STATUS HUD (left) | BRIEF (right) */}
             <div
@@ -743,30 +848,60 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                   )}
                 </div>
 
-                {/* Compact signal grid — 4 always-visible fields */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <StatusDropdown
-                    current={q.progress_status}
+                {/* Status — 4-pill selector */}
+                <div>
+                  <div style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>Status</div>
+                  <StatusPills
+                    current={dbToSimple(q.progress_status)}
                     pensDown={!!cockpit?.pensDown}
-                    onChange={(next) => handleStatusChange(q, next)}
+                    onChange={(next) => handleSimpleStatusChange(q, next)}
                   />
-                  <SignalRow label="Confidence" value={q.writer_confidence || "Not set"} />
-                  <SignalRow label="Last Activity" value={relTime(q.last_activity_at)} />
-                  <SignalRow label="Brief Status" value={q.iris_brief_status ? `${q.iris_brief_status}${briefAge != null ? ` · ${briefAge}d old` : ""}` : "—"} />
                 </div>
 
-                <details style={{ marginTop: -4 }}>
-                  <summary style={{ cursor: "pointer", fontSize: 10.5, color: "rgba(255,255,255,0.55)", letterSpacing: "0.06em", padding: "4px 0" }}>
-                    More details ↓
-                  </summary>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
-                    <SignalRow label="Draft Score" value={q.mock_score != null ? `${q.mock_score} / ${q.max_score ?? 100}` : "Not yet scored"} />
-                    <SignalRow label="Internal Due" value={q.internal_due_date ? new Date(q.internal_due_date).toLocaleDateString() : "Not set"} />
-                    <SignalRow label="Narrative Alignment" value={q.coherence_status || "Unreviewed"} />
-                    <SignalRow label="Section Weight" value={`${q.evaluation_weight ?? "—"}% · ${q.page_limit ?? "—"}p`} />
-                    <SignalRow label="Brief Exported" value={q.brief_exported_at ? new Date(q.brief_exported_at).toLocaleDateString() : "Not yet exported"} />
+                {/* Confidence — 3-pill selector */}
+                <div>
+                  <div style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>
+                    {q.writer_confidence ? "Confidence" : "How confident are you?"}
                   </div>
-                </details>
+                  <ConfidencePills
+                    current={q.writer_confidence as "high" | "medium" | "low" | null}
+                    onChange={(v) => handleConfidenceChange(q, v)}
+                  />
+                </div>
+
+                {/* Brief + Last Activity */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <SignalRow
+                    label="Brief"
+                    value={
+                      q.brief_exported_at
+                        ? `exported${(q.brief_export_count ?? 0) > 1 ? ` ${q.brief_export_count}×` : ""}`
+                        : q.brief_opened_at
+                          ? "generated"
+                          : "not generated"
+                    }
+                  />
+                  <SignalRow label="Last Activity" value={relTime(q.last_activity_at)} />
+                </div>
+
+                {(() => {
+                  const more: Array<{ label: string; value: string }> = [];
+                  if (q.mock_score != null) more.push({ label: "Draft Score", value: `${q.mock_score} / ${q.max_score ?? 100}` });
+                  if (q.internal_due_date) more.push({ label: "Internal Due", value: new Date(q.internal_due_date).toLocaleDateString() });
+                  if (q.brief_exported_at) more.push({ label: "Brief Exported", value: `${new Date(q.brief_exported_at).toLocaleDateString()}${(q.brief_export_count ?? 0) > 1 ? ` · ${q.brief_export_count}×` : ""}` });
+                  if (q.evaluation_weight != null && q.page_limit != null) more.push({ label: "Section Weight", value: `${q.evaluation_weight}% · ${q.page_limit}p` });
+                  if (more.length === 0) return null;
+                  return (
+                    <details style={{ marginTop: -4 }}>
+                      <summary style={{ cursor: "pointer", fontSize: 10.5, color: "rgba(255,255,255,0.55)", letterSpacing: "0.06em", padding: "4px 0" }}>
+                        More details ↓
+                      </summary>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
+                        {more.map((m) => <SignalRow key={m.label} label={m.label} value={m.value} />)}
+                      </div>
+                    </details>
+                  );
+                })()}
 
                 {/* 4-button assist bar — Check-In / Score Me / Sticky Notes / Mission Pulse */}
                 <div
@@ -1309,6 +1444,199 @@ function LeadershipBroadcastBand({ missionId }: { missionId: string }) {
       <span style={{ color: "rgba(255,255,255,0.45)", fontSize: 9, whiteSpace: "nowrap" }}>
         — {author}
       </span>
+    </div>
+  );
+}
+
+/* ───────── New UI bits ───────── */
+
+function IrisActionBand({ text }: { text: string }) {
+  return (
+    <div
+      style={{
+        minHeight: 32,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "6px 14px",
+        marginBottom: 12,
+        background: "rgba(196,154,43,0.06)",
+        borderLeft: "3px solid rgba(196,154,43,0.5)",
+        borderRadius: 4,
+      }}
+    >
+      <span style={{ color: GOLD, fontSize: 14 }}>⚡</span>
+      <span style={{ fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: "0.08em" }}>IRIS</span>
+      <span style={{ color: "rgba(255,255,255,0.25)" }}>·</span>
+      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.9)", lineHeight: 1.4 }}>{text}</span>
+    </div>
+  );
+}
+
+function QuestionContextStrip({ q }: { q: Q }) {
+  const section = q.question_number ? q.question_number.split(".").slice(0, 2).join(".") : null;
+  const parts: { label: string; value: string; color?: string }[] = [];
+  if (section) parts.push({ label: "Section", value: section });
+  if (q.word_limit != null) parts.push({ label: "Word Limit", value: String(q.word_limit) });
+  if (q.page_limit != null) parts.push({ label: "Page Limit", value: String(q.page_limit) });
+  if (q.evaluation_weight != null) parts.push({ label: "Eval Weight", value: `${q.evaluation_weight}%` });
+  if (q.point_value != null) parts.push({ label: "Points", value: String(q.point_value) });
+  if (q.requires_exhibit != null) {
+    parts.push({
+      label: "Exhibit",
+      value: q.requires_exhibit ? "Required" : "Not required",
+      color: q.requires_exhibit ? AMBER : "rgba(34,197,94,0.7)",
+    });
+  }
+  if (parts.length === 0) return null;
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 10,
+        fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+        fontSize: 9,
+        letterSpacing: "0.06em",
+        textTransform: "uppercase",
+        color: "rgba(255,255,255,0.55)",
+        background: "rgba(255,255,255,0.02)",
+        padding: "6px 12px",
+        borderBottom: "1px solid rgba(255,255,255,0.05)",
+        marginBottom: 12,
+      }}
+    >
+      {parts.map((p, i) => (
+        <span key={p.label} style={{ display: "inline-flex", gap: 6 }}>
+          <span>{p.label}:</span>
+          <span style={{ color: p.color ?? "rgba(255,255,255,0.85)" }}>{p.value}</span>
+          {i < parts.length - 1 && <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function SosBanner({
+  active, staleAt, onDismiss,
+}: { active: boolean; staleAt: string | null; onDismiss: () => void }) {
+  if (!active && !staleAt) return null;
+  if (active) {
+    return (
+      <div style={{
+        marginBottom: 14, padding: "8px 12px", background: "rgba(239,68,68,0.1)",
+        border: `1px solid ${RED}`, borderRadius: 6, fontSize: 12, color: "#fecaca",
+        display: "flex", alignItems: "center", gap: 8,
+      }}>
+        <span style={{ flex: 1 }}>🆘 Awaiting SME assignment — your Engagement Lead has been notified.</span>
+        <button onClick={onDismiss} title="Dismiss" style={{
+          background: "transparent", border: "none", color: "#fecaca",
+          cursor: "pointer", fontSize: 14, padding: "0 4px",
+        }}>×</button>
+      </div>
+    );
+  }
+  // Stale (>72h, no acknowledgment)
+  const rel = relTime(staleAt);
+  return (
+    <div style={{
+      marginBottom: 14, padding: "8px 12px", background: "rgba(245,158,11,0.08)",
+      border: `1px solid ${AMBER}`, borderRadius: 6, fontSize: 12, color: "#fde68a",
+      display: "flex", alignItems: "center", gap: 8,
+    }}>
+      <span style={{ flex: 1 }}>⚠ SME request from {rel} — no response yet. Contact your lead directly.</span>
+      <button onClick={onDismiss} title="Dismiss" style={{
+        background: "transparent", border: "none", color: "#fde68a",
+        cursor: "pointer", fontSize: 14, padding: "0 4px",
+      }}>×</button>
+    </div>
+  );
+}
+
+function StatusPills({
+  current, pensDown, onChange,
+}: { current: SimpleStatus; pensDown: boolean; onChange: (next: SimpleStatus) => void }) {
+  const PILLS: { value: SimpleStatus; label: string; color: string; description: string }[] = [
+    { value: "not_started", label: "Not Started", color: "rgba(255,255,255,0.3)", description: "Question not yet opened" },
+    { value: "drafting", label: "Drafting", color: "rgba(96,165,250,0.8)", description: "Actively writing your response" },
+    { value: "in_review", label: "In Review", color: "rgba(251,191,36,0.8)", description: "With your lead or team for review" },
+    { value: "finalized", label: "Finalized", color: "rgba(74,222,128,0.8)", description: "Complete — ready for submission" },
+  ];
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4 }}>
+      {PILLS.map((p) => {
+        const active = current === p.value;
+        const disabled = pensDown && p.value !== "finalized" && p.value !== "in_review";
+        return (
+          <button
+            key={p.value}
+            type="button"
+            title={p.description}
+            disabled={disabled}
+            onClick={(e) => { e.stopPropagation(); onChange(p.value); }}
+            style={{
+              all: "unset",
+              cursor: disabled ? "not-allowed" : "pointer",
+              padding: "6px 4px",
+              borderRadius: 6,
+              textAlign: "center",
+              fontSize: 10,
+              fontWeight: active ? 700 : 600,
+              color: active ? GOLD : "rgba(255,255,255,0.7)",
+              background: active ? "rgba(196,154,43,0.15)" : "rgba(255,255,255,0.03)",
+              border: `1px solid ${active ? GOLD : "rgba(255,255,255,0.08)"}`,
+              opacity: disabled ? 0.4 : 1,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+            }}
+          >
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: p.color }} />
+            {p.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ConfidencePills({
+  current, onChange,
+}: { current: "high" | "medium" | "low" | null; onChange: (v: "high" | "medium" | "low") => void }) {
+  const PILLS: { value: "high" | "medium" | "low"; label: string; emoji: string; color: string }[] = [
+    { value: "high", label: "High", emoji: "🟢", color: GREEN },
+    { value: "medium", label: "Medium", emoji: "🟡", color: AMBER },
+    { value: "low", label: "Low", emoji: "🔴", color: RED },
+  ];
+  return (
+    <div style={{ display: "flex", gap: 6 }}>
+      {PILLS.map((p) => {
+        const active = current === p.value;
+        const unset = current == null;
+        return (
+          <button
+            key={p.value}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onChange(p.value); }}
+            style={{
+              all: "unset",
+              cursor: "pointer",
+              minWidth: 60,
+              height: 28,
+              padding: "0 10px",
+              borderRadius: 6,
+              fontSize: 11,
+              fontWeight: active ? 700 : 600,
+              color: active ? p.color : unset ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.6)",
+              background: active ? `${p.color}26` : "rgba(255,255,255,0.03)",
+              borderLeft: `3px solid ${p.color}${active ? "" : "55"}`,
+              border: `1px solid ${active ? p.color : "rgba(255,255,255,0.08)"}`,
+              display: "inline-flex", alignItems: "center", gap: 6,
+              opacity: unset ? 0.7 : 1,
+            }}
+          >
+            <span>{p.emoji}</span>{p.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
