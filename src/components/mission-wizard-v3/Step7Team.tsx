@@ -335,7 +335,7 @@ function RosterCard({
       <Avatar name={name} />
       <div className="flex-1 min-w-0">
         <p className="text-[13px] text-white font-medium truncate">{name}</p>
-        <p className="text-[11.5px] text-white/55 truncate">{skill}</p>
+        {skill ? <p className="text-[11.5px] text-white/55 truncate">{skill}</p> : <p className="text-[9px] italic text-white/35 truncate">No role assigned</p>}
         <p className="text-[11px] text-white/40 mt-0.5">
           {loadCount} active mission{loadCount === 1 ? "" : "s"}
         </p>
