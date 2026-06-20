@@ -223,7 +223,7 @@ function ATLASCommandSurfaceInner({
     queryFn: async () => {
       const { data } = await supabase
         .from("missions")
-        .select("id, name, due_date, created_at, momentum_score")
+        .select("id, name, due_date, submission_deadline, created_at, momentum_score")
         .eq("id", missionId)
         .maybeSingle();
       return data as any;
