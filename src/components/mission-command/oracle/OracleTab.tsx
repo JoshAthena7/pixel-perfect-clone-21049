@@ -18,6 +18,7 @@ import { SourceNetwork } from "./sections/SourceNetwork";
 import { IntelligenceGaps } from "./sections/IntelligenceGaps";
 import { AnalysisTools } from "./sections/AnalysisTools";
 import { IntelSidebar } from "./sections/IntelSidebar";
+import { OracleVisualization } from "./sections/OracleVisualization";
 
 export function OracleTab({ missionId }: { missionId: string }) {
   const { isAdmin, isLoading: adminLoading } = useIsAdmin();
@@ -94,6 +95,7 @@ export function OracleTab({ missionId }: { missionId: string }) {
       />
 
       <main className="min-w-0">
+        <OracleVisualization signals={signals as any[]} />
         <JumpNav active={activeSection} />
 
         <div className="flex items-center justify-end gap-2 mb-3">
