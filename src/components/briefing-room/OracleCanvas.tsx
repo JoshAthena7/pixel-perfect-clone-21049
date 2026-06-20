@@ -23,6 +23,7 @@ import {
   Eye,
   Activity,
   RefreshCw,
+  ChevronDown,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -456,7 +457,10 @@ function ThemeList({
                   >
                     {title}
                   </span>
-                  <span style={{ color: MUTED, fontSize: 10 }}>{isExpanded ? "▲" : "↓"}</span>
+                  <ChevronDown
+                    size={12}
+                    style={{ color: MUTED, transition: "transform 0.2s", transform: isExpanded ? "rotate(180deg)" : "rotate(0)" }}
+                  />
                 </button>
                 {isExpanded && (
                   <div className="px-3 pb-2 pt-1" style={{ borderTop: `1px solid ${CARD_BORDER}` }}>

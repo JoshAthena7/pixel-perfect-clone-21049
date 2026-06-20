@@ -27,6 +27,7 @@ import {
   Pencil,
   MessageSquare,
   AlertOctagon,
+  ChevronDown,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -225,8 +226,10 @@ function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
             <h1 className="font-bold" style={{ fontSize: 36, lineHeight: 1.1, letterSpacing: "-0.01em" }}>
               {mission?.name ?? "Mission"}
             </h1>
-            <div className="mt-2" style={{ fontSize: 20, color: GOLD, fontWeight: 500 }}>
-              {mission?.client_name ?? "—"}
+            <div className="mt-2 space-y-0.5" style={{ color: GOLD, fontWeight: 500, fontSize: 12, lineHeight: 1.4 }}>
+              {(mission?.client_name ? mission.client_name.split(/(?=\bState of [A-Z])/g).map((s: string) => s.trim()).filter(Boolean) : ["—"]).map((a: string, i: number) => (
+                <div key={i}>{a}</div>
+              ))}
             </div>
 
             <div className="inline-flex items-center gap-2 mt-4">
@@ -252,11 +255,11 @@ function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
                   border: "1px solid rgba(255,255,255,0.15)",
                   color: "rgba(255,255,255,0.85)",
                   fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
                 }}
               >
-                QUESTION HEALTH <ArrowRight size={12} />
+                View Question Health <ArrowRight size={12} />
               </Link>
             </div>
 
@@ -505,18 +508,23 @@ function IrisBriefCard({ missionId, mission }: { missionId: string; mission: any
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="w-full flex items-start justify-between gap-3"
+        className="w-full flex items-center justify-between gap-3"
         style={{ background: "transparent", textAlign: "left" }}
       >
         <div className="flex items-center gap-2" style={cardLabel}>
-          <Zap size={14} /> IRIS Brief
-          <span style={{ marginLeft: 6, fontSize: 12, color: META_SOFT }}>{open ? "▲" : "▼"}</span>
+          <Zap size={14} /> <span>IRIS Brief</span>
         </div>
-        {rel && (
-          <div style={{ fontSize: 10, color: META_SOFT, fontWeight: 500, letterSpacing: 0 }}>
-            Generated {rel}
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {rel && (
+            <span style={{ fontSize: 9, color: META_SOFT, fontWeight: 500 }}>
+              Generated {rel}
+            </span>
+          )}
+          <ChevronDown
+            size={14}
+            style={{ color: META_SOFT, transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "rotate(0)" }}
+          />
+        </div>
       </button>
 
       {!open && (
@@ -1061,7 +1069,7 @@ function WatchItemsCard({ missionId, mission }: { missionId: string; mission?: a
       (qRes.data ?? []).forEach((q: any) =>
         combined.push({
           id: `q-${q.id}`,
-          title: `Q${q.question_number ?? ""} — ${truncate(q.question_text ?? "", 100)}`,
+          title: `Q${q.question_number ?? ""} — ${normalizeWatchTitle(q.question_text ?? "")}`,
         }),
       );
       return combined.slice(0, 4);
@@ -1103,7 +1111,17 @@ function WatchItemsCard({ missionId, mission }: { missionId: string; mission?: a
               className="shrink-0 mt-1.5"
               style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b" }}
             />
-            <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.9)", lineHeight: 1.5 }}>
+            <span
+              style={{
+                fontSize: 13.5,
+                color: "rgba(255,255,255,0.9)",
+                lineHeight: 1.5,
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
               {it.title}
             </span>
           </li>
@@ -1115,7 +1133,7 @@ function WatchItemsCard({ missionId, mission }: { missionId: string; mission?: a
         className="inline-flex items-center gap-1 mt-5"
         style={{ color: GOLD, fontSize: 12, fontWeight: 700 }}
       >
-        View all watch items <ArrowRight size={12} />
+        View all {items.length} watch item{items.length === 1 ? "" : "s"} <ArrowRight size={12} />
       </Link>
     </section>
   );
@@ -2030,4 +2048,15 @@ function EmptyState({ children }: { children: React.ReactNode }) {
 
 function truncate(s: string, n: number) {
   return s.length > n ? s.slice(0, n).trim() + "…" : s;
+}
+
+function normalizeWatchTitle(s: string): string {
+  if (!s) return "";
+  // Detect ALL CAPS (strip quoted segments first), then title-case
+  const isAllCaps = s.replace(/["'()]/g, "").replace(/\s+/g, " ").trim().length > 0 &&
+    s === s.toUpperCase() && /[A-Z]/.test(s);
+  const out = isAllCaps
+    ? s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+    : s;
+  return truncate(out, 120);
 }

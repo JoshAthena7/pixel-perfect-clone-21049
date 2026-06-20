@@ -353,6 +353,15 @@ export function IntelFeed({ missionId }: { missionId: string }) {
         <EmptyState />
       ) : (
         <div className="space-y-2">
+          <div className="text-[8px] text-white/40 px-1 flex items-center gap-3" aria-label="Intel feed legend">
+            <span className="inline-flex items-center gap-1">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400" /> Confirmed intelligence
+            </span>
+            <span className="text-white/20">·</span>
+            <span className="inline-flex items-center gap-1">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400" /> Initial scan — pending verification
+            </span>
+          </div>
           {filtered.map((e) => (
             <EventCard key={e.id} event={e} />
           ))}

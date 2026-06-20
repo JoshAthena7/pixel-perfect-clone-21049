@@ -456,7 +456,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                               <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Pick writer…" /></SelectTrigger>
                               <SelectContent>
                                 {d.writers.filter((w: any) => w.userId !== s.writerId).map((w: any) => (
-                                  <SelectItem key={w.userId} value={w.userId}>{w.name} ({w.role})</SelectItem>
+                                  <SelectItem key={w.userId} value={w.userId}>{w.name} ({formatRoleLabel(w.role)})</SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
@@ -770,6 +770,24 @@ function ColumnShell({ header, headerAccent, children }: {
   );
 }
 
+const ROLE_DISPLAY: Record<string, string> = {
+  engagement_lead: "Engagement Lead",
+  project_manager: "Project Manager",
+  writer: "Writer",
+  sme: "SME",
+  reviewer: "Reviewer",
+  admin: "Admin",
+};
+function formatRoleLabel(role: any): string {
+  const key = String(role ?? "").toLowerCase();
+  if (ROLE_DISPLAY[key]) return ROLE_DISPLAY[key];
+  return key.split(/[_\s]+/).filter(Boolean).map((w) => w[0]?.toUpperCase() + w.slice(1)).join(" ");
+}
+function isLeadRole(role: any): boolean {
+  const key = String(role ?? "").toLowerCase();
+  return key === "engagement_lead" || key === "project_manager" || key === "admin";
+}
+
 // =================== Writer row ===================
 function deriveLive(w: any) {
   const total = w.questionCount ?? 0;
@@ -815,11 +833,11 @@ function WriterRow({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-[12px] font-medium text-white truncate">{w.name}</span>
-          <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-white/55 uppercase tracking-wide shrink-0">{w.role}</span>
+          <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-white/55 tracking-wide shrink-0">{formatRoleLabel(w.role)}</span>
         </div>
         <div className="text-[10px] text-white/45 mt-0.5 truncate" style={{ fontFamily: "'Courier New', monospace" }}>
           {noQuestions
-            ? <span className="italic text-white/40">— Unassigned · <span style={{ color: !w.lastActivity ? "#f87171" : undefined }}>{lastSeen}</span></span>
+            ? <span className="italic text-white/40">— {isLeadRole(w.role) ? "No questions assigned" : "Unassigned"} · <span style={{ color: !w.lastActivity ? "#f87171" : undefined }}>{lastSeen}</span></span>
             : <>
                 {total}q ·{" "}
                 <span className="text-green-400">{finalized}✓</span>{" "}

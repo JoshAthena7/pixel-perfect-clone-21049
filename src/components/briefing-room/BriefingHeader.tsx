@@ -28,6 +28,15 @@ import { useState } from "react";
 import { MissionEditPanel } from "@/components/missions/MissionEditPanel";
 import { CloseMissionDialog } from "@/components/mission-command/CloseMissionDialog";
 
+function splitAgencies(raw: string): string[] {
+  // Split on repeated "State of <X>" or similar patterns; fallback to single
+  if (!raw) return [];
+  // Insert separator before repeated "State of " (after first occurrence)
+  const parts = raw.split(/(?=\bState of [A-Z])/g).map((s) => s.trim()).filter(Boolean);
+  if (parts.length <= 1) return [raw];
+  return parts.map((p) => p.replace(/\s+/g, " ").replace(/(Department of|Division of|Office of|Bureau of)/g, "— $1").replace(/^—\s*/, ""));
+}
+
 export function BriefingHeader({
   missionName,
   clientName,
@@ -57,8 +66,10 @@ export function BriefingHeader({
             {missionName}
           </h1>
           {clientName && (
-            <div className="mt-0.5" style={{ color: "rgba(255,255,255,0.45)", fontSize: 12 }}>
-              {clientName}
+            <div className="mt-1 space-y-0.5" style={{ color: "rgba(255,255,255,0.45)", fontSize: 9, lineHeight: 1.4 }}>
+              {splitAgencies(clientName).map((agency, i) => (
+                <div key={i} className="break-words">{agency}</div>
+              ))}
             </div>
           )}
         </div>
