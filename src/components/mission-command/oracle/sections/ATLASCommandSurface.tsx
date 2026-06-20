@@ -2,373 +2,1245 @@ import { useEffect, useMemo, useRef, useState, memo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+/* ============================================================================
+ * ORACLE INTELLIGENCE TERRAIN
+ * A unified topographic visualization of the mission's intelligence landscape.
+ * SVG + CSS only. No canvas, no libraries.
+ * ========================================================================== */
+
 type Signal = {
   id: string;
   title: string;
   category: string;
   status?: string;
+  tier?: string | null;
   relevance_score?: number | null;
   urgency_level?: string | null;
+  urgency?: string | null;
+  topic_tags?: string[] | null;
+  what_happened?: string | null;
+  why_it_matters?: string | null;
+  recommended_action?: string | null;
+  source_name?: string | null;
+  published_at?: string | null;
+  created_at?: string | null;
 };
 
-const CATEGORY_STYLES: Record<string, { color: string; rgb: string; label: string }> = {
-  regulatory_federal:    { color: "#60A5FA", rgb: "96,165,250",  label: "REG · FEDERAL" },
-  regulatory_state:      { color: "#34D399", rgb: "52,211,153",  label: "REG · STATE" },
-  quality_performance:   { color: "#A78BFA", rgb: "167,139,250", label: "QUALITY" },
-  health_outcomes_sdoh:  { color: "#F472B6", rgb: "244,114,182", label: "SDOH" },
-  policy_innovation:     { color: "#38BDF8", rgb: "56,189,248",  label: "POLICY INNOV." },
-  evidence_base:         { color: "#FB923C", rgb: "251,146,60",  label: "EVIDENCE" },
-  field_intelligence:    { color: "#FACC15", rgb: "250,204,21",  label: "FIELD INTEL" },
-  competitive_landscape: { color: "#F87171", rgb: "248,113,113", label: "COMPETITIVE" },
+const GOLD = "196,154,43";
+
+const CATEGORY_STYLES: Record<
+  string,
+  { color: string; rgb: string; label: string; abbr: string; zone: { cx: number; cy: number } }
+> = {
+  regulatory_federal: {
+    color: "#60A5FA", rgb: "96,165,250", label: "REGULATORY · FEDERAL", abbr: "REG_F",
+    zone: { cx: 0.12, cy: 0.22 },
+  },
+  regulatory_state: {
+    color: "#34D399", rgb: "52,211,153", label: "REGULATORY · STATE", abbr: "REG_S",
+    zone: { cx: 0.20, cy: 0.68 },
+  },
+  quality_performance: {
+    color: "#A78BFA", rgb: "167,139,250", label: "QUALITY · PERFORMANCE", abbr: "QUAL",
+    zone: { cx: 0.38, cy: 0.18 },
+  },
+  health_outcomes_sdoh: {
+    color: "#F472B6", rgb: "244,114,182", label: "HEALTH · SDOH", abbr: "SDOH",
+    zone: { cx: 0.35, cy: 0.78 },
+  },
+  policy_innovation: {
+    color: "#38BDF8", rgb: "56,189,248", label: "POLICY · INNOVATION", abbr: "POLI",
+    zone: { cx: 0.55, cy: 0.28 },
+  },
+  evidence_base: {
+    color: "#FB923C", rgb: "251,146,60", label: "EVIDENCE BASE", abbr: "EVID",
+    zone: { cx: 0.52, cy: 0.72 },
+  },
+  field_intelligence: {
+    color: "#FACC15", rgb: "250,204,21", label: "FIELD INTELLIGENCE", abbr: "FIELD",
+    zone: { cx: 0.72, cy: 0.22 },
+  },
+  competitive_landscape: {
+    color: "#F87171", rgb: "248,113,113", label: "COMPETITIVE", abbr: "COMP",
+    zone: { cx: 0.78, cy: 0.72 },
+  },
+  client_content_map: {
+    color: "#E5E7EB", rgb: "229,231,235", label: "CLIENT CONTENT MAP", abbr: "CCM",
+    zone: { cx: 0.88, cy: 0.45 },
+  },
 };
 
 const CATEGORY_KEYS = Object.keys(CATEGORY_STYLES);
-const GOLD = "196,154,43";
-const PURPLE = "167,139,250";
-const GREEN = "74,222,128";
-const BLUE = "96,165,250";
+const FALLBACK_STYLE = CATEGORY_STYLES.client_content_map;
 
-type AtlasNode = { id: string; label: string; cat: "input" | "processing" | "data" | "core" | "output" | "terminal"; stat: string; hasActivity: boolean };
-
-function liveClock(): string {
-  const d = new Date();
-  const h = String(d.getHours()).padStart(2, "0");
-  const m = String(d.getMinutes()).padStart(2, "0");
-  const s = String(d.getSeconds()).padStart(2, "0");
-  return `${h}:${m}:${s}`;
+function styleFor(cat: string) {
+  return CATEGORY_STYLES[cat] ?? FALLBACK_STYLE;
 }
 
-const IRIS_STATUS = [
-  "ANALYZING QUESTION CONTEXT...",
-  "QUERYING ORACLE SIGNALS...",
-  "SYNTHESIZING WIN ANGLE...",
-  "ASSEMBLING EVALUATOR BRIEF...",
-  "DELIVERING INTELLIGENCE...",
-  "MONITORING NARRATIVE COHERENCE...",
-  "DETECTING SIGNAL CONFLICTS...",
-  "UPDATING MISSION MOMENTUM...",
-];
-
-// Deterministic pseudo-random based on string for missing fields
-function hashFloat(s: string, salt = 0): number {
-  let h = 2166136261 ^ salt;
+/* ----------------------------- deterministic hash ----------------------- */
+function hashCode(s: string): number {
+  let h = 2166136261;
   for (let i = 0; i < s.length; i++) {
     h ^= s.charCodeAt(i);
     h = Math.imul(h, 16777619);
   }
-  return ((h >>> 0) % 10000) / 10000;
+  return Math.abs(h);
+}
+function hashFloat(s: string, salt = ""): number {
+  return (hashCode(s + salt) % 100000) / 100000;
 }
 
 function relevanceFor(s: Signal): number {
-  if (typeof s.relevance_score === "number") return Math.max(0, Math.min(100, s.relevance_score));
-  return 45 + Math.floor(hashFloat(s.id, 1) * 50); // 45..95
+  if (typeof s.relevance_score === "number")
+    return Math.max(0, Math.min(100, s.relevance_score));
+  return 45 + Math.floor(hashFloat(s.id, "rel") * 50);
 }
 function urgencyFor(s: Signal): "immediate" | "high" | "normal" | "low" {
-  const u = (s.urgency_level ?? "").toLowerCase();
-  if (u === "immediate" || u === "high" || u === "normal" || u === "low") return u as "immediate" | "high" | "normal" | "low";
+  const u = (s.urgency_level ?? s.urgency ?? "").toLowerCase();
+  if (u === "immediate" || u === "high" || u === "normal" || u === "low") return u as any;
   const r = relevanceFor(s);
-  if (r >= 85) return "high";
-  if (r >= 70) return "normal";
+  if (r >= 90) return "immediate";
+  if (r >= 75) return "high";
+  if (r >= 55) return "normal";
   return "low";
 }
 
-function ATLASCommandSurfaceInner({ missionId, signals }: { missionId: string; signals: Signal[] }) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [width, setWidth] = useState(0);
+function getSignalPosition(signal: Signal, width: number, height: number) {
+  const style = styleFor(signal.category);
+  const zone = style.zone;
+  const h1 = hashFloat(signal.id, "x");
+  const h2 = hashFloat(signal.id, "y");
+  const rel = relevanceFor(signal);
+  const jitterRadius = (1 - rel / 100) * 0.18 + 0.04;
+  const angle = h1 * Math.PI * 2;
+  const x = (zone.cx + Math.cos(angle) * jitterRadius + (h2 - 0.5) * 0.04) * width;
+  const y = (zone.cy + Math.sin(angle) * jitterRadius + (h1 - 0.5) * 0.03) * height;
+  return {
+    x: Math.max(20, Math.min(width - 20, x)),
+    y: Math.max(20, Math.min(height - 20, y)),
+  };
+}
+
+function relativeTime(iso?: string | null): string {
+  if (!iso) return "—";
+  const t = new Date(iso).getTime();
+  if (!Number.isFinite(t)) return "—";
+  const diff = Date.now() - t;
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
+/* ============================================================================
+ * Header rotating status
+ * ========================================================================== */
+function HeaderStatus({
+  signalCount, coverage, gapCount, momentum, writerCount,
+}: {
+  signalCount: number; coverage: number; gapCount: number; momentum: number; writerCount: number;
+}) {
+  const messages = useMemo(
+    () => [
+      `SCANNING · ${signalCount} SIGNALS ACTIVE`,
+      `PROCESSING · PIPELINE NOMINAL`,
+      `COVERAGE · ${coverage}% · ${gapCount} TAXONOMY GAPS`,
+      `MOMENTUM · ${momentum} · ${writerCount} WRITERS`,
+    ],
+    [signalCount, coverage, gapCount, momentum, writerCount],
+  );
+  const [idx, setIdx] = useState(0);
+  const [phase, setPhase] = useState<"in" | "out">("in");
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const t = setInterval(() => {
+      setPhase("out");
+      setTimeout(() => {
+        setIdx((i) => (i + 1) % messages.length);
+        setPhase("in");
+      }, 200);
+    }, 6000);
+    return () => clearInterval(t);
+  }, [messages.length]);
+
+  return (
+    <div className="relative h-[14px] overflow-hidden" style={{ width: 360 }}>
+      <div
+        style={{
+          fontSize: 9,
+          letterSpacing: "0.18em",
+          color: "rgba(255,255,255,0.65)",
+          fontFamily: "ui-monospace, SFMono-Regular, monospace",
+          textTransform: "uppercase",
+          textAlign: "center",
+          transform: phase === "in" ? "translateY(0)" : "translateY(-100%)",
+          opacity: phase === "in" ? 1 : 0,
+          transition: "transform 200ms ease, opacity 200ms ease",
+        }}
+      >
+        {messages[idx]}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================================
+ * Main component
+ * ========================================================================== */
+function ATLASCommandSurfaceInner({
+  missionId,
+  signals,
+}: {
+  missionId: string;
+  signals: Signal[];
+}) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [width, setWidth] = useState(0);
+  const HEADER_H = 32;
+  const LEDGER_H = 68;
+  const TOTAL_H = 520;
+  const TERRAIN_H = TOTAL_H - HEADER_H - LEDGER_H; // 420 of pure terrain
+
+  // ResizeObserver — never render at 0
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
     const ro = new ResizeObserver((entries) => {
-      const w = Math.floor(entries[0].contentRect.width);
-      if (w > 0) setWidth(w);
+      const w = entries[0]?.contentRect.width ?? 0;
+      setWidth(w);
     });
-    ro.observe(containerRef.current);
+    ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
-  const [clock, setClock] = useState(liveClock());
-  useEffect(() => {
-    const t = setInterval(() => setClock(liveClock()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  // Auxiliary mission data
-  const { data: mission } = useQuery({
-    queryKey: ["atlas-surface-mission", missionId],
+  /* -------------------- mission meta (clock + writers) ------------------ */
+  const { data: missionMeta } = useQuery({
+    queryKey: ["atlas-mission-meta", missionId],
     queryFn: async () => {
       const { data } = await supabase
         .from("missions")
-        .select("name, submission_deadline, state_code, created_at")
+        .select("id, name, due_date, created_at, momentum_score")
         .eq("id", missionId)
         .maybeSingle();
-      return data;
-    },
-  });
-  const { data: counts } = useQuery({
-    queryKey: ["atlas-surface-counts", missionId],
-    queryFn: async () => {
-      const [docs, qs, writers, briefs] = await Promise.all([
-        supabase.from("mission_documents").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
-        supabase.from("mission_questions").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
-        supabase.from("mission_team_members").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
-        supabase.from("mission_assist_events").select("id", { count: "exact", head: true }).eq("mission_id", missionId),
-      ]);
-      return {
-        docs: docs.count ?? 0,
-        questions: qs.count ?? 0,
-        writers: writers.count ?? 0,
-        briefs: briefs.count ?? 0,
-      };
+      return data as any;
     },
     staleTime: 60_000,
   });
 
-  const approved = useMemo(() => signals.filter((s) => ["approved", "pushed"].includes(s.status ?? "")), [signals]);
-  const signalCount = approved.length;
-  const sigByCat = useMemo(() => {
-    const m = new Map<string, Signal[]>();
-    for (const k of CATEGORY_KEYS) m.set(k, []);
-    for (const s of approved) {
-      const arr = m.get(s.category);
-      if (arr) arr.push(s);
-    }
-    return m;
-  }, [approved]);
+  const { data: writerCount = 0 } = useQuery({
+    queryKey: ["atlas-writer-count", missionId],
+    queryFn: async () => {
+      const { count } = await (supabase as any)
+        .from("mission_members")
+        .select("id", { count: "exact", head: true })
+        .eq("mission_id", missionId);
+      return count ?? 0;
+    },
+    staleTime: 60_000,
+  });
 
-  const daysRemaining = useMemo(() => {
-    if (!mission?.submission_deadline) return null;
-    const ms = new Date(mission.submission_deadline).getTime() - Date.now();
-    return Math.max(0, Math.ceil(ms / 86400000));
-  }, [mission?.submission_deadline]);
-
-  const missionLabel = (mission?.name ?? "MISSION").slice(0, 20).toUpperCase();
-  const stateLabel = mission?.state_code ?? "—";
-
-  const coverage = Math.min(100, signalCount * 4);
-  const momentumScore = Math.min(100, (counts?.briefs ?? 0) * 3 + signalCount);
-  const briefCount = counts?.briefs ?? 0;
-
-  // Approximate signals/hr throughput
-  const throughput = useMemo(() => {
-    const created = (mission as { created_at?: string } | null | undefined)?.created_at;
-    if (!created) return Math.max(0, Math.round(signalCount * 0.4));
-    const days = Math.max(1, (Date.now() - new Date(created).getTime()) / 86400000);
-    return Math.max(0, Math.round((signalCount / days) * 24));
-  }, [mission, signalCount]);
-
-  // Header status flasher
-  const statusFlashes = useMemo(
-    () => [
-      "ORACLE PIPELINE: PROCESSING",
-      `IRIS: ${briefCount} BRIEFS ACTIVE`,
-      `SIGNAL COVERAGE: ${coverage}%`,
-      "WRITER COCKPIT: STANDBY",
-      "STATE INTELLIGENCE: SYNCHRONIZED",
-      `MOMENTUM SCORE: ${momentumScore}`,
-    ],
-    [briefCount, coverage, momentumScore]
-  );
-  const [flashIdx, setFlashIdx] = useState<number | null>(null);
+  /* -------------------- live clock --------------------------------------- */
+  const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    let cancelled = false;
-    let timeout: ReturnType<typeof setTimeout>;
-    const cycle = () => {
-      const delay = 8000 + Math.random() * 4000;
-      timeout = setTimeout(() => {
-        if (cancelled) return;
-        const idx = Math.floor(Math.random() * statusFlashes.length);
-        setFlashIdx(idx);
-        timeout = setTimeout(() => {
-          if (cancelled) return;
-          setFlashIdx(null);
-          cycle();
-        }, 2100);
-      }, delay);
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const clockTxt = useMemo(() => {
+    const h = String(now.getHours()).padStart(2, "0");
+    const m = String(now.getMinutes()).padStart(2, "0");
+    const s = String(now.getSeconds()).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  }, [now]);
+
+  /* -------------------- derived intelligence shape ---------------------- */
+  const positionedSignals = useMemo(() => {
+    if (width < 100) return [];
+    return signals.map((s, i) => ({
+      signal: s,
+      pos: getSignalPosition(s, width, TERRAIN_H),
+      rel: relevanceFor(s),
+      urg: urgencyFor(s),
+      style: styleFor(s.category),
+      idx: i,
+    }));
+  }, [signals, width, TERRAIN_H]);
+
+  const categoryCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const s of signals) m.set(s.category, (m.get(s.category) ?? 0) + 1);
+    return m;
+  }, [signals]);
+
+  const gapCategories = useMemo(
+    () => CATEGORY_KEYS.filter((k) => (categoryCounts.get(k) ?? 0) === 0),
+    [categoryCounts],
+  );
+
+  const connections = useMemo(() => {
+    if (positionedSignals.length < 2) return [] as Array<{
+      a: { x: number; y: number }; b: { x: number; y: number };
+      shared: number; color: string; key: string;
+    }>;
+    const pairs: Array<{
+      a: { x: number; y: number }; b: { x: number; y: number };
+      shared: number; color: string; key: string;
+    }> = [];
+    for (let i = 0; i < positionedSignals.length; i++) {
+      const A = positionedSignals[i];
+      const tagsA = new Set(A.signal.topic_tags ?? []);
+      if (tagsA.size === 0) continue;
+      for (let j = i + 1; j < positionedSignals.length; j++) {
+        const B = positionedSignals[j];
+        const tagsB = B.signal.topic_tags ?? [];
+        let shared = 0;
+        for (const t of tagsB) if (tagsA.has(t)) shared++;
+        if (shared > 0) {
+          pairs.push({
+            a: A.pos, b: B.pos, shared,
+            color: A.style.color,
+            key: `${A.signal.id}-${B.signal.id}`,
+          });
+        }
+      }
+    }
+    pairs.sort((x, y) => y.shared - x.shared);
+    return pairs.slice(0, 60);
+  }, [positionedSignals]);
+
+  const topCategories = useMemo(() => {
+    return Array.from(categoryCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+  }, [categoryCounts]);
+
+  const maxCatCount = topCategories[0]?.[1] ?? 1;
+  const coverage = Math.min(100, Math.round((signals.length / 50) * 100));
+  const mostRecent = signals[0];
+  const daysRemaining = useMemo(() => {
+    if (!missionMeta?.due_date) return null;
+    const ms = new Date(missionMeta.due_date).getTime() - Date.now();
+    return Math.max(0, Math.ceil(ms / 86400000));
+  }, [missionMeta]);
+  const daysTotal = useMemo(() => {
+    if (!missionMeta?.due_date || !missionMeta?.created_at) return null;
+    const ms = new Date(missionMeta.due_date).getTime() - new Date(missionMeta.created_at).getTime();
+    return Math.max(1, Math.ceil(ms / 86400000));
+  }, [missionMeta]);
+  const daysElapsed = daysTotal && daysRemaining != null ? daysTotal - daysRemaining : 0;
+  const elapsedPct = daysTotal ? Math.min(100, Math.max(0, (daysElapsed / daysTotal) * 100)) : 0;
+
+  /* -------------------- live pulses ------------------------------------- */
+  type Pulse = { id: number; sigId: string; x: number; y: number; color: string; startedAt: number };
+  const [pulses, setPulses] = useState<Pulse[]>([]);
+
+  useEffect(() => {
+    if (positionedSignals.length === 0) return;
+    let alive = true;
+    let timers: number[] = [];
+
+    const fire = () => {
+      if (!alive) return;
+      const pick = positionedSignals[Math.floor(Math.random() * positionedSignals.length)];
+      if (pick) {
+        const p: Pulse = {
+          id: Date.now() + Math.random(),
+          sigId: pick.signal.id,
+          x: pick.pos.x,
+          y: pick.pos.y,
+          color: pick.style.color,
+          startedAt: Date.now(),
+        };
+        setPulses((prev) => [...prev.slice(-9), p]);
+      }
+      timers.push(window.setTimeout(fire, 2000 + Math.random() * 3000));
     };
-    cycle();
+
+    timers.push(window.setTimeout(fire, 500));
+    timers.push(window.setTimeout(fire, 1800));
+    timers.push(window.setTimeout(fire, 3200));
+
+    const cleanup = window.setInterval(() => {
+      setPulses((prev) => prev.filter((p) => Date.now() - p.startedAt < 1500));
+    }, 2000);
+
     return () => {
-      cancelled = true;
-      clearTimeout(timeout);
+      alive = false;
+      timers.forEach((t) => clearTimeout(t));
+      clearInterval(cleanup);
     };
-  }, [statusFlashes.length]);
+  }, [positionedSignals]);
 
-  // Layout
-  const HEADER_H = 36;
-  const FOOTER_H = 28;
-  const TOTAL_H = 560;
-  const BODY_H = TOTAL_H - HEADER_H - FOOTER_H; // 496
-  const panelW = width > 0 ? Math.floor(width / 3) : 0;
+  /* -------------------- hover + selection ------------------------------- */
+  const [hoverId, setHoverId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const connectedToHover = useMemo(() => {
+    if (!hoverId) return new Set<string>();
+    const set = new Set<string>();
+    for (const c of connections) {
+      const [aId, bId] = c.key.split("-");
+      if (aId === hoverId) set.add(bId);
+      else if (bId === hoverId) set.add(aId);
+    }
+    return set;
+  }, [hoverId, connections]);
+
+  const selectedSignal = useMemo(
+    () => signals.find((s) => s.id === selectedId) ?? null,
+    [signals, selectedId],
+  );
+
+  const hoverSignal = useMemo(
+    () => positionedSignals.find((p) => p.signal.id === hoverId) ?? null,
+    [positionedSignals, hoverId],
+  );
+
+  /* ====================================================================== */
   return (
     <div
       ref={containerRef}
-      className="relative w-full mb-6"
-      style={{
-        height: TOTAL_H,
-        background:
-          "repeating-linear-gradient(0deg, transparent 0px, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px)," +
-          "repeating-linear-gradient(90deg, transparent 0px, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px)," +
-          "#000000",
-        borderBottom: "1px solid rgba(196,154,43,0.3)",
-        overflow: "hidden",
-        fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-      }}
+      className="relative w-full rounded-lg overflow-hidden mb-6"
+      style={{ height: TOTAL_H, background: "#000308", border: `1px solid rgba(${GOLD},0.18)` }}
     >
-      <style>{KEYFRAMES}</style>
+      {/* scoped styles */}
+      <style>{`
+        @keyframes terrain-breathe-aura {
+          0%   { stroke-opacity: 0.06; }
+          100% { stroke-opacity: 0.22; }
+        }
+        @keyframes terrain-urgency-pulse {
+          0%   { stroke-opacity: 0.65; r: var(--ring-r1, 10); }
+          100% { stroke-opacity: 0;    r: var(--ring-r2, 22); }
+        }
+        @keyframes terrain-appear {
+          from { opacity: 0; transform: scale(0.3); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes terrain-broadcast-1 {
+          0%   { transform: scale(0.4); opacity: 0.55; }
+          100% { transform: scale(1.6); opacity: 0; }
+        }
+        @keyframes terrain-broadcast-2 {
+          0%   { transform: scale(0.4); opacity: 0.35; }
+          100% { transform: scale(2.1); opacity: 0; }
+        }
+        @keyframes terrain-sweep-rotate {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+        @keyframes terrain-detail-up {
+          from { transform: translateY(100%); }
+          to   { transform: translateY(0); }
+        }
+        @keyframes terrain-live-dot {
+          0%, 100% { opacity: 1; }
+          50%      { opacity: 0.45; }
+        }
+        .terrain-scanlines {
+          background-image: repeating-linear-gradient(
+            0deg,
+            transparent 0px,
+            transparent 3px,
+            rgba(255,255,255,0.01) 3px,
+            rgba(255,255,255,0.01) 4px
+          );
+        }
+      `}</style>
 
-      {/* Edge vignette */}
+      {/* scanlines + vignette */}
+      <div className="absolute inset-0 pointer-events-none terrain-scanlines" />
       <div
-        aria-hidden
+        className="absolute inset-0 pointer-events-none"
         style={{
-          position: "absolute",
-          inset: 0,
-          background: "radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%)",
-          pointerEvents: "none",
-          zIndex: 2,
+          background:
+            "radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%)",
         }}
       />
 
-      {/* Corner brackets */}
-      <CornerBrackets />
+      {/* corner brackets */}
+      {([
+        { t: 6, l: 6, rot: 0 },
+        { t: 6, r: 6, rot: 90 },
+        { b: 6, r: 6, rot: 180 },
+        { b: 6, l: 6, rot: 270 },
+      ] as any[]).map((c, i) => (
+        <svg
+          key={i}
+          width="28" height="28"
+          className="absolute pointer-events-none"
+          style={{
+            top: c.t, left: c.l, right: c.r, bottom: c.b,
+            transform: `rotate(${c.rot}deg)`,
+          }}
+        >
+          <path
+            d="M 0 0 L 28 0 M 0 0 L 0 28"
+            stroke={`rgba(${GOLD},0.35)`}
+            strokeWidth="0.5"
+            fill="none"
+          />
+        </svg>
+      ))}
 
-      {/* Particle layer */}
-      <ParticleLayer w={width} h={TOTAL_H} />
-
-      {/* Header */}
+      {/* ============ HEADER ============ */}
       <div
+        className="relative flex items-center justify-between px-4"
         style={{
-          position: "relative",
           height: HEADER_H,
-          background: "rgba(0,0,0,0.8)",
-          borderBottom: "1px solid rgba(196,154,43,0.2)",
-          padding: "0 20px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          zIndex: 5,
+          background: "rgba(0,0,0,0.7)",
+          borderBottom: `1px solid rgba(${GOLD},0.12)`,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {/* Broadcast signal: solid inner + expanding ring */}
-          <span style={{ position: "relative", width: 14, height: 14, display: "inline-block" }}>
-            <span
+        <div className="flex items-center gap-2">
+          <div className="relative" style={{ width: 14, height: 14 }}>
+            <div
+              className="absolute inset-0 m-auto rounded-full"
               style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                width: 8,
-                height: 8,
-                marginTop: -4,
-                marginLeft: -4,
-                borderRadius: 999,
-                background: `rgba(${GREEN},0.3)`,
-                animation: "atlas-broadcast 1.5s ease-out infinite",
+                width: 5, height: 5, top: 0, left: 0, right: 0, bottom: 0,
+                background: "rgba(74,222,128,1)",
+                boxShadow: "0 0 6px rgba(74,222,128,0.7)",
+                animation: "terrain-live-dot 2s ease-in-out infinite",
               }}
             />
-            <span
+            <div
+              className="absolute rounded-full"
               style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                width: 5,
-                height: 5,
-                marginTop: -2.5,
-                marginLeft: -2.5,
-                borderRadius: 999,
-                background: `rgba(${GREEN},1)`,
+                width: 9, height: 9, top: 2.5, left: 2.5,
+                background: "rgba(74,222,128,0.25)",
+                animation: "terrain-broadcast-1 2s ease-out infinite",
+                transformOrigin: "center",
               }}
             />
-          </span>
-          <span style={{ color: `rgba(${GOLD},1)`, fontSize: 9, letterSpacing: "0.2em" }}>
-            ◈ ATLAS INTELLIGENCE COMMAND
-          </span>
-        </div>
-        <div style={{ position: "relative", color: `rgba(${GOLD},0.5)`, fontSize: 7, letterSpacing: "0.15em", minHeight: 10 }}>
-          <span style={{ opacity: flashIdx === null ? 1 : 0, transition: "opacity 300ms" }}>
-            CLASSIFICATION: RESTRICTED · MISSION {missionId.slice(0, 8).toUpperCase()} · {stateLabel} MEDICAID
-          </span>
-          {flashIdx !== null && (
-            <span
+            <div
+              className="absolute rounded-full"
               style={{
-                position: "absolute",
-                inset: 0,
-                textAlign: "center",
-                color: `rgba(${GOLD},0.95)`,
-                animation: "atlas-flash-in 100ms ease-out",
-                letterSpacing: "0.2em",
+                width: 13, height: 13, top: 0.5, left: 0.5,
+                background: "rgba(74,222,128,0.12)",
+                animation: "terrain-broadcast-2 3s ease-out infinite 0.5s",
+                transformOrigin: "center",
               }}
-            >
-              ⟢ {statusFlashes[flashIdx]} ⟣
-            </span>
-          )}
+            />
+          </div>
+          <span
+            style={{
+              fontSize: 8,
+              letterSpacing: "0.18em",
+              color: `rgba(${GOLD},0.8)`,
+              fontFamily: "ui-monospace, SFMono-Regular, monospace",
+              textTransform: "uppercase",
+            }}
+          >
+            ◈ ORACLE INTELLIGENCE TERRAIN
+          </span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ color: `rgba(${GOLD},0.6)`, fontSize: 9 }}>{clock}</span>
-          <span style={{ color: `rgba(${GREEN},0.6)`, fontSize: 7, letterSpacing: "0.15em" }}>SESSION ACTIVE</span>
+
+        <HeaderStatus
+          signalCount={signals.length}
+          coverage={coverage}
+          gapCount={gapCategories.length}
+          momentum={Math.round(missionMeta?.momentum_score ?? 0)}
+          writerCount={writerCount}
+        />
+
+        <div className="flex items-center gap-3">
+          <span
+            style={{
+              fontSize: 8,
+              letterSpacing: "0.12em",
+              color: `rgba(${GOLD},0.5)`,
+              fontFamily: "ui-monospace, SFMono-Regular, monospace",
+            }}
+          >
+            {clockTxt}
+          </span>
+          <span
+            style={{
+              fontSize: 7,
+              letterSpacing: "0.18em",
+              color: "rgba(255,255,255,0.3)",
+              fontFamily: "ui-monospace, SFMono-Regular, monospace",
+            }}
+          >
+            {signals.length} SIGNALS ACTIVE
+          </span>
         </div>
       </div>
 
-      {/* Body — three panels */}
-      <div style={{ position: "relative", display: "flex", height: BODY_H, zIndex: 4 }}>
-        <div style={{ flex: 1, position: "relative", borderRight: "1px solid rgba(196,154,43,0.15)" }}>
-          {panelW > 0 && (
-            <AtlasPanel
-              w={panelW}
-              h={BODY_H}
-              docs={counts?.docs ?? 0}
-              questions={counts?.questions ?? 0}
-              signals={signalCount}
-              briefs={counts?.briefs ?? 0}
-              writers={counts?.writers ?? 0}
-              stateLabel={stateLabel}
-              throughput={throughput}
-            />
-          )}
-        </div>
-        <div style={{ flex: 1, position: "relative", borderRight: "1px solid rgba(196,154,43,0.15)" }}>
-          {panelW > 0 && (
-            <OraclePanel w={panelW} h={BODY_H} sigByCat={sigByCat} approved={approved} signalCount={signalCount} />
-          )}
-        </div>
-        <div style={{ flex: 1, position: "relative" }}>
-          {panelW > 0 && <IrisPanel w={panelW} h={BODY_H} briefs={counts?.briefs ?? 0} />}
-        </div>
-
-        {/* Inter-panel data flow indicators — burst-style */}
-        {panelW > 0 && (
+      {/* ============ TERRAIN ============ */}
+      <div className="relative" style={{ height: TERRAIN_H, width: "100%" }}>
+        {width < 100 ? (
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            style={{
+              fontSize: 10,
+              color: `rgba(${GOLD},0.35)`,
+              fontFamily: "ui-monospace, SFMono-Regular, monospace",
+              letterSpacing: "0.18em",
+            }}
+          >
+            INITIALIZING TERRAIN…
+          </div>
+        ) : (
           <>
-            <DividerBurst left={panelW} h={BODY_H} colorRgb={BLUE} dotSize={2} interval={[3500, 5000]} />
-            <DividerBurst left={panelW * 2} h={BODY_H} colorRgb={GOLD} dotSize={3} interval={[3200, 4800]} />
+            {/* slow sweep line (CSS rotate) */}
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                left: width / 2,
+                top: TERRAIN_H * 0.45,
+                width: 0,
+                height: 0,
+                animation: "terrain-sweep-rotate 120s linear infinite",
+                transformOrigin: "0 0",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  width: width * 0.6,
+                  height: 0.5,
+                  background: `rgba(${GOLD},0.15)`,
+                  transformOrigin: "0 0",
+                }}
+              />
+            </div>
+
+            <svg
+              width={width}
+              height={TERRAIN_H}
+              style={{ display: "block", position: "absolute", inset: 0 }}
+            >
+              <defs>
+                {CATEGORY_KEYS.map((k) => {
+                  const st = styleFor(k);
+                  return (
+                    <radialGradient
+                      key={`heat-${k}`}
+                      id={`terrain-heat-${k}`}
+                      cx="50%" cy="50%" r="50%"
+                    >
+                      <stop offset="0%" stopColor={st.color} stopOpacity="0.14" />
+                      <stop offset="40%" stopColor={st.color} stopOpacity="0.04" />
+                      <stop offset="100%" stopColor={st.color} stopOpacity="0" />
+                    </radialGradient>
+                  );
+                })}
+              </defs>
+
+              {/* Layer 2 — heat zones */}
+              {CATEGORY_KEYS.map((k) => {
+                const count = categoryCounts.get(k) ?? 0;
+                if (count === 0) return null;
+                const st = styleFor(k);
+                const r = 80 + count * 12;
+                return (
+                  <circle
+                    key={`heat-${k}`}
+                    cx={st.zone.cx * width}
+                    cy={st.zone.cy * TERRAIN_H}
+                    r={r}
+                    fill={`url(#terrain-heat-${k})`}
+                  />
+                );
+              })}
+
+              {/* Layer 3 — gap cold zones */}
+              {gapCategories.map((k) => {
+                const st = styleFor(k);
+                return (
+                  <circle
+                    key={`gap-${k}`}
+                    cx={st.zone.cx * width}
+                    cy={st.zone.cy * TERRAIN_H}
+                    r={40}
+                    fill="none"
+                    stroke="rgba(255,255,255,0.06)"
+                    strokeWidth="0.5"
+                    strokeDasharray="3 6"
+                  />
+                );
+              })}
+
+              {/* Layer 7 — strategic relevance threshold */}
+              <line
+                x1={0}
+                y1={TERRAIN_H * 0.5}
+                x2={width}
+                y2={TERRAIN_H * 0.5}
+                stroke="rgba(255,255,255,0.05)"
+                strokeWidth="0.5"
+              />
+              <text
+                x={width - 10}
+                y={TERRAIN_H * 0.5 - 4}
+                fill="rgba(255,255,255,0.18)"
+                fontSize="6"
+                fontFamily="ui-monospace, monospace"
+                letterSpacing="0.18em"
+                textAnchor="end"
+              >
+                STRATEGIC RELEVANCE THRESHOLD
+              </text>
+
+              {/* Layer 4 — connection web */}
+              {connections.map((c) => {
+                const [aId, bId] = c.key.split("-");
+                const dim =
+                  hoverId &&
+                  hoverId !== aId &&
+                  hoverId !== bId;
+                const bright =
+                  hoverId && (hoverId === aId || hoverId === bId);
+                const baseOp = 0.04 + c.shared * 0.04;
+                const op = dim ? 0.03 : bright ? 0.4 : baseOp;
+                return (
+                  <line
+                    key={c.key}
+                    x1={c.a.x} y1={c.a.y}
+                    x2={c.b.x} y2={c.b.y}
+                    stroke={c.color}
+                    strokeOpacity={op}
+                    strokeWidth={0.3 + c.shared * 0.15}
+                    style={{ transition: "stroke-opacity 150ms ease" }}
+                  />
+                );
+              })}
+
+              {/* Layer 6 — category zone labels */}
+              {CATEGORY_KEYS.map((k) => {
+                const count = categoryCounts.get(k) ?? 0;
+                if (count === 0) return null;
+                const st = styleFor(k);
+                return (
+                  <g
+                    key={`lbl-${k}`}
+                    transform={`translate(${st.zone.cx * width - 30}, ${st.zone.cy * TERRAIN_H + 50})`}
+                  >
+                    <text
+                      x={0} y={0}
+                      fill="rgba(255,255,255,0.28)"
+                      fontSize="7"
+                      fontFamily="ui-monospace, monospace"
+                      letterSpacing="0.16em"
+                    >
+                      {st.label}
+                    </text>
+                    <text
+                      x={0} y={11}
+                      fill={st.color}
+                      fontSize="9"
+                      fontWeight="600"
+                      fontFamily="ui-monospace, monospace"
+                    >
+                      {count} signal{count === 1 ? "" : "s"}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* Layer 5 — signal nodes */}
+              {positionedSignals.map((p) => {
+                const baseR = 4 + ((p.rel - 40) / 60) * 9;
+                const r = Math.max(3, Math.min(13, baseR));
+                const isHover = hoverId === p.signal.id;
+                const isSelected = selectedId === p.signal.id;
+                const dim =
+                  hoverId &&
+                  hoverId !== p.signal.id &&
+                  !connectedToHover.has(p.signal.id);
+                const groupOpacity = dim ? 0.2 : 1;
+                return (
+                  <g
+                    key={p.signal.id}
+                    style={{
+                      transition: "opacity 150ms ease, transform 150ms ease",
+                      opacity: groupOpacity,
+                      transform: `translate(${p.pos.x}px, ${p.pos.y}px) scale(${isHover || isSelected ? 1.3 : 1})`,
+                      transformOrigin: "center",
+                      animation: `terrain-appear 0.35s ease-out both`,
+                      animationDelay: `${p.idx * 0.04}s`,
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={() => setHoverId(p.signal.id)}
+                    onMouseLeave={() => setHoverId(null)}
+                    onClick={() => setSelectedId(p.signal.id)}
+                  >
+                    {/* aura */}
+                    <circle
+                      r={r + 8}
+                      fill="none"
+                      stroke={p.style.color}
+                      strokeOpacity="0.12"
+                      style={{
+                        animation: `terrain-breathe-aura ${2.5 + hashFloat(p.signal.id, "a") * 2.5}s ease-in-out infinite alternate`,
+                      }}
+                    />
+                    {/* main */}
+                    <circle
+                      r={r}
+                      fill={p.style.color}
+                      fillOpacity={0.7 + (p.rel / 100) * 0.3}
+                    />
+                    {/* urgency ring */}
+                    {(p.urg === "immediate" || p.urg === "high") && (
+                      <circle
+                        r={r + 3}
+                        fill="none"
+                        stroke={p.style.color}
+                        strokeWidth="1"
+                        strokeOpacity="0.6"
+                        style={
+                          {
+                            animation: `terrain-urgency-pulse 1.4s ease-out infinite`,
+                            ["--ring-r1" as any]: `${r + 3}px`,
+                            ["--ring-r2" as any]: `${r + 16}px`,
+                          } as any
+                        }
+                      />
+                    )}
+                  </g>
+                );
+              })}
+
+              {/* Layer 8 — live pulses */}
+              {pulses.map((p) => (
+                <circle
+                  key={p.id}
+                  cx={p.x} cy={p.y}
+                  r={6}
+                  fill="none"
+                  stroke={p.color}
+                  strokeWidth="1"
+                  style={
+                    {
+                      animation: "terrain-urgency-pulse 1.2s ease-out forwards",
+                      ["--ring-r1" as any]: "6px",
+                      ["--ring-r2" as any]: "46px",
+                    } as any
+                  }
+                />
+              ))}
+            </svg>
+
+            {/* empty state */}
+            {signals.length === 0 && (
+              <div
+                className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
+                style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}
+              >
+                <div style={{ fontSize: 11, letterSpacing: "0.22em", color: `rgba(${GOLD},0.3)` }}>
+                  NO SIGNALS DETECTED
+                </div>
+                <div style={{ fontSize: 8, letterSpacing: "0.22em", color: `rgba(${GOLD},0.15)`, marginTop: 6 }}>
+                  ORACLE IS SCANNING
+                </div>
+              </div>
+            )}
+
+            {/* hover tooltip */}
+            {hoverSignal && !selectedId && (
+              <HoverTooltip
+                signal={hoverSignal.signal}
+                rel={hoverSignal.rel}
+                style={hoverSignal.style}
+                x={hoverSignal.pos.x}
+                y={hoverSignal.pos.y}
+                width={width}
+                height={TERRAIN_H}
+              />
+            )}
+
+            {/* detail card */}
+            {selectedSignal && (
+              <DetailCard
+                signal={selectedSignal}
+                onClose={() => setSelectedId(null)}
+              />
+            )}
           </>
         )}
       </div>
 
-      {/* Bottom status bar */}
+      {/* ============ LEDGER ============ */}
       <div
+        className="relative grid grid-cols-5"
         style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: FOOTER_H,
-          background: "rgba(0,0,0,0.9)",
-          borderTop: "1px solid rgba(196,154,43,0.15)",
-          display: "flex",
-          alignItems: "center",
-          padding: "0 20px",
-          fontSize: 7,
-          letterSpacing: "0.12em",
-          zIndex: 5,
+          height: LEDGER_H,
+          background: "rgba(0,0,0,0.8)",
+          borderTop: `1px solid rgba(${GOLD},0.12)`,
+          fontFamily: "ui-monospace, SFMono-Regular, monospace",
         }}
       >
-        <div style={{ flex: 1, color: `rgba(${GREEN},0.6)` }}>
-          ATLAS · {missionLabel} · {daysRemaining ?? "—"} DAYS REMAINING
+        {/* col 1: mission pulse */}
+        <div className="px-4 py-2 flex flex-col justify-center" style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ fontSize: 7, letterSpacing: "0.18em", color: `rgba(${GOLD},0.7)` }}>
+            MISSION {missionId.slice(0, 4).toUpperCase()}
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 300, color: "white", marginTop: 4 }}>
+            {daysRemaining != null ? `${daysRemaining} DAYS REMAINING` : "NO DUE DATE"}
+          </div>
+          <div className="mt-1.5 h-[2px] w-full bg-white/10 rounded-full overflow-hidden">
+            <div className="h-full" style={{ width: `${elapsedPct}%`, background: `rgba(${GOLD},0.55)` }} />
+          </div>
         </div>
-        <div style={{ flex: 1, textAlign: "center", color: `rgba(${GOLD},0.6)` }}>
-          ORACLE · {signalCount} SIGNALS · {coverage}% COVERAGE · PIPELINE ACTIVE
+
+        {/* col 2: signal density */}
+        <div className="px-4 py-2 flex flex-col justify-center" style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ fontSize: 7, letterSpacing: "0.18em", color: "rgba(255,255,255,0.3)" }}>
+            INTELLIGENCE DENSITY
+          </div>
+          <div className="mt-1.5 flex flex-col gap-[3px]">
+            {topCategories.length === 0 && (
+              <div style={{ fontSize: 8, color: "rgba(255,255,255,0.3)" }}>—</div>
+            )}
+            {topCategories.map(([k, n]) => {
+              const st = styleFor(k);
+              const pct = (n / maxCatCount) * 100;
+              return (
+                <div key={k} className="flex items-center gap-1.5">
+                  <div style={{ fontSize: 6.5, color: "rgba(255,255,255,0.55)", width: 32, letterSpacing: "0.08em" }}>
+                    {st.abbr}
+                  </div>
+                  <div className="flex-1 h-[3px] bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full" style={{ width: `${pct}%`, background: st.color, opacity: 0.85 }} />
+                  </div>
+                  <div style={{ fontSize: 6.5, color: st.color, width: 14, textAlign: "right" }}>{n}</div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-        <div style={{ flex: 1, textAlign: "right", color: `rgba(${PURPLE},0.6)` }}>
-          IRIS · {counts?.briefs ?? 0} BRIEFS · MOMENTUM {momentumScore} · {counts?.writers ?? 0} WRITERS
+
+        {/* col 3: coverage */}
+        <div className="px-4 py-2 flex flex-col justify-center" style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ fontSize: 7, letterSpacing: "0.18em", color: "rgba(255,255,255,0.3)" }}>
+            ORACLE COVERAGE
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 200, color: "white", lineHeight: 1, marginTop: 4 }}>
+            {coverage}%
+          </div>
+          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
+            {signals.length} OF ~50 KEY ITEMS
+          </div>
+        </div>
+
+        {/* col 4: gaps */}
+        <div className="px-4 py-2 flex flex-col justify-center" style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ fontSize: 7, letterSpacing: "0.18em", color: "rgba(248,113,113,0.7)" }}>
+            KNOWLEDGE GAPS
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 300, color: "white", marginTop: 4 }}>
+            {gapCategories.length} GAPS DETECTED
+          </div>
+          <div className="mt-1 flex flex-col gap-[2px]">
+            {gapCategories.slice(0, 2).map((k) => (
+              <div key={k} className="flex items-center gap-1.5">
+                <div style={{ width: 4, height: 4, borderRadius: "50%", background: "rgba(248,113,113,0.7)" }} />
+                <div style={{ fontSize: 7, color: "rgba(255,255,255,0.5)", letterSpacing: "0.12em" }}>
+                  {styleFor(k).label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* col 5: system status */}
+        <div className="px-4 py-2 flex flex-col justify-center">
+          <div style={{ fontSize: 7, letterSpacing: "0.18em", color: "rgba(255,255,255,0.3)" }}>
+            SYSTEM STATUS
+          </div>
+          <div style={{ fontSize: 10, color: "rgba(74,222,128,0.85)", marginTop: 4, fontWeight: 500, letterSpacing: "0.12em" }}>
+            PIPELINE ACTIVE
+          </div>
+          <div style={{ fontSize: 7, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
+            LAST SIGNAL: {relativeTime(mostRecent?.created_at ?? mostRecent?.published_at)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================================
+ * Hover tooltip
+ * ========================================================================== */
+function HoverTooltip({
+  signal, rel, style, x, y, width, height,
+}: {
+  signal: Signal;
+  rel: number;
+  style: { color: string; rgb: string; label: string };
+  x: number; y: number; width: number; height: number;
+}) {
+  const TW = 240;
+  const TH = 130;
+  // place to avoid edges
+  let left = x + 16;
+  let top = y + 16;
+  if (left + TW > width - 8) left = x - TW - 16;
+  if (top + TH > height - 8) top = y - TH - 16;
+  if (left < 8) left = 8;
+  if (top < 8) top = 8;
+
+  return (
+    <div
+      className="absolute pointer-events-none"
+      style={{
+        left, top, width: TW,
+        background: "rgba(3,7,18,0.97)",
+        border: `1px solid rgba(${style.rgb},0.6)`,
+        borderRadius: 4,
+        padding: 12,
+        zIndex: 100,
+        fontFamily: "ui-sans-serif, system-ui, sans-serif",
+        boxShadow: "0 12px 28px rgba(0,0,0,0.5)",
+      }}
+    >
+      <div
+        style={{
+          fontSize: 8,
+          letterSpacing: "0.18em",
+          color: style.color,
+          textTransform: "uppercase",
+          fontFamily: "ui-monospace, monospace",
+        }}
+      >
+        {style.label}
+      </div>
+      <div
+        style={{
+          fontSize: 13,
+          fontWeight: 600,
+          color: "white",
+          marginTop: 6,
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+          lineHeight: 1.3,
+        }}
+      >
+        {signal.title}
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <div className="flex-1 h-[3px] rounded-full" style={{ background: "rgba(255,255,255,0.08)" }}>
+          <div
+            className="h-full rounded-full"
+            style={{ width: `${rel}%`, background: style.color }}
+          />
+        </div>
+        <div style={{ fontSize: 8, color: "rgba(255,255,255,0.55)", letterSpacing: "0.08em", fontFamily: "ui-monospace, monospace" }}>
+          REL {rel}
+        </div>
+      </div>
+      {signal.why_it_matters && (
+        <div
+          style={{
+            fontSize: 10,
+            color: "rgba(255,255,255,0.65)",
+            marginTop: 8,
+            display: "-webkit-box",
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            lineHeight: 1.4,
+          }}
+        >
+          {signal.why_it_matters}
+        </div>
+      )}
+      <div className="mt-2 flex items-center justify-between">
+        <div style={{ fontSize: 8, color: "rgba(255,255,255,0.45)", fontFamily: "ui-monospace, monospace" }}>
+          {signal.source_name ?? "—"}
+        </div>
+        <div style={{ fontSize: 7, color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, monospace" }}>
+          {relativeTime(signal.published_at ?? signal.created_at)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================================
+ * Detail card (slides up)
+ * ========================================================================== */
+function DetailCard({ signal, onClose }: { signal: Signal; onClose: () => void }) {
+  const st = styleFor(signal.category);
+  const rel = relevanceFor(signal);
+  return (
+    <div
+      className="absolute left-0 right-0 bottom-0"
+      style={{
+        height: "40%",
+        background: "rgba(3,7,18,0.97)",
+        borderTop: `1px solid rgba(${st.rgb},0.7)`,
+        animation: "terrain-detail-up 280ms ease-out",
+        zIndex: 50,
+        fontFamily: "ui-sans-serif, system-ui, sans-serif",
+      }}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-2 right-2 text-white/50 hover:text-white"
+        style={{ fontSize: 16, width: 22, height: 22, lineHeight: "20px" }}
+        aria-label="Close"
+      >
+        ×
+      </button>
+      <div className="grid grid-cols-[1.3fr_1.6fr_1fr] gap-5 px-5 py-4 h-full overflow-hidden">
+        {/* left */}
+        <div className="min-w-0">
+          <div
+            style={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: "white",
+              lineHeight: 1.3,
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {signal.title}
+          </div>
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
+            <span
+              className="rounded-full px-2 py-[2px]"
+              style={{
+                fontSize: 9,
+                background: `rgba(${st.rgb},0.14)`,
+                color: st.color,
+                border: `1px solid rgba(${st.rgb},0.35)`,
+                letterSpacing: "0.1em",
+                fontFamily: "ui-monospace, monospace",
+              }}
+            >
+              {st.label}
+            </span>
+            {signal.tier && (
+              <span
+                className="rounded-full px-2 py-[2px]"
+                style={{
+                  fontSize: 9,
+                  background: "rgba(255,255,255,0.06)",
+                  color: "rgba(255,255,255,0.65)",
+                  letterSpacing: "0.1em",
+                  fontFamily: "ui-monospace, monospace",
+                }}
+              >
+                {String(signal.tier).toUpperCase()}
+              </span>
+            )}
+            {(signal.urgency_level || signal.urgency) && (
+              <span
+                style={{
+                  fontSize: 9,
+                  color: "rgba(248,113,113,0.85)",
+                  letterSpacing: "0.1em",
+                  fontFamily: "ui-monospace, monospace",
+                }}
+              >
+                ⚡ {String(signal.urgency_level ?? signal.urgency).toUpperCase()}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* center */}
+        <div className="min-w-0 overflow-hidden">
+          {signal.what_happened && (
+            <div
+              style={{
+                fontSize: 12,
+                color: "white",
+                lineHeight: 1.5,
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {signal.what_happened}
+            </div>
+          )}
+          {signal.why_it_matters && (
+            <div
+              className="mt-2 italic"
+              style={{
+                fontSize: 11,
+                color: st.color,
+                lineHeight: 1.5,
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {signal.why_it_matters}
+            </div>
+          )}
+          {signal.recommended_action && (
+            <div
+              className="mt-2"
+              style={{
+                fontSize: 11,
+                color: "rgba(255,255,255,0.6)",
+                lineHeight: 1.5,
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              → {signal.recommended_action}
+            </div>
+          )}
+        </div>
+
+        {/* right */}
+        <div className="min-w-0">
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.85)", fontFamily: "ui-monospace, monospace" }}>
+            {signal.source_name ?? "—"}
+          </div>
+          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.4)", marginTop: 2, fontFamily: "ui-monospace, monospace" }}>
+            {relativeTime(signal.published_at ?? signal.created_at)}
+          </div>
+          <div className="mt-3">
+            <div className="flex items-center justify-between mb-1">
+              <div style={{ fontSize: 8, color: "rgba(255,255,255,0.45)", letterSpacing: "0.1em", fontFamily: "ui-monospace, monospace" }}>
+                RELEVANCE
+              </div>
+              <div style={{ fontSize: 9, color: st.color, fontFamily: "ui-monospace, monospace" }}>{rel}</div>
+            </div>
+            <div className="h-[3px] rounded-full" style={{ background: "rgba(255,255,255,0.08)" }}>
+              <div className="h-full rounded-full" style={{ width: `${rel}%`, background: st.color }} />
+            </div>
+          </div>
+          {Array.isArray(signal.topic_tags) && signal.topic_tags.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1">
+              {signal.topic_tags.slice(0, 6).map((t) => (
+                <span
+                  key={t}
+                  className="rounded-full"
+                  style={{
+                    fontSize: 8,
+                    padding: "2px 6px",
+                    background: "rgba(255,255,255,0.05)",
+                    color: "rgba(255,255,255,0.55)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -376,918 +1248,4 @@ function ATLASCommandSurfaceInner({ missionId, signals }: { missionId: string; s
 }
 
 export const ATLASCommandSurface = memo(ATLASCommandSurfaceInner);
-
-// ─────────────────────────────────────────────────────────────
-// ATLAS panel
-function AtlasPanel({
-  w, h, docs, questions, signals, briefs, writers, stateLabel, throughput,
-}: {
-  w: number; h: number; docs: number; questions: number; signals: number; briefs: number; writers: number; stateLabel: string; throughput: number;
-}) {
-  void questions;
-  const HEADER = 32;
-  const FOOTER = 22;
-  const innerH = h - HEADER - FOOTER;
-  const nodes: AtlasNode[] = [
-    { id: "rfp", label: "RFP DOCUMENTS",      cat: "input",      stat: `${docs} DOCS`,        hasActivity: docs > 0 },
-    { id: "pipe", label: "ORACLE PIPELINE",   cat: "processing", stat: "ACTIVE",              hasActivity: true },
-    { id: "sig", label: "SIGNAL EXTRACTION",  cat: "processing", stat: `${signals} SIG`,      hasActivity: signals > 0 },
-    { id: "state", label: "STATE INTELLIGENCE", cat: "data",     stat: stateLabel.toUpperCase(), hasActivity: stateLabel !== "—" },
-    { id: "core", label: "MISSION ORACLE",    cat: "core",       stat: `${signals}`,          hasActivity: signals > 0 },
-    { id: "iris", label: "IRIS BRIEFING LAYER", cat: "output",   stat: `${briefs} BRIEFS`,    hasActivity: briefs > 0 },
-    { id: "cock", label: "WRITER COCKPIT",    cat: "terminal",   stat: `${writers} WRITERS`,  hasActivity: writers > 0 },
-  ];
-
-  // Per-stage connector speeds (seconds per cycle)
-  const CONNECTOR_SPEEDS = [1.2, 0.9, 2.1, 1.8, 0.7, 1.5];
-
-  const NODE_H = 28;
-  const slotH = innerH / nodes.length;
-  const nodeW = Math.floor(w * 0.7);
-  const xPad = Math.floor((w - nodeW) / 2);
-
-  const palette: Record<AtlasNode["cat"], { border: string; bg: string; label: string; weight: number }> = {
-    input:      { border: "rgba(96,165,250,0.4)",  bg: "rgba(96,165,250,0.06)",  label: "rgba(96,165,250,0.9)",  weight: 400 },
-    processing: { border: "rgba(196,154,43,0.4)",  bg: "rgba(196,154,43,0.06)",  label: "rgba(196,154,43,0.9)",  weight: 400 },
-    data:       { border: "rgba(52,211,153,0.4)",  bg: "rgba(52,211,153,0.06)",  label: "rgba(52,211,153,0.9)",  weight: 400 },
-    core:       { border: "rgba(196,154,43,0.9)",  bg: "rgba(196,154,43,0.12)",  label: "#ffffff",               weight: 600 },
-    output:     { border: "rgba(167,139,250,0.4)", bg: "rgba(167,139,250,0.06)", label: "rgba(167,139,250,0.9)", weight: 400 },
-    terminal:   { border: "rgba(74,222,128,0.4)",  bg: "rgba(74,222,128,0.06)",  label: "rgba(74,222,128,0.9)",  weight: 400 },
-  };
-
-  return (
-    <div style={{ position: "relative", width: w, height: h }}>
-      <PanelHeader
-        title="ATLAS"
-        subtitle="MISSION ARCHITECTURE"
-        subtitleColorRgb={GOLD}
-        right={
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 7, color: `rgba(${GOLD},0.8)`, letterSpacing: "0.15em" }}>↑ {throughput} SIG/HR</span>
-            <span style={{ fontSize: 7, color: `rgba(${GREEN},0.8)`, border: `1px solid rgba(${GREEN},0.4)`, padding: "2px 6px", borderRadius: 2 }}>HEALTHY</span>
-          </div>
-        }
-      />
-
-      {/* Pipeline connectors */}
-      <svg width={w} height={innerH} style={{ position: "absolute", top: HEADER, left: 0 }}>
-        {nodes.slice(0, -1).map((_, i) => {
-          const y1 = slotH * i + slotH / 2 + NODE_H / 2;
-          const y2 = slotH * (i + 1) + slotH / 2 - NODE_H / 2;
-          // Critical path is the MISSION ORACLE → IRIS BRIEFING LAYER connector (i === 4)
-          const isCritical = i === 4;
-          const speed = CONNECTOR_SPEEDS[i] ?? 1.5;
-          return (
-            <line
-              key={i}
-              x1={w / 2}
-              y1={y1}
-              x2={w / 2}
-              y2={y2}
-              stroke={isCritical ? `rgba(${GOLD},1)` : `rgba(${GOLD},0.6)`}
-              strokeWidth={isCritical ? 2.5 : 2}
-              strokeDasharray={isCritical ? "12 28" : "8 32"}
-              style={{ animation: `atlas-flow ${speed}s linear infinite` }}
-            />
-          );
-        })}
-      </svg>
-
-      {/* Nodes (HTML overlay) */}
-      <div style={{ position: "absolute", top: HEADER, left: 0, width: w, height: innerH }}>
-        {nodes.map((n, i) => {
-          const p = palette[n.cat];
-          const top = slotH * i + slotH / 2 - NODE_H / 2;
-          const isOracle = n.id === "core";
-          return (
-            <div
-              key={n.id}
-              style={{
-                position: "absolute",
-                top,
-                left: xPad,
-                width: nodeW,
-                height: NODE_H,
-                background: p.bg,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "0 10px",
-                fontSize: 8,
-                letterSpacing: "0.12em",
-                color: p.label,
-                fontWeight: p.weight,
-                transition: "box-shadow 200ms, transform 200ms",
-                border: `1px solid ${p.border}`,
-                // Pulsing 3px left border when node has activity
-                borderLeft: `3px solid ${p.border}`,
-                animation: n.hasActivity && !isOracle ? "atlas-border-pulse 3s ease-in-out infinite" : undefined,
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = `0 0 12px rgba(${GOLD},0.4)`; }}
-              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; }}
-            >
-              {isOracle && (
-                <svg
-                  width={nodeW} height={NODE_H}
-                  style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none", overflow: "visible" }}
-                >
-                  <rect
-                    x={0.5} y={0.5}
-                    width={nodeW - 1} height={NODE_H - 1}
-                    fill="none"
-                    stroke={`rgba(${GOLD},1)`}
-                    strokeWidth={1.5}
-                    strokeDasharray={`30 ${(nodeW + NODE_H) * 2 - 30}`}
-                    style={{ animation: "atlas-orbit-border 4s linear infinite" }}
-                  />
-                </svg>
-              )}
-              <span style={{ position: "relative", zIndex: 1 }}>{n.label}</span>
-              <span style={{ position: "relative", zIndex: 1, opacity: 0.7 }}>{n.stat}</span>
-            </div>
-          );
-        })}
-      </div>
-
-      <div
-        style={{
-          position: "absolute",
-          bottom: 4,
-          left: 0,
-          right: 0,
-          textAlign: "center",
-          color: `rgba(${GOLD},0.4)`,
-          fontSize: 8,
-          letterSpacing: "0.18em",
-        }}
-      >
-        ATLAS IS CARRYING THE MISSION.
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// ORACLE panel
-function OraclePanel({
-  w, h, sigByCat, approved, signalCount,
-}: {
-  w: number; h: number; sigByCat: Map<string, Signal[]>; approved: Signal[]; signalCount: number;
-}) {
-  void sigByCat;
-  const HEADER = 32;
-  const FEED_H = 78;
-  const innerH = h - HEADER - FEED_H;
-  const cx = w / 2;
-  const cy = HEADER + innerH / 2;
-  const R_CORE = 80;
-  const R_ORBIT = 110;
-  const R_LABEL = 152;
-  const R_DOTS = 132;
-
-  const cats = CATEGORY_KEYS;
-  const slotAngle = (2 * Math.PI) / cats.length;
-
-  // Animation clock for breathing + sweep position
-  const [now, setNow] = useState(() => performance.now());
-  useEffect(() => {
-    let raf = 0;
-    const tick = () => {
-      setNow(performance.now());
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  // Sweep angle in degrees (0 at top, increasing clockwise). 6s per revolution.
-  const sweepDeg = ((now / 6000) * 360) % 360;
-  const sweepRad = ((sweepDeg - 90) * Math.PI) / 180;
-
-  // Inner ring (1px) at slightly different rotation speed
-  const innerRingDeg = ((now / 9000) * 360) % 360;
-
-  // Build signal dot data with size/phase/period
-  const signalDots = useMemo(() => {
-    return approved.slice(0, 24).map((s, i) => {
-      const catIdx = cats.indexOf(s.category);
-      const baseA = catIdx >= 0 ? catIdx * slotAngle : (i / 24) * 2 * Math.PI;
-      const jitter = (hashFloat(s.id, 7) - 0.5) * 0.4;
-      const a = baseA + jitter;
-      const r = R_DOTS + (hashFloat(s.id, 9) - 0.5) * 22;
-      const rel = relevanceFor(s);
-      const radius = 3 + ((Math.max(40, Math.min(100, rel)) - 40) / 60) * 9; // 3..12px
-      const phase = hashFloat(s.id, 11) * Math.PI * 2;
-      const period = 1.8 + hashFloat(s.id, 13) * 4.3; // 1.8..6.1s
-      const urgency = urgencyFor(s);
-      return {
-        id: s.id,
-        x: Math.cos(a) * r,
-        y: Math.sin(a) * r,
-        a,
-        radius,
-        phase,
-        period,
-        urgency,
-        color: CATEGORY_STYLES[s.category]?.color ?? "#94A3B8",
-        rgb: CATEGORY_STYLES[s.category]?.rgb ?? "148,163,184",
-      };
-    });
-  }, [approved, cats, slotAngle]);
-
-  // Track recently-pinged dots (sonar) — when sweep passes within ~7° of a dot's angle
-  const pingRef = useRef<Map<string, number>>(new Map());
-  for (const d of signalDots) {
-    // dot angle in degrees, 0 at right (cos/sin). Convert to "0 at top" coord matching sweepDeg.
-    const dotDeg = ((d.a * 180) / Math.PI + 90 + 360) % 360;
-    const diff = Math.min(Math.abs(dotDeg - sweepDeg), 360 - Math.abs(dotDeg - sweepDeg));
-    if (diff < 4 && (pingRef.current.get(d.id) ?? -Infinity) < now - 700) {
-      pingRef.current.set(d.id, now);
-    }
-  }
-
-  // Track recently-hit category labels (within sweep cone)
-  const labelHitRef = useRef<Map<string, number>>(new Map());
-  cats.forEach((k, i) => {
-    const a = i * slotAngle;
-    const labelDeg = ((a * 180) / Math.PI + 90 + 360) % 360;
-    const diff = Math.min(Math.abs(labelDeg - sweepDeg), 360 - Math.abs(labelDeg - sweepDeg));
-    if (diff < 6 && (labelHitRef.current.get(k) ?? -Infinity) < now - 700) {
-      labelHitRef.current.set(k, now);
-    }
-  });
-
-  // Arc flicker every 90° of rotation
-  const sweepQuadrant = Math.floor(sweepDeg / 90);
-  const inFlickerWindow = (sweepDeg - sweepQuadrant * 90) < 2; // ~50ms
-  const sweepOpacity = inFlickerWindow ? 0.8 : 0.65;
-
-  // ─── Feed: variable scroll speed + enter flicker ───
-  const [feedIdx, setFeedIdx] = useState(0);
-  const feedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (approved.length === 0) return;
-    const advance = () => {
-      const top = approved[feedIdx % approved.length];
-      const u = urgencyFor(top);
-      const delay = u === "immediate" ? 2500 : u === "high" ? 2000 : u === "low" ? 1000 : 1500;
-      feedTimer.current = setTimeout(() => {
-        setFeedIdx((i) => i + 1);
-      }, delay);
-    };
-    advance();
-    return () => {
-      if (feedTimer.current) clearTimeout(feedTimer.current);
-    };
-  }, [feedIdx, approved]);
-
-  const feedItems = approved.length > 0
-    ? Array.from({ length: 5 }, (_, k) => approved[(feedIdx + k) % approved.length])
-    : [];
-
-  return (
-    <div style={{ position: "relative", width: w, height: h }}>
-      <PanelHeader
-        title="ORACLE"
-        subtitle="INTELLIGENCE NETWORK"
-        subtitleColorRgb={GOLD}
-        right={
-          <span style={{ fontSize: 7, color: `rgba(${GOLD},0.7)`, letterSpacing: "0.15em" }}>
-            {signalCount > 0 ? `${signalCount} SIGNALS ACTIVE` : "AWAITING INTELLIGENCE"}
-          </span>
-        }
-      />
-
-      {/* Hot spot glow behind core */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          left: cx - 50,
-          top: cy - 30,
-          width: 100,
-          height: 60,
-          background: `radial-gradient(ellipse at center, rgba(${GOLD},0.04), transparent 70%)`,
-          filter: "blur(8px)",
-          pointerEvents: "none",
-        }}
-      />
-
-      <svg width={w} height={innerH + HEADER} style={{ position: "absolute", top: 0, left: 0, overflow: "visible" }}>
-        <defs>
-          <linearGradient id="sweepGrad" gradientUnits="userSpaceOnUse" x1={cx} y1={cy - R_ORBIT} x2={cx} y2={cy}>
-            <stop offset="0%" stopColor={`rgba(${GOLD},${sweepOpacity})`} />
-            <stop offset="100%" stopColor={`rgba(${GOLD},0)`} />
-          </linearGradient>
-        </defs>
-
-        {/* Sweeping wedge */}
-        <g style={{ transform: `rotate(${sweepDeg}deg)`, transformOrigin: `${cx}px ${cy}px` }}>
-          {/* Trailing 30° gradient wedge */}
-          <path
-            d={`M ${cx} ${cy} L ${cx} ${cy - R_ORBIT} A ${R_ORBIT} ${R_ORBIT} 0 0 0 ${cx + Math.sin(-30 * Math.PI / 180) * R_ORBIT} ${cy - Math.cos(-30 * Math.PI / 180) * R_ORBIT} Z`}
-            fill={`rgba(${GOLD},${sweepOpacity * 0.18})`}
-          />
-          {/* Bright leading edge (first 5°) */}
-          <line
-            x1={cx} y1={cy}
-            x2={cx} y2={cy - R_ORBIT}
-            stroke={`rgba(${GOLD},${Math.min(1, sweepOpacity + 0.2)})`}
-            strokeWidth={1.6}
-          />
-        </g>
-
-        {/* Core circle */}
-        <circle cx={cx} cy={cy} r={R_CORE} fill="none" stroke={`rgba(${GOLD},0.8)`} strokeWidth={1.5} />
-        {/* Inner thin ring rotating at different speed (visualized via a dashed circle that rotates) */}
-        <g style={{ transform: `rotate(${innerRingDeg}deg)`, transformOrigin: `${cx}px ${cy}px` }}>
-          <circle
-            cx={cx} cy={cy} r={R_CORE - 6}
-            fill="none"
-            stroke={`rgba(${GOLD},0.4)`}
-            strokeWidth={1}
-            strokeDasharray="6 10"
-          />
-        </g>
-        <circle cx={cx} cy={cy} r={4} fill={`rgba(${GOLD},1)`} style={{ animation: "atlas-pulse 1.8s ease-in-out infinite" }} />
-
-        {/* Static category label arms */}
-        {cats.map((k, i) => {
-          const a = i * slotAngle;
-          const lx = cx + Math.cos(a) * R_LABEL;
-          const ly = cy + Math.sin(a) * R_LABEL;
-          const tx = cx + Math.cos(a) * R_ORBIT;
-          const ty = cy + Math.sin(a) * R_ORBIT;
-          const style = CATEGORY_STYLES[k];
-          const hit = labelHitRef.current.get(k);
-          const sinceHit = hit ? now - hit : Infinity;
-          const hot = sinceHit < 600;
-          const labelOpacity = hot ? 1.0 : 0.2;
-          const lineOpacity = hot ? 0.6 : 0.15;
-          return (
-            <g key={k}>
-              <line x1={cx} y1={cy} x2={tx} y2={ty} stroke={`rgba(${style.rgb},${lineOpacity * 0.5})`} strokeWidth={0.5} />
-              <text
-                x={lx + Math.cos(a) * 6}
-                y={ly + Math.sin(a) * 6 + 2}
-                fontSize={7}
-                fill={hot ? `rgba(${GOLD},1)` : `rgba(${style.rgb},${labelOpacity})`}
-                textAnchor={Math.cos(a) < -0.2 ? "end" : Math.cos(a) > 0.2 ? "start" : "middle"}
-                style={{ letterSpacing: "0.1em", transition: "fill 250ms" }}
-              >
-                {style.label}
-              </text>
-            </g>
-          );
-        })}
-
-        {/* Signal dots — sized by relevance, asynchronous breathing */}
-        {signalDots.map((d) => {
-          const t = now / 1000;
-          const breath = 0.5 + 0.5 * Math.sin((t * (2 * Math.PI)) / d.period + d.phase);
-          const ping = pingRef.current.get(d.id);
-          const sincePing = ping ? now - ping : Infinity;
-          const pingActive = sincePing < 600;
-          const pingT = pingActive ? sincePing / 600 : 0; // 0..1
-          const isUrgent = d.urgency === "immediate" || d.urgency === "high";
-          const pingMaxExtra = isUrgent ? 26 : 20;
-          const pingR = d.radius + pingT * pingMaxExtra;
-          const pingOpacity = pingActive ? (1 - pingT) * (isUrgent ? 0.95 : 0.8) : 0;
-          return (
-            <g key={d.id}>
-              {pingActive && (
-                <circle
-                  cx={cx + d.x}
-                  cy={cy + d.y}
-                  r={pingR}
-                  fill="none"
-                  stroke={`rgba(${d.rgb},${pingOpacity})`}
-                  strokeWidth={isUrgent ? 1.4 : 1}
-                />
-              )}
-              <circle
-                cx={cx + d.x}
-                cy={cy + d.y}
-                r={d.radius}
-                fill={d.color}
-                opacity={0.4 + breath * 0.55}
-              />
-            </g>
-          );
-        })}
-
-        {/* Core text */}
-        <text x={cx} y={cy - 14} textAnchor="middle" fontSize={8} fill={`rgba(${GOLD},0.6)`} style={{ letterSpacing: "0.2em" }}>
-          ORACLE
-        </text>
-        <text
-          key={signalCount}
-          x={cx} y={cy + 8}
-          textAnchor="middle"
-          fontSize={20}
-          fontWeight={700}
-          fill="#ffffff"
-          style={{ animation: "atlas-count-pulse 500ms ease-out" }}
-        >
-          {signalCount}
-        </text>
-        <text x={cx} y={cy + 22} textAnchor="middle" fontSize={7} fill={`rgba(${GOLD},0.4)`} style={{ letterSpacing: "0.2em" }}>
-          SIGNALS
-        </text>
-      </svg>
-
-      {/* Scrolling feed */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: FEED_H,
-          padding: "8px 14px 12px",
-          borderTop: "1px solid rgba(196,154,43,0.1)",
-          overflow: "hidden",
-        }}
-      >
-        {feedItems.length > 0 ? (
-          feedItems.map((s, i) => {
-            const style = CATEGORY_STYLES[s.category];
-            const catLabel = (style?.label ?? (s.category ?? "").toUpperCase()).replace(/[· ]+/g, "_").slice(0, 12);
-            const catColor = style ? `rgba(${style.rgb},${0.9 - i * 0.12})` : `rgba(${GOLD},${0.6 - i * 0.1})`;
-            const titleColor = `rgba(255,255,255,${0.85 - i * 0.15})`;
-            return (
-              <div
-                key={`${s.id}-${feedIdx}-${i}`}
-                style={{
-                  fontSize: 7,
-                  letterSpacing: "0.1em",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  animation: i === 0 ? "atlas-feed-flicker 400ms ease-out" : undefined,
-                  lineHeight: "11px",
-                }}
-              >
-                <span style={{ color: catColor }}>[{catLabel}]</span>
-                <span style={{ color: titleColor }}> {(s.title ?? "").slice(0, 38)}</span>
-              </div>
-            );
-          })
-        ) : (
-          <div style={{ fontSize: 7, color: `rgba(${GOLD},0.4)`, letterSpacing: "0.15em" }}>
-            SYSTEM READY — AWAITING INPUT
-          </div>
-        )}
-        {/* Intake cursor line */}
-        <div
-          style={{
-            position: "absolute",
-            left: 14,
-            right: 14,
-            bottom: 6,
-            height: 1,
-            background: `rgba(${GOLD},0.4)`,
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// IRIS panel
-function IrisPanel({ w, h, briefs }: { w: number; h: number; briefs: number }) {
-  const HEADER = 32;
-  const STATUS_H = 56;
-  const innerH = h - HEADER - STATUS_H;
-
-  const NODES = useMemo(() => {
-    const phi = (1 + Math.sqrt(5)) / 2;
-    const arr: { x: number; y: number; type: "in" | "syn" | "out"; idx: number; relevance: number }[] = [];
-    for (let i = 0; i < 18; i++) {
-      const angle = i * phi * Math.PI * 2;
-      const radius = Math.sqrt(i / 18) * (innerH * 0.35);
-      const x = w / 2 + Math.cos(angle) * radius * 1.4;
-      const y = innerH * 0.45 + Math.sin(angle) * radius;
-      const type = i < 5 ? "in" : i < 13 ? "syn" : "out";
-      const relevance = 40 + Math.floor(hashFloat(`iris-${i}`, 3) * 60); // 40..100
-      arr.push({ x, y, type, idx: i, relevance });
-    }
-    return arr;
-  }, [w, innerH]);
-
-  const inputs = NODES.filter((n) => n.type === "in");
-  const synth = NODES.filter((n) => n.type === "syn");
-  const outputs = NODES.filter((n) => n.type === "out");
-
-  const connections = useMemo(() => {
-    const out: { x1: number; y1: number; x2: number; y2: number; key: string; srcRel: number; fromIdx: number; toIdx: number; phase: "in-syn" | "syn-out" }[] = [];
-    for (const a of inputs) for (const b of synth) out.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, key: `${a.idx}-${b.idx}`, srcRel: a.relevance, fromIdx: a.idx, toIdx: b.idx, phase: "in-syn" });
-    for (const a of synth) for (const b of outputs) out.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, key: `${a.idx}-${b.idx}`, srcRel: a.relevance, fromIdx: a.idx, toIdx: b.idx, phase: "syn-out" });
-    return out;
-  }, [inputs, synth, outputs]);
-
-  // Animation clock
-  const [now, setNow] = useState(() => performance.now());
-  useEffect(() => {
-    let raf = 0;
-    const tick = () => { setNow(performance.now()); raf = requestAnimationFrame(tick); };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  // Traveling signals — 2-3 in flight at once
-  type Path = { id: number; pts: { x: number; y: number; idx: number }[]; outIdx: number; synIdx: number; started: number; duration: number };
-  const [paths, setPaths] = useState<Path[]>([]);
-  const idRef = useRef(0);
-  useEffect(() => {
-    if (inputs.length === 0 || synth.length === 0 || outputs.length === 0) return;
-    const spawn = () => {
-      const i = inputs[Math.floor(Math.random() * inputs.length)];
-      const s = synth[Math.floor(Math.random() * synth.length)];
-      const o = outputs[Math.floor(Math.random() * outputs.length)];
-      const id = ++idRef.current;
-      const duration = 2400;
-      const newPath: Path = { id, pts: [{ x: i.x, y: i.y, idx: i.idx }, { x: s.x, y: s.y, idx: s.idx }, { x: o.x, y: o.y, idx: o.idx }], outIdx: o.idx, synIdx: s.idx, started: performance.now(), duration };
-      setPaths((cur) => [...cur, newPath]);
-      setTimeout(() => setPaths((cur) => cur.filter((p) => p.id !== id)), duration + 800);
-    };
-    spawn();
-    const t = setInterval(spawn, 900);
-    return () => clearInterval(t);
-  }, [inputs, synth, outputs]);
-
-  // For each active path, compute head position + 6-frame trail
-  const sampleAt = (p: Path, tProgress: number) => {
-    const tt = Math.max(0, Math.min(1, tProgress));
-    if (tt <= 0.5) {
-      const u = tt / 0.5;
-      return { x: p.pts[0].x + (p.pts[1].x - p.pts[0].x) * u, y: p.pts[0].y + (p.pts[1].y - p.pts[0].y) * u };
-    }
-    const u = (tt - 0.5) / 0.5;
-    return { x: p.pts[1].x + (p.pts[2].x - p.pts[1].x) * u, y: p.pts[1].y + (p.pts[2].y - p.pts[1].y) * u };
-  };
-
-  // Track which synth nodes have a signal approaching (pre-activate downstream lines)
-  const preActivateSyn = new Set<number>();
-  const deliveredOuts = new Map<number, number>(); // outIdx -> timestamp when delivered
-  for (const p of paths) {
-    const prog = (now - p.started) / p.duration;
-    if (prog >= 0.35 && prog < 0.55) preActivateSyn.add(p.synIdx);
-    if (prog >= 0.98 && !deliveredOuts.has(p.outIdx)) deliveredOuts.set(p.outIdx, now);
-  }
-
-  // Persistent delivery labels for 1200ms
-  const deliveryRef = useRef<Map<number, number>>(new Map());
-  for (const [idx, ts] of deliveredOuts) deliveryRef.current.set(idx, ts);
-  for (const [idx, ts] of deliveryRef.current) {
-    if (now - ts > 1200) deliveryRef.current.delete(idx);
-  }
-
-  // ─── Typewriter status text ───
-  const [statusIdx, setStatusIdx] = useState(0);
-  const [typed, setTyped] = useState("");
-  const [phase, setPhase] = useState<"type" | "hold" | "delete">("type");
-  useEffect(() => {
-    const target = IRIS_STATUS[statusIdx];
-    let timer: ReturnType<typeof setTimeout>;
-    if (phase === "type") {
-      if (typed.length < target.length) {
-        timer = setTimeout(() => setTyped(target.slice(0, typed.length + 1)), 35);
-      } else {
-        timer = setTimeout(() => setPhase("hold"), 50);
-      }
-    } else if (phase === "hold") {
-      timer = setTimeout(() => setPhase("delete"), 1500);
-    } else {
-      if (typed.length > 0) {
-        timer = setTimeout(() => setTyped(target.slice(0, typed.length - 1)), 15);
-      } else {
-        setPhase("type");
-        setStatusIdx((i) => (i + 1) % IRIS_STATUS.length);
-      }
-    }
-    return () => clearTimeout(timer);
-  }, [typed, phase, statusIdx]);
-
-  return (
-    <div style={{ position: "relative", width: w, height: h }}>
-      <PanelHeader
-        title="IRIS"
-        subtitle="INTELLIGENCE SYNTHESIS"
-        subtitleColorRgb={PURPLE}
-        right={<span style={{ fontSize: 7, color: `rgba(${PURPLE},0.7)`, letterSpacing: "0.15em" }}>{briefs} BRIEFS GENERATED</span>}
-      />
-
-      <svg width={w} height={innerH} style={{ position: "absolute", top: HEADER, left: 0, overflow: "visible" }}>
-        {/* Connection lines — opacity by source relevance, with pre-activation boost on syn→out */}
-        {connections.map((c) => {
-          let opacity = 0.05 + (c.srcRel / 100) * 0.20;
-          if (c.phase === "syn-out" && preActivateSyn.has(c.fromIdx)) opacity = Math.min(0.55, opacity + 0.1);
-          return (
-            <line
-              key={c.key}
-              x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
-              stroke={`rgba(${PURPLE},${opacity})`}
-              strokeWidth={c.srcRel >= 80 ? 0.8 : 0.5}
-              style={{ transition: "stroke 200ms" }}
-            />
-          );
-        })}
-
-        {/* Traveling comets */}
-        {paths.map((p) => {
-          const prog = (now - p.started) / p.duration;
-          if (prog < 0 || prog > 1) return null;
-          const head = sampleAt(p, prog);
-          // 6-frame trail at ~24ms spacing
-          const trailOpacities = [0.8, 0.6, 0.4, 0.3, 0.2, 0.1];
-          const trailDelta = 0.018;
-          return (
-            <g key={p.id}>
-              {trailOpacities.map((op, i) => {
-                const tp = sampleAt(p, prog - trailDelta * (i + 1));
-                return (
-                  <circle key={i} cx={tp.x} cy={tp.y} r={2.4 - i * 0.2} fill={`rgba(${GOLD},${op})`} />
-                );
-              })}
-              <circle cx={head.x} cy={head.y} r={3} fill={`rgba(${GOLD},1)`} style={{ filter: `drop-shadow(0 0 4px rgba(${GOLD},0.8))` }} />
-            </g>
-          );
-        })}
-
-        {/* Nodes with glow */}
-        {NODES.map((n) => {
-          const r = n.type === "in" ? 8 : n.type === "out" ? 6 : 5;
-          const rgb = n.type === "in" ? GOLD : n.type === "out" ? GREEN : PURPLE;
-          const flaring = paths.some((p) => p.outIdx === n.idx && (now - p.started) / p.duration > 0.95);
-          return (
-            <g key={n.idx}>
-              <circle cx={n.x} cy={n.y} r={r + 4} fill={`rgba(${rgb},0.1)`} />
-              <circle
-                cx={n.x} cy={n.y} r={r}
-                fill={`rgba(${rgb},0.9)`}
-                style={flaring ? { animation: "atlas-flare 600ms ease-out" } : undefined}
-              />
-              {n.type === "out" && deliveryRef.current.has(n.idx) && (
-                <text
-                  x={n.x} y={n.y - r - 6}
-                  textAnchor="middle"
-                  fontSize={7}
-                  fill={`rgba(${GREEN},0.8)`}
-                  style={{ letterSpacing: "0.1em" }}
-                >
-                  BRIEF DELIVERED
-                </text>
-              )}
-            </g>
-          );
-        })}
-      </svg>
-
-      {/* Typewriter status text */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 22,
-          left: 0,
-          right: 0,
-          textAlign: "center",
-          fontSize: 8,
-          color: `rgba(${PURPLE},0.85)`,
-          letterSpacing: "0.18em",
-          fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-        }}
-      >
-        {typed}
-        <span style={{ color: `rgba(${GOLD},1)`, animation: "atlas-cursor 1.2s steps(2) infinite" }}>|</span>
-      </div>
-      <div
-        style={{
-          position: "absolute",
-          bottom: 4,
-          left: 0,
-          right: 0,
-          textAlign: "center",
-          fontSize: 7,
-          fontStyle: "italic",
-          color: `rgba(${PURPLE},0.3)`,
-          letterSpacing: "0.12em",
-        }}
-      >
-        Every question. Every writer. Every brief. Grounded in ORACLE.
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// Shared bits
-function PanelHeader({ title, subtitle, subtitleColorRgb, right }: { title: string; subtitle: string; subtitleColorRgb: string; right?: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        position: "absolute", top: 0, left: 0, right: 0, height: 32,
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 14px",
-        borderBottom: "1px solid rgba(196,154,43,0.08)",
-        zIndex: 2,
-      }}
-    >
-      <div>
-        <div style={{ color: "#ffffff", fontSize: 15, fontWeight: 100, letterSpacing: "0.4em" }}>{title}</div>
-        <div style={{ color: `rgba(${subtitleColorRgb},0.5)`, fontSize: 7, letterSpacing: "0.2em", marginTop: 2 }}>{subtitle}</div>
-      </div>
-      <div>{right}</div>
-    </div>
-  );
-}
-
-function CornerBrackets() {
-  const c = `rgba(${GOLD},0.4)`;
-  const corner = (style: React.CSSProperties) => (
-    <svg width={24} height={24} style={{ position: "absolute", ...style, zIndex: 10 }}>
-      <line x1={0} y1={0} x2={24} y2={0} stroke={c} strokeWidth={1} />
-      <line x1={0} y1={0} x2={0} y2={24} stroke={c} strokeWidth={1} />
-    </svg>
-  );
-  return (
-    <>
-      {corner({ top: 0, left: 0 })}
-      <svg width={24} height={24} style={{ position: "absolute", top: 0, right: 0, zIndex: 10 }}>
-        <line x1={24} y1={0} x2={0} y2={0} stroke={c} strokeWidth={1} />
-        <line x1={24} y1={0} x2={24} y2={24} stroke={c} strokeWidth={1} />
-      </svg>
-      <svg width={24} height={24} style={{ position: "absolute", bottom: 0, left: 0, zIndex: 10 }}>
-        <line x1={0} y1={24} x2={24} y2={24} stroke={c} strokeWidth={1} />
-        <line x1={0} y1={24} x2={0} y2={0} stroke={c} strokeWidth={1} />
-      </svg>
-      <svg width={24} height={24} style={{ position: "absolute", bottom: 0, right: 0, zIndex: 10 }}>
-        <line x1={24} y1={24} x2={0} y2={24} stroke={c} strokeWidth={1} />
-        <line x1={24} y1={24} x2={24} y2={0} stroke={c} strokeWidth={1} />
-      </svg>
-    </>
-  );
-}
-
-function ParticleLayer({ w, h }: { w: number; h: number }) {
-  void h;
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 40 }, (_, i) => ({
-        top: (i * 53) % 100,
-        delay: (i * 0.7) % 25,
-        dur: 25 + ((i * 3) % 15),
-        angle: ((i * 17) % 31) - 15,
-      })),
-    []
-  );
-  if (w === 0) return null;
-  return (
-    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 1 }}>
-      {particles.map((p, i) => (
-        <span
-          key={i}
-          style={{
-            position: "absolute",
-            top: `${p.top}%`,
-            left: -10,
-            width: 1, height: 1,
-            background: `rgba(${GOLD},0.15)`,
-            animation: `atlas-drift ${p.dur}s linear ${p.delay}s infinite`,
-            ["--atlas-drift-x" as string]: `${w + 20}px`,
-            ["--atlas-drift-y" as string]: `${Math.tan((p.angle * Math.PI) / 180) * w}px`,
-          } as React.CSSProperties}
-        />
-      ))}
-    </div>
-  );
-}
-
-// Sporadic burst-based divider flow with impact flash on the far side
-function DividerBurst({ left, h, colorRgb, dotSize, interval }: { left: number; h: number; colorRgb: string; dotSize: number; interval: [number, number] }) {
-  type Dot = { id: number; key: string; top: number };
-  const [dots, setDots] = useState<Dot[]>([]);
-  const [flash, setFlash] = useState<{ id: number; top: number } | null>(null);
-  const idRef = useRef(0);
-  useEffect(() => {
-    let cancelled = false;
-    let timeout: ReturnType<typeof setTimeout>;
-    const burst = () => {
-      const count = 3 + Math.floor(Math.random() * 3); // 3..5
-      const top = 25 + Math.random() * 50; // % within panel
-      for (let i = 0; i < count; i++) {
-        setTimeout(() => {
-          if (cancelled) return;
-          const id = ++idRef.current;
-          setDots((cur) => [...cur, { id, key: `${id}`, top }]);
-          // remove after animation
-          setTimeout(() => setDots((cur) => cur.filter((d) => d.id !== id)), 1300);
-          // schedule impact flash to land ~1100ms later
-          setTimeout(() => {
-            if (cancelled) return;
-            const fid = id;
-            setFlash({ id: fid, top });
-            setTimeout(() => setFlash((cur) => (cur && cur.id === fid ? null : cur)), 120);
-          }, 1050);
-        }, i * 50);
-      }
-      const delay = interval[0] + Math.random() * (interval[1] - interval[0]);
-      timeout = setTimeout(burst, delay);
-    };
-    timeout = setTimeout(burst, 800 + Math.random() * 1200);
-    return () => { cancelled = true; clearTimeout(timeout); };
-  }, [interval]);
-
-  return (
-    <div style={{ position: "absolute", top: 0, left, width: 0, height: h, zIndex: 6, pointerEvents: "none" }}>
-      {dots.map((d) => (
-        <span
-          key={d.key}
-          style={{
-            position: "absolute",
-            top: `${d.top}%`,
-            left: -dotSize,
-            width: dotSize * 2,
-            height: dotSize * 2,
-            borderRadius: 999,
-            background: `rgba(${colorRgb},0.8)`,
-            boxShadow: `0 0 6px rgba(${colorRgb},0.7)`,
-            animation: "atlas-cross-burst 1.1s ease-out forwards",
-          }}
-        />
-      ))}
-      {flash && (
-        <span
-          style={{
-            position: "absolute",
-            top: `${flash.top}%`,
-            left: 60,
-            width: 10,
-            height: 10,
-            marginTop: -5,
-            marginLeft: -5,
-            borderRadius: 999,
-            background: `rgba(${colorRgb},0.4)`,
-            boxShadow: `0 0 10px rgba(${colorRgb},0.5)`,
-          }}
-        />
-      )}
-    </div>
-  );
-}
-
-const KEYFRAMES = `
-@keyframes atlas-blink { 0%,49%{opacity:1} 50%,100%{opacity:0.1} }
-@keyframes atlas-flow { to { stroke-dashoffset: -40 } }
-@keyframes atlas-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.6);opacity:0.6} }
-@keyframes atlas-orbit-cw { to { transform: rotate(360deg) } }
-@keyframes atlas-orbit-ccw { to { transform: rotate(-360deg) } }
-@keyframes atlas-sweep { to { transform: rotate(360deg) } }
-@keyframes atlas-node-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.35)} }
-@keyframes atlas-fade-up { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
-@keyframes atlas-trace { from { stroke-dashoffset: 999 } to { stroke-dashoffset: 0 } }
-@keyframes atlas-flare { 0%{transform:scale(1);filter:brightness(1)} 50%{transform:scale(1.8);filter:brightness(2)} 100%{transform:scale(1);filter:brightness(1)} }
-@keyframes atlas-fade-soft { from { opacity: 0 } to { opacity: 1 } }
-@keyframes atlas-drift {
-  from { transform: translate(0, 0); opacity: 0 }
-  10% { opacity: 1 }
-  90% { opacity: 1 }
-  to { transform: translate(var(--atlas-drift-x), var(--atlas-drift-y)); opacity: 0 }
-}
-@keyframes atlas-cross-burst {
-  from { transform: translateX(0); opacity: 0 }
-  20% { opacity: 1 }
-  80% { opacity: 1 }
-  to { transform: translateX(60px); opacity: 0 }
-}
-@keyframes atlas-border-pulse {
-  0%, 100% { border-left-color: rgba(255,255,255,0.3) }
-  50% { border-left-color: rgba(255,255,255,0.8) }
-}
-@keyframes atlas-orbit-border {
-  from { stroke-dashoffset: 0 }
-  to { stroke-dashoffset: -${1000} }
-}
-@keyframes atlas-broadcast {
-  0% { transform: scale(1); opacity: 0.6 }
-  100% { transform: scale(2); opacity: 0 }
-}
-@keyframes atlas-flash-in {
-  from { opacity: 0 }
-  to { opacity: 1 }
-}
-@keyframes atlas-count-pulse {
-  0% { transform: scale(1); filter: brightness(1) }
-  40% { transform: scale(1.15); filter: brightness(1.4) }
-  100% { transform: scale(1); filter: brightness(1) }
-}
-@keyframes atlas-feed-flicker {
-  0% { opacity: 1; filter: brightness(1.4) }
-  100% { opacity: 1; filter: brightness(1) }
-}
-@keyframes atlas-cursor {
-  0%, 49% { opacity: 1 }
-  50%, 100% { opacity: 0 }
-}
-`;
+export default ATLASCommandSurface;
