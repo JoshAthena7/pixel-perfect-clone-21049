@@ -879,10 +879,27 @@ function ATLASCommandSurfaceInner({
         {/* col 1: mission pulse */}
         <div className="px-4 py-2 flex flex-col justify-center" style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}>
           <div style={{ fontSize: 7, letterSpacing: "0.18em", color: `rgba(${GOLD},0.7)`, whiteSpace: "nowrap" }}>
-            MISSION {missionId.slice(0, 4).toUpperCase()}
+            {(() => {
+              const name = missionMeta?.name as string | undefined;
+              if (name) {
+                const code = name.split(/[\s-]+/)[0]?.trim();
+                if (code && code.length <= 12) return `MISSION ${code.toUpperCase()}`;
+                return `MISSION ${name.slice(0, 12).toUpperCase()}`;
+              }
+              return "MISSION";
+            })()}
           </div>
           <div style={{ fontSize: 14, fontWeight: 300, color: "white", marginTop: 4 }}>
-            {daysRemaining != null ? `${daysRemaining} DAYS REMAINING` : "NO DUE DATE"}
+            {(() => {
+              if (daysRemaining != null) return `${daysRemaining} DAYS REMAINING`;
+              const sub = (missionMeta as any)?.submission_deadline || (missionMeta as any)?.due_date;
+              if (sub) {
+                const d = new Date(sub);
+                const m = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][d.getMonth()];
+                return `DUE ${m} ${d.getDate()}, ${d.getFullYear()}`;
+              }
+              return "NO DUE DATE";
+            })()}
           </div>
           <div className="mt-1.5 h-[2px] w-full bg-white/10 rounded-full overflow-hidden">
             <div className="h-full" style={{ width: `${elapsedPct}%`, background: `rgba(${GOLD},0.55)` }} />
