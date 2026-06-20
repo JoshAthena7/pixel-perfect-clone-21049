@@ -95,7 +95,7 @@ const CATEGORIES: Category[] = [
       { id: "admin-state-intel", name: "State Intel", description: "State intelligence packs", kind: "navigate", href: "/admin/state-intel" },
       { id: "admin-iris-control", name: "IRIS Control", description: "Pipeline health dashboard", kind: "navigate", href: "/admin/iris-control" },
       { id: "admin-iris-writer", name: "IRIS Writer View", description: "IRIS writer surface", kind: "navigate", href: "/admin/iris-writer-view" },
-      { id: "admin-staff", name: "Staff Management", description: "Team management", kind: "navigate", href: "/admin/staff" },
+      { id: "admin-staff", name: "Staff Management", description: "Team management", kind: "navigate", href: "/admin/team" },
       { id: "admin-messaging", name: "Messaging", description: "Platform messaging", kind: "navigate", href: "/admin/messaging" },
       { id: "olympus", name: "ORACLE Command", description: "Cross-mission ORACLE", kind: "navigate", href: "/olympus" },
     ],
