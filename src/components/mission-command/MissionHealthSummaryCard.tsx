@@ -30,7 +30,7 @@ const cardLabel: React.CSSProperties = {
   fontWeight: 700,
 };
 
-type Summary = { total: number; healthy: number; watch: number; at_risk: number; unscored: number };
+type Summary = { total: number; healthy: number; watch: number; at_risk: number; unstarted: number; unscored: number };
 
 export function MissionHealthSummaryCard({ missionId }: { missionId: string }) {
   const fetchSummary = useServerFn(getMissionHealthSummary);
@@ -40,11 +40,19 @@ export function MissionHealthSummaryCard({ missionId }: { missionId: string }) {
     staleTime: 5 * 60 * 1000,
   });
 
-  const s = data ?? { total: 0, healthy: 0, watch: 0, at_risk: 0, unscored: 0 };
+  const s = data ?? { total: 0, healthy: 0, watch: 0, at_risk: 0, unstarted: 0, unscored: 0 };
   const dotColor =
     s.at_risk > 0 ? "#ef4444" : s.watch > 0 ? "#f59e0b" : "#4ade80";
   const dotPulse = s.at_risk > 0;
   const pct = s.total > 0 ? Math.round((s.healthy / s.total) * 100) : 0;
+
+  const cells: Array<{ key: string; label: string; value: number; color: string; pulse?: boolean }> = [
+    { key: "healthy", label: "Healthy", value: s.healthy, color: "#4ade80" },
+    { key: "watch", label: "Watch", value: s.watch, color: "#f59e0b" },
+    { key: "at_risk", label: "At Risk", value: s.at_risk, color: "#ef4444", pulse: s.at_risk > 0 },
+    { key: "unstarted", label: "Unstarted", value: s.unstarted, color: "#94a3b8" },
+    { key: "unscored", label: "Unscored", value: s.unscored, color: "#64748b" },
+  ].filter((c) => c.value > 0);
 
   return (
     <section style={glass}>
@@ -88,15 +96,16 @@ export function MissionHealthSummaryCard({ missionId }: { missionId: string }) {
           className="inline-flex items-center gap-1 hover:underline"
           style={{ fontSize: 11, color: GOLD, fontWeight: 600, letterSpacing: "0.06em" }}
         >
-          OPEN HEALTH TAB <ArrowRight size={11} />
+          View Health Tab <ArrowRight size={11} />
         </Link>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <Stat label="Healthy" value={s.healthy} color="#4ade80" />
-        <Stat label="Watch" value={s.watch} color="#f59e0b" />
-        <Stat label="At Risk" value={s.at_risk} color="#ef4444" pulse={s.at_risk > 0} />
-        <Stat label="Unscored" value={s.unscored} color="#94a3b8" />
+      <div className={`mt-4 grid gap-3 ${cells.length >= 3 ? "grid-cols-3" : cells.length === 2 ? "grid-cols-2" : "grid-cols-1"}`}>
+        {cells.length === 0 ? (
+          <div style={{ fontSize: 12, color: META }}>No questions tracked yet.</div>
+        ) : (
+          cells.map((c) => <Stat key={c.key} label={c.label} value={c.value} color={c.color} pulse={c.pulse} />)
+        )}
       </div>
 
       <div className="mt-5">
@@ -114,8 +123,16 @@ export function MissionHealthSummaryCard({ missionId }: { missionId: string }) {
           />
         </div>
         <div className="mt-2" style={{ fontSize: 12, color: META }}>
-          <span style={{ color: TEXT, fontWeight: 600 }}>{s.healthy}</span> of{" "}
-          <span style={{ color: TEXT, fontWeight: 600 }}>{s.total}</span> questions on track
+          {s.at_risk === 0 && s.healthy === 0 && s.unstarted > 0 ? (
+            <>
+              <span style={{ color: TEXT, fontWeight: 600 }}>{s.unstarted}</span> questions unstarted — assignments pending.
+            </>
+          ) : (
+            <>
+              <span style={{ color: TEXT, fontWeight: 600 }}>{s.healthy}</span> of{" "}
+              <span style={{ color: TEXT, fontWeight: 600 }}>{s.total}</span> questions on track
+            </>
+          )}
         </div>
       </div>
 
@@ -134,12 +151,16 @@ export function MissionHealthSummaryCard({ missionId }: { missionId: string }) {
             text={`${s.watch} question${s.watch === 1 ? "" : "s"} to monitor`}
             missionId={missionId}
           />
-        ) : s.total > 0 ? (
+        ) : s.healthy > 0 ? (
           <div
             className="inline-flex items-center gap-2"
             style={{ fontSize: 12, color: "#4ade80", fontWeight: 600 }}
           >
-            <CheckCircle2 size={14} /> All questions on track
+            <CheckCircle2 size={14} /> All started questions on track
+          </div>
+        ) : s.total > 0 ? (
+          <div style={{ fontSize: 12, color: META }}>
+            Assignments pending — work has not started yet.
           </div>
         ) : (
           <div style={{ fontSize: 12, color: META }}>No questions tracked yet.</div>
