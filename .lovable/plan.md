@@ -1,37 +1,79 @@
-## Why a plan first
+# Intelligence Page Command Center Reorganization
 
-This prompt is ~8 parts and ~2,000–3,000 lines of new UI plus a route/auth refactor. Doing it in one shot guarantees a half-built page. I'll deliver in 3 phases so each lands working, behind a feature flag is not needed because the page is currently broken anyway.
+Rewrite `OracleTab.tsx` into a single scrollable page. Keep all existing data and sub-components — only change order, grouping, and presentation. No schema changes, no new queries beyond gap detection and "last visit" delta.
 
-## Pre-work: diagnose the crash (no UI yet)
+## Scope
 
-`/olympus` renders `AthenaCommandPage`. The "Mission not found" error originates from a server fn (briefing-room / oracle / intelligence-graph) called without a valid missionId. I'll trace it from `AthenaCommandPage` and either pass a missionId or short-circuit the call when no mission is selected. This unblocks the page before the rebuild lands on top.
+**Modified:**
+- `src/components/mission-command/oracle/OracleTab.tsx` — gut and rebuild as scrollable layout
+- `src/routes/_authenticated/missions.$missionId.intelligence.tsx` — pass through sidebar layout
 
-## Phase A — Skeleton + Part 1, 2, 7 (routing fix, layout, access control)
+**New:**
+- `src/components/mission-command/oracle/sections/ExecutiveSummary.tsx` — North Star + Top Signal + Coverage band
+- `src/components/mission-command/oracle/sections/JumpNav.tsx` — sticky pill nav with scroll-spy hook
+- `src/components/mission-command/oracle/sections/KeySignals.tsx` — top 3 elevated signal cards + collapsible rest
+- `src/components/mission-command/oracle/sections/StakeholderIntel.tsx` — wraps existing People/Orgs into 4 buckets
+- `src/components/mission-command/oracle/sections/CompetitiveIntel.tsx` — filtered oracle_signals
+- `src/components/mission-command/oracle/sections/EvidenceBase.tsx` — filtered oracle_signals with PRIMARY badges
+- `src/components/mission-command/oracle/sections/SourceNetwork.tsx` — collapsed wrapper around IntelSources + legacy scans
+- `src/components/mission-command/oracle/sections/IntelligenceGaps.tsx` — taxonomy leaf nodes with zero signals
+- `src/components/mission-command/oracle/sections/AnalysisTools.tsx` — collapsed Graph/StoryMap/GraphHealth
+- `src/components/mission-command/oracle/sections/IntelSidebar.tsx` — simplified left rail
 
-- New file `src/components/olympus/OlympusCommand.tsx` — 3-column shell (24/48/28), top status bar, mission name + countdown + "Run Pipeline" button wired to the existing `runOraclePipeline` helper from Prompt 3.
-- Replace `OlympusIndex` to render `OlympusCommand` instead of `AthenaCommandPage`. Old `AthenaCommandPage` stays — it's still used elsewhere (search confirmed).
-- Role guard: `useIsAdmin || useHasRole('engagement_lead')`. Non-matching → redirect `/missions`. Hide the nav item the same way (locate via grep of "Olympus" in nav components).
-- Mission selector dropdown in the top bar (defaults to most recent active mission) — all panels key off this. Resolves the "missionId is undefined" crash class permanently.
+**Unchanged components (reused as-is):**
+IntelFeed cards, IntelPeople, IntelOrganizations, IntelSources, OracleGraph, StoryMapTab, GraphHealthTab, AskIrisButton, RequestChangeButton, IntelLoadBanner (removed from render, not deleted), WriterIntelView.
 
-## Phase B — Parts 3, 4, 6 (taxonomy browser, intel review queue, sources tab)
+## Layout
 
-- Left column: tab switcher (Taxonomy | Sources). Taxonomy tree from `oracle_taxonomy` (67 nodes) with count badges from `oracle_signals.taxonomy_node_ids` (single aggregate query). Gaps section at bottom. Click → filters center column.
-- Center column: status tabs (All/Needs Review/Approved/Pushed/Dismissed/Errors), review cards with Approve/Push/Dismiss actions (optimistic update via React Query mutation), detail drawer (Sheet) with edit mode (category, subcategory, taxonomy multi-select, topic tags, relevance slider). Stats bar above the list.
-- Sources tab: list `oracle_source_registry`, Pause/Resume + Check Now actions, Add Source form.
+```text
+┌─ Sidebar (sticky) ──┐ ┌─ Main column ────────────────────────────────┐
+│ ORACLE HEALTH       │ │ [Sticky jump-nav: Summary·Signals·...]       │
+│   42% + sentence    │ │                                              │
+│                     │ │ #summary    Executive Summary band           │
+│ QUICK ACTIONS       │ │ #signals    Key Signals (top 3 + more)       │
+│   Add Single Item   │ │ #stakeholders  Stakeholder Intel (4 buckets) │
+│   Setup Wizard      │ │ #competitive   Competitive Intel             │
+│   Refresh IRIS      │ │ #evidence   Evidence Base                    │
+│                     │ │ #sources    Source Network (collapsed)       │
+│ SECTION NAV         │ │ #gaps       Intelligence Gaps                │
+│   • Summary         │ │             Analysis Tools (collapsed)       │
+│   • Signals         │ │                                              │
+│   • ...             │ │                                              │
+│                     │ │                                              │
+│ IRIS config→Olympus │ │                                              │
+└─────────────────────┘ └──────────────────────────────────────────────┘
+```
 
-## Phase C — Part 5 (Health column, 4 panels)
+## Data sources (all existing)
 
-- Briefing Coverage map: for each `mission_questions` row, compute 4-dot status by counting `question_intel_links` joined to `oracle_signals.category` matched to each brief-type's branch-set. One server fn aggregates this.
-- Pipeline Health: reuse the queue stats query from the admin pipeline page.
-- IRIS Usage Stats: group `question_intel_links` by `briefing_layer`, bar chart with `recharts` (already in deps).
-- Top Intelligence: top 5 approved/pushed `oracle_signals` by relevance, with usage count.
+- `missions.north_star` — North Star text
+- `oracle_signals` — filtered by status/tier/category for each section
+- `oracle_source_registry` — Source Network
+- `oracle_taxonomy` (is_leaf=true) LEFT JOIN `oracle_signals` — gap detection
+- `intel_people` / `intel_organizations` — existing Stakeholder components
+- `localStorage['atlas_intel_last_visit:<missionId>']` — "since last visit" delta
 
-## Out of scope (will NOT touch)
+## Key implementation notes
 
-Flight Deck, ATC, Intelligence feed, Add Intel modal, existing brief generator, Prompt 6A. Existing `olympus.missions.*`, `olympus.wizard.*`, `olympus.team.tsx`, `olympus.flight-deck.tsx`, `olympus.change-requests.tsx` routes stay as-is.
+- **Scroll-spy**: single `IntersectionObserver` in JumpNav watching the 6 section anchors; active pill = section with greatest intersection ratio.
+- **Filter pills** (All/Signals/Risks/...): lift state into KeySignals; remove from IntelFeed top-level.
+- **Legacy EXTRACTION items** (`ingestion_source='automated_feed' AND title ILIKE 'Initial scan:%'`): excluded from Key Signals query, surfaced in Source Network's "LEGACY FEED ITEMS" sub-section.
+- **Stakeholder bucketing**: client-side classify via `topic_tags`/`source_name` includes-match; bucket priority STATE→ADVOCACY→PROVIDERS→FEDERAL→OTHER (first match wins); hide empty buckets; collapse >5.
+- **Coverage sentence**: shared helper imported by ExecutiveSummary + IntelSidebar.
+- **Writer role**: unchanged — still renders `WriterIntelView` early-return.
+- **Admin/Lead gating**: Story Map (lead) + Graph Health (admin) tabs render inside collapsed AnalysisTools when permitted.
 
-## Confirm before I start
+## What's removed
 
-1. **Phase A this turn, B and C next**, or **all three this turn** (high risk of one panel being incomplete given scale)?
-2. **Mission selector**: top-bar dropdown of user's missions (my recommendation — single Olympus URL works for any mission), or **route param** `/olympus/missions/$missionId/command` (more URL-shareable, more refactor)?
-3. **Role**: `engagement_lead` isn't a value in the existing `app_role` enum I can see. Add it as part of this work, or treat "lead" as `admin` only for now and add the new role separately later?
+- Top-level tab bar (replaced by jump-nav)
+- `IntelLoadBanner` from render (Executive Summary supersedes it; component file stays)
+- Top header stats strip (Completeness/Feed/People/Orgs/Sources) — info moves to sidebar + summary band
+- Sidebar tab buttons, separate count pills
+
+## Risks / confirmations
+
+1. `missions.north_star` column — need to verify it exists; if not, fall back to placeholder string described in spec.
+2. Gap query (taxonomy leaf nodes with zero linked signals) needs a join pattern that matches existing Olympus gap-map logic — will mirror that exact query.
+3. Sticky sidebar on small screens collapses below main content (single-column under `lg`).
+
+Proceed?
