@@ -1390,7 +1390,7 @@ function BriefViewer({ q, onClose, onExport }: { q: Q; onClose: () => void; onEx
 
 function AdminOnlyModelBadge({ model, generatedAt }: { model: string; generatedAt?: string | null }) {
   const [isAdmin, setIsAdmin] = useState(false);
-  React.useEffect(() => {
+  useEffect(() => {
     let alive = true;
     (async () => {
       try {
