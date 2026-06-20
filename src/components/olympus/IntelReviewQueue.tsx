@@ -282,17 +282,6 @@ function Card({
               {s.relevance_score}
             </span>
             {s.urgency && s.urgency !== "normal" && (
-              <span className="text-amber-300/80">{s.urgency}</span>
-            )}
-            {s.category && <span className="text-white/40">{s.category}</span>}
-            {s.source_name && <span className="text-white/40 truncate">· {s.source_name}</span>}
-            <span className="text-white/30 ml-auto">{relative(s.published_at ?? s.created_at)}</span>
-          </div>
-          <div className="flex items-center gap-2 mb-1 text-[10px] text-white/40">
-            <span className={`px-1.5 py-0.5 rounded border ${scoreColor(s.relevance_score)}`}>
-              {s.relevance_score}
-            </span>
-            {s.urgency && s.urgency !== "normal" && (
               <span
                 className={`text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded ${
                   s.urgency === "immediate"
