@@ -12,8 +12,9 @@ import { tabLabel, isValidTab } from "@/components/mission-command/MissionTabs";
 import { cn } from "@/lib/utils";
 import { getWriterMissionLanding } from "@/lib/writer-missions.functions";
 import atlasWordmark from "@/assets/atlas-wordmark.png.asset.json";
+import { shortMissionCode } from "@/lib/mission-display";
 
-type Crumb = { label: string; to?: string; params?: Record<string, string>; pill?: boolean };
+type Crumb = { label: string; fullLabel?: string; to?: string; params?: Record<string, string>; pill?: boolean };
 
 function AtlasLogo() {
   return (
