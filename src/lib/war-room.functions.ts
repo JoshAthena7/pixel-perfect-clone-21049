@@ -294,7 +294,7 @@ export const getWarRoomData = createServerFn({ method: "POST" })
       const isRisk = q.health_status === "at_risk";
       const isUnscored = !q.health_status || q.health_status === "unstarted" || q.health_status === "not_started";
       if (!isRisk && !isUnscored) continue;
-      const p = progressByQ[q.id];
+      const p = progressByQRecent[q.id];
       const hasFlag = p?.acceptance_status === "need_help" || p?.acceptance_status === "need_sme";
       const stalled = p?.assignee_id && p?.last_activity_at && (now - new Date(p.last_activity_at).getTime()) / 3600_000 > 48;
       if (isRisk && (hasFlag || stalled)) atRiskCount++;
