@@ -1824,16 +1824,6 @@ function MessageLeaderDialog({
   );
 }
 
-function _MissionLeadersCardClosingShim() {
-  return null;
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </section>
-  );
-}
 
 /* ───────────────── Shared bits ───────────────── */
 function EmptyState({ children }: { children: React.ReactNode }) {
