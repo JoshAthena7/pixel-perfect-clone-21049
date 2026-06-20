@@ -214,6 +214,19 @@ export function ExecutiveSummary({
             )}
           </div>
         </div>
+
+        {approvedCount === 0 && (
+          <div
+            className="mt-3 pt-3"
+            style={{
+              fontSize: 11,
+              color: "rgba(255,255,255,0.5)",
+              borderTop: "1px solid rgba(196,154,43,0.12)",
+            }}
+          >
+            ORACLE is empty — add intelligence via the ORACLE page.
+          </div>
+        )}
       </div>
     </section>
   );
