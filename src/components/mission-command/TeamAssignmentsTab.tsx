@@ -259,6 +259,26 @@ function TeamSub({ missionId }: { missionId: string }) {
         </AlertDialogContent>
       </AlertDialog>
 
+      <AlertDialog open={!!inviteTarget} onOpenChange={(o) => !o && !inviteBusy && setInviteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Send invite email?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will email <span className="font-medium text-foreground">{inviteTarget?.name}</span>
+              {inviteTarget?.email ? <> at <span className="font-mono text-xs">{inviteTarget.email}</span></> : null} from{" "}
+              <span className="font-mono text-xs">IRIS@athenacommandcenter.com</span> with a 14-day link to join this mission and start onboarding.
+              Nothing is sent until you confirm.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={inviteBusy}>Not yet</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmInvite} disabled={inviteBusy}>
+              {inviteBusy ? "Sending…" : "Send invite"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={!!blockOpen} onOpenChange={(o) => !o && setBlockOpen(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
