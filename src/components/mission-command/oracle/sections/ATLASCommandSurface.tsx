@@ -867,9 +867,10 @@ function ATLASCommandSurfaceInner({
 
       {/* ============ LEDGER ============ */}
       <div
-        className="relative grid grid-cols-5"
+        className="relative grid grid-cols-5 w-full"
         style={{
           height: LEDGER_H,
+          minWidth: 900,
           background: "rgba(0,0,0,0.8)",
           borderTop: `1px solid rgba(${GOLD},0.12)`,
           fontFamily: "ui-monospace, SFMono-Regular, monospace",
