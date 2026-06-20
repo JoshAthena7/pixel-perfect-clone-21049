@@ -423,9 +423,17 @@ export function DevToolsPanel() {
     }
     if (s.kind === "simulate") {
       setFlag(s.flag);
-      toast.success(`${s.name}: flag set. Refresh the target page to see it.`);
+      const href = resolveRoute(s);
+      if (href) {
+        window.location.assign(href);
+      } else if (s.flag?.startsWith("atlas_preview_role:")) {
+        toast.success(`${s.name}: role set. Refresh a mission page to see it.`);
+      } else {
+        toast.success(`${s.name}: flag set. Open the relevant page to see the state.`);
+      }
       return;
     }
+
   };
 
   const clearSplash = () => {
