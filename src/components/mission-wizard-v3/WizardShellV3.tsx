@@ -58,7 +58,7 @@ export function WizardShellV3({
           <Link
             to="/missions/$missionId/briefing"
             params={{ missionId }}
-            className="text-[13px] shrink-0 px-3 py-1.5 rounded-md transition-colors"
+            className="text-[14px] shrink-0 px-3 py-1.5 rounded-md transition-colors"
             style={{ color: "#C49A2B", border: "1px solid rgba(196,154,43,0.4)" }}
             title="Return to the live mission brief"
           >
@@ -67,7 +67,7 @@ export function WizardShellV3({
         )}
         <button
           onClick={() => navigate({ to: "/olympus/missions" })}
-          className="text-[13px] text-white/55 hover:text-white shrink-0"
+          className="text-[14px] text-white/55 hover:text-white shrink-0"
         >
           Exit Wizard
         </button>
@@ -88,14 +88,14 @@ export function WizardShellV3({
               disabled={!clickable}
               onClick={() => clickable && onJump(s.n)}
               className={cn(
-                "flex items-center gap-1.5 text-[11.5px] uppercase tracking-[0.1em] px-2.5 py-1.5 rounded transition-all whitespace-nowrap",
+                "flex items-center gap-1.5 text-[11.5px]  tracking-[0.1em] px-2.5 py-1.5 rounded transition-all whitespace-nowrap",
                 active && "bg-amber-500/15",
                 !active && clickable && "hover:bg-white/5",
                 !clickable && "opacity-30 cursor-not-allowed",
               )}
               style={{ color: active ? "#C49A2B" : done ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.3)" }}
             >
-              <span className="text-[10px] tabular-nums">{s.n}</span>
+              <span className="text-[11px] tabular-nums">{s.n}</span>
               <span>{s.label}</span>
               {done && <Check className="h-3 w-3 opacity-70" />}
             </button>
@@ -131,13 +131,13 @@ export function WizardFooter({
       <button
         onClick={onBack}
         disabled={step <= 1}
-        className="text-[13px] text-white/55 hover:text-white disabled:opacity-30"
+        className="text-[14px] text-white/55 hover:text-white disabled:opacity-30"
       >
         ← Back
       </button>
       <span className="text-[12px] text-white/40">Step {step} of {TOTAL_STEPS}</span>
       <div className="flex items-center gap-3">
-        {continueHint && <span className="text-[11px] text-white/45">{continueHint}</span>}
+        {continueHint && <span className="text-[12px] text-white/45">{continueHint}</span>}
         <button
           onClick={onContinue}
           disabled={continueDisabled}

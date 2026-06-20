@@ -82,12 +82,12 @@ function PlatformStatusBar() {
       <div className="mx-auto max-w-[1600px] px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
         <div>
           <div
-            className="text-sm font-semibold tracking-[0.25em] uppercase"
+            className="text-[14px] font-medium tracking-[0.25em] "
             style={{ color: GOLD }}
           >
             ⚡ Athena Command
           </div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">
+          <div className="text-[12px] text-muted-foreground mt-0.5">
             {now.toLocaleString(undefined, {
               weekday: "short", month: "short", day: "numeric",
               hour: "2-digit", minute: "2-digit", second: "2-digit",
@@ -98,11 +98,11 @@ function PlatformStatusBar() {
           {chips.map((c) => (
             <div
               key={c.label}
-              className="flex items-center gap-2 rounded-full border border-border bg-surface/60 px-3 py-1.5 text-xs"
+              className="flex items-center gap-2 rounded-full border border-border bg-surface/60 px-3 py-1.5 text-[12px]"
             >
               <c.icon className="h-3.5 w-3.5" style={{ color: GOLD }} />
               <span className="text-muted-foreground">{c.label}:</span>
-              <span className="font-semibold text-foreground">
+              <span className="font-medium text-foreground">
                 {isLoading || c.value === undefined ? "—" : c.value}
               </span>
             </div>
@@ -142,11 +142,11 @@ function MissionGrid() {
   return (
     <section>
       <div className="flex items-center justify-between gap-4 mb-3">
-        <h2 className="text-2xl font-bold tracking-tight">Active Missions</h2>
+        <h2 className="text-2xl font-medium tracking-tight">Active Missions</h2>
         <Button
           onClick={() => navigate({ to: "/olympus/missions/new" })}
           style={{ background: GOLD, color: "#0b0d11" }}
-          className="hover:opacity-90 font-semibold"
+          className="hover:opacity-90 font-medium"
         >
           <Plus className="h-4 w-4" /> New Mission
         </Button>
@@ -157,7 +157,7 @@ function MissionGrid() {
             key={f.key}
             onClick={() => setFilter(f.key)}
             className={cn(
-              "px-3 py-1.5 rounded-full text-xs border transition-colors",
+              "px-3 py-1.5 rounded-full text-[12px] border transition-colors",
               filter === f.key
                 ? "border-[var(--athena-gold)] bg-[var(--athena-gold)]/10 text-foreground"
                 : "border-border bg-surface/40 text-muted-foreground hover:text-foreground",
@@ -190,13 +190,13 @@ function EmptyState() {
   return (
     <div className="rounded-xl border border-border bg-surface/40 p-16 text-center">
       <p className="text-foreground text-lg mb-1">No active missions</p>
-      <p className="text-sm text-muted-foreground mb-6">
+      <p className="text-[14px] text-muted-foreground mb-6">
         Create your first mission to get started
       </p>
       <Button
         onClick={() => navigate({ to: "/olympus/missions/new" })}
         style={{ background: GOLD, color: "#0b0d11" }}
-        className="font-semibold"
+        className="font-medium"
       >
         <Plus className="h-4 w-4" /> New Mission
       </Button>
@@ -239,20 +239,20 @@ function MissionCard({ m }: { m: AthenaMissionCard }) {
         {/* Identity */}
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="min-w-0">
-            <h3 className="font-bold text-base truncate" title={m.name}>
+            <h3 className="font-medium text-base truncate" title={m.name}>
               {truncate(m.name, 55)}
             </h3>
             {m.client && (
-              <p className="text-xs text-muted-foreground truncate" title={m.client}>
+              <p className="text-[12px] text-muted-foreground truncate" title={m.client}>
                 {truncate(m.client, 60)}
               </p>
             )}
             <div className="flex gap-1.5 mt-2">
-              <span className="text-[10px] uppercase tracking-wider rounded-full border border-border bg-background/60 px-2 py-0.5 text-muted-foreground">
+              <span className="text-[11px]   rounded-full border border-border bg-background/60 px-2 py-0.5 text-muted-foreground">
                 {m.status.replace(/_/g, " ")}
               </span>
               {days != null && (
-                <span className={cn("text-[10px] uppercase tracking-wider rounded-full border bg-background/60 px-2 py-0.5", countdownClass)}>
+                <span className={cn("text-[11px]   rounded-full border bg-background/60 px-2 py-0.5", countdownClass)}>
                   {days < 0 ? `${Math.abs(days)}d overdue` : `${days}d to submit`}
                 </span>
               )}
@@ -274,7 +274,7 @@ function MissionCard({ m }: { m: AthenaMissionCard }) {
           />
           {/* Health segmented bar */}
           <div>
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
+            <div className="flex items-center justify-between text-[12px] text-muted-foreground mb-1">
               <span>Health</span>
               <span>{m.healthy} healthy · {m.watch} watch · {m.atRisk} at risk</span>
             </div>
@@ -287,11 +287,11 @@ function MissionCard({ m }: { m: AthenaMissionCard }) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between text-[11px] mt-4 pt-3 border-t border-border/60">
+        <div className="flex items-center justify-between text-[12px] mt-4 pt-3 border-t border-border/60">
           <span className="text-muted-foreground">Last writer activity: {lastActivity}</span>
           {m.needsAttention > 0 && (
             <span className={cn(
-              "rounded-full border px-2 py-0.5 font-semibold",
+              "rounded-full border px-2 py-0.5 font-medium",
               m.needsAttention > 5
                 ? "border-red-500/60 text-red-400 bg-red-500/10"
                 : "border-amber-500/60 text-amber-400 bg-amber-500/10",
@@ -307,20 +307,20 @@ function MissionCard({ m }: { m: AthenaMissionCard }) {
         <Link
           to="/missions/$missionId/briefing"
           params={{ missionId: m.id }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs border border-border bg-surface hover:bg-[var(--athena-gold)]/10 hover:border-[var(--athena-gold)]/40"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] border border-border bg-surface hover:bg-[var(--athena-gold)]/10 hover:border-[var(--athena-gold)]/40"
         >
           <ClipboardList className="h-3.5 w-3.5" /> Briefing
         </Link>
         <Link
           to="/missions/$missionId/war-room"
           params={{ missionId: m.id }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs border border-border bg-surface hover:bg-[var(--athena-gold)]/10 hover:border-[var(--athena-gold)]/40"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] border border-border bg-surface hover:bg-[var(--athena-gold)]/10 hover:border-[var(--athena-gold)]/40"
         >
           <Rocket className="h-3.5 w-3.5" /> ATC
         </Link>
         <button
           onClick={() => navigate({ to: "/olympus/wizard/$missionId", params: { missionId: m.id } })}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs border border-border bg-surface hover:bg-[var(--athena-gold)]/10 hover:border-[var(--athena-gold)]/40"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] border border-border bg-surface hover:bg-[var(--athena-gold)]/10 hover:border-[var(--athena-gold)]/40"
         >
           <Settings className="h-3.5 w-3.5" /> Setup
         </button>
@@ -334,7 +334,7 @@ function MiniBar({ label, right, counts, pct, color }: {
 }) {
   return (
     <div>
-      <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
+      <div className="flex items-center justify-between text-[12px] text-muted-foreground mb-1">
         <span>{label}</span>
         <span>{right}</span>
       </div>
@@ -342,7 +342,7 @@ function MiniBar({ label, right, counts, pct, color }: {
         <div className="flex-1 h-2 rounded-full bg-surface overflow-hidden">
           <div className={cn("h-full", color)} style={{ width: `${Math.min(100, pct)}%` }} />
         </div>
-        <span className="text-[10px] text-muted-foreground tabular-nums w-12 text-right">{counts}</span>
+        <span className="text-[11px] text-muted-foreground tabular-nums w-12 text-right">{counts}</span>
       </div>
     </div>
   );
@@ -384,8 +384,8 @@ function PlatformIntelligenceFeed() {
     <section className="rounded-xl border border-border bg-surface/40 p-5">
       <div className="flex items-start justify-between mb-1">
         <div>
-          <h3 className="font-bold text-lg">Platform Intelligence</h3>
-          <p className="text-xs text-muted-foreground">What IRIS is watching across all missions</p>
+          <h3 className="font-medium text-lg">Platform Intelligence</h3>
+          <p className="text-[12px] text-muted-foreground">What IRIS is watching across all missions</p>
         </div>
         <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
           <RefreshCw className={cn("h-3.5 w-3.5", isFetching && "animate-spin")} />
@@ -397,7 +397,7 @@ function PlatformIntelligenceFeed() {
             key={f.key}
             onClick={() => setFilter(f.key)}
             className={cn(
-              "px-2.5 py-1 rounded-full text-[11px] border",
+              "px-2.5 py-1 rounded-full text-[12px] border",
               filter === f.key
                 ? "border-[var(--athena-gold)] bg-[var(--athena-gold)]/10"
                 : "border-border bg-surface/60 text-muted-foreground hover:text-foreground",
@@ -411,7 +411,7 @@ function PlatformIntelligenceFeed() {
       {isLoading ? (
         <div className="space-y-2">{[0,1,2].map(i => <Skeleton key={i} className="h-14 rounded" />)}</div>
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-8 text-center">
+        <p className="text-[14px] text-muted-foreground py-8 text-center">
           IRIS has been quiet across all missions. Intelligence will surface as missions process documents.
         </p>
       ) : (
@@ -428,28 +428,28 @@ function PlatformIntelligenceFeed() {
                   eventColor(e.eventType),
                 )}
               >
-                <div className="flex items-center gap-2 flex-wrap mb-1 text-[11px]">
+                <div className="flex items-center gap-2 flex-wrap mb-1 text-[12px]">
                   {e.missionId && e.missionName && (
                     <Link
                       to="/missions/$missionId/intelligence"
                       params={{ missionId: e.missionId }}
-                      className="rounded-full px-2 py-0.5 font-semibold hover:underline"
+                      className="rounded-full px-2 py-0.5 font-medium hover:underline"
                       style={{ background: "rgba(212,175,55,0.15)", color: GOLD }}
                     >
                       {truncate(e.missionName, 20)}
                     </Link>
                   )}
-                  <span className="rounded-full border border-border px-2 py-0.5 text-muted-foreground uppercase tracking-wide text-[10px]">
+                  <span className="rounded-full border border-border px-2 py-0.5 text-muted-foreground  tracking-wide text-[11px]">
                     {e.eventType}
                   </span>
                   <span className="text-muted-foreground ml-auto">
                     {formatDistanceToNowStrict(new Date(e.createdAt), { addSuffix: true })}
                   </span>
                 </div>
-                {e.title && <p className="text-sm font-medium mb-0.5">{e.title}</p>}
+                {e.title && <p className="text-[14px] font-medium mb-0.5">{e.title}</p>}
                 {summary && (
                   <button
-                    className="text-xs text-muted-foreground text-left"
+                    className="text-[12px] text-muted-foreground text-left"
                     onClick={() => setExpanded(isOpen ? null : e.id)}
                   >
                     {display}
@@ -531,7 +531,7 @@ function PlatformHealthPanel() {
   return (
     <section className="rounded-xl border border-border bg-surface/40 p-5 space-y-5">
       <div className="flex items-center justify-between">
-        <h3 className="font-bold text-lg">Platform Health</h3>
+        <h3 className="font-medium text-lg">Platform Health</h3>
         <Button variant="ghost" size="sm" onClick={() => refetch()}>
           <RefreshCw className="h-3.5 w-3.5" />
         </Button>
@@ -539,24 +539,24 @@ function PlatformHealthPanel() {
 
       {/* IRIS Pipeline */}
       <div>
-        <h4 className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">IRIS Pipeline</h4>
+        <h4 className="text-[12px]   text-muted-foreground mb-2">IRIS Pipeline</h4>
         {isLoading ? <Skeleton className="h-16 rounded" /> : (
           <div className="space-y-1.5">
             {(data?.cronJobs ?? []).length === 0 && (
-              <p className="text-xs text-muted-foreground">No Athena cron jobs registered.</p>
+              <p className="text-[12px] text-muted-foreground">No Athena cron jobs registered.</p>
             )}
             {(data?.cronJobs ?? []).map((j) => {
               const last = j.lastRunAt ? new Date(j.lastRunAt) : null;
               const ageHrs = last ? (Date.now() - last.getTime()) / 3600000 : Infinity;
               const ok = ageHrs < 25;
               return (
-                <div key={j.jobname} className="flex items-center justify-between text-xs border border-border rounded bg-background/40 px-2.5 py-1.5">
+                <div key={j.jobname} className="flex items-center justify-between text-[12px] border border-border rounded bg-background/40 px-2.5 py-1.5">
                   <div className="min-w-0">
                     <div className="font-medium truncate">{j.jobname}</div>
-                    <div className="text-[10px] text-muted-foreground font-mono">{j.schedule}</div>
+                    <div className="text-[11px] text-muted-foreground font-mono">{j.schedule}</div>
                   </div>
                   <div className="text-right shrink-0 ml-2">
-                    <div className="text-[10px] text-muted-foreground">
+                    <div className="text-[11px] text-muted-foreground">
                       {last ? formatDistanceToNowStrict(last, { addSuffix: true }) : "never"}
                     </div>
                     <div className="flex justify-end">
@@ -574,8 +574,8 @@ function PlatformHealthPanel() {
 
       {/* Brief Generation */}
       <div>
-        <h4 className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Brief Generation</h4>
-        <div className="grid grid-cols-2 gap-2 text-xs">
+        <h4 className="text-[12px]   text-muted-foreground mb-2">Brief Generation</h4>
+        <div className="grid grid-cols-2 gap-2 text-[12px]">
           <Stat label="Ready" value={data?.briefs.ready} />
           <Stat label="Queued" value={data?.briefs.queued} />
           <Stat label="Generating" value={data?.briefs.generating} />
@@ -584,7 +584,7 @@ function PlatformHealthPanel() {
         {!!data?.briefs.errors && (
           <button
             onClick={handleFix}
-            className="mt-2 text-xs text-red-400 hover:underline inline-flex items-center gap-1"
+            className="mt-2 text-[12px] text-red-400 hover:underline inline-flex items-center gap-1"
           >
             <XCircle className="h-3 w-3" /> Fix → reset {data.briefs.errors} to pending
           </button>
@@ -593,19 +593,19 @@ function PlatformHealthPanel() {
 
       {/* Graph Intelligence */}
       <div>
-        <h4 className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Graph Intelligence</h4>
-        <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+        <h4 className="text-[12px]   text-muted-foreground mb-2">Graph Intelligence</h4>
+        <div className="grid grid-cols-2 gap-2 text-[12px] mb-2">
           <Stat label="Total Nodes" value={data?.graph.nodes} />
           <Stat label="Total Edges" value={data?.graph.edges} />
         </div>
-        <p className="text-[11px] text-muted-foreground mb-2">
+        <p className="text-[12px] text-muted-foreground mb-2">
           Last refresh: {data?.graph.lastRefreshAt
             ? formatDistanceToNowStrict(new Date(data.graph.lastRefreshAt), { addSuffix: true })
             : "never"}
         </p>
         <Button
           variant="outline" size="sm" disabled={refreshing}
-          onClick={handleRefreshGraphs} className="w-full text-xs"
+          onClick={handleRefreshGraphs} className="w-full text-[12px]"
         >
           {refreshing
             ? <>Refreshing {refreshLabel ? truncate(refreshLabel, 22) : "…"}</>
@@ -615,15 +615,15 @@ function PlatformHealthPanel() {
 
       {/* Source Ingestion */}
       <div>
-        <h4 className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Source Ingestion</h4>
-        <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+        <h4 className="text-[12px]   text-muted-foreground mb-2">Source Ingestion</h4>
+        <div className="grid grid-cols-2 gap-2 text-[12px] mb-2">
           <Stat label="Sources Uploaded" value={data?.sources.uploaded} />
           <Stat label="Pending Extraction" value={data?.sources.pendingExtraction} danger={!!data?.sources.pendingExtraction} />
         </div>
         {!!data?.sources.pendingExtraction && (
           <Button
             variant="outline" size="sm" disabled={extracting}
-            onClick={handleExtractAll} className="w-full text-xs"
+            onClick={handleExtractAll} className="w-full text-[12px]"
           >
             {extracting ? "Extracting…" : `Run Extraction → ${data.sources.pendingExtraction}`}
           </Button>
@@ -641,8 +641,8 @@ function Stat({ label, value, danger }: { label: string; value: number | undefin
       "rounded border px-2.5 py-2",
       danger ? "border-red-500/40 bg-red-500/10" : "border-border bg-background/40",
     )}>
-      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className={cn("text-lg font-bold tabular-nums", danger && "text-red-400")}>
+      <div className="text-[11px]  tracking-wide text-muted-foreground">{label}</div>
+      <div className={cn("text-lg font-medium tabular-nums", danger && "text-red-400")}>
         {display}
       </div>
     </div>

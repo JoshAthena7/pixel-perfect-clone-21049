@@ -271,7 +271,7 @@ function Label({ children }: { children: React.ReactNode }) {
     <div
       style={{
         fontSize: 8,
-        textTransform: "uppercase",
+        textTransform: "",
         letterSpacing: "0.1em",
         color: GOLD,
         fontWeight: 700,

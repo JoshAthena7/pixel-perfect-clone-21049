@@ -30,10 +30,10 @@ function AdminSettingsPage() {
   return (
     <div className="p-8" style={{ background: "#080c14", minHeight: "100vh", color: "rgba(255,255,255,0.9)" }}>
       <div className="max-w-4xl">
-        <h1 className="text-2xl font-semibold mb-2" style={{ color: "#c9a84c" }}>
+        <h1 className="text-2xl font-medium mb-2" style={{ color: "#c9a84c" }}>
           Settings
         </h1>
-        <p className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+        <p className="text-[14px]" style={{ color: "rgba(255,255,255,0.55)" }}>
           Platform administration settings.
         </p>
 
@@ -41,20 +41,20 @@ function AdminSettingsPage() {
           className="mt-8 rounded-lg p-5"
           style={{ background: "#0c1220", border: "1px solid rgba(255,255,255,0.08)" }}
         >
-          <div className="text-xs uppercase tracking-[0.25em]" style={{ color: "rgba(201,168,76,0.7)" }}>
+          <div className="text-[12px]  tracking-[0.25em]" style={{ color: "rgba(201,168,76,0.7)" }}>
             Developer Tools
           </div>
 
           <div className="mt-3 flex items-center justify-between gap-6">
             <div>
-              <div className="text-sm font-medium text-white">Screen Previewer & Dev Panel</div>
-              <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
+              <div className="text-[14px] font-medium text-white">Screen Previewer & Dev Panel</div>
+              <div className="text-[12px] mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
                 Opens the full dev drawer: 8 categories of screens, role simulator, modal/animation triggers, quick actions.
               </div>
             </div>
             <button
               onClick={() => window.dispatchEvent(new CustomEvent("atlas-devtools-open"))}
-              className="rounded-md px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap"
+              className="rounded-md px-4 py-2 text-[14px] font-medium transition-colors whitespace-nowrap"
               style={{
                 background: "rgba(201,168,76,0.15)",
                 color: "#c9a84c",
@@ -67,14 +67,14 @@ function AdminSettingsPage() {
 
           <div className="mt-4 pt-4 flex items-center justify-between gap-6" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
             <div>
-              <div className="text-sm font-medium text-white">IRIS Studio</div>
-              <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
+              <div className="text-[14px] font-medium text-white">IRIS Studio</div>
+              <div className="text-[12px] mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
                 Per-mission control over IRIS voice, language & inclusion, evaluator persona, brief settings, and personality.
               </div>
             </div>
             <Link
               to="/admin/iris-studio"
-              className="rounded-md px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap"
+              className="rounded-md px-4 py-2 text-[14px] font-medium transition-colors whitespace-nowrap"
               style={{
                 background: "rgba(201,168,76,0.15)",
                 color: "#c9a84c",
@@ -88,14 +88,14 @@ function AdminSettingsPage() {
 
           <div className="mt-4 pt-4 flex items-center justify-between gap-6" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
             <div>
-              <div className="text-sm font-medium text-white">Replay ATLAS splash</div>
-              <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
+              <div className="text-[14px] font-medium text-white">Replay ATLAS splash</div>
+              <div className="text-[12px] mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>
                 Clears the session flag and reloads so the constellation load screen plays again.
               </div>
             </div>
             <button
               onClick={replaySplash}
-              className="rounded-md px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap"
+              className="rounded-md px-4 py-2 text-[14px] font-medium transition-colors whitespace-nowrap"
               style={{
                 background: "rgba(201,168,76,0.15)",
                 color: "#c9a84c",

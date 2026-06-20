@@ -134,7 +134,7 @@ export function AddCanonModal({ onClose }: { onClose: () => void }) {
             className="input font-mono text-[12px]"
             placeholder="The rule IRIS will read. 1–4 dense, operational sentences."
           />
-          <div className="text-[10px] text-muted-foreground">{form.content.length}/4000</div>
+          <div className="text-[11px] text-muted-foreground">{form.content.length}/4000</div>
         </Field>
 
         <Field label="Source URL (optional)">
@@ -161,14 +161,14 @@ export function AddCanonModal({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border border-border px-3 py-2 text-xs hover:bg-surface-hover"
+            className="rounded-md border border-border px-3 py-2 text-[12px] hover:bg-surface-hover"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="rounded-md px-3 py-2 text-xs font-medium disabled:opacity-50"
+            className="rounded-md px-3 py-2 text-[12px] font-medium disabled:opacity-50"
             style={{ background: "#C49A22", color: "#0b0b0b" }}
           >
             {saving ? "Saving…" : "Save Entry"}
@@ -187,7 +187,7 @@ export function AddCanonModal({ onClose }: { onClose: () => void }) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-1">
-      <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
+      <span className="text-[12px] font-medium  tracking-wide text-muted-foreground">{label}</span>
       {children}
     </label>
   );

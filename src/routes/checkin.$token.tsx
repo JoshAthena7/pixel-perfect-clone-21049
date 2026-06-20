@@ -12,9 +12,9 @@ function CheckinPage() {
       <div className="mx-auto w-full max-w-[680px]">
         <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <AlertCircle className="mx-auto mb-3 h-8 w-8 text-amber-500" aria-hidden />
-          <h1 className="mb-1 text-xl font-semibold text-slate-900">Check-in unavailable</h1>
-          <p className="text-sm text-slate-600">Check-in links are being rebuilt after the legacy cleanup.</p>
-          <Link to="/login" className="mt-6 inline-block text-sm font-medium text-blue-600 hover:underline">
+          <h1 className="mb-1 text-xl font-medium text-slate-900">Check-in unavailable</h1>
+          <p className="text-[14px] text-slate-600">Check-in links are being rebuilt after the legacy cleanup.</p>
+          <Link to="/login" className="mt-6 inline-block text-[14px] font-medium text-blue-600 hover:underline">
             Go to login
           </Link>
         </div>

@@ -49,7 +49,7 @@ export function SectionNorthStar({ missionId, isAdmin }: { missionId: string; is
           style={{
             color: "#C49A2B",
             fontSize: 9,
-            textTransform: "uppercase",
+            textTransform: "",
             letterSpacing: "0.06em",
             fontWeight: 500,
           }}
@@ -82,7 +82,7 @@ export function SectionNorthStar({ missionId, isAdmin }: { missionId: string; is
 
       {/* B — Win Themes */}
       <div className="mb-5">
-        <div className="mb-2" style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        <div className="mb-2" style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "", letterSpacing: "0.05em" }}>
           Win Themes — every writer reinforces these
         </div>
         <div className="flex flex-wrap gap-2">
@@ -113,7 +113,7 @@ export function SectionNorthStar({ missionId, isAdmin }: { missionId: string; is
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Evaluator Priorities */}
         <div>
-          <div className="mb-2" style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          <div className="mb-2" style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "", letterSpacing: "0.05em" }}>
             Evaluator Priorities
           </div>
           {evalPriorities.length === 0 ? (
@@ -147,7 +147,7 @@ export function SectionNorthStar({ missionId, isAdmin }: { missionId: string; is
             style={{
               color: "#f08080",
               fontSize: 10,
-              textTransform: "uppercase",
+              textTransform: "",
               letterSpacing: "0.06em",
               fontWeight: 600,
             }}

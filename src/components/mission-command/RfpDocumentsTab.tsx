@@ -199,8 +199,8 @@ export function RfpDocumentsTab({ missionId }: { missionId: string }) {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">RFP &amp; Documents</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-2xl font-medium text-foreground">RFP &amp; Documents</h2>
+          <p className="text-[14px] text-muted-foreground">
             All intelligence documents for this mission. Upload amendments and new research anytime.
           </p>
         </div>
@@ -263,7 +263,7 @@ export function RfpDocumentsTab({ missionId }: { missionId: string }) {
             <DialogDescription>{amendmentImpact?.data.summary}</DialogDescription>
           </DialogHeader>
           {amendmentImpact && (
-            <div className="space-y-4 text-sm">
+            <div className="space-y-4 text-[14px]">
               {amendmentImpact.data.disclaimer && (
                 <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-amber-900 flex gap-2">
                   <AlertTriangle className="h-4 w-4 mt-0.5" /> {amendmentImpact.data.disclaimer}
@@ -322,7 +322,7 @@ function ImpactList({ title, items }: { title: string; items: string[] }) {
   if (!items.length) return null;
   return (
     <div>
-      <h4 className="font-semibold mb-1">{title}</h4>
+      <h4 className="font-medium mb-1">{title}</h4>
       <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
         {items.map((i, idx) => <li key={idx}>{i}</li>)}
       </ul>
@@ -350,9 +350,9 @@ function DocumentRow({
         <Input
           value={title} onChange={(e) => setTitle(e.target.value)}
           onBlur={() => onRename(doc, title)}
-          className="h-7 px-1 border-transparent hover:border-input focus:border-input font-semibold bg-transparent"
+          className="h-7 px-1 border-transparent hover:border-input focus:border-input font-medium bg-transparent"
         />
-        <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 mt-1 text-[12px] text-muted-foreground">
           <Badge variant="outline">{DOC_TYPE_LABEL[doc.document_type] ?? doc.document_type}</Badge>
           <span>{formatDate(doc.created_at)}</span>
           {doc.is_amendment && doc.amendment_processed_at && (
@@ -360,12 +360,12 @@ function DocumentRow({
           )}
         </div>
         {doc.content_summary && (
-          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{doc.content_summary}</p>
+          <p className="text-[12px] text-muted-foreground mt-1 line-clamp-2">{doc.content_summary}</p>
         )}
         {tagNames.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {tagNames.map((n, i) => (
-              <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">{n}</span>
+              <span key={i} className="text-[11px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">{n}</span>
             ))}
           </div>
         )}
@@ -557,10 +557,10 @@ function UploadModal({
         </DialogHeader>
         {pendingDocId ? (
           <div className="space-y-3">
-            <Label>Tag to sections {suggested.length > 0 && <span className="text-xs text-primary">(IRIS suggestions pre-selected)</span>}</Label>
+            <Label>Tag to sections {suggested.length > 0 && <span className="text-[12px] text-primary">(IRIS suggestions pre-selected)</span>}</Label>
             <div className="max-h-80 overflow-y-auto border rounded-md p-3 space-y-2">
               {sections.map((s) => (
-                <label key={s.id} className="flex items-start gap-2 text-sm">
+                <label key={s.id} className="flex items-start gap-2 text-[14px]">
                   <Checkbox
                     checked={selectedTags.includes(s.id)}
                     onCheckedChange={(c) => setSelectedTags((prev) =>
@@ -622,7 +622,7 @@ function UploadModal({
                 <Label>Section tags</Label>
                 <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-1">
                   {sections.map((s) => (
-                    <label key={s.id} className="flex items-center gap-2 text-sm">
+                    <label key={s.id} className="flex items-center gap-2 text-[14px]">
                       <Checkbox
                         checked={noteTags.includes(s.id)}
                         onCheckedChange={(c) => setNoteTags((prev) =>

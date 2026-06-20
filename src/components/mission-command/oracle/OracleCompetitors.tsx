@@ -135,7 +135,7 @@ function Field({ label, tone, children }: { label: string; tone: "neutral" | "re
   };
   return (
     <div>
-      <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>
+      <div style={{ fontSize: 9, textTransform: "", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>
         {label}
       </div>
       <div className="mt-1" style={{ fontSize: 11, lineHeight: 1.5, color: colors[tone] }}>

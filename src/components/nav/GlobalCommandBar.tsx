@@ -181,7 +181,7 @@ export function GlobalCommandBar({ email, isAdmin = false }: { email?: string | 
           <button
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent("atlas:iris:open"))}
-            className="iris-ask-btn group hidden sm:inline-flex items-center gap-2 rounded-full text-[11px] font-medium pl-1.5 pr-2.5 py-1 relative overflow-hidden"
+            className="iris-ask-btn group hidden sm:inline-flex items-center gap-2 rounded-full text-[12px] font-medium pl-1.5 pr-2.5 py-1 relative overflow-hidden"
             aria-label="Ask IRIS"
           >
             <span className="iris-orb" aria-hidden="true">

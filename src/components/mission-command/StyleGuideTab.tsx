@@ -131,17 +131,17 @@ export function StyleGuideTab({ missionId }: { missionId: string }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold">Style Guide & Sensitivities</h2>
-        <div className="mt-3 rounded-lg border border-primary/40 bg-primary/10 p-3 text-sm">
+        <h2 className="text-2xl font-medium">Style Guide & Sensitivities</h2>
+        <div className="mt-3 rounded-lg border border-primary/40 bg-primary/10 p-3 text-[14px]">
           These standards are known to IRIS and applied in every Sticky Notes interaction and Score Me evaluation on this mission. Keep them current.
         </div>
         {lastSavedLabel && (
-          <p className="text-xs text-muted-foreground mt-2">{lastSavedLabel}</p>
+          <p className="text-[12px] text-muted-foreground mt-2">{lastSavedLabel}</p>
         )}
       </div>
 
       <section className="space-y-4">
-        <h3 className="text-lg font-bold text-foreground border-b-2 border-primary pb-1">
+        <h3 className="text-lg font-medium text-foreground border-b-2 border-primary pb-1">
           Style Guide
         </h3>
 
@@ -234,7 +234,7 @@ export function StyleGuideTab({ missionId }: { missionId: string }) {
       </section>
 
       <section className="space-y-4">
-        <h3 className="text-lg font-bold text-foreground border-b-2 border-primary pb-1">
+        <h3 className="text-lg font-medium text-foreground border-b-2 border-primary pb-1">
           Sensitivities
         </h3>
 
@@ -267,7 +267,7 @@ function Field({ label, helper, children }: { label: string; helper?: string; ch
   return (
     <div>
       <Label>{label}</Label>
-      {helper && <p className="text-xs text-muted-foreground mb-1">{helper}</p>}
+      {helper && <p className="text-[12px] text-muted-foreground mb-1">{helper}</p>}
       {children}
     </div>
   );

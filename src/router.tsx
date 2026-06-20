@@ -68,7 +68,7 @@ function AtlasPendingScreen() {
           fontSize: 10,
           letterSpacing: "0.32em",
           color: "rgba(224,179,65,0.55)",
-          textTransform: "uppercase",
+          textTransform: "",
           fontWeight: 600,
         }}
       >

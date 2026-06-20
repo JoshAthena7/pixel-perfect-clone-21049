@@ -94,16 +94,16 @@ export function WritersBlockDialog({
     <Dialog open={open} onOpenChange={(v) => { if (!v) close(); else onOpenChange(v); }}>
       <DialogContent className="max-w-[640px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-[15px]">
+          <DialogTitle className="flex items-center gap-2 text-[14px]">
             <BrickWall className="h-4 w-4" style={{ color: GOLD }} /> Stuck? IRIS can unstick you.
           </DialogTitle>
           <div className="text-[11.5px] text-muted-foreground">Tell IRIS what's blocking you.</div>
         </DialogHeader>
 
         <div className="rounded-md px-3 py-2 text-[11.5px]" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-          <div className="font-mono text-[10px]" style={{ color: GOLD }}>{questionNumber ?? "?"}</div>
+          <div className="font-mono text-[11px]" style={{ color: GOLD }}>{questionNumber ?? "?"}</div>
           <div className="text-white/85 line-clamp-2">{questionText}</div>
-          <div className="mt-1 text-[10px] text-muted-foreground">
+          <div className="mt-1 text-[11px] text-muted-foreground">
             {status ?? "—"}{dueDate ? ` · due ${new Date(dueDate).toLocaleDateString()}` : ""}
           </div>
         </div>
@@ -123,7 +123,7 @@ export function WritersBlockDialog({
                       border: `1px solid ${sel ? GOLD : "rgba(255,255,255,0.08)"}`,
                     }}
                   >
-                    <div className="text-[12px] font-semibold" style={{ color: sel ? GOLD : "white" }}>{b.title}</div>
+                    <div className="text-[12px] font-medium" style={{ color: sel ? GOLD : "white" }}>{b.title}</div>
                     <div className="mt-1 text-[10.5px] text-muted-foreground">{b.sub}</div>
                   </button>
                 );
@@ -133,7 +133,7 @@ export function WritersBlockDialog({
             <div>
               <button
                 onClick={() => setShowCtx((s) => !s)}
-                className="text-[11px] text-muted-foreground hover:text-white"
+                className="text-[12px] text-muted-foreground hover:text-white"
               >
                 {showCtx ? "▾" : "▸"} Add context
               </button>
@@ -151,7 +151,7 @@ export function WritersBlockDialog({
             <button
               onClick={() => run(false)}
               disabled={!block || loading}
-              className="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-[12.5px] font-semibold disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-[12.5px] font-medium disabled:opacity-50"
               style={{ background: GOLD, color: "#1a1306" }}
             >
               {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
@@ -165,7 +165,7 @@ export function WritersBlockDialog({
         {response && (
           <>
             <div className="rounded-md px-3 py-2.5" style={{ background: "rgba(255,255,255,0.02)", borderLeft: `3px solid ${GOLD}` }}>
-              <div className="text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1" style={{ color: GOLD }}>
+              <div className="text-[11px]   font-medium flex items-center gap-1" style={{ color: GOLD }}>
                 <Zap className="h-3 w-3" /> IRIS · Unstick
               </div>
               <div className="mt-2 text-[12.5px] whitespace-pre-wrap" style={{ color: "rgba(255,255,255,0.88)", lineHeight: 1.7 }}>
@@ -190,7 +190,7 @@ export function WritersBlockDialog({
               </button>
               <button
                 onClick={helped}
-                className="ml-auto inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-[11.5px] font-semibold"
+                className="ml-auto inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-[11.5px] font-medium"
                 style={{ background: "rgba(61,190,125,0.15)", border: "1px solid rgba(61,190,125,0.5)", color: "#3DBE7D" }}
               >
                 <CheckCircle2 className="h-3.5 w-3.5" /> That helped — close

@@ -120,7 +120,7 @@ export function QuestionBriefPanel({ missionId, questionId, questionText }: Prop
           style={{
             fontSize: 10,
             letterSpacing: "0.06em",
-            textTransform: "uppercase",
+            textTransform: "",
             color: "rgba(180,170,255,0.9)",
           }}
         >
@@ -250,7 +250,7 @@ function BriefSection({ title, body }: { title: string; body: string }) {
         style={{
           fontSize: 9.5,
           letterSpacing: "0.07em",
-          textTransform: "uppercase",
+          textTransform: "",
           color: "rgba(180,170,255,0.85)",
           marginBottom: 3,
         }}
@@ -272,7 +272,7 @@ function BriefList({ title, items, accent }: { title: string; items: string[]; a
         style={{
           fontSize: 9.5,
           letterSpacing: "0.07em",
-          textTransform: "uppercase",
+          textTransform: "",
           color: accent ?? "rgba(180,170,255,0.85)",
           marginBottom: 3,
         }}

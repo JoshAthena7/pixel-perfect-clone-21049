@@ -61,7 +61,7 @@ export function FeedAtlasDrawer({
           borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}
       >
-        <div className="text-[13px] text-white" style={{ letterSpacing: "0.04em" }}>
+        <div className="text-[14px] text-white" style={{ letterSpacing: "0.04em" }}>
           <span style={{ color: GOLD, fontWeight: 600 }}>FEED ATLAS</span>
           <span className="text-white/40 mx-2">—</span>
           <span className="text-white/75">Load Intelligence</span>

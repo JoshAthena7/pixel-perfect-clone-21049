@@ -36,7 +36,7 @@ export function AnalysisTools({
           padding: 0,
           cursor: "pointer",
           fontSize: 10,
-          textTransform: "uppercase",
+          textTransform: "",
           letterSpacing: "0.08em",
           color: "rgba(255,255,255,0.5)",
           marginBottom: 12,

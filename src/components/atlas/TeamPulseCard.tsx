@@ -63,7 +63,7 @@ function TabBtn({ active, onClick, icon, label }: { active: boolean; onClick: ()
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors"
+      className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors"
       style={{
         background: active ? "rgba(196,154,43,0.12)" : "transparent",
         color: active ? GOLD : "rgba(255,255,255,0.6)",
@@ -89,7 +89,7 @@ function InspirationTab({ missionId }: { missionId: string }) {
   return (
     <div className="relative">
       <span
-        className="absolute right-0 top-0 rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider"
+        className="absolute right-0 top-0 rounded-full px-2 py-0.5 text-[11px] font-medium  "
         style={{ background: "rgba(196,154,43,0.12)", color: GOLD, border: "1px solid rgba(196,154,43,0.3)" }}
       >
         Today's Inspiration
@@ -99,7 +99,7 @@ function InspirationTab({ missionId }: { missionId: string }) {
           {c.quote || "—"}
         </div>
         {c.attribution && (
-          <div className="mt-2 text-[11px]" style={{ color: "rgba(255,255,255,0.55)" }}>
+          <div className="mt-2 text-[12px]" style={{ color: "rgba(255,255,255,0.55)" }}>
             — <span style={{ color: GOLD }}>{c.attribution}</span>
           </div>
         )}
@@ -365,10 +365,10 @@ function TriviaTab({ missionId }: { missionId: string }) {
           </div>
         )}
         <div className="text-right">
-          <div className="text-[8px] uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.45)" }}>My Score</div>
-          <div className="text-[16px] font-bold text-white leading-none mt-0.5">{myScore?.total ?? 0}</div>
+          <div className="text-[11px]  " style={{ color: "rgba(255,255,255,0.45)" }}>My Score</div>
+          <div className="text-[16px] font-medium text-white leading-none mt-0.5">{myScore?.total ?? 0}</div>
           {myScore && myScore.streak > 0 && (
-            <div className="text-[9px] mt-0.5 flex items-center justify-end gap-0.5" style={{ color: GOLD }}>
+            <div className="text-[11px] mt-0.5 flex items-center justify-end gap-0.5" style={{ color: GOLD }}>
               <Flame className="h-2.5 w-2.5" /> {myScore.streak} day{myScore.streak === 1 ? "" : "s"}
             </div>
           )}
@@ -394,7 +394,7 @@ function TriviaTab({ missionId }: { missionId: string }) {
               border: `0.5px solid ${wasTimeout ? "rgba(248,113,113,0.25)" : "rgba(74,222,128,0.25)"}`,
             }}
           >
-            <span className="text-[11px] min-w-0 truncate" style={{ color: "rgba(255,255,255,0.75)" }}>
+            <span className="text-[12px] min-w-0 truncate" style={{ color: "rgba(255,255,255,0.75)" }}>
               {wasTimeout ? (
                 <>⏱ Timed out today · answer was <span style={{ color: "#86EFAC" }}>{opts[correctIdx] ?? ""}</span></>
               ) : todaysAnswer?.is_correct ? (
@@ -403,7 +403,7 @@ function TriviaTab({ missionId }: { missionId: string }) {
                 <>Answered today · answer was <span style={{ color: "#86EFAC" }}>{opts[correctIdx] ?? ""}</span></>
               )}
             </span>
-            <span className="text-[10px] flex items-center gap-1 shrink-0" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <span className="text-[11px] flex items-center gap-1 shrink-0" style={{ color: "rgba(255,255,255,0.45)" }}>
               Show question <ChevronDown className="h-3 w-3" />
             </span>
           </button>
@@ -469,19 +469,19 @@ function TriviaTab({ missionId }: { missionId: string }) {
           </div>
 
           {timedOut && !answered && (
-            <div className="mt-2 text-center text-[11px]" style={{ color: "rgba(255,255,255,0.55)" }}>
+            <div className="mt-2 text-center text-[12px]" style={{ color: "rgba(255,255,255,0.55)" }}>
               ⏱ Time's up — {opts[correctIdx] ?? ""} was correct
             </div>
           )}
 
           {answered && (
             <div className="mt-2 flex items-center justify-between">
-              <div className="text-[10px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+              <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.5)" }}>
                 {wasTimeout ? "⏱ Timed out today" : `You earned ${todaysAnswer?.points_earned ?? 0} pts today`}
               </div>
               <button
                 onClick={() => setExpanded(false)}
-                className="text-[10px] hover:text-white/80 transition-colors"
+                className="text-[11px] hover:text-white/80 transition-colors"
                 style={{ color: "rgba(255,255,255,0.45)" }}
               >
                 Hide question
@@ -491,7 +491,7 @@ function TriviaTab({ missionId }: { missionId: string }) {
 
           {answered && c.explanation && (
             <div
-              className="mt-3 rounded-md px-3 py-2 text-[11px] italic"
+              className="mt-3 rounded-md px-3 py-2 text-[12px] italic"
               style={{ background: "rgba(196,154,43,0.06)", borderLeft: `2px solid ${GOLD}`, color: "rgba(255,255,255,0.78)", lineHeight: 1.6 }}
             >
               {c.explanation}
@@ -503,7 +503,7 @@ function TriviaTab({ missionId }: { missionId: string }) {
       {/* Floating points toast */}
       {pendingFeedback && (
         <div
-          className="absolute left-1/2 -translate-x-1/2 -top-7 rounded-md px-3 py-1 text-[11px] font-semibold animate-in fade-in zoom-in"
+          className="absolute left-1/2 -translate-x-1/2 -top-7 rounded-md px-3 py-1 text-[12px] font-medium animate-in fade-in zoom-in"
           style={{
             background: pendingFeedback.correct ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.15)",
             border: `1px solid ${pendingFeedback.correct ? "rgba(74,222,128,0.6)" : "rgba(248,113,113,0.5)"}`,
@@ -586,7 +586,7 @@ function LeaderboardPanel({ missionId, onClose }: { missionId: string; onClose: 
           <div className="text-[14px] font-medium text-white flex items-center gap-1.5">
             <Trophy className="h-3.5 w-3.5" style={{ color: GOLD }} /> Trivia Leaderboard
           </div>
-          <div className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>
+          <div className="text-[12px] mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>
             {missionName} · {tab === "all" ? "All time" : tab === "week" ? "This week" : "Today"}
           </div>
         </div>
@@ -605,7 +605,7 @@ function LeaderboardPanel({ missionId, onClose }: { missionId: string; onClose: 
           <button
             key={w}
             onClick={() => setTab(w)}
-            className="text-[10px] px-2 py-1 rounded-md transition-colors"
+            className="text-[11px] px-2 py-1 rounded-md transition-colors"
             style={{
               background: tab === w ? "rgba(196,154,43,0.15)" : "transparent",
               color: tab === w ? GOLD : "rgba(255,255,255,0.6)",
@@ -618,11 +618,11 @@ function LeaderboardPanel({ missionId, onClose }: { missionId: string; onClose: 
 
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="p-4 text-[11px] text-muted-foreground flex items-center gap-2">
+          <div className="p-4 text-[12px] text-muted-foreground flex items-center gap-2">
             <Loader2 className="h-3 w-3 animate-spin" /> Loading…
           </div>
         ) : rows.length === 0 ? (
-          <div className="p-4 text-[11px] text-muted-foreground">
+          <div className="p-4 text-[12px] text-muted-foreground">
             No trivia answers {tab === "today" ? "today" : tab === "week" ? "this week" : "yet"}. Be the first.
           </div>
         ) : (
@@ -632,7 +632,7 @@ function LeaderboardPanel({ missionId, onClose }: { missionId: string; onClose: 
             ))}
             {showPinned && (
               <>
-                <div className="text-center text-[10px] py-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>···</div>
+                <div className="text-center text-[11px] py-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>···</div>
                 <LeaderboardRow row={myRow as any} rank={myRankIdx + 1} isMe scoreLabel={scoreLabel} />
               </>
             )}
@@ -667,12 +667,12 @@ function LeaderboardRow({
           fontWeight: isMe ? 600 : 400,
         }}>
           {name}
-          {isMe && <span className="ml-1 text-[9px]" style={{ color: "rgba(255,255,255,0.4)" }}>(you)</span>}
+          {isMe && <span className="ml-1 text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>(you)</span>}
         </div>
-        <div className="text-[13px] font-semibold text-white w-12 text-right">{row.total_points}</div>
+        <div className="text-[14px] font-medium text-white w-12 text-right">{row.total_points}</div>
       </div>
       {row.total_answers > 0 && (
-        <div className="text-[9px] mt-0.5 pl-9" style={{ color: "rgba(255,255,255,0.4)" }}>
+        <div className="text-[11px] mt-0.5 pl-9" style={{ color: "rgba(255,255,255,0.4)" }}>
           {row.correct_answers}/{row.total_answers} correct · {row.accuracy_pct ?? 0}% · 🔥{row.best_streak} · {scoreLabel}
         </div>
       )}
@@ -722,10 +722,10 @@ function TeamTriviaStatus({ missionId }: { missionId: string }) {
   if (!data || data.length === 0) return null;
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Today's Trivia</div>
+      <div className="text-[11px]   font-medium text-muted-foreground">Today's Trivia</div>
       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5">
         {data.map((m) => (
-          <div key={m.id} className="text-[11px] flex items-center gap-1" style={{ color: "rgba(255,255,255,0.78)" }}>
+          <div key={m.id} className="text-[12px] flex items-center gap-1" style={{ color: "rgba(255,255,255,0.78)" }}>
             <span>{m.name}</span>
             {m.status === "correct" && <span style={{ color: GOLD }}>⭐</span>}
             {m.status === "wrong" && <span style={{ color: "rgba(255,255,255,0.35)" }}>●</span>}
@@ -774,9 +774,9 @@ function RecentWins({ missionId }: { missionId: string }) {
 
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Recent Wins</div>
+      <div className="text-[11px]   font-medium text-muted-foreground">Recent Wins</div>
       {!events || events.length === 0 ? (
-        <div className="mt-2 text-[11px] italic text-muted-foreground">The team is heads down. Check back soon.</div>
+        <div className="mt-2 text-[12px] italic text-muted-foreground">The team is heads down. Check back soon.</div>
       ) : (
         <ul className="mt-2 space-y-1.5">
           {events.map((e, i) => (
@@ -787,7 +787,7 @@ function RecentWins({ missionId }: { missionId: string }) {
                 {e.kind === "finalized" && <>finalized <span style={{ color: GOLD }}>{e.qNum}</span></>}
                 {e.kind === "review" && <>moved <span style={{ color: GOLD }}>{e.qNum}</span> to internal review</>}
                 {e.kind === "score" && <>scored <span style={{ color: "#3DBE7D" }}>{e.meta}</span> on <span style={{ color: GOLD }}>{e.qNum}</span></>}
-                <span className="ml-1.5 text-[10px] text-muted-foreground">· {timeAgo(e.when)}</span>
+                <span className="ml-1.5 text-[11px] text-muted-foreground">· {timeAgo(e.when)}</span>
               </span>
             </li>
           ))}
@@ -827,7 +827,7 @@ function IrisNudges({ missionId }: { missionId: string }) {
   if (!nudges || nudges.length === 0) return null;
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">IRIS Nudges</div>
+      <div className="text-[11px]   font-medium text-muted-foreground">IRIS Nudges</div>
       <div className="mt-2 space-y-2">
         {nudges.map((n, i) => (
           <div key={i} className="rounded-md px-3 py-2 text-[11.5px]" style={{ background: "rgba(127,119,221,0.06)", border: "1px solid rgba(127,119,221,0.2)", color: "rgba(255,255,255,0.78)", lineHeight: 1.6 }}>
@@ -906,7 +906,7 @@ function ShoutoutBox({ missionId }: { missionId: string }) {
 
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Shoutout</div>
+      <div className="text-[11px]   font-medium text-muted-foreground">Shoutout</div>
 
       {received && received.length > 0 && (
         <ul className="mt-2 space-y-1.5">
@@ -916,7 +916,7 @@ function ShoutoutBox({ missionId }: { missionId: string }) {
               className="rounded-md px-3 py-2 text-[11.5px]"
               style={{ background: "rgba(196,154,43,0.1)", border: "1px solid rgba(196,154,43,0.35)", color: "rgba(255,255,255,0.88)", lineHeight: 1.55 }}
             >
-              <span className="font-semibold" style={{ color: GOLD }}>{s.from}:</span> {s.message}
+              <span className="font-medium" style={{ color: GOLD }}>{s.from}:</span> {s.message}
             </li>
           ))}
         </ul>
@@ -945,13 +945,13 @@ function ShoutoutBox({ missionId }: { missionId: string }) {
           <button
             onClick={send}
             disabled={sending}
-            className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-[11.5px] font-semibold disabled:opacity-60"
+            className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-[11.5px] font-medium disabled:opacity-60"
             style={{ background: "rgba(196,154,43,0.15)", border: `1px solid ${GOLD}`, color: GOLD }}
           >
             {sending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />} Send
           </button>
         </div>
-        <div className="text-[10px] text-muted-foreground/70">{200 - message.length} chars left</div>
+        <div className="text-[11px] text-muted-foreground/70">{200 - message.length} chars left</div>
       </div>
     </div>
   );
@@ -967,9 +967,9 @@ function Loading({ text }: { text: string }) {
 }
 function ErrorBlock({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="flex items-center justify-between gap-2 rounded-md px-3 py-2 text-[11px]" style={{ background: "rgba(224,74,74,0.06)", border: "1px solid rgba(224,74,74,0.2)", color: "rgba(255,255,255,0.7)" }}>
+    <div className="flex items-center justify-between gap-2 rounded-md px-3 py-2 text-[12px]" style={{ background: "rgba(224,74,74,0.06)", border: "1px solid rgba(224,74,74,0.2)", color: "rgba(255,255,255,0.7)" }}>
       <span><Lock className="inline h-3 w-3 mr-1" /> IRIS is thinking — {message}</span>
-      <button onClick={onRetry} className="underline text-[11px]" style={{ color: GOLD }}>Try again</button>
+      <button onClick={onRetry} className="underline text-[12px]" style={{ color: GOLD }}>Try again</button>
     </div>
   );
 }

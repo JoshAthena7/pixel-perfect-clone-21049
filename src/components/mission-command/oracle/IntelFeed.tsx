@@ -284,7 +284,7 @@ export function IntelFeed({ missionId }: { missionId: string }) {
           <Eye className="h-4 w-4" style={{ color: GOLD }} />
           <div className="flex-1">
             <div style={{ fontSize: 12, color: GOLD, fontWeight: 600 }}>IRIS</div>
-            <div className="text-xs text-white/70 mt-0.5">
+            <div className="text-[12px] text-white/70 mt-0.5">
               Running first-pass intelligence analysis on this mission…
             </div>
             <div
@@ -353,7 +353,7 @@ export function IntelFeed({ missionId }: { missionId: string }) {
         <EmptyState />
       ) : (
         <div className="space-y-2">
-          <div className="text-[8px] text-white/40 px-1 flex items-center gap-3" aria-label="Intel feed legend">
+          <div className="text-[11px] text-white/40 px-1 flex items-center gap-3" aria-label="Intel feed legend">
             <span className="inline-flex items-center gap-1">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400" /> Confirmed intelligence
             </span>
@@ -393,7 +393,7 @@ function EventCard({ event }: { event: any }) {
           style={{
             fontSize: 8,
             fontWeight: 700,
-            textTransform: "uppercase",
+            textTransform: "",
             letterSpacing: "0.08em",
             padding: "1px 6px",
             borderRadius: 3,
@@ -410,7 +410,7 @@ function EventCard({ event }: { event: any }) {
           style={{
             fontSize: 9,
             fontWeight: 600,
-            textTransform: "uppercase",
+            textTransform: "",
             letterSpacing: "0.06em",
             padding: "2px 8px",
             borderRadius: 4,
@@ -423,7 +423,7 @@ function EventCard({ event }: { event: any }) {
           {String(event.event_type).replace(/_/g, " ")}
         </div>
         <div className="min-w-0 flex-1" style={{ paddingRight: isOracle ? 64 : 0 }}>
-          <div className="text-sm text-white font-medium">{event.title}</div>
+          <div className="text-[14px] text-white font-medium">{event.title}</div>
           {isOracle && event.section_reference && (
             <div
               className="mt-0.5"
@@ -437,14 +437,14 @@ function EventCard({ event }: { event: any }) {
               § {String(event.section_reference)}
             </div>
           )}
-          <div className="text-xs text-white/60 mt-1 line-clamp-3">{event.content}</div>
+          <div className="text-[12px] text-white/60 mt-1 line-clamp-3">{event.content}</div>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {categoryLabel && (
               <span
                 style={{
                   fontSize: 9,
                   fontWeight: 600,
-                  textTransform: "uppercase",
+                  textTransform: "",
                   letterSpacing: "0.06em",
                   padding: "1px 6px",
                   borderRadius: 3,
@@ -457,7 +457,7 @@ function EventCard({ event }: { event: any }) {
               </span>
             )}
             {isOracle && event.__tier && (
-              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" }}>
+              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", textTransform: "" }}>
                 {String(event.__tier)}
               </span>
             )}
@@ -466,7 +466,7 @@ function EventCard({ event }: { event: any }) {
                 style={{
                   fontSize: 9,
                   fontWeight: 600,
-                  textTransform: "uppercase",
+                  textTransform: "",
                   letterSpacing: "0.06em",
                   padding: "1px 6px",
                   borderRadius: 3,
@@ -526,8 +526,8 @@ function EmptyState() {
       className="rounded-lg py-12 text-center"
       style={{ background: "rgba(5,13,24,0.4)", border: "1px dashed rgba(255,255,255,0.1)" }}
     >
-      <div className="text-sm text-white/60">No intelligence events yet.</div>
-      <div className="text-xs text-white/35 mt-1">
+      <div className="text-[14px] text-white/60">No intelligence events yet.</div>
+      <div className="text-[12px] text-white/35 mt-1">
         Run Full IRIS Analysis to generate events from RFP, threads, and sources.
       </div>
     </div>
@@ -537,7 +537,7 @@ function EmptyState() {
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <div style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
+      <div style={{ fontSize: 9, textTransform: "", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
         {label}
       </div>
       <div style={{ fontSize: 18, color: GOLD, fontWeight: 600 }}>{value}</div>

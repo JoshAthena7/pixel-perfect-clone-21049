@@ -376,7 +376,7 @@ export function OracleDocumentChecklist({
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div style={{ fontSize: 9, color: GOLD, letterSpacing: "0.14em", fontWeight: 600, textTransform: "uppercase" }}>
+          <div style={{ fontSize: 9, color: GOLD, letterSpacing: "0.14em", fontWeight: 600, textTransform: "" }}>
             ⚡ ORACLE Document Checklist
           </div>
           <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", marginTop: 4 }}>
@@ -705,7 +705,7 @@ function ChecklistRow(props: RowProps) {
               <button
                 type="button"
                 onClick={props.onToggleAdvanced}
-                style={{ fontSize: 8, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.08em" }}
+                style={{ fontSize: 8, color: "rgba(255,255,255,0.4)", textTransform: "", letterSpacing: "0.08em" }}
               >
                 {expandedAdvanced ? "▼" : "▶"} Advanced tagging
               </button>
@@ -924,7 +924,7 @@ function CoverageReport({
       style={{ background: "rgba(196,154,43,0.04)", border: "1px solid rgba(196,154,43,0.25)" }}
     >
       <div className="flex items-center justify-between">
-        <div style={{ fontSize: 10, color: GOLD, letterSpacing: "0.12em", fontWeight: 700, textTransform: "uppercase" }}>
+        <div style={{ fontSize: 10, color: GOLD, letterSpacing: "0.12em", fontWeight: 700, textTransform: "" }}>
           ORACLE Coverage Report
         </div>
         <div style={{ fontSize: 9, color: "rgba(255,255,255,0.45)" }}>{date}</div>
@@ -1001,7 +1001,7 @@ function CategoryPickerModal({
         style={{ background: "#0a121f", border: "1px solid rgba(196,154,43,0.3)" }}
       >
         <div>
-          <div style={{ fontSize: 9, color: GOLD, letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600 }}>
+          <div style={{ fontSize: 9, color: GOLD, letterSpacing: "0.12em", textTransform: "", fontWeight: 600 }}>
             What type of document is this?
           </div>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", marginTop: 4 }}>{file.name}</div>

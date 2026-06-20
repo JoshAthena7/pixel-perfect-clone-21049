@@ -18,10 +18,10 @@ function AdminActivityPage() {
   return (
     <div className="p-8" style={{ background: "#080c14", minHeight: "100vh", color: "rgba(255,255,255,0.9)" }}>
       <div className="max-w-4xl">
-        <h1 className="text-2xl font-semibold mb-2" style={{ color: "#c9a84c" }}>
+        <h1 className="text-2xl font-medium mb-2" style={{ color: "#c9a84c" }}>
           Activity
         </h1>
-        <p className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+        <p className="text-[14px]" style={{ color: "rgba(255,255,255,0.55)" }}>
           Platform-wide activity log.
         </p>
       </div>

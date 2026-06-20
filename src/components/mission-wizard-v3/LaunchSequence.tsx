@@ -115,7 +115,7 @@ export function LaunchSequence({
           {bigText}
         </div>
 
-        <div className="mt-5 text-[11px] uppercase tracking-[0.32em] font-mono text-white/55">
+        <div className="mt-5 text-[12px]  tracking-[0.32em] font-mono text-white/55">
           {phase === "ready"
             ? launchDone
               ? "Mission active · entering briefing"
@@ -126,7 +126,7 @@ export function LaunchSequence({
         </div>
 
         {launchErr && (
-          <div className="mt-6 rounded-md border border-red-500/40 bg-red-500/10 p-3 text-xs text-red-300">
+          <div className="mt-6 rounded-md border border-red-500/40 bg-red-500/10 p-3 text-[12px] text-red-300">
             {launchErr}
           </div>
         )}

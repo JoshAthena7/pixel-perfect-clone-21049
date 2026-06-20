@@ -39,7 +39,7 @@ export function IntelAlertCount() {
           search: { tab: "oracle", sub: "feed" } as any,
         })
       }
-      className="h-6 min-w-6 px-1.5 rounded-full bg-amber-500 text-[#0D1B3E] text-xs font-bold flex items-center justify-center hover:bg-amber-400"
+      className="h-6 min-w-6 px-1.5 rounded-full bg-amber-500 text-[#0D1B3E] text-[12px] font-medium flex items-center justify-center hover:bg-amber-400"
     >
       {count}
     </button>

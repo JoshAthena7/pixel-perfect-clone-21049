@@ -98,8 +98,8 @@ export function AuditLogTab({ missionId, missionName }: { missionId: string; mis
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-2xl font-semibold">Audit Log</h2>
-        <p className="text-sm text-muted-foreground mt-1">
+        <h2 className="text-2xl font-medium">Audit Log</h2>
+        <p className="text-[14px] text-muted-foreground mt-1">
           A complete record of every action taken on this mission. Read-only.
         </p>
       </div>
@@ -133,8 +133,8 @@ export function AuditLogTab({ missionId, missionName }: { missionId: string; mis
         />
       ) : (
         <div className="rounded-lg border border-border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+          <table className="w-full text-[14px]">
+            <thead className="bg-muted/40 text-[12px]  text-muted-foreground">
               <tr>
                 <th className="px-3 py-2 text-left">Timestamp</th>
                 <th className="px-3 py-2 text-left">Action</th>
@@ -157,7 +157,7 @@ export function AuditLogTab({ missionId, missionName }: { missionId: string; mis
                       {hasMeta ? (
                         <>
                           <button
-                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                            className="flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground"
                             onClick={() => {
                               const n = new Set(expanded);
                               n.has(e.id) ? n.delete(e.id) : n.add(e.id);
@@ -168,7 +168,7 @@ export function AuditLogTab({ missionId, missionName }: { missionId: string; mis
                             {isExp ? "Hide" : "Show"}
                           </button>
                           {isExp && (
-                            <div className="mt-2 space-y-0.5 text-xs">
+                            <div className="mt-2 space-y-0.5 text-[12px]">
                               {Object.entries(e.metadata!).map(([k, v]) => (
                                 <div key={k}>
                                   <span className="text-muted-foreground">{k}:</span>{" "}
@@ -178,7 +178,7 @@ export function AuditLogTab({ missionId, missionName }: { missionId: string; mis
                             </div>
                           )}
                         </>
-                      ) : <span className="text-muted-foreground text-xs">—</span>}
+                      ) : <span className="text-muted-foreground text-[12px]">—</span>}
                     </td>
                   </tr>
                 );
@@ -188,7 +188,7 @@ export function AuditLogTab({ missionId, missionName }: { missionId: string; mis
         </div>
       )}
 
-      <div className="flex items-center justify-between text-sm">
+      <div className="flex items-center justify-between text-[14px]">
         <span className="text-muted-foreground">
           Page {page + 1} of {totalPages} ({filtered.length} entries)
         </span>

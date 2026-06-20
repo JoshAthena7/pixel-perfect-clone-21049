@@ -103,8 +103,8 @@ export function IntelligenceLibraryTab({
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Intelligence Library</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-2xl font-medium text-foreground">Intelligence Library</h2>
+          <p className="text-[14px] text-muted-foreground">
             Everything relevant to this mission — organized by type and by section.
           </p>
         </div>
@@ -118,7 +118,7 @@ export function IntelligenceLibraryTab({
           <button
             key={v}
             className={cn(
-              "px-3 py-2 text-sm border-b-2 -mb-px",
+              "px-3 py-2 text-[14px] border-b-2 -mb-px",
               view === v ? "border-primary text-foreground font-medium" : "border-transparent text-muted-foreground",
             )}
             onClick={() => setView(v)}
@@ -155,7 +155,7 @@ export function IntelligenceLibraryTab({
                 {isOpen && (
                   <div className="border-t divide-y">
                     {list.length === 0 ? (
-                      <p className="px-4 py-6 text-sm text-muted-foreground">No documents.</p>
+                      <p className="px-4 py-6 text-[14px] text-muted-foreground">No documents.</p>
                     ) : list.map((d) => (
                       <ItemCard key={d.id} doc={d} sections={data.sections} onEditTags={() => setTagEdit(d)} onTagClick={(sid) => { setView("section"); setTimeout(() => {
                         const el = document.getElementById(`section-${sid}`); el?.scrollIntoView({ behavior: "smooth" });
@@ -183,7 +183,7 @@ export function IntelligenceLibraryTab({
                 </summary>
                 <div className="border-t divide-y">
                   {list.length === 0 ? (
-                    <p className="px-4 py-6 text-sm text-muted-foreground">
+                    <p className="px-4 py-6 text-[14px] text-muted-foreground">
                       No intelligence tagged to this section yet. Add documents and tag them to this section.
                     </p>
                   ) : list.map((d) => (
@@ -225,9 +225,9 @@ function ItemCard({
     <div className="px-4 py-3 flex items-start gap-3">
       <div className="mt-1">{iconFor(doc)}</div>
       <div className="flex-1 min-w-0">
-        <div className="font-semibold">{doc.title}</div>
+        <div className="font-medium">{doc.title}</div>
         {doc.content_summary && (
-          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{doc.content_summary}</p>
+          <p className="text-[12px] text-muted-foreground mt-1 line-clamp-2">{doc.content_summary}</p>
         )}
         <div className="flex flex-wrap gap-1 mt-2 items-center">
           {doc.section_tags.map((id) => {
@@ -235,13 +235,13 @@ function ItemCard({
             if (!s) return null;
             return (
               <button key={id} onClick={() => onTagClick(id)}
-                className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20">
+                className="text-[11px] px-2 py-0.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20">
                 {s.section_number ?? ""} {s.name}
               </button>
             );
           })}
-          <Badge variant="outline" className="text-[10px]">{DOC_TYPE_LABEL[doc.document_type] ?? doc.document_type}</Badge>
-          <span className="text-xs text-muted-foreground ml-1">{formatDate(doc.created_at)}</span>
+          <Badge variant="outline" className="text-[11px]">{DOC_TYPE_LABEL[doc.document_type] ?? doc.document_type}</Badge>
+          <span className="text-[12px] text-muted-foreground ml-1">{formatDate(doc.created_at)}</span>
         </div>
       </div>
       <div className="flex items-center gap-1 shrink-0">
@@ -269,7 +269,7 @@ function EditTagsDialog({
         <DialogHeader><DialogTitle>Edit section tags</DialogTitle></DialogHeader>
         <div className="max-h-80 overflow-y-auto space-y-2">
           {sections.map((s) => (
-            <label key={s.id} className="flex items-center gap-2 text-sm">
+            <label key={s.id} className="flex items-center gap-2 text-[14px]">
               <Checkbox checked={tags.includes(s.id)}
                 onCheckedChange={(c) => setTags((prev) => c ? [...prev, s.id] : prev.filter((x) => x !== s.id))} />
               <span>{s.section_number ?? ""} {s.name}</span>
@@ -408,7 +408,7 @@ function AddContentModal({
             <Label>Tag to sections (IRIS suggestions pre-checked)</Label>
             <div className="max-h-80 overflow-y-auto border rounded-md p-3 space-y-2">
               {sections.map((s) => (
-                <label key={s.id} className="flex items-start gap-2 text-sm">
+                <label key={s.id} className="flex items-start gap-2 text-[14px]">
                   <Checkbox
                     checked={selectedTags.includes(s.id)}
                     onCheckedChange={(c) => setSelectedTags((prev) => c ? [...prev, s.id] : prev.filter((x) => x !== s.id))}
@@ -453,7 +453,7 @@ function AddContentModal({
                 <Label>Section tags</Label>
                 <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-1">
                   {sections.map((s) => (
-                    <label key={s.id} className="flex items-center gap-2 text-sm">
+                    <label key={s.id} className="flex items-center gap-2 text-[14px]">
                       <Checkbox
                         checked={noteTags.includes(s.id)}
                         onCheckedChange={(c) => setNoteTags((prev) => c ? [...prev, s.id] : prev.filter((x) => x !== s.id))}

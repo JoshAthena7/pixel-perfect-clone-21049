@@ -270,7 +270,7 @@ export function GraphHealthTab({ missionId }: { missionId: string }) {
             <div className="overflow-x-auto">
               <table className="w-full text-left" style={{ fontSize: 12 }}>
                 <thead>
-                  <tr style={{ color: STEEL, fontSize: 10, textTransform: "uppercase" }}>
+                  <tr style={{ color: STEEL, fontSize: 10, textTransform: "" }}>
                     <th className="py-1 pr-3">Type</th>
                     <th className="py-1 pr-3">Count</th>
                     <th className="py-1 pr-3">Avg Confidence</th>
@@ -532,7 +532,7 @@ function StatCard({
       className="rounded-lg p-3"
       style={{ background: "rgba(5,13,24,0.6)", border: "1px solid rgba(255,255,255,0.06)" }}
     >
-      <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", color: STEEL }}>
+      <div style={{ fontSize: 10, textTransform: "", letterSpacing: "0.08em", color: STEEL }}>
         {label}
       </div>
       <div className="mt-1" style={{ fontSize: 22, fontWeight: 600, color }}>

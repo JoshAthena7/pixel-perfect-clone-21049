@@ -127,8 +127,8 @@ export function MissionsListPage() {
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
-            <h1 className="text-4xl font-bold text-foreground">Missions</h1>
-            <span className="rounded-full bg-surface-hover border border-border px-3 py-1 text-xs text-muted-foreground">
+            <h1 className="text-4xl font-medium text-foreground">Missions</h1>
+            <span className="rounded-full bg-surface-hover border border-border px-3 py-1 text-[12px] text-muted-foreground">
               {total} mission{total === 1 ? "" : "s"}
             </span>
           </div>
@@ -157,14 +157,14 @@ export function MissionsListPage() {
               key={s.key}
               onClick={() => setTab(s.key)}
               className={cn(
-                "px-3 py-1.5 rounded-full text-sm border transition-colors flex items-center gap-2",
+                "px-3 py-1.5 rounded-full text-[14px] border transition-colors flex items-center gap-2",
                 tab === s.key
                   ? "border-[var(--athena-gold)] bg-[var(--athena-gold)]/10 text-foreground"
                   : "border-border bg-surface/40 text-muted-foreground hover:text-foreground hover:bg-surface",
               )}
             >
               {s.label}
-              <span className="text-xs opacity-70">{counts[s.key] ?? 0}</span>
+              <span className="text-[12px] opacity-70">{counts[s.key] ?? 0}</span>
             </button>
           ))}
         </div>
@@ -197,7 +197,7 @@ export function MissionsListPage() {
 
         {isError && (
           <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-6 text-center">
-            <p className="text-sm text-destructive mb-3">Failed to load missions.</p>
+            <p className="text-[14px] text-destructive mb-3">Failed to load missions.</p>
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               Try again
             </Button>
@@ -216,7 +216,7 @@ export function MissionsListPage() {
                 setTab("all");
                 setSearch("");
               }}
-              className="text-sm text-[var(--athena-gold)] hover:underline inline-flex items-center gap-1"
+              className="text-[14px] text-[var(--athena-gold)] hover:underline inline-flex items-center gap-1"
             >
               <X className="h-3.5 w-3.5" /> Clear filters
             </button>
@@ -303,21 +303,21 @@ function MissionCard({ m, onEdit }: { m: MissionRow; onEdit: () => void }) {
       >
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="min-w-0">
-            <h3 className="text-lg font-semibold text-foreground truncate">{m.name}</h3>
+            <h3 className="text-lg font-medium text-foreground truncate">{m.name}</h3>
             {(() => {
               const client = m.client_name ?? m.agency_name;
               if (client && client !== m.name) {
-                return <p className="text-sm text-muted-foreground truncate">{client}</p>;
+                return <p className="text-[14px] text-muted-foreground truncate">{client}</p>;
               }
               if (!client) {
-                return <p className="text-sm text-muted-foreground/60 italic truncate">Client TBD</p>;
+                return <p className="text-[14px] text-muted-foreground/60 italic truncate">Client TBD</p>;
               }
               return null;
             })()}
           </div>
           <span
             className={cn(
-              "shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] uppercase tracking-wider",
+              "shrink-0 rounded-full border px-2.5 py-0.5 text-[12px]  ",
               STATUS_STYLES[m.status] ?? STATUS_STYLES.archived,
             )}
           >
@@ -329,7 +329,7 @@ function MissionCard({ m, onEdit }: { m: MissionRow; onEdit: () => void }) {
             <IntelligenceCompletenessChip missionId={m.id} initial={m.intel_completeness} compact />
           </div>
         )}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-muted-foreground">
           {daysOut && (
             <span className="inline-flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5" /> {daysOut} to submission
@@ -344,7 +344,7 @@ function MissionCard({ m, onEdit }: { m: MissionRow; onEdit: () => void }) {
         </div>
         <MissionCardBadges missionId={m.id} />
         {m.status === "active" && m.blast_off_at && (
-          <p className="text-[11px] text-muted-foreground mt-2">
+          <p className="text-[12px] text-muted-foreground mt-2">
             Launched {format(new Date(m.blast_off_at), "MMMM d, yyyy")}
           </p>
         )}
@@ -357,7 +357,7 @@ function MissionCard({ m, onEdit }: { m: MissionRow; onEdit: () => void }) {
             disabled={deleting}
             aria-label="Delete mission and start over"
             title="Delete mission and start over"
-            className="inline-flex items-center gap-1 rounded-md border border-destructive/30 bg-background/80 px-2 py-1 text-[11px] text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-md border border-destructive/30 bg-background/80 px-2 py-1 text-[12px] text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
           >
             <Trash2 className="h-3 w-3" />
             {deleting ? "Deleting…" : "Delete & start over"}

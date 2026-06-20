@@ -22,7 +22,7 @@ function HelpSettingsPage() {
     <div className="min-h-screen bg-background text-foreground px-6 py-12">
       <div className="mx-auto max-w-2xl space-y-8">
         <header className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">
+          <h1 className="text-3xl font-medium tracking-tight">
             Help &amp; Settings
           </h1>
           <p className="text-muted-foreground">
@@ -33,18 +33,18 @@ function HelpSettingsPage() {
         <section className="rounded-lg border border-border bg-card p-6 space-y-4">
           <div>
             <h2 className="text-lg font-medium">Latest Preview URL</h2>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-[14px] text-muted-foreground mt-1">
               Auto-updates with every change. Requires a Lovable login (workspace
               members only).
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <code className="flex-1 rounded bg-muted px-3 py-2 text-xs break-all">
+            <code className="flex-1 rounded bg-muted px-3 py-2 text-[12px] break-all">
               {PREVIEW_URL}
             </code>
             <button
               onClick={() => copy(PREVIEW_URL, "preview")}
-              className="rounded bg-primary px-3 py-2 text-sm text-primary-foreground hover:opacity-90"
+              className="rounded bg-primary px-3 py-2 text-[14px] text-primary-foreground hover:opacity-90"
             >
               {copied === "preview" ? "Copied" : "Copy"}
             </button>
@@ -52,12 +52,12 @@ function HelpSettingsPage() {
               href={PREVIEW_URL}
               target="_blank"
               rel="noreferrer"
-              className="rounded border border-border px-3 py-2 text-sm hover:bg-muted"
+              className="rounded border border-border px-3 py-2 text-[14px] hover:bg-muted"
             >
               Open
             </a>
           </div>
-          <div className="text-xs text-muted-foreground space-y-1">
+          <div className="text-[12px] text-muted-foreground space-y-1">
             <p className="font-medium text-foreground">How to access:</p>
             <ol className="list-decimal list-inside space-y-1">
               <li>Click "Open" or paste the URL into your browser.</li>
@@ -73,18 +73,18 @@ function HelpSettingsPage() {
         <section className="rounded-lg border border-border bg-card p-6 space-y-4">
           <div>
             <h2 className="text-lg font-medium">Published (Live) URL</h2>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-[14px] text-muted-foreground mt-1">
               Public production site. Only updates when Publish → Update is
               clicked in Lovable.
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <code className="flex-1 rounded bg-muted px-3 py-2 text-xs break-all">
+            <code className="flex-1 rounded bg-muted px-3 py-2 text-[12px] break-all">
               {PUBLISHED_URL}
             </code>
             <button
               onClick={() => copy(PUBLISHED_URL, "published")}
-              className="rounded bg-primary px-3 py-2 text-sm text-primary-foreground hover:opacity-90"
+              className="rounded bg-primary px-3 py-2 text-[14px] text-primary-foreground hover:opacity-90"
             >
               {copied === "published" ? "Copied" : "Copy"}
             </button>
@@ -92,7 +92,7 @@ function HelpSettingsPage() {
               href={PUBLISHED_URL}
               target="_blank"
               rel="noreferrer"
-              className="rounded border border-border px-3 py-2 text-sm hover:bg-muted"
+              className="rounded border border-border px-3 py-2 text-[14px] hover:bg-muted"
             >
               Open
             </a>

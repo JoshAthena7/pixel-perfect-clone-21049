@@ -70,18 +70,18 @@ function MessagingPage() {
       <div className="mx-auto max-w-5xl px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <div className="uppercase tracking-[0.16em] text-[10px] mb-1" style={{ color: "#c9a84c" }}>
+            <div className=" tracking-[0.16em] text-[11px] mb-1" style={{ color: "#c9a84c" }}>
               ADMIN · MESSAGING
             </div>
-            <h1 className="text-2xl font-semibold text-white">Broadcasts</h1>
-            <p className="mt-1 text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <h1 className="text-2xl font-medium text-white">Broadcasts</h1>
+            <p className="mt-1 text-[14px]" style={{ color: "rgba(255,255,255,0.45)" }}>
               Send announcements to staff across ATLAS. Recipients see them in-app and via email.
             </p>
           </div>
           <button
             type="button"
             onClick={() => openCompose()}
-            className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+            className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-[14px] font-medium transition-opacity hover:opacity-90"
             style={{ background: "#c9a84c", color: "#080c14" }}
           >
             <Plus className="h-4 w-4" />
@@ -98,7 +98,7 @@ function MessagingPage() {
                 key={t}
                 type="button"
                 onClick={() => setTab(t)}
-                className="px-4 py-2.5 text-xs font-medium transition-colors capitalize"
+                className="px-4 py-2.5 text-[12px] font-medium transition-colors capitalize"
                 style={{
                   color: active ? "#c9a84c" : "rgba(255,255,255,0.5)",
                   borderBottom: active ? "2px solid #c9a84c" : "2px solid transparent",
@@ -114,7 +114,7 @@ function MessagingPage() {
         {/* List */}
         <div className="space-y-2">
           {isLoading && (
-            <div className="rounded-lg p-6 text-sm" style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}>
+            <div className="rounded-lg p-6 text-[14px]" style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}>
               Loading messages…
             </div>
           )}
@@ -122,7 +122,7 @@ function MessagingPage() {
             <SampleSentList />
           )}
           {!isLoading && messages.length === 0 && tab === "drafts" && (
-            <div className="rounded-lg p-8 text-sm text-center" style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.45)" }}>
+            <div className="rounded-lg p-8 text-[14px] text-center" style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.45)" }}>
               No drafts yet. Click <span style={{ color: "#c9a84c" }}>New message</span> and save one.
             </div>
           )}
@@ -168,25 +168,25 @@ function MessageCard({ m, onClick }: { m: Message; onClick?: () => void }) {
           {sent ? <Mail className="h-4 w-4" style={{ color: "#22c55e" }} /> : <Save className="h-4 w-4" style={{ color: "#c9a84c" }} />}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-white font-medium text-sm truncate">{m.subject || "(no subject)"}</div>
-          <div className="text-xs mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.45)" }}>
+          <div className="text-white font-medium text-[14px] truncate">{m.subject || "(no subject)"}</div>
+          <div className="text-[12px] mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.45)" }}>
             {scopeLabel} · {m.total_recipients} recipient{m.total_recipients === 1 ? "" : "s"}
           </div>
           {m.body && (
-            <div className="text-xs mt-1.5 line-clamp-1" style={{ color: "rgba(255,255,255,0.35)" }}>
+            <div className="text-[12px] mt-1.5 line-clamp-1" style={{ color: "rgba(255,255,255,0.35)" }}>
               {m.body}
             </div>
           )}
         </div>
         <div className="text-right shrink-0 flex flex-col items-end gap-1.5">
-          <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.45)" }}>
+          <span className="text-[12px]" style={{ color: "rgba(255,255,255,0.45)" }}>
             {sent && m.sent_at
               ? formatDistanceToNow(new Date(m.sent_at), { addSuffix: true })
               : formatDistanceToNow(new Date(m.updated_at), { addSuffix: true })}
           </span>
           {sent && (
             <span
-              className="rounded-full text-[10px] font-semibold uppercase tracking-wider"
+              className="rounded-full text-[11px] font-medium  "
               style={{
                 padding: "3px 9px",
                 background: openRate >= 75 ? "rgba(34,197,94,0.12)" : openRate >= 40 ? "rgba(201,168,76,0.12)" : "rgba(255,255,255,0.05)",
@@ -403,7 +403,7 @@ function ComposePanel({
         style={{ background: "#0a121f", borderLeft: "1px solid rgba(255,255,255,0.08)" }}
       >
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#c9a84c" }}>
+          <div className="text-[12px] font-medium  " style={{ color: "#c9a84c" }}>
             {draft ? "Edit draft" : "New message"}
           </div>
           <button type="button" onClick={onClose} className="p-1 rounded hover:bg-white/[0.05]" style={{ color: "rgba(255,255,255,0.5)" }}>
@@ -435,8 +435,8 @@ function ComposePanel({
                       className="w-full text-left px-3 py-2 hover:bg-white/[0.04] flex items-center gap-2"
                     >
                       <div className="flex-1">
-                        <div className="text-sm text-white">{o.label}</div>
-                        <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.4)" }}>{o.hint}</div>
+                        <div className="text-[14px] text-white">{o.label}</div>
+                        <div className="text-[12px]" style={{ color: "rgba(255,255,255,0.4)" }}>{o.hint}</div>
                       </div>
                       {scope === o.value && <Check className="h-3.5 w-3.5" style={{ color: "#c9a84c" }} />}
                     </button>
@@ -478,7 +478,7 @@ function ComposePanel({
               </div>
             )}
 
-            <div className="mt-2 text-xs rounded px-3 py-2" style={{ background: "rgba(201,168,76,0.08)", color: "#c9a84c" }}>
+            <div className="mt-2 text-[12px] rounded px-3 py-2" style={{ background: "rgba(201,168,76,0.08)", color: "#c9a84c" }}>
               → {previewText}
             </div>
           </div>
@@ -491,7 +491,7 @@ function ComposePanel({
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="What's this about?"
-              className="w-full rounded-md px-3 py-2 text-sm outline-none focus:border-[#c9a84c]/60"
+              className="w-full rounded-md px-3 py-2 text-[14px] outline-none focus:border-[#c9a84c]/60"
               style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "white" }}
             />
           </div>
@@ -504,7 +504,7 @@ function ComposePanel({
               onChange={(e) => setBody(e.target.value)}
               rows={8}
               placeholder="Write your message…"
-              className="w-full rounded-md px-3 py-2 text-sm outline-none focus:border-[#c9a84c]/60 resize-none"
+              className="w-full rounded-md px-3 py-2 text-[14px] outline-none focus:border-[#c9a84c]/60 resize-none"
               style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "white", lineHeight: 1.5 }}
             />
           </div>
@@ -513,7 +513,7 @@ function ComposePanel({
           <div>
             <Label>Attachment (optional)</Label>
             <label
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-xs cursor-pointer hover:bg-white/[0.05]"
+              className="flex items-center gap-2 rounded-md px-3 py-2 text-[12px] cursor-pointer hover:bg-white/[0.05]"
               style={{ background: "rgba(255,255,255,0.03)", border: "1px dashed rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)" }}
             >
               <Paperclip className="h-3.5 w-3.5" />
@@ -528,7 +528,7 @@ function ComposePanel({
             type="button"
             onClick={() => saveDraft.mutate()}
             disabled={saveDraft.isPending}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium hover:bg-white/[0.05]"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium hover:bg-white/[0.05]"
             style={{ color: "rgba(255,255,255,0.7)", border: "1px solid rgba(255,255,255,0.1)" }}
           >
             {saveDraft.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
@@ -538,7 +538,7 @@ function ComposePanel({
             type="button"
             onClick={() => sendMessage.mutate()}
             disabled={sendMessage.isPending || !subject.trim() || recipients.length === 0}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-semibold disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-md text-[12px] font-medium disabled:opacity-40"
             style={{ background: "#c9a84c", color: "#080c14" }}
           >
             {sendMessage.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
@@ -556,7 +556,7 @@ function toggle(setter: (fn: (prev: string[]) => string[]) => void, value: strin
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[11px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+    <div className="text-[12px] font-medium   mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>
       {children}
     </div>
   );
@@ -579,8 +579,8 @@ function PickerRow({ label, sub, checked, onToggle }: { label: string; sub?: str
         {checked && <Check className="h-3 w-3" style={{ color: "#080c14" }} />}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-sm text-white truncate">{label}</div>
-        {sub && <div className="text-[11px] truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{sub}</div>}
+        <div className="text-[14px] text-white truncate">{label}</div>
+        {sub && <div className="text-[12px] truncate" style={{ color: "rgba(255,255,255,0.4)" }}>{sub}</div>}
       </div>
     </button>
   );

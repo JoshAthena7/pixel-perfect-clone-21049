@@ -79,7 +79,7 @@ function Section({
           color: GOLD,
           fontSize: 10,
           letterSpacing: "0.12em",
-          textTransform: "uppercase",
+          textTransform: "",
           fontWeight: 600,
         }}
       >
@@ -290,7 +290,7 @@ export function OracleCanvas({
               border: `0.5px solid ${CARD_BORDER}`,
               color: MUTED,
               letterSpacing: "0.06em",
-              textTransform: "uppercase",
+              textTransform: "",
             }}
           >
             <span

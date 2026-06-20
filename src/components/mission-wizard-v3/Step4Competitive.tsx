@@ -236,7 +236,7 @@ export function Step4Competitive({
               }
             }}
             placeholder="Type a competitor — press Enter or comma to add."
-            className="w-full text-[13px] px-3 py-2 rounded bg-white/5 border border-white/10 text-white placeholder:text-white/30"
+            className="w-full text-[14px] px-3 py-2 rounded bg-white/5 border border-white/10 text-white placeholder:text-white/30"
           />
         </div>
       </div>
@@ -258,19 +258,19 @@ export function Step4Competitive({
         >
           <div className="flex items-center gap-1.5 mb-3">
             <Sparkles className="h-3.5 w-3.5" style={{ color: "#C49A2B" }} />
-            <span className="text-[12.5px] uppercase tracking-[0.1em] text-white/70">IRIS Suggestions</span>
+            <span className="text-[12.5px]  tracking-[0.1em] text-white/70">IRIS Suggestions</span>
           </div>
           <div className="space-y-3">
             {suggestions.map((r) => {
               const pct = Math.max(0, Math.min(100, Math.round((r.confidence_score ?? 0) * 100)));
               return (
                 <div key={r.id} className="rounded p-2.5" style={{ background: "rgba(255,255,255,0.02)" }}>
-                  <p className="text-[13px] text-white">{r.extracted_value}</p>
+                  <p className="text-[14px] text-white">{r.extracted_value}</p>
                   <div className="mt-1.5 h-[3px] rounded bg-white/5 overflow-hidden">
                     <div className="h-full" style={{ width: `${pct}%`, background: "#C49A2B" }} />
                   </div>
                   {r.source_file_name && (
-                    <p className="text-[11px] text-white/40 mt-1">Source: {r.source_file_name}</p>
+                    <p className="text-[12px] text-white/40 mt-1">Source: {r.source_file_name}</p>
                   )}
                   <div className="mt-2 flex items-center gap-2">
                     <button
@@ -321,7 +321,7 @@ export function Step4Competitive({
                     {selected ? "◉ " : ""}{m.label}
                   </span>
                   {m.recommended && (
-                    <span className="text-[10px] uppercase tracking-[0.1em] text-white/45">Recommended</span>
+                    <span className="text-[11px]  tracking-[0.1em] text-white/45">Recommended</span>
                   )}
                 </div>
                 <div className="text-[11.5px] text-white/45 mb-2">Threshold: {m.threshold}</div>

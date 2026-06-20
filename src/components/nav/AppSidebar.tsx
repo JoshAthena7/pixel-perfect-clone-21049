@@ -185,7 +185,7 @@ function Section({
             fontSize: 8,
             fontWeight: 500,
             color: "rgba(255,255,255,0.2)",
-            textTransform: "uppercase",
+            textTransform: "",
             letterSpacing: "0.08em",
           }}
         >

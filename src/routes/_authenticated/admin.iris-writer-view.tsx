@@ -63,7 +63,7 @@ function IrisWriterViewPage() {
   return (
     <div className="px-6 py-6 max-w-[1400px] mx-auto">
       <div className="mb-5">
-        <h1 className="text-white text-[18px] font-semibold">IRIS Writer View</h1>
+        <h1 className="text-white text-[18px] font-medium">IRIS Writer View</h1>
         <p className="text-[12.5px] text-white/55 mt-1">
           Preview the curated brief writers see on the Flight Deck for any
           mission + question. Read-only QA tool — selections are not saved.
@@ -76,7 +76,7 @@ function IrisWriterViewPage() {
           className="rounded-lg p-4 self-start"
           style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
         >
-          <label className="block text-[11px] uppercase tracking-wide text-white/55 mb-1.5">
+          <label className="block text-[12px]  tracking-wide text-white/55 mb-1.5">
             Mission
           </label>
           <select
@@ -95,7 +95,7 @@ function IrisWriterViewPage() {
             ))}
           </select>
 
-          <label className="block text-[11px] uppercase tracking-wide text-white/55 mb-1.5 mt-4">
+          <label className="block text-[12px]  tracking-wide text-white/55 mb-1.5 mt-4">
             Question
           </label>
           <select
@@ -147,11 +147,11 @@ function IrisWriterViewPage() {
           ) : (
             <>
               <div className="mb-3 pb-3 border-b border-white/10">
-                <div className="text-[10px] uppercase tracking-wide text-white/40 mb-1">
+                <div className="text-[11px]  tracking-wide text-white/40 mb-1">
                   Writer Flight Deck preview
                 </div>
                 {selectedQuestion && (
-                  <div className="text-[13px] text-white/85">
+                  <div className="text-[14px] text-white/85">
                     <span className="text-white/55">{selectedQuestion.question_number}</span>{" "}
                     — {selectedQuestion.question_text}
                   </div>

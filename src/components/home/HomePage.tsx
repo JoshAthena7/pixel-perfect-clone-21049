@@ -31,7 +31,7 @@ function healthBadge(status: string | null) {
         borderRadius: 4,
         letterSpacing: "0.05em",
         fontWeight: 600,
-        textTransform: "uppercase",
+        textTransform: "",
       }}
     >
       {item.label}
@@ -71,7 +71,7 @@ function StatCard({ label, value, color }: { label: string; value: React.ReactNo
         border: "0.5px solid rgba(255,255,255,0.06)",
       }}
     >
-      <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+      <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, textTransform: "", letterSpacing: "0.06em" }}>
         {label}
       </div>
       <div style={{ marginTop: 6, fontSize: 32, fontWeight: 600, color: color ?? "white", lineHeight: 1.1 }}>
@@ -268,7 +268,7 @@ function AdminView({ data }: { data: Extract<HomeData, { role: "admin" }> }) {
       </div>
 
       {data.missions.length === 0 ? (
-        <p className="text-center italic text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
+        <p className="text-center italic text-[14px]" style={{ color: "rgba(255,255,255,0.45)" }}>
           No active missions yet.
         </p>
       ) : (
@@ -331,7 +331,7 @@ function WriterView({ data }: { data: Extract<HomeData, { role: "writer" }> }) {
 
   return (
     <>
-      <div style={{ color: "rgba(255,255,255,0.55)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+      <div style={{ color: "rgba(255,255,255,0.55)", fontSize: 11, textTransform: "", letterSpacing: "0.06em" }}>
         Your missions
       </div>
 

@@ -224,7 +224,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
         style={{
           fontSize: 9,
           letterSpacing: "0.14em",
-          textTransform: "uppercase",
+          textTransform: "",
           color: "rgba(255,255,255,0.5)",
           fontWeight: 600,
         }}

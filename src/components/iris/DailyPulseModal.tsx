@@ -185,15 +185,15 @@ export function DailyPulseModal({ open, onOpenChange, missionId }: { open: boole
             <span className="inline-block h-2 w-2 rounded-full animate-pulse" style={{ background: GOLD, animationDuration: "2.5s" }} />
             {titleText}
           </DialogTitle>
-          <p className="text-xs text-muted-foreground">{todayLabel}</p>
+          <p className="text-[12px] text-muted-foreground">{todayLabel}</p>
         </DialogHeader>
 
         {!missionId ? (
-          <p className="text-sm text-muted-foreground">Open a mission to see today's pulse.</p>
+          <p className="text-[14px] text-muted-foreground">Open a mission to see today's pulse.</p>
         ) : loading ? (
           <div className="space-y-3"><Skeleton className="h-24 w-full" /><Skeleton className="h-32 w-full" /></div>
         ) : error ? (
-          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">{error}</div>
+          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-4 text-[14px] text-destructive">{error}</div>
         ) : brief ? (
           brief.brief_type === "consultant_brief"
             ? <ConsultantBriefView b={(brief.content ?? {}) as ConsultantBrief} />
@@ -201,7 +201,7 @@ export function DailyPulseModal({ open, onOpenChange, missionId }: { open: boole
         ) : null}
 
         {brief && (
-          <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground border-t border-border pt-3">
+          <div className="mt-4 flex items-center justify-between text-[12px] text-muted-foreground border-t border-border pt-3">
             <span>Brief generated {brief.delivered_at ? format(new Date(brief.delivered_at), "MMM d, h:mm a") : "—"}</span>
             <Button variant="ghost" size="sm" disabled={generating} onClick={regenerate}>
               {generating ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <RefreshCw className="h-3 w-3 mr-1" />}
@@ -216,40 +216,40 @@ export function DailyPulseModal({ open, onOpenChange, missionId }: { open: boole
 
 function SectionLabel({ children, tone = "gold" }: { children: React.ReactNode; tone?: "gold" | "amber" }) {
   const color = tone === "amber" ? "#F59E0B" : GOLD;
-  return <p className="text-[10px] uppercase tracking-widest font-semibold mb-2" style={{ color }}>{children}</p>;
+  return <p className="text-[11px]   font-medium mb-2" style={{ color }}>{children}</p>;
 }
 
 function AdminBriefView({ b }: { b: AdminBrief }) {
   return (
     <div className="space-y-4">
-      {b.greeting && <p className="text-sm text-foreground/90">{b.greeting}</p>}
+      {b.greeting && <p className="text-[14px] text-foreground/90">{b.greeting}</p>}
 
       <div>
         <SectionLabel>Mission Status</SectionLabel>
-        <p className="text-sm text-foreground">{b.mission_status ?? "—"}</p>
+        <p className="text-[14px] text-foreground">{b.mission_status ?? "—"}</p>
       </div>
 
       <div>
         <SectionLabel>
           New Intelligence
-          {b.new_intelligence?.length ? <span className="ml-2 inline-flex items-center justify-center rounded-full bg-[var(--athena-gold)]/20 px-1.5 text-[10px]" style={{ color: GOLD }}>{b.new_intelligence.length}</span> : null}
+          {b.new_intelligence?.length ? <span className="ml-2 inline-flex items-center justify-center rounded-full bg-[var(--athena-gold)]/20 px-1.5 text-[11px]" style={{ color: GOLD }}>{b.new_intelligence.length}</span> : null}
         </SectionLabel>
         {b.new_intelligence?.length ? (
           <div className="space-y-2">
             {b.new_intelligence.map((it, i) => (
               <div key={i} className="rounded-md border border-border bg-card/40 p-3">
-                <p className="text-sm font-semibold text-foreground">{it.headline}</p>
-                <p className="text-xs text-muted-foreground mt-1">{it.why_it_matters}</p>
+                <p className="text-[14px] font-medium text-foreground">{it.headline}</p>
+                <p className="text-[12px] text-muted-foreground mt-1">{it.why_it_matters}</p>
                 {it.affected_sections?.length ? (
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {it.affected_sections.map((s, j) => <Badge key={j} variant="outline" className="text-[10px]">{s}</Badge>)}
+                    {it.affected_sections.map((s, j) => <Badge key={j} variant="outline" className="text-[11px]">{s}</Badge>)}
                   </div>
                 ) : null}
-                {it.action && <p className="italic text-xs mt-2" style={{ color: GOLD }}>{it.action}</p>}
+                {it.action && <p className="italic text-[12px] mt-2" style={{ color: GOLD }}>{it.action}</p>}
               </div>
             ))}
           </div>
-        ) : <p className="text-xs text-muted-foreground">No new intelligence since your last brief.</p>}
+        ) : <p className="text-[12px] text-muted-foreground">No new intelligence since your last brief.</p>}
       </div>
 
       <div>
@@ -257,17 +257,17 @@ function AdminBriefView({ b }: { b: AdminBrief }) {
         {b.questions_needing_attention?.length ? (
           <div className="space-y-1.5">
             {b.questions_needing_attention.map((q, i) => (
-              <div key={i} className="flex items-start gap-3 text-sm">
-                <span className="font-semibold mt-0.5" style={{ color: GOLD }}>Q{q.question_number}</span>
+              <div key={i} className="flex items-start gap-3 text-[14px]">
+                <span className="font-medium mt-0.5" style={{ color: GOLD }}>Q{q.question_number}</span>
                 <div className="min-w-0 flex-1">
                   <p className="text-foreground">{q.issue}</p>
-                  <p className="text-xs text-muted-foreground italic">{q.recommended_action}</p>
+                  <p className="text-[12px] text-muted-foreground italic">{q.recommended_action}</p>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="inline-flex items-center gap-1.5 text-xs text-green-400"><CheckCircle2 className="h-3 w-3" /> All questions healthy.</p>
+          <p className="inline-flex items-center gap-1.5 text-[12px] text-green-400"><CheckCircle2 className="h-3 w-3" /> All questions healthy.</p>
         )}
       </div>
 
@@ -281,7 +281,7 @@ function AdminBriefView({ b }: { b: AdminBrief }) {
       {b.one_risk_to_watch && (
         <div className="rounded-md p-3 border-l-4 border-amber-500/60 bg-amber-500/5">
           <SectionLabel tone="amber">Watch</SectionLabel>
-          <p className="text-sm text-foreground inline-flex items-start gap-2"><AlertTriangle className="h-3.5 w-3.5 mt-0.5 text-amber-400 shrink-0" />{b.one_risk_to_watch}</p>
+          <p className="text-[14px] text-foreground inline-flex items-start gap-2"><AlertTriangle className="h-3.5 w-3.5 mt-0.5 text-amber-400 shrink-0" />{b.one_risk_to_watch}</p>
         </div>
       )}
     </div>
@@ -298,7 +298,7 @@ function healthClass(h: string) {
 function ConsultantBriefView({ b }: { b: ConsultantBrief }) {
   return (
     <div className="space-y-4">
-      {b.greeting && <p className="text-sm text-foreground/90">{b.greeting}</p>}
+      {b.greeting && <p className="text-[14px] text-foreground/90">{b.greeting}</p>}
 
       <div>
         <SectionLabel>Your Assignments</SectionLabel>
@@ -306,20 +306,20 @@ function ConsultantBriefView({ b }: { b: ConsultantBrief }) {
           <div className="space-y-2">
             {b.your_assignments.map((a, i) => (
               <div key={i} className="rounded-md border border-border bg-card/40 p-3">
-                <div className="flex flex-wrap items-center gap-2 text-sm">
-                  <span className="font-semibold" style={{ color: GOLD }}>Q{a.question_number}</span>
+                <div className="flex flex-wrap items-center gap-2 text-[14px]">
+                  <span className="font-medium" style={{ color: GOLD }}>Q{a.question_number}</span>
                   <span className="text-foreground">{a.section}</span>
-                  <Badge variant="outline" className={`text-[10px] ${healthClass(a.health)}`}>{a.health}</Badge>
-                  <span className={`text-xs ${a.days_remaining < 7 ? "text-red-400" : "text-muted-foreground"}`}>
+                  <Badge variant="outline" className={`text-[11px] ${healthClass(a.health)}`}>{a.health}</Badge>
+                  <span className={`text-[12px] ${a.days_remaining < 7 ? "text-red-400" : "text-muted-foreground"}`}>
                     {a.due_date} ({a.days_remaining}d)
                   </span>
-                  <Badge variant="outline" className="text-[10px]">{a.confidence}</Badge>
+                  <Badge variant="outline" className="text-[11px]">{a.confidence}</Badge>
                 </div>
-                <p className="italic text-xs text-muted-foreground mt-1.5">{a.recommended_focus}</p>
+                <p className="italic text-[12px] text-muted-foreground mt-1.5">{a.recommended_focus}</p>
               </div>
             ))}
           </div>
-        ) : <p className="text-xs text-muted-foreground">No active assignments today.</p>}
+        ) : <p className="text-[12px] text-muted-foreground">No active assignments today.</p>}
       </div>
 
       <div>
@@ -328,13 +328,13 @@ function ConsultantBriefView({ b }: { b: ConsultantBrief }) {
           <div className="space-y-2">
             {b.new_intelligence_for_your_sections.map((it, i) => (
               <div key={i} className="rounded-md border border-border bg-card/40 p-3">
-                <p className="text-sm font-semibold text-foreground">{it.headline}</p>
-                <p className="text-xs text-muted-foreground mt-1">{it.why_it_matters}</p>
-                {it.section && <Badge variant="outline" className="text-[10px] mt-2">{it.section}</Badge>}
+                <p className="text-[14px] font-medium text-foreground">{it.headline}</p>
+                <p className="text-[12px] text-muted-foreground mt-1">{it.why_it_matters}</p>
+                {it.section && <Badge variant="outline" className="text-[11px] mt-2">{it.section}</Badge>}
               </div>
             ))}
           </div>
-        ) : <p className="text-xs text-muted-foreground">No new intelligence affecting your sections.</p>}
+        ) : <p className="text-[12px] text-muted-foreground">No new intelligence affecting your sections.</p>}
       </div>
 
       {b.todays_priority && (
@@ -347,7 +347,7 @@ function ConsultantBriefView({ b }: { b: ConsultantBrief }) {
       {b.one_thing_to_read && (
         <div className="rounded-md p-4 bg-slate-950/50 border-t-2" style={{ borderTopColor: GOLD }}>
           <SectionLabel>Read This Today</SectionLabel>
-          <p className="text-sm text-foreground inline-flex items-start gap-2"><Flame className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: GOLD }} />{b.one_thing_to_read}</p>
+          <p className="text-[14px] text-foreground inline-flex items-start gap-2"><Flame className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: GOLD }} />{b.one_thing_to_read}</p>
         </div>
       )}
     </div>

@@ -79,21 +79,21 @@ export function BriefingHeader({
               <button
                 type="button"
                 onClick={() => setEditOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-surface/60 px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-surface transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-surface/60 px-2.5 py-1 text-[12px] font-medium text-foreground hover:bg-surface transition-colors"
               >
                 <Pencil className="h-3 w-3" /> Edit Mission
               </button>
               <Link
                 to="/olympus/missions/$missionId/wizard"
                 params={{ missionId }}
-                className="inline-flex items-center gap-1.5 rounded-md border border-[var(--athena-gold)]/40 bg-[var(--athena-gold)]/10 px-2.5 py-1 text-[11px] font-medium text-[var(--athena-gold)] hover:bg-[var(--athena-gold)]/20 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-md border border-[var(--athena-gold)]/40 bg-[var(--athena-gold)]/10 px-2.5 py-1 text-[12px] font-medium text-[var(--athena-gold)] hover:bg-[var(--athena-gold)]/20 transition-colors"
               >
                 <Wand2 className="h-3 w-3" /> Enhance in Olympus
               </Link>
               <button
                 type="button"
                 onClick={() => setCloseOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/10 px-2.5 py-1 text-[11px] font-medium text-red-300 hover:bg-red-500/20 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/10 px-2.5 py-1 text-[12px] font-medium text-red-300 hover:bg-red-500/20 transition-colors"
               >
                 <Flag className="h-3 w-3" /> Close Mission
               </button>

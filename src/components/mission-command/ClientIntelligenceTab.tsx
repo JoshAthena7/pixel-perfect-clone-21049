@@ -100,12 +100,12 @@ export function ClientIntelligenceTab({ missionId }: { missionId: string }) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-2xl font-bold text-foreground">Client Intelligence</h2>
-        <p className="text-sm text-muted-foreground">
+        <h2 className="text-2xl font-medium text-foreground">Client Intelligence</h2>
+        <p className="text-[14px] text-muted-foreground">
           Structured intelligence about the client, stakeholders, and environment. Admin only.
         </p>
       </div>
-      <div className="rounded-md border bg-primary/5 px-4 py-3 text-sm">
+      <div className="rounded-md border bg-primary/5 px-4 py-3 text-[14px]">
         This intelligence is visible to IRIS and informs every section brief and Sticky Notes interaction on this mission.
       </div>
 
@@ -135,7 +135,7 @@ export function ClientIntelligenceTab({ missionId }: { missionId: string }) {
                 {isOpen && (
                   <div className="border-t p-3 space-y-2">
                     {items.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No {c.label} intelligence added yet.</p>
+                      <p className="text-[14px] text-muted-foreground">No {c.label} intelligence added yet.</p>
                     ) : items.map((e) => (
                       <EntryCard key={e.id} entry={e} onEdit={() => setEditing({ entry: e, category: e.category })} onDelete={() => setDelTarget(e)} />
                     ))}
@@ -185,24 +185,24 @@ function EntryCard({ entry, onEdit, onDelete }: { entry: Entry; onEdit: () => vo
   return (
     <div className="rounded-md border p-3 bg-background">
       <div className="flex items-start justify-between gap-2">
-        <div className="font-semibold">{entry.title ?? "Untitled"}</div>
+        <div className="font-medium">{entry.title ?? "Untitled"}</div>
         <div className="flex gap-1 shrink-0">
           <Button size="sm" variant="ghost" onClick={onEdit}><Pencil className="h-4 w-4" /></Button>
           <Button size="sm" variant="ghost" className="text-destructive" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button>
         </div>
       </div>
-      <p className="text-sm mt-1 whitespace-pre-wrap">
+      <p className="text-[14px] mt-1 whitespace-pre-wrap">
         {truncated}
         {content.length > 200 && (
-          <button className="text-primary ml-1 text-xs" onClick={() => setExpanded(!expanded)}>
+          <button className="text-primary ml-1 text-[12px]" onClick={() => setExpanded(!expanded)}>
             {expanded ? "Show less" : "Read more"}
           </button>
         )}
       </p>
       {entry.source_url && (
-        <a href={entry.source_url} target="_blank" rel="noreferrer" className="text-xs text-primary mt-1 inline-block">{entry.source_url}</a>
+        <a href={entry.source_url} target="_blank" rel="noreferrer" className="text-[12px] text-primary mt-1 inline-block">{entry.source_url}</a>
       )}
-      <div className="text-[11px] text-muted-foreground mt-2">
+      <div className="text-[12px] text-muted-foreground mt-2">
         {entry.date_of_intelligence && <>Dated {entry.date_of_intelligence} · </>}
         Added {new Date(entry.created_at).toLocaleDateString()}
         {entry.updated_at !== entry.created_at && <> · Last updated {new Date(entry.updated_at).toLocaleDateString()}</>}

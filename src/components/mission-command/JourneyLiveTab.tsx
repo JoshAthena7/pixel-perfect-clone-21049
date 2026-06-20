@@ -263,7 +263,7 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
               return (
                 <div
                   key={p.id}
-                  className={`absolute top-2 h-12 rounded border-2 ${state.border} ${state.fill} px-1 text-xs flex items-center justify-center overflow-hidden`}
+                  className={`absolute top-2 h-12 rounded border-2 ${state.border} ${state.fill} px-1 text-[12px] flex items-center justify-center overflow-hidden`}
                   style={{
                     left: `${left}%`, width: `${Math.max(width, 1)}%`,
                     backgroundColor: !state.fill ? (p.color ?? undefined) : undefined,
@@ -285,7 +285,7 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
                 className="absolute top-0 h-20 border-l border-dashed border-primary"
                 style={{ left: `${((today.getTime() - timelineBounds.min) / (timelineBounds.max - timelineBounds.min)) * 100}%` }}
               >
-                <span className="absolute -top-5 left-1 text-[10px] text-primary">Today</span>
+                <span className="absolute -top-5 left-1 text-[11px] text-primary">Today</span>
               </div>
             )}
             {/* Submission marker */}
@@ -299,7 +299,7 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
                   style={{ left: `${left}%` }}
                 >
                   <span
-                    className="absolute -top-5 right-0 text-[10px] text-red-500 whitespace-nowrap font-semibold tracking-wide"
+                    className="absolute -top-5 right-0 text-[11px] text-red-500 whitespace-nowrap font-medium tracking-wide"
                   >
                     SUBMISSION · {format(new Date(deadline), "MMM d")}
                   </span>
@@ -320,11 +320,11 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
             <div key={p.id} className={`rounded-lg border-2 ${state.border} p-4 space-y-2`}>
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold">{p.name}</span>
+                  <span className="font-medium">{p.name}</span>
                   <Badge variant="outline">{state.label}</Badge>
                   {p.kind === "gate" && p.is_cleared && <Badge className="bg-emerald-500/15 text-emerald-500 border-emerald-500/30">Cleared</Badge>}
                 </div>
-                <div className="flex items-center gap-2 text-xs">
+                <div className="flex items-center gap-2 text-[12px]">
                   <DatePop label="Start" date={p.start_date} disabled={p.is_locked || !isAdmin}
                            onPick={(d) => updatePhaseDate(p, "start_date", d)} />
                   <DatePop label="End" date={p.end_date} disabled={p.is_locked || !isAdmin || p.kind === "pens_down"}
@@ -338,7 +338,7 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
                   {phaseDelivs.map((d) => {
                     const overdue = d.due_date && new Date(d.due_date) < today && d.status !== "complete";
                     return (
-                      <div key={d.id} className="flex items-start gap-2 text-sm py-1">
+                      <div key={d.id} className="flex items-start gap-2 text-[14px] py-1">
                         <Checkbox
                           checked={d.status === "complete"}
                           onCheckedChange={(v) => updateDelivStatus(d, v ? "complete" : "not_started")}
@@ -348,7 +348,7 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className={d.status === "complete" ? "line-through text-muted-foreground" : ""}>{d.title}</span>
                             {d.due_date && (
-                              <span className={`text-xs ${overdue ? "text-red-500" : "text-muted-foreground"}`}>
+                              <span className={`text-[12px] ${overdue ? "text-red-500" : "text-muted-foreground"}`}>
                                 Due {format(new Date(d.due_date), "MMM d")}
                               </span>
                             )}
@@ -356,7 +356,7 @@ export function JourneyLiveTab({ missionId, deadline }: { missionId: string; dea
                               <Badge className="bg-red-500/15 text-red-500 border-red-500/30">Overdue</Badge>
                             )}
                           </div>
-                          {d.description && <p className="text-xs text-muted-foreground">{d.description}</p>}
+                          {d.description && <p className="text-[12px] text-muted-foreground">{d.description}</p>}
                         </div>
                       </div>
                     );
@@ -407,7 +407,7 @@ function DatePop({ label, date, disabled, onPick }: {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" disabled={disabled} className="h-7 text-xs">
+        <Button variant="outline" size="sm" disabled={disabled} className="h-7 text-[12px]">
           {label}: {date ? format(new Date(date), "MMM d") : "—"}
         </Button>
       </PopoverTrigger>

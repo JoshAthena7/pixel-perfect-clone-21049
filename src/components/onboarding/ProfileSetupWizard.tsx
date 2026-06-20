@@ -350,7 +350,7 @@ function ProfileSetupWizard({
       <div className="relative flex h-full max-h-[640px] w-full max-w-[720px] flex-col overflow-hidden rounded-none border border-border bg-surface md:rounded-2xl md:h-auto md:max-h-[90vh]">
         {/* Progress */}
         <div className="border-b border-border px-6 py-4">
-          <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-muted-foreground">
+          <div className="flex items-center justify-between text-[12px]   text-muted-foreground">
             <span>Setup · {stepIdx + 1} of {STEPS.length}</span>
             <span>{Math.round(((stepIdx + 1) / STEPS.length) * 100)}%</span>
           </div>
@@ -378,23 +378,23 @@ function ProfileSetupWizard({
                   setResumedFrom(null);
                   setStepIdx(0);
                 }}
-                className="text-[11px] text-muted-foreground hover:text-foreground"
+                className="text-[12px] text-muted-foreground hover:text-foreground"
               >
                 Start over
               </button>
             </div>
           )}
-          <h2 className="text-2xl font-semibold tracking-tight">{step.title}</h2>
-          {step.subtitle && <p className="mt-1 text-sm text-muted-foreground">{step.subtitle}</p>}
+          <h2 className="text-2xl font-medium tracking-tight">{step.title}</h2>
+          {step.subtitle && <p className="mt-1 text-[14px] text-muted-foreground">{step.subtitle}</p>}
 
           <div className="mt-6">
             {step.key === "intro" && (
-              <div className="space-y-4 text-sm leading-relaxed text-foreground/90">
+              <div className="space-y-4 text-[14px] leading-relaxed text-foreground/90">
                 <div className="flex items-center gap-3 rounded-lg border border-border bg-background/60 p-4">
                   <Sparkles className="h-5 w-5 text-primary" />
                   <div>
-                    <div className="font-semibold">Hi {firstName} — IRIS here.</div>
-                    <div className="text-xs text-muted-foreground">Let's get you tagged so the right questions find you.</div>
+                    <div className="font-medium">Hi {firstName} — IRIS here.</div>
+                    <div className="text-[12px] text-muted-foreground">Let's get you tagged so the right questions find you.</div>
                   </div>
                 </div>
                 <p>
@@ -414,7 +414,7 @@ function ProfileSetupWizard({
                     IRIS extracted the fields below. Edit anything that needs a tweak, then continue.
                   </div>
                   <div>
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <label className="text-[12px] font-medium   text-muted-foreground">
                       Areas of expertise
                     </label>
                     <div className="mt-2 flex flex-wrap gap-1.5">
@@ -447,22 +447,22 @@ function ProfileSetupWizard({
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <label className="text-[12px] font-medium   text-muted-foreground">
                       Professional summary
                     </label>
                     <textarea
                       value={form.expert_bio}
                       onChange={(e) => setForm({ ...form, expert_bio: e.target.value.slice(0, 1200) })}
                       rows={4}
-                      className="mt-2 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm leading-relaxed"
+                      className="mt-2 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-[14px] leading-relaxed"
                     />
-                    <div className="mt-1 text-right text-[10px] text-muted-foreground">
+                    <div className="mt-1 text-right text-[11px] text-muted-foreground">
                       {form.expert_bio.length}/1200
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <label className="text-[12px] font-medium   text-muted-foreground">
                       Years of experience
                     </label>
                     <input
@@ -479,12 +479,12 @@ function ProfileSetupWizard({
                             setForm({ ...form, years_of_experience: Math.max(0, Math.min(75, n)) });
                         }
                       }}
-                      className="mt-2 w-32 rounded-md border border-border bg-background px-3 py-2 text-sm"
+                      className="mt-2 w-32 rounded-md border border-border bg-background px-3 py-2 text-[14px]"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <label className="text-[12px] font-medium   text-muted-foreground">
                       Certifications & credentials
                     </label>
                     <div className="mt-2 flex flex-wrap gap-1.5">
@@ -505,7 +505,7 @@ function ProfileSetupWizard({
                         </button>
                       ))}
                       {form.certifications.length === 0 && (
-                        <span className="text-[11px] text-muted-foreground">None found.</span>
+                        <span className="text-[12px] text-muted-foreground">None found.</span>
                       )}
                     </div>
                     <CustomAdder
@@ -520,7 +520,7 @@ function ProfileSetupWizard({
                     />
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px]">
+                  <div className="flex items-center justify-between text-[12px]">
                     <button
                       type="button"
                       onClick={() =>
@@ -587,7 +587,7 @@ function ProfileSetupWizard({
                   }}
                 />
                 {form.expertise_areas.length === 0 && (
-                  <p className="mt-3 text-[11px] text-amber-400">Pick at least one to continue.</p>
+                  <p className="mt-3 text-[12px] text-amber-400">Pick at least one to continue.</p>
                 )}
               </>
             )}
@@ -602,13 +602,13 @@ function ProfileSetupWizard({
                 {!showAllStates && (
                   <button
                     onClick={() => setShowAllStates(true)}
-                    className="mt-3 rounded-md border border-border bg-surface px-3 py-1.5 text-xs hover:bg-surface-hover"
+                    className="mt-3 rounded-md border border-border bg-surface px-3 py-1.5 text-[12px] hover:bg-surface-hover"
                   >
                     + Show all 50 states
                   </button>
                 )}
                 {form.states_experience.length === 0 && (
-                  <p className="mt-3 text-[11px] text-amber-400">Pick at least one state.</p>
+                  <p className="mt-3 text-[12px] text-amber-400">Pick at least one state.</p>
                 )}
               </>
             )}
@@ -629,7 +629,7 @@ function ProfileSetupWizard({
                       setForm({ ...form, programs_experience: [...form.programs_experience, v] });
                   }}
                 />
-                <p className="mt-3 text-[11px] text-muted-foreground">Optional — skip if none apply yet.</p>
+                <p className="mt-3 text-[12px] text-muted-foreground">Optional — skip if none apply yet.</p>
               </>
             )}
 
@@ -640,7 +640,7 @@ function ProfileSetupWizard({
                   options={qtypeOpts.map((o) => o.label)}
                   onToggle={(v) => toggle("question_types", v)}
                 />
-                <p className="mt-3 text-[11px] text-muted-foreground">These get the most weight in IRIS matching. Skip if unsure.</p>
+                <p className="mt-3 text-[12px] text-muted-foreground">These get the most weight in IRIS matching. Skip if unsure.</p>
               </>
             )}
 
@@ -665,10 +665,10 @@ function ProfileSetupWizard({
                         background: active ? "rgba(59,127,255,0.08)" : undefined,
                       }}
                     >
-                      <div className="flex items-center gap-2 text-[12px] font-semibold">
+                      <div className="flex items-center gap-2 text-[12px] font-medium">
                         <span className={`h-2 w-2 rounded-full ${opt.dot}`} /> {opt.label}
                       </div>
-                      <div className="mt-0.5 text-[10px] text-muted-foreground">{opt.hint}</div>
+                      <div className="mt-0.5 text-[11px] text-muted-foreground">{opt.hint}</div>
                     </button>
                   );
                 })}
@@ -682,19 +682,19 @@ function ProfileSetupWizard({
                   onChange={(e) => setForm({ ...form, expert_bio: e.target.value.slice(0, 140) })}
                   placeholder="e.g. Happy to help on health equity and CHW integration questions."
                   rows={4}
-                  className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  className="w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-[14px]"
                 />
-                <div className="mt-1 text-right text-[10px] text-muted-foreground">{form.expert_bio.length}/140</div>
+                <div className="mt-1 text-right text-[11px] text-muted-foreground">{form.expert_bio.length}/140</div>
               </>
             )}
 
             {step.key === "voice" && (
               <div className="space-y-5">
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-[12px] font-medium   text-muted-foreground">
                     Writing voice sample
                   </label>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
+                  <p className="mt-1 text-[12px] text-muted-foreground">
                     Paste 1–2 paragraphs of your best prose. IRIS uses it to mirror tone in Score-Me rewrites and draft suggestions.
                   </p>
                   <textarea
@@ -704,15 +704,15 @@ function ProfileSetupWizard({
                     }
                     rows={6}
                     placeholder="Paste a section of a proposal or memo you're proud of…"
-                    className="mt-2 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm leading-relaxed"
+                    className="mt-2 w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-[14px] leading-relaxed"
                   />
-                  <div className="mt-1 text-right text-[10px] text-muted-foreground">
+                  <div className="mt-1 text-right text-[11px] text-muted-foreground">
                     {form.writing_voice_sample.length}/2000
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-[12px] font-medium   text-muted-foreground">
                     Preferred point of view
                   </label>
                   <div className="mt-2 grid grid-cols-3 gap-2">
@@ -734,8 +734,8 @@ function ProfileSetupWizard({
                             background: active ? "rgba(59,127,255,0.08)" : undefined,
                           }}
                         >
-                          <div className="text-[12px] font-semibold">{opt.label}</div>
-                          <div className="mt-0.5 text-[10px] text-muted-foreground">{opt.hint}</div>
+                          <div className="text-[12px] font-medium">{opt.label}</div>
+                          <div className="mt-0.5 text-[11px] text-muted-foreground">{opt.hint}</div>
                         </button>
                       );
                     })}
@@ -743,10 +743,10 @@ function ProfileSetupWizard({
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-[12px] font-medium   text-muted-foreground">
                     Banned words & phrases
                   </label>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
+                  <p className="mt-1 text-[12px] text-muted-foreground">
                     IRIS will avoid these in any draft it generates for you. (e.g. "leverage", "synergy")
                   </p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
@@ -781,10 +781,10 @@ function ProfileSetupWizard({
             {step.key === "style" && (
               <div className="space-y-5">
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-[12px] font-medium   text-muted-foreground">
                     Default role on a mission
                   </label>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
+                  <p className="mt-1 text-[12px] text-muted-foreground">
                     Drives which IRIS Outputs surface first on your home screen.
                   </p>
                   <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-5">
@@ -802,7 +802,7 @@ function ProfileSetupWizard({
                         <button
                           key={opt.v}
                           onClick={() => setForm({ ...form, default_mission_role: opt.v })}
-                          className="rounded-md border bg-surface/60 px-3 py-2 text-center text-[12px] font-semibold transition hover:bg-surface"
+                          className="rounded-md border bg-surface/60 px-3 py-2 text-center text-[12px] font-medium transition hover:bg-surface"
                           style={{
                             borderColor: active ? "rgba(59,127,255,0.5)" : "var(--border)",
                             background: active ? "rgba(59,127,255,0.08)" : undefined,
@@ -817,10 +817,10 @@ function ProfileSetupWizard({
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-[12px] font-medium   text-muted-foreground">
                     Depth across the 9 IRIS Intelligence Domains
                   </label>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
+                  <p className="mt-1 text-[12px] text-muted-foreground">
                     Self-rate so IRIS can route the right questions to you and weight your contributions in collective memory.
                   </p>
                   <div className="mt-2 space-y-1.5">
@@ -844,7 +844,7 @@ function ProfileSetupWizard({
                                       domain_depth: { ...form.domain_depth, [d.key]: lvl },
                                     })
                                   }
-                                  className="rounded px-2 py-0.5 text-[10px] uppercase tracking-wider transition"
+                                  className="rounded px-2 py-0.5 text-[11px]   transition"
                                   style={{
                                     background: active ? "rgba(59,127,255,0.15)" : "transparent",
                                     color: active ? "var(--accent,#3b7fff)" : "var(--muted-foreground)",
@@ -865,17 +865,17 @@ function ProfileSetupWizard({
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-[12px] font-medium   text-muted-foreground">
                     Timezone
                   </label>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
+                  <p className="mt-1 text-[12px] text-muted-foreground">
                     So IRIS schedules nudges during your working hours, not at 3am.
                   </p>
                   <input
                     value={form.timezone}
                     onChange={(e) => setForm({ ...form, timezone: e.target.value.slice(0, 64) })}
                     placeholder="America/New_York"
-                    className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                    className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-[14px]"
                   />
                 </div>
               </div>
@@ -888,7 +888,7 @@ function ProfileSetupWizard({
           <button
             onClick={() => setStepIdx((i) => Math.max(0, i - 1))}
             disabled={isFirst || saving}
-            className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs text-muted-foreground hover:text-foreground disabled:opacity-30"
+            className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-[12px] text-muted-foreground hover:text-foreground disabled:opacity-30"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Back
           </button>
@@ -899,7 +899,7 @@ function ProfileSetupWizard({
               <button
                 onClick={saveAndDefer}
                 disabled={saving}
-                className="rounded-md border border-border px-3 py-2 text-xs text-muted-foreground hover:bg-surface-hover hover:text-foreground disabled:opacity-40"
+                className="rounded-md border border-border px-3 py-2 text-[12px] text-muted-foreground hover:bg-surface-hover hover:text-foreground disabled:opacity-40"
               >
                 Save & continue later
               </button>
@@ -908,7 +908,7 @@ function ProfileSetupWizard({
               <button
                 onClick={finish}
                 disabled={saving}
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-[14px] font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
               >
                 <Check className="h-4 w-4" /> {saving ? "Saving…" : "Finish setup"}
               </button>
@@ -916,7 +916,7 @@ function ProfileSetupWizard({
               <button
                 onClick={() => setStepIdx((i) => Math.min(STEPS.length - 1, i + 1))}
                 disabled={!canAdvance || saving}
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-40"
+                className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-[14px] font-medium text-primary-foreground hover:opacity-90 disabled:opacity-40"
               >
                 Continue <ArrowRight className="h-4 w-4" />
               </button>
@@ -987,7 +987,7 @@ function CustomAdder({
           }
         }}
         placeholder={placeholder}
-        className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-xs"
+        className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-[12px]"
       />
       <button
         onClick={() => {
@@ -996,7 +996,7 @@ function CustomAdder({
           onAdd(v);
           setValue("");
         }}
-        className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs hover:bg-surface-hover"
+        className="rounded-md border border-border bg-surface px-3 py-1.5 text-[12px] hover:bg-surface-hover"
       >
         <Plus className="inline h-3 w-3" /> Add
       </button>

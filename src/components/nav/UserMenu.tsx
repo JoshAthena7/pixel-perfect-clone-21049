@@ -34,7 +34,7 @@ export function UserMenu({ email }: { email?: string | null }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="h-8 w-8 rounded-full bg-[var(--athena-gold)]/20 border border-[var(--athena-gold)]/50 text-[var(--athena-gold)] text-xs font-bold flex items-center justify-center hover:bg-[var(--athena-gold)]/30"
+        className="h-8 w-8 rounded-full bg-[var(--athena-gold)]/20 border border-[var(--athena-gold)]/50 text-[var(--athena-gold)] text-[12px] font-medium flex items-center justify-center hover:bg-[var(--athena-gold)]/30"
         aria-label="User menu"
       >
         {initials}
@@ -44,13 +44,13 @@ export function UserMenu({ email }: { email?: string | null }) {
           <Link
             to="/profile"
             onClick={() => setOpen(false)}
-            className="block px-3 py-1.5 text-sm hover:bg-muted"
+            className="block px-3 py-1.5 text-[14px] hover:bg-muted"
           >
             Profile
           </Link>
           <button
             onClick={signOut}
-            className="block w-full text-left px-3 py-1.5 text-sm hover:bg-muted"
+            className="block w-full text-left px-3 py-1.5 text-[14px] hover:bg-muted"
           >
             Sign Out
           </button>

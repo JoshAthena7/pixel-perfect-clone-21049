@@ -121,7 +121,7 @@ export function RequestChangeButton({
 
           <div className="space-y-3">
             <div
-              className="rounded-md text-xs"
+              className="rounded-md text-[12px]"
               style={{
                 padding: "8px 10px",
                 background: "rgba(255,255,255,0.03)",
@@ -148,7 +148,7 @@ export function RequestChangeButton({
               rows={5}
               maxLength={4000}
             />
-            <div className="text-[10px] text-right" style={{ color: "rgba(255,255,255,0.35)" }}>
+            <div className="text-[11px] text-right" style={{ color: "rgba(255,255,255,0.35)" }}>
               {message.length}/4000
             </div>
           </div>

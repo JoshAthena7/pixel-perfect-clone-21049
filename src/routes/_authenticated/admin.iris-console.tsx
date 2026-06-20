@@ -50,7 +50,7 @@ function AdminIrisConsolePage() {
         style={{ width: 280, borderRight: "1px solid rgba(255,255,255,0.06)" }}
       >
         <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <div style={{ fontSize: 9, color: GOLD, letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "'Courier New', monospace" }}>
+          <div style={{ fontSize: 9, color: GOLD, letterSpacing: "0.18em", textTransform: "", fontFamily: "'Courier New', monospace" }}>
             ⚡ IRIS Console
           </div>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginTop: 2 }}>

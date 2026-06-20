@@ -27,7 +27,7 @@ function CompletenessRing({ filled, total }: { filled: number; total: number }) 
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[11px] font-semibold text-white">{filled}/{total}</span>
+        <span className="text-[12px] font-medium text-white">{filled}/{total}</span>
       </div>
     </div>
   );
@@ -77,8 +77,8 @@ export function StateIntelGrid() {
     <div className="px-6 py-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-1">
         <div>
-          <h1 className="text-xl font-semibold text-white">State Intelligence Packs</h1>
-          <p className="text-sm text-white/55 mt-1">
+          <h1 className="text-xl font-medium text-white">State Intelligence Packs</h1>
+          <p className="text-[14px] text-white/55 mt-1">
             One per state — uploaded once, inherited by every mission in that state.
           </p>
         </div>
@@ -88,15 +88,15 @@ export function StateIntelGrid() {
       </div>
 
       {isLoading && !timedOut ? (
-        <div className="text-sm text-white/55 mt-8">Loading…</div>
+        <div className="text-[14px] text-white/55 mt-8">Loading…</div>
       ) : isError || (isLoading && timedOut) ? (
         <div className="mt-12 border border-dashed border-white/10 rounded-lg p-8 text-center">
-          <p className="text-sm text-white/70 mb-3">Unable to load state packs.</p>
+          <p className="text-[14px] text-white/70 mb-3">Unable to load state packs.</p>
           <Button size="sm" variant="outline" onClick={() => refetch()}>Retry</Button>
         </div>
       ) : packs.length === 0 ? (
         <div className="mt-12 border border-dashed border-white/10 rounded-lg p-8 text-center">
-          <p className="text-sm text-white/60 mb-3">No state packs added yet.</p>
+          <p className="text-[14px] text-white/60 mb-3">No state packs added yet.</p>
           <Button size="sm" onClick={() => setOpen(true)} className="gap-2">
             <Plus className="w-4 h-4" /> Add first state
           </Button>
@@ -116,15 +116,15 @@ export function StateIntelGrid() {
                   <CompletenessRing filled={p.categories_filled} total={TOTAL_CATEGORIES} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-mono text-[#c9a84c]">{p.state_code}</span>
+                      <span className="text-[12px] font-mono text-[#c9a84c]">{p.state_code}</span>
                       {stale && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 uppercase tracking-wide">
+                        <span className="text-[11px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300  tracking-wide">
                           Stale
                         </span>
                       )}
                     </div>
-                    <div className="text-sm font-medium text-white truncate mt-0.5">{p.state_name}</div>
-                    <div className="text-[11px] text-white/45 mt-1">
+                    <div className="text-[14px] font-medium text-white truncate mt-0.5">{p.state_name}</div>
+                    <div className="text-[12px] text-white/45 mt-1">
                       {p.last_reviewed_at
                         ? `Reviewed ${new Date(p.last_reviewed_at).toLocaleDateString()}`
                         : "Never reviewed"}
@@ -143,7 +143,7 @@ export function StateIntelGrid() {
             <DialogTitle>Add State Intelligence Pack</DialogTitle>
           </DialogHeader>
           <div className="py-2">
-            <label className="text-xs text-white/55 mb-1 block">State</label>
+            <label className="text-[12px] text-white/55 mb-1 block">State</label>
             <Select value={picked} onValueChange={setPicked}>
               <SelectTrigger>
                 <SelectValue placeholder="Choose a state…" />

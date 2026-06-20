@@ -167,12 +167,12 @@ export function SubmissionChecklistTab({
       </div>
 
 
-      <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">
+      <div className="rounded-lg border bg-muted/30 p-3 text-[14px] text-muted-foreground">
         Submission requirements are separate from content requirements. These are the physical and administrative items the client requires in the submission package.
       </div>
 
       <div className="space-y-2">
-        <div className="flex justify-between text-sm">
+        <div className="flex justify-between text-[14px]">
           <span>{done} of {total} items complete</span>
           <span className="font-medium">{pct}%</span>
         </div>
@@ -182,7 +182,7 @@ export function SubmissionChecklistTab({
       </div>
 
       {showWarning && (
-        <div className="rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-300 p-3 text-sm">
+        <div className="rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-300 p-3 text-[14px]">
           Submission is in {days} day{days === 1 ? "" : "s"}. {notStartedCount} checklist items are not yet started.
         </div>
       )}
@@ -192,11 +192,11 @@ export function SubmissionChecklistTab({
           <button
             key={t.id}
             onClick={() => setFilter(t.id)}
-            className={`px-3 py-2 text-sm border-b-2 whitespace-nowrap ${
+            className={`px-3 py-2 text-[14px] border-b-2 whitespace-nowrap ${
               filter === t.id ? "border-primary text-foreground" : "border-transparent text-muted-foreground"
             }`}
           >
-            {t.label} <span className="text-xs opacity-60">({counts[t.id] ?? 0})</span>
+            {t.label} <span className="text-[12px] opacity-60">({counts[t.id] ?? 0})</span>
           </button>
         ))}
       </div>
@@ -236,7 +236,7 @@ export function SubmissionChecklistTab({
                     }}
                   >
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-semibold">{i.label}</span>
+                      <span className="font-medium">{i.label}</span>
                       {i.iris_extracted && (
                         <Badge className="bg-primary/15 text-primary border-primary/30">IRIS Extracted</Badge>
                       )}
@@ -248,7 +248,7 @@ export function SubmissionChecklistTab({
                       </Badge>
                     </div>
                     {i.description && (
-                      <p className={cn("text-sm text-muted-foreground mt-1", !isExp && "line-clamp-2")}>
+                      <p className={cn("text-[14px] text-muted-foreground mt-1", !isExp && "line-clamp-2")}>
                         {i.description}
                       </p>
                     )}
@@ -258,7 +258,7 @@ export function SubmissionChecklistTab({
                       value={i.owner_id ?? "none"}
                       onValueChange={(v) => update(i.id, { owner_id: v === "none" ? null : v })}
                     >
-                      <SelectTrigger className="h-8 w-48 text-xs">
+                      <SelectTrigger className="h-8 w-48 text-[12px]">
                         <SelectValue placeholder="Unassigned" />
                       </SelectTrigger>
                       <SelectContent>
@@ -272,7 +272,7 @@ export function SubmissionChecklistTab({
                     </Select>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-8 text-xs">
+                        <Button variant="outline" size="sm" className="h-8 text-[12px]">
                           <CalendarIcon className="size-3 mr-1" />
                           {i.due_date ? format(new Date(i.due_date), "MMM d, yyyy") : "Set due date"}
                         </Button>
@@ -287,7 +287,7 @@ export function SubmissionChecklistTab({
                       </PopoverContent>
                     </Popover>
                     <Select value={i.status} onValueChange={(v) => update(i.id, { status: v })}>
-                      <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-8 w-36 text-[12px]"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {STATUSES.map((s) => (
                           <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>

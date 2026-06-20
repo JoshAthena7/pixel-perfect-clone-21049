@@ -77,7 +77,7 @@ export function UnansweredNotesSection({ missionId }: { missionId: string }) {
           fontSize: 9,
           fontWeight: 600,
           letterSpacing: 0.5,
-          textTransform: "uppercase",
+          textTransform: "",
           marginBottom: 6,
           paddingLeft: 3,
         }}
@@ -100,7 +100,7 @@ export function UnansweredNotesSection({ missionId }: { missionId: string }) {
                   color,
                   fontSize: 8,
                   fontWeight: 700,
-                  textTransform: "uppercase",
+                  textTransform: "",
                   letterSpacing: 0.5,
                 }}
               >
@@ -128,7 +128,7 @@ export function UnansweredNotesSection({ missionId }: { missionId: string }) {
                       hash: n.question_id,
                     })
                   }
-                  className="text-[11px] font-medium hover:underline"
+                  className="text-[12px] font-medium hover:underline"
                   style={{ color, background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
                 >
                   Reply →

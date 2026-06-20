@@ -54,7 +54,7 @@ export function OracleResearchLibrary({ missionId, isAdmin }: { missionId: strin
             <div key={type}>
               <div
                 className="mb-1"
-                style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.45)", fontWeight: 600 }}
+                style={{ fontSize: 10, textTransform: "", letterSpacing: "0.08em", color: "rgba(255,255,255,0.45)", fontWeight: 600 }}
               >
                 {TYPE_LABELS[type] ?? type.replace(/_/g, " ")}
               </div>

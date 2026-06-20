@@ -25,7 +25,7 @@ export function OracleProcurementEvolution({ missionId }: { missionId: string })
   if (!data) {
     return (
       <div className="rounded border bg-card p-8 text-center">
-        <p className="text-sm text-muted-foreground">No procurement evolution analysis yet. Upload a prior RFP in your Intelligence Loadout to generate this analysis.</p>
+        <p className="text-[14px] text-muted-foreground">No procurement evolution analysis yet. Upload a prior RFP in your Intelligence Loadout to generate this analysis.</p>
         <Button className="mt-4" onClick={() => navigate({ to: "/olympus/missions/$missionId/wizard", params: { missionId }, search: { step: 1 } as never })}>Go to Intelligence Loadout</Button>
       </div>
     );
@@ -35,7 +35,7 @@ export function OracleProcurementEvolution({ missionId }: { missionId: string })
     return (
       <div className="rounded border bg-card p-8 text-center">
         <div className="text-2xl animate-pulse">✦</div>
-        <p className="text-sm mt-2">Procurement Evolution Analysis is being generated. This may take a few minutes.</p>
+        <p className="text-[14px] mt-2">Procurement Evolution Analysis is being generated. This may take a few minutes.</p>
       </div>
     );
   }
@@ -48,27 +48,27 @@ export function OracleProcurementEvolution({ missionId }: { missionId: string })
   return (
     <div className="space-y-4">
       <div className="rounded-lg border bg-card p-4">
-        <h2 className="text-lg font-semibold">Procurement Evolution Analysis</h2>
-        <div className="text-xs text-muted-foreground mt-1">Completed {new Date(data.analysis_completed_at).toLocaleString()}</div>
-        {data.iris_summary && <p className="text-sm mt-3">{data.iris_summary}</p>}
+        <h2 className="text-lg font-medium">Procurement Evolution Analysis</h2>
+        <div className="text-[12px] text-muted-foreground mt-1">Completed {new Date(data.analysis_completed_at).toLocaleString()}</div>
+        {data.iris_summary && <p className="text-[14px] mt-3">{data.iris_summary}</p>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card title="Material Changes" count={material.length}>
           {material.map((c, i) => (
-            <div key={i} className="border-l-2 border-primary/30 pl-2 py-1 text-xs">
-              <Badge variant="outline" className="text-[10px]">{String(c.change_type ?? "Change")}</Badge>
+            <div key={i} className="border-l-2 border-primary/30 pl-2 py-1 text-[12px]">
+              <Badge variant="outline" className="text-[11px]">{String(c.change_type ?? "Change")}</Badge>
               <div className="mt-1">{String(c.description ?? "")}</div>
               {Boolean(c.prior_version) && <div className="text-muted-foreground"><strong>Prior:</strong> {String(c.prior_version)}</div>}
               {Boolean(c.current_version) && <div className="text-muted-foreground"><strong>Current:</strong> {String(c.current_version)}</div>}
-              {Boolean(c.significance) && <div className="text-[10px] italic mt-1">{String(c.significance)}</div>}
+              {Boolean(c.significance) && <div className="text-[11px] italic mt-1">{String(c.significance)}</div>}
             </div>
           ))}
         </Card>
 
         <Card title="New Sections Added" count={sections.length}>
           {sections.map((s, i) => (
-            <div key={i} className="text-xs py-1">
+            <div key={i} className="text-[12px] py-1">
               <div className="font-medium">{String(s.name ?? "Section")}</div>
               {Boolean(s.description) && <div className="text-muted-foreground">{String(s.description)}</div>}
               {Boolean(s.signal) && <div className="italic text-[#C9A55C] mt-1">{String(s.signal)}</div>}
@@ -78,7 +78,7 @@ export function OracleProcurementEvolution({ missionId }: { missionId: string })
 
         <Card title="Requirements That Got Stricter" count={tightened.length} amber>
           {tightened.map((t, i) => (
-            <div key={i} className="text-xs py-1">
+            <div key={i} className="text-[12px] py-1">
               <div className="font-medium">{String(t.requirement ?? "Requirement")}</div>
               {Boolean(t.what_changed) && <div className="text-muted-foreground">{String(t.what_changed)}</div>}
               {Boolean(t.signal) && <div className="italic text-[#C9A55C] mt-1">{String(t.signal)}</div>}
@@ -88,7 +88,7 @@ export function OracleProcurementEvolution({ missionId }: { missionId: string })
 
         <Card title="Scoring Weight Changes" count={scoring.length}>
           {scoring.map((s, i) => (
-            <div key={i} className="text-xs py-1">
+            <div key={i} className="text-[12px] py-1">
               <div className="font-medium">{String(s.section ?? "Section")}</div>
               <div>{String(s.old_weight ?? "?")} → {String(s.new_weight ?? "?")}</div>
               {Boolean(s.significance) && <div className="italic mt-1">{String(s.significance)}</div>}
@@ -100,14 +100,14 @@ export function OracleProcurementEvolution({ missionId }: { missionId: string })
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {data.iris_signals && (
           <div className="rounded border-l-4 border-[#C9A55C] bg-card p-4">
-            <div className="text-xs font-semibold uppercase tracking-wider mb-2">What These Changes Signal</div>
-            <p className="text-sm">{data.iris_signals}</p>
+            <div className="text-[12px] font-medium   mb-2">What These Changes Signal</div>
+            <p className="text-[14px]">{data.iris_signals}</p>
           </div>
         )}
         {data.iris_recommendations && (
           <div className="rounded border-l-4 border-primary bg-card p-4">
-            <div className="text-xs font-semibold uppercase tracking-wider mb-2">What You Should Do Differently</div>
-            <p className="text-sm">{data.iris_recommendations}</p>
+            <div className="text-[12px] font-medium   mb-2">What You Should Do Differently</div>
+            <p className="text-[14px]">{data.iris_recommendations}</p>
           </div>
         )}
       </div>
@@ -119,11 +119,11 @@ function Card({ title, count, amber, children }: { title: string; count: number;
   return (
     <div className={`rounded-lg border bg-card p-4 ${amber ? "border-[#D4800A]/60" : ""}`}>
       <div className="flex items-center justify-between mb-2">
-        <h3 className={`text-sm font-semibold uppercase tracking-wider ${amber ? "text-[#D4800A]" : ""}`}>{title}</h3>
+        <h3 className={`text-[14px] font-medium   ${amber ? "text-[#D4800A]" : ""}`}>{title}</h3>
         <Badge variant="outline">{count}</Badge>
       </div>
       <div className="space-y-2">
-        {count === 0 ? <div className="text-xs text-muted-foreground italic">None</div> : children}
+        {count === 0 ? <div className="text-[12px] text-muted-foreground italic">None</div> : children}
       </div>
     </div>
   );

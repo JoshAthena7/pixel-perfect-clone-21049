@@ -142,7 +142,7 @@ export function SectionTimeline({ missionId, isAdmin }: { missionId: string; isA
       <div className="mb-3">
         <div
           className="mb-2"
-          style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}
+          style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "", letterSpacing: "0.05em" }}
         >
           Upcoming milestones (next 7 days)
         </div>

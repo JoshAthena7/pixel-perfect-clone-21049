@@ -602,7 +602,7 @@ function IrisOnboarding({ userId, firstName, sessionId, startAtModule, onComplet
                       letterSpacing: 1.5,
                       color: "color-mix(in oklab, var(--iris) 80%, white)",
                       marginBottom: 6,
-                      textTransform: "uppercase",
+                      textTransform: "",
                       fontWeight: 600,
                     }}
                   >

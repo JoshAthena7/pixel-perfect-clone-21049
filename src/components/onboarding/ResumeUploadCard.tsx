@@ -71,11 +71,11 @@ export function ResumeUploadCard({ onParsed, onSkip }: Props) {
         {busy ? (
           <div className="flex flex-col items-center gap-3">
             <Loader2 className="h-7 w-7 animate-spin text-primary" />
-            <div className="text-sm font-medium text-foreground">
+            <div className="text-[14px] font-medium text-foreground">
               {reading ? "Reading your resume…" : "IRIS is reading your resume…"}
             </div>
             {fileName && (
-              <div className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <div className="inline-flex items-center gap-1.5 text-[12px] text-muted-foreground">
                 <FileText className="h-3 w-3" /> {fileName}
               </div>
             )}
@@ -85,7 +85,7 @@ export function ResumeUploadCard({ onParsed, onSkip }: Props) {
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
               <Upload className="h-5 w-5 text-primary" />
             </div>
-            <div className="mt-3 text-sm font-medium text-foreground">
+            <div className="mt-3 text-[14px] font-medium text-foreground">
               Drop your resume here, or{" "}
               <button
                 type="button"
@@ -95,11 +95,11 @@ export function ResumeUploadCard({ onParsed, onSkip }: Props) {
                 browse
               </button>
             </div>
-            <div className="mt-1 text-[11px] text-muted-foreground">
+            <div className="mt-1 text-[12px] text-muted-foreground">
               PDF or .docx · max 5 MB · stays on your device — only the parsed expertise is saved
             </div>
             {fileName && status === "done" && (
-              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-[11px] text-emerald-300">
+              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-[12px] text-emerald-300">
                 <Sparkles className="h-3 w-3" /> Parsed {fileName}
               </div>
             )}
@@ -133,7 +133,7 @@ export function ResumeUploadCard({ onParsed, onSkip }: Props) {
         </div>
       )}
 
-      <div className="flex items-center justify-between text-[11px]">
+      <div className="flex items-center justify-between text-[12px]">
         <button
           type="button"
           onClick={onSkip}

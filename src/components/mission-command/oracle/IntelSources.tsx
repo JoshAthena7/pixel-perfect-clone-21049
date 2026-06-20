@@ -73,12 +73,12 @@ export function IntelSources({ missionId }: { missionId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <div className="text-xs text-white/50">
+        <div className="text-[12px] text-white/50">
           {oracleSources.length} ORACLE · {sources.length} legacy
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          className="inline-flex items-center gap-1 rounded px-3 py-1.5 text-xs"
+          className="inline-flex items-center gap-1 rounded px-3 py-1.5 text-[12px]"
           style={{ background: "rgba(196,154,43,0.12)", color: GOLD, border: "0.5px solid rgba(196,154,43,0.3)" }}
         >
           <Plus className="h-3 w-3" /> Add Source
@@ -87,7 +87,7 @@ export function IntelSources({ missionId }: { missionId: string }) {
 
       {oracleSources.length > 0 && (
         <section>
-          <div className="text-[10px] uppercase tracking-wider mb-2 pb-1" style={{ color: GOLD, borderBottom: `1px solid ${GOLD}33` }}>
+          <div className="text-[11px]   mb-2 pb-1" style={{ color: GOLD, borderBottom: `1px solid ${GOLD}33` }}>
             ORACLE Source Registry ({oracleSources.length})
           </div>
           <div className="space-y-2">
@@ -97,7 +97,7 @@ export function IntelSources({ missionId }: { missionId: string }) {
       )}
 
       {sources.length > 0 && (
-        <div className="text-[10px] uppercase tracking-wider pt-2" style={{ color: "rgba(255,255,255,0.4)" }}>
+        <div className="text-[11px]   pt-2" style={{ color: "rgba(255,255,255,0.4)" }}>
           Legacy Sources
         </div>
       )}
@@ -113,7 +113,7 @@ export function IntelSources({ missionId }: { missionId: string }) {
             if (!items.length) return null;
             return (
               <section key={g.id}>
-                <div className="text-[10px] uppercase tracking-wider mb-2 pb-1" style={{ color: g.color, borderBottom: `1px solid ${g.color}33` }}>
+                <div className="text-[11px]   mb-2 pb-1" style={{ color: g.color, borderBottom: `1px solid ${g.color}33` }}>
                   {g.label} ({items.length})
                 </div>
                 <div className="space-y-2">
@@ -162,7 +162,7 @@ function SourceCard({ source, accent }: { source: any; accent: string }) {
     <div className="rounded-lg p-3" style={{ background: "rgba(5,13,24,0.5)", border: `1px solid ${accent}33`, borderLeftWidth: 3 }}>
       <div className="flex justify-between items-start gap-3">
         <div className="min-w-0 flex-1">
-          <div className="text-sm text-white font-medium flex items-center gap-2">
+          <div className="text-[14px] text-white font-medium flex items-center gap-2">
             <span className="truncate">{title}</span>
             {source.url && (
               <a href={source.url} target="_blank" rel="noreferrer" className="text-white/40 hover:text-white/70 shrink-0">
@@ -170,8 +170,8 @@ function SourceCard({ source, accent }: { source: any; accent: string }) {
               </a>
             )}
           </div>
-          {source.summary && <div className="text-xs text-white/55 mt-1 line-clamp-2">{source.summary}</div>}
-          <div className="flex gap-3 mt-2 text-[10px] text-white/40">
+          {source.summary && <div className="text-[12px] text-white/55 mt-1 line-clamp-2">{source.summary}</div>}
+          <div className="flex gap-3 mt-2 text-[11px] text-white/40">
             {source.author && <span>by {source.author}</span>}
             {source.published_at && <span>{source.published_at}</span>}
           </div>
@@ -226,7 +226,7 @@ function OracleSourceCard({ source }: { source: any }) {
     <div className="rounded-lg p-3" style={{ background: "rgba(5,13,24,0.5)", border: `1px solid ${tColor}33`, borderLeftWidth: 3 }}>
       <div className="flex justify-between items-start gap-3">
         <div className="min-w-0 flex-1">
-          <div className="text-sm text-white font-medium flex items-center gap-2">
+          <div className="text-[14px] text-white font-medium flex items-center gap-2">
             <span className="truncate">{source.source_name}</span>
             {source.source_url && (
               <a href={source.source_url} target="_blank" rel="noreferrer" className="text-white/40 hover:text-white/70 shrink-0">
@@ -234,13 +234,13 @@ function OracleSourceCard({ source }: { source: any }) {
               </a>
             )}
           </div>
-          {source.description && <div className="text-xs text-white/55 mt-1 line-clamp-2">{source.description}</div>}
-          <div className="flex items-center gap-2 mt-2 flex-wrap text-[10px] text-white/45">
+          {source.description && <div className="text-[12px] text-white/55 mt-1 line-clamp-2">{source.description}</div>}
+          <div className="flex items-center gap-2 mt-2 flex-wrap text-[11px] text-white/45">
             <span
               style={{
                 padding: "1px 6px", borderRadius: 3,
                 background: `${tColor}22`, color: tColor, border: `1px solid ${tColor}55`,
-                textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600,
+                textTransform: "", letterSpacing: "0.06em", fontWeight: 600,
               }}
             >
               {source.tier}{source.tier === "state" && source.state_code ? ` · ${source.state_code}` : ""}
@@ -263,8 +263,8 @@ function OracleSourceCard({ source }: { source: any }) {
 function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (
     <div className="rounded-lg py-12 text-center" style={{ background: "rgba(5,13,24,0.4)", border: "1px dashed rgba(255,255,255,0.1)" }}>
-      <div className="text-sm text-white/60">No sources captured yet.</div>
-      <button onClick={onAdd} className="mt-3 text-xs underline" style={{ color: GOLD }}>Add your first source</button>
+      <div className="text-[14px] text-white/60">No sources captured yet.</div>
+      <button onClick={onAdd} className="mt-3 text-[12px] underline" style={{ color: GOLD }}>Add your first source</button>
     </div>
   );
 }
@@ -307,28 +307,28 @@ function AddSourceDialog({ missionId, onClose, onSaved }: { missionId: string; o
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)" }}>
       <div className="w-full max-w-md rounded-lg p-5" style={{ background: "#0a121e", border: "1px solid rgba(196,154,43,0.3)" }}>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-medium text-white">Add Source</h3>
+          <h3 className="text-[14px] font-medium text-white">Add Source</h3>
           <button onClick={onClose}><X className="h-4 w-4 text-white/60" /></button>
         </div>
         <div className="space-y-3">
           <Field label="Name / Title *">
-            <input value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded px-2 py-1.5 text-sm text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }} />
+            <input value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded px-2 py-1.5 text-[14px] text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }} />
           </Field>
           <Field label="Type">
-            <select value={sourceType} onChange={(e) => setSourceType(e.target.value)} className="w-full rounded px-2 py-1.5 text-sm text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <select value={sourceType} onChange={(e) => setSourceType(e.target.value)} className="w-full rounded px-2 py-1.5 text-[14px] text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
               {SOURCE_GROUPS.map((g) => <option key={g.id} value={g.id} style={{ background: "#0a121e" }}>{g.label}</option>)}
             </select>
           </Field>
           <Field label="URL">
-            <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." className="w-full rounded px-2 py-1.5 text-sm text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }} />
+            <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." className="w-full rounded px-2 py-1.5 text-[14px] text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }} />
           </Field>
           <Field label="Summary">
-            <textarea value={summary} onChange={(e) => setSummary(e.target.value)} rows={3} className="w-full rounded px-2 py-1.5 text-sm text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }} />
+            <textarea value={summary} onChange={(e) => setSummary(e.target.value)} rows={3} className="w-full rounded px-2 py-1.5 text-[14px] text-white" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }} />
           </Field>
         </div>
         <div className="flex justify-end gap-2 mt-4">
-          <button onClick={onClose} className="px-3 py-1.5 text-xs text-white/60">Cancel</button>
-          <button onClick={submit} disabled={saving || !name.trim()} className="px-3 py-1.5 text-xs rounded" style={{ background: GOLD, color: "#000" }}>
+          <button onClick={onClose} className="px-3 py-1.5 text-[12px] text-white/60">Cancel</button>
+          <button onClick={submit} disabled={saving || !name.trim()} className="px-3 py-1.5 text-[12px] rounded" style={{ background: GOLD, color: "#000" }}>
             {saving ? "Saving..." : "Save"}
           </button>
         </div>
@@ -340,7 +340,7 @@ function AddSourceDialog({ missionId, onClose, onSaved }: { missionId: string; o
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="text-xs text-white/60 block mb-1">{label}</label>
+      <label className="text-[12px] text-white/60 block mb-1">{label}</label>
       {children}
     </div>
   );

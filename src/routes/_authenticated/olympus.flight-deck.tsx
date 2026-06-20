@@ -87,7 +87,7 @@ function DeskQaPanel() {
   if (isLoading) return <div className="p-8"><Skeleton className="h-40" /></div>;
   if (!missionId) {
     return (
-      <div className="mx-auto max-w-3xl p-8 text-sm text-muted-foreground">
+      <div className="mx-auto max-w-3xl p-8 text-[14px] text-muted-foreground">
         No mission Q&A available — you have no active assignments.
       </div>
     );
@@ -279,10 +279,10 @@ function FlightDeck() {
   if (bootstrapped && !memberId && !isAdmin) {
     return (
       <div className="mx-auto max-w-3xl p-8">
-        <Link to="/olympus" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <Link to="/olympus" className="inline-flex items-center gap-1 text-[14px] text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Back
         </Link>
-        <h1 className="text-2xl font-bold mt-4">Flight Deck</h1>
+        <h1 className="text-2xl font-medium mt-4">Flight Deck</h1>
         <p className="text-muted-foreground mt-2">
           Your account is not linked to a team member profile yet.
         </p>
@@ -342,16 +342,16 @@ function FlightDeck() {
       <div className="border-b border-[#C49A2B]/30 bg-[#0D1B3E]/80">
         <div className="mx-auto max-w-6xl px-6 py-5 flex items-center gap-4">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-[#C49A2B]">Athena · ATLAS</p>
-            <h1 className="text-2xl font-bold text-foreground">Flight Deck</h1>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px]  tracking-[0.2em] text-[#C49A2B]">Athena · ATLAS</p>
+            <h1 className="text-2xl font-medium text-foreground">Flight Deck</h1>
+            <p className="text-[12px] text-muted-foreground">
               {userName || "Writer"} · {totalLoad} active {totalLoad === 1 ? "assignment" : "assignments"}
             </p>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <Link
               to="/olympus"
-              className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+              className="text-[12px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Olympus
             </Link>
@@ -443,20 +443,20 @@ function FlightDeck() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-mono text-xs text-[#C49A2B]">
+                          <span className="font-mono text-[12px] text-[#C49A2B]">
                             {q!.question_number}
                           </span>
-                          <span className="text-sm font-semibold text-foreground">
+                          <span className="text-[14px] font-medium text-foreground">
                             {missionName(a.mission_id)}
                           </span>
-                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          <span className="text-[11px]   text-muted-foreground">
                             {sectionLookup(q!.section_id)?.name ?? ""}
                           </span>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                        <p className="text-[14px] text-muted-foreground mt-1 line-clamp-2">
                           {q!.question_text}
                         </p>
-                        <div className="flex items-center gap-3 mt-2 text-xs">
+                        <div className="flex items-center gap-3 mt-2 text-[12px]">
                           {due && (
                             <span className={urgent ? "text-red-400" : "text-muted-foreground"}>
                               Due {format(due, "MMM d")}
@@ -471,7 +471,7 @@ function FlightDeck() {
                       <Link
                         to="/olympus/missions/$missionId"
                         params={{ missionId: a.mission_id }}
-                        className="text-xs text-[#C49A2B] hover:underline inline-flex items-center gap-1 shrink-0"
+                        className="text-[12px] text-[#C49A2B] hover:underline inline-flex items-center gap-1 shrink-0"
                       >
                         Open <ExternalLink className="h-3 w-3" />
                       </Link>
@@ -489,9 +489,9 @@ function FlightDeck() {
             />
             <div className="rounded-xl border border-border bg-surface/40 p-5 space-y-4">
               <div>
-                <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center justify-between text-[12px]">
                   <span className="text-muted-foreground">Current load</span>
-                  <span className={cn("font-semibold", capacityTone)}>{capacityPct}%</span>
+                  <span className={cn("font-medium", capacityTone)}>{capacityPct}%</span>
                 </div>
                 <div className="mt-2 h-2 w-full rounded-full bg-background/60 overflow-hidden">
                   <div
@@ -506,7 +506,7 @@ function FlightDeck() {
                     style={{ width: `${capacityPct}%` }}
                   />
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1">
+                <p className="text-[11px] text-muted-foreground mt-1">
                   {totalLoad} of ~8 recommended concurrent assignments
                 </p>
               </div>
@@ -553,15 +553,15 @@ function FlightDeck() {
                   <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-[#C49A2B]" />
-                      <span className="font-semibold text-foreground">{missionName(mid)}</span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground">{missionName(mid)}</span>
+                      <span className="text-[12px] text-muted-foreground">
                         {list.length} {list.length === 1 ? "question" : "questions"}
                       </span>
                     </div>
                     <Link
                       to="/olympus/missions/$missionId"
                       params={{ missionId: mid }}
-                      className="text-xs text-[#C49A2B] hover:underline inline-flex items-center gap-1"
+                      className="text-[12px] text-[#C49A2B] hover:underline inline-flex items-center gap-1"
                     >
                       Mission Command <ExternalLink className="h-3 w-3" />
                     </Link>
@@ -573,14 +573,14 @@ function FlightDeck() {
                       const due = q.due_date ? new Date(q.due_date) : null;
                       return (
                         <li key={a.id} className="px-4 py-3 flex flex-wrap items-center gap-3">
-                          <span className="font-mono text-xs text-[#C49A2B] w-16 shrink-0">
+                          <span className="font-mono text-[12px] text-[#C49A2B] w-16 shrink-0">
                             {q.question_number}
                           </span>
-                          <span className="text-sm text-foreground flex-1 min-w-0 truncate">
+                          <span className="text-[14px] text-foreground flex-1 min-w-0 truncate">
                             {q.question_text}
                           </span>
                           {due && (
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-[12px] text-muted-foreground">
                               {format(due, "MMM d")}
                             </span>
                           )}
@@ -613,16 +613,16 @@ function SectionHeader({
     <div className="flex items-end justify-between mb-3">
       <div className="flex items-center gap-2">
         {icon}
-        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        <h2 className="text-base font-medium text-foreground">{title}</h2>
       </div>
-      {hint && <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{hint}</span>}
+      {hint && <span className="text-[11px]   text-muted-foreground">{hint}</span>}
     </div>
   );
 }
 
 function EmptyTile({ message }: { message: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+    <div className="rounded-xl border border-dashed border-border p-8 text-center text-[14px] text-muted-foreground">
       {message}
     </div>
   );
@@ -631,8 +631,8 @@ function EmptyTile({ message }: { message: string }) {
 function Stat({ label, value, tone }: { label: string; value: number; tone: string }) {
   return (
     <div className="rounded-lg bg-background/40 py-2">
-      <div className={cn("text-lg font-bold", tone)}>{value}</div>
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className={cn("text-lg font-medium", tone)}>{value}</div>
+      <div className="text-[11px]   text-muted-foreground">{label}</div>
     </div>
   );
 }
@@ -644,7 +644,7 @@ function ConfidencePill({ level }: { level: string }) {
     low: "border-red-500/40 text-red-400 bg-red-500/10",
   };
   return (
-    <span className={cn("text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border", map[level] ?? "border-border text-muted-foreground")}>
+    <span className={cn("text-[11px]   px-2 py-0.5 rounded-full border", map[level] ?? "border-border text-muted-foreground")}>
       {level}
     </span>
   );
@@ -661,7 +661,7 @@ function StatusPill({ status }: { status: string | null }) {
           ? "text-red-400 border-red-500/40 bg-red-500/10"
           : "text-muted-foreground border-border";
   return (
-    <span className={cn("text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border", tone)}>
+    <span className={cn("text-[11px]   px-2 py-0.5 rounded-full border", tone)}>
       {status.replace(/_/g, " ")}
     </span>
   );
@@ -706,8 +706,8 @@ function IrisAssistsPanel({
             <li key={s.id} className="px-4 py-3 flex items-start gap-3">
               <Icon className={cn("h-4 w-4 mt-0.5 shrink-0", meta.tone)} />
               <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <span className={cn("uppercase tracking-wider font-semibold", meta.tone)}>
+                <div className="flex flex-wrap items-center gap-2 text-[12px]">
+                  <span className={cn("  font-medium", meta.tone)}>
                     {meta.label}
                   </span>
                   {q && <span className="font-mono text-[#C49A2B]">{q.question_number}</span>}
@@ -716,9 +716,9 @@ function IrisAssistsPanel({
                     {formatDistanceToNow(new Date(s.created_at), { addSuffix: true })}
                   </span>
                 </div>
-                <p className="text-sm text-foreground mt-1">{s.signal_title}</p>
+                <p className="text-[14px] text-foreground mt-1">{s.signal_title}</p>
                 {s.signal_summary && (
-                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                  <p className="text-[12px] text-muted-foreground mt-0.5 line-clamp-2">
                     {s.signal_summary}
                   </p>
                 )}
@@ -726,7 +726,7 @@ function IrisAssistsPanel({
               <Link
                 to="/olympus/missions/$missionId"
                 params={{ missionId: s.mission_id }}
-                className="text-xs text-[#C49A2B] hover:underline inline-flex items-center gap-1 shrink-0"
+                className="text-[12px] text-[#C49A2B] hover:underline inline-flex items-center gap-1 shrink-0"
               >
                 Open <ExternalLink className="h-3 w-3" />
               </Link>
@@ -861,22 +861,22 @@ function AcceptanceCard({
     <div className="rounded-xl border border-border border-l-[6px] border-l-primary bg-primary/5 p-5 mb-4">
       <div className="flex items-center gap-2 mb-2">
         <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-        <span className="text-xs font-semibold uppercase tracking-wider text-primary">
+        <span className="text-[12px] font-medium   text-primary">
           Action Required
         </span>
       </div>
-      <h3 className="text-lg font-bold text-foreground">{missionName}</h3>
-      <p className="text-xs text-muted-foreground">You have been assigned:</p>
+      <h3 className="text-lg font-medium text-foreground">{missionName}</h3>
+      <p className="text-[12px] text-muted-foreground">You have been assigned:</p>
       <div className="mt-2">
-        <span className="font-mono text-primary text-sm">{question.question_number}</span>
-        <p className="text-sm text-foreground mt-1">
+        <span className="font-mono text-primary text-[14px]">{question.question_number}</span>
+        <p className="text-[14px] text-foreground mt-1">
           {question.question_text.slice(0, 80)}
           {question.question_text.length > 80 ? "…" : ""}
         </p>
-        {sectionName && <p className="text-xs text-muted-foreground mt-1">{sectionName}</p>}
+        {sectionName && <p className="text-[12px] text-muted-foreground mt-1">{sectionName}</p>}
       </div>
       {due && (
-        <p className="mt-2 text-xs text-muted-foreground">
+        <p className="mt-2 text-[12px] text-muted-foreground">
           Due {format(due, "MMM d, yyyy")}
           {days !== null && ` — ${days} days from now`}
         </p>
@@ -910,8 +910,8 @@ function AcceptanceCard({
 
       {phase === "confidence" && (
         <div className="mt-4">
-          <p className="text-sm font-medium">How confident are you about this assignment?</p>
-          <p className="text-xs text-muted-foreground mb-2">
+          <p className="text-[14px] font-medium">How confident are you about this assignment?</p>
+          <p className="text-[12px] text-muted-foreground mb-2">
             Select your confidence level to complete acceptance.
           </p>
           <div className="flex gap-2">
@@ -936,7 +936,7 @@ function AcceptanceCard({
 
       {phase === "concern" && (
         <div className="mt-4">
-          <p className="text-sm font-medium mb-2">Describe your concern</p>
+          <p className="text-[14px] font-medium mb-2">Describe your concern</p>
           <Textarea
             value={concern}
             onChange={(e) => setConcern(e.target.value)}
@@ -944,7 +944,7 @@ function AcceptanceCard({
             rows={3}
           />
           <div className="mt-2 flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[12px] text-muted-foreground">
               {concern.trim().length}/10 chars minimum
             </span>
             <Button
@@ -961,7 +961,7 @@ function AcceptanceCard({
       {phase === "success" && (
         <div className="mt-4 flex items-center gap-2 text-green-400">
           <CheckCircle2 className="h-5 w-5" />
-          <span className="text-sm font-medium">
+          <span className="text-[14px] font-medium">
             {confidence ? "Assignment accepted. Good luck." : "Response recorded."}
           </span>
         </div>
@@ -981,8 +981,8 @@ function IRISAlertsSection({
     <div className="mt-6 rounded-xl border border-amber-500/40 bg-amber-500/5 p-4">
       <div className="flex items-center gap-2 mb-3">
         <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-        <h3 className="font-semibold text-amber-400">IRIS Alerts</h3>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">
+        <h3 className="font-medium text-amber-400">IRIS Alerts</h3>
+        <span className="text-[12px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">
           {alerts.length}
         </span>
       </div>
@@ -994,14 +994,14 @@ function IRISAlertsSection({
           >
             <AlertTriangle className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
             <div className="min-w-0 flex-1">
-              <p className="text-sm">{n.message}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">
+              <p className="text-[14px]">{n.message}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 {n.created_at && format(new Date(n.created_at), "MMM d, h:mm a")}
               </p>
             </div>
             <button
               onClick={() => onDismiss(n.id)}
-              className="text-xs text-primary hover:underline shrink-0"
+              className="text-[12px] text-primary hover:underline shrink-0"
             >
               Dismiss
             </button>

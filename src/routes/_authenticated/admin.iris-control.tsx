@@ -77,9 +77,9 @@ function Stat({
       : "text-white";
   return (
     <div className="rounded-lg border border-white/10 bg-black/30 px-3 py-2.5">
-      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className={`text-xl font-semibold ${toneCls}`}>{value}</div>
-      {hint && <div className="text-[10px] text-muted-foreground mt-0.5">{hint}</div>}
+      <div className="text-[11px]  tracking-wide text-muted-foreground">{label}</div>
+      <div className={`text-xl font-medium ${toneCls}`}>{value}</div>
+      {hint && <div className="text-[11px] text-muted-foreground mt-0.5">{hint}</div>}
     </div>
   );
 }
@@ -114,10 +114,10 @@ function HealthDashboard() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold flex items-center gap-2">
+        <h2 className="text-[14px] font-medium flex items-center gap-2">
           <Activity className="h-4 w-4 text-amber-400" /> IRIS Health · live dashboard
         </h2>
-        <div className="text-[11px] text-muted-foreground">
+        <div className="text-[12px] text-muted-foreground">
           {wiring.isFetching || status.isFetching ? "refreshing…" : `updated ${fmtAgo(wiring.data?.generatedAt)}`}
           {" · auto every 30s · "}
           <Link to="/admin/iris-health" className="underline">full health view →</Link>
@@ -169,25 +169,25 @@ function HealthDashboard() {
 
       {/* Pipelines */}
       <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-        <div className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <div className="mb-2 text-[12px] font-medium text-muted-foreground  tracking-wide">
           Cron pipelines ({jobs.length})
         </div>
         {status.isLoading ? (
-          <div className="text-xs text-muted-foreground py-2">Loading pipeline status…</div>
+          <div className="text-[12px] text-muted-foreground py-2">Loading pipeline status…</div>
         ) : status.error ? (
-          <div className="text-xs text-red-400 py-2">
+          <div className="text-[12px] text-red-400 py-2">
             {(status.error as Error).message ?? "Failed to load pipeline status"}
           </div>
         ) : jobs.length === 0 ? (
-          <div className="text-xs text-muted-foreground py-2">No pipelines registered.</div>
+          <div className="text-[12px] text-muted-foreground py-2">No pipelines registered.</div>
         ) : (
           <ul className="divide-y divide-white/5">
             {jobs.map((j: any) => {
               const last = j.runs?.[0];
               return (
-                <li key={j.jobid} className="flex items-center gap-3 py-2 text-xs">
+                <li key={j.jobid} className="flex items-center gap-3 py-2 text-[12px]">
                   <span
-                    className={`inline-block rounded border px-1.5 py-0.5 text-[10px] font-medium ${pipelineTone(last?.status)}`}
+                    className={`inline-block rounded border px-1.5 py-0.5 text-[11px] font-medium ${pipelineTone(last?.status)}`}
                   >
                     {last?.status ?? "—"}
                   </span>
@@ -197,7 +197,7 @@ function HealthDashboard() {
                     {j.active ? "active" : "paused"} · last {fmtAgo(last?.start_time)}
                   </span>
                   {!j.hookPath && (
-                    <span className="text-[10px] text-amber-400" title="No public hook mapped">
+                    <span className="text-[11px] text-amber-400" title="No public hook mapped">
                       no hook
                     </span>
                   )}
@@ -211,24 +211,24 @@ function HealthDashboard() {
       {/* Two-column: failures + open flags */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-          <div className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+          <div className="mb-2 text-[12px] font-medium text-muted-foreground  tracking-wide flex items-center gap-1.5">
             <AlertTriangle className="h-3.5 w-3.5 text-red-400" /> Recent hook failures
           </div>
           {(wiring.data?.recentHookFailures.length ?? 0) === 0 ? (
-            <div className="text-xs text-muted-foreground py-1.5">No failures recorded. ✓</div>
+            <div className="text-[12px] text-muted-foreground py-1.5">No failures recorded. ✓</div>
           ) : (
             <ul className="space-y-1.5">
               {wiring.data!.recentHookFailures.map((f) => (
-                <li key={f.id} className="text-xs border-l-2 border-red-500/40 pl-2">
+                <li key={f.id} className="text-[12px] border-l-2 border-red-500/40 pl-2">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="font-mono text-white/90 truncate">{f.hook_name ?? "?"}</span>
-                    <span className="text-[10px] text-muted-foreground shrink-0">
+                    <span className="text-[11px] text-muted-foreground shrink-0">
                       {f.status_code ?? "—"} · {fmtAgo(f.created_at)}
                       {f.acknowledged_at ? " · ack" : ""}
                     </span>
                   </div>
                   {f.error_message && (
-                    <div className="text-[11px] text-red-300/90 truncate">{f.error_message}</div>
+                    <div className="text-[12px] text-red-300/90 truncate">{f.error_message}</div>
                   )}
                 </li>
               ))}
@@ -237,11 +237,11 @@ function HealthDashboard() {
         </div>
 
         <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-          <div className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+          <div className="mb-2 text-[12px] font-medium text-muted-foreground  tracking-wide flex items-center gap-1.5">
             <AlertCircle className="h-3.5 w-3.5 text-amber-400" /> Open IRIS health flags
           </div>
           {(wiring.data?.openFlags.length ?? 0) === 0 ? (
-            <div className="text-xs text-muted-foreground py-1.5">No open flags. ✓</div>
+            <div className="text-[12px] text-muted-foreground py-1.5">No open flags. ✓</div>
           ) : (
             <ul className="space-y-1.5">
               {wiring.data!.openFlags.map((f) => {
@@ -253,16 +253,16 @@ function HealthDashboard() {
                     ? "text-amber-400 border-amber-500/40 bg-amber-500/10"
                     : "text-muted-foreground border-white/10 bg-white/5";
                 return (
-                  <li key={f.id} className="text-xs">
+                  <li key={f.id} className="text-[12px]">
                     <div className="flex items-baseline gap-2">
-                      <span className={`inline-block rounded border px-1.5 py-0.5 text-[10px] ${sevTone}`}>
+                      <span className={`inline-block rounded border px-1.5 py-0.5 text-[11px] ${sevTone}`}>
                         {f.severity ?? "?"}
                       </span>
                       <span className="text-white/90 truncate flex-1">{f.title ?? f.trigger_code ?? "(untitled)"}</span>
-                      <span className="text-[10px] text-muted-foreground shrink-0">{fmtAgo(f.raised_at)}</span>
+                      <span className="text-[11px] text-muted-foreground shrink-0">{fmtAgo(f.raised_at)}</span>
                     </div>
                     {f.detail && (
-                      <div className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{f.detail}</div>
+                      <div className="text-[12px] text-muted-foreground line-clamp-2 mt-0.5">{f.detail}</div>
                     )}
                   </li>
                 );
@@ -339,8 +339,8 @@ function IrisControlPage() {
           <Zap className="h-6 w-6 text-amber-400" />
         </div>
         <div className="flex-1">
-          <h1 className="text-2xl font-semibold">IRIS Control</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h1 className="text-2xl font-medium">IRIS Control</h1>
+          <p className="mt-1 text-[14px] text-muted-foreground">
             Real-time health of every IRIS pipeline plus a single-button fan-out
             (Perplexity, Gemini briefs, Firecrawl, cache reset) against one mission.
           </p>
@@ -356,7 +356,7 @@ function IrisControlPage() {
 
       <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-4">
         <div>
-          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          <label className="text-[12px] font-medium text-muted-foreground  tracking-wide">
             Mission
           </label>
           <input
@@ -364,13 +364,13 @@ function IrisControlPage() {
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             placeholder="Filter by name, client, or state…"
-            className="mt-2 w-full rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm"
+            className="mt-2 w-full rounded-md border border-white/10 bg-black/30 px-3 py-2 text-[14px]"
           />
           <select
             value={missionId}
             onChange={(e) => setMissionId(e.target.value)}
             disabled={isLoading}
-            className="mt-2 w-full rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm"
+            className="mt-2 w-full rounded-md border border-white/10 bg-black/30 px-3 py-2 text-[14px]"
             size={Math.min(10, Math.max(4, filtered.length))}
           >
             {filtered.map((m) => (
@@ -383,7 +383,7 @@ function IrisControlPage() {
         </div>
 
         <div className="flex items-center justify-between gap-4">
-          <div className="text-xs text-muted-foreground">
+          <div className="text-[12px] text-muted-foreground">
             {missionId ? (
               <>
                 Selected: <span className="font-mono">{missionId.slice(0, 8)}…</span>
@@ -413,14 +413,14 @@ function IrisControlPage() {
       {results.length > 0 && (
         <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Last run</h2>
-            <span className="text-xs text-muted-foreground">
+            <h2 className="text-[14px] font-medium">Last run</h2>
+            <span className="text-[12px] text-muted-foreground">
               {mutation.data?.summary.succeeded}/{mutation.data?.summary.total} succeeded
             </span>
           </div>
           <ul className="divide-y divide-white/5">
             {results.map((r) => (
-              <li key={r.task} className="flex items-start gap-3 py-2.5 text-sm">
+              <li key={r.task} className="flex items-start gap-3 py-2.5 text-[14px]">
                 {r.ok ? (
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
                 ) : (
@@ -429,11 +429,11 @@ function IrisControlPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="font-medium">{TASK_LABELS[r.task] ?? r.task}</span>
-                    <span className="text-xs font-mono text-muted-foreground">{r.ms}ms</span>
+                    <span className="text-[12px] font-mono text-muted-foreground">{r.ms}ms</span>
                   </div>
                   {(r.detail || r.error) && (
                     <div
-                      className={`mt-0.5 text-xs ${r.ok ? "text-muted-foreground" : "text-red-300"}`}
+                      className={`mt-0.5 text-[12px] ${r.ok ? "text-muted-foreground" : "text-red-300"}`}
                     >
                       {r.error ?? r.detail}
                     </div>
@@ -492,16 +492,16 @@ function BackfillEmbeddingsPanel() {
     <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-sm font-semibold flex items-center gap-2">
+          <h2 className="text-[14px] font-medium flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-amber-400" /> Backfill signal embeddings
           </h2>
-          <p className="mt-1 text-xs text-muted-foreground max-w-xl">
+          <p className="mt-1 text-[12px] text-muted-foreground max-w-xl">
             Generates vector embeddings for oracle signals that don't have one yet so they can
             participate in hybrid semantic search. Safe to re-run — only signals without an
             embedding are processed.
           </p>
           {stats && (
-            <div className="mt-2 text-[11px] font-mono text-muted-foreground">
+            <div className="mt-2 text-[12px] font-mono text-muted-foreground">
               {stats.batches} batch(es) · {stats.processed} embedded · {stats.failed} failed
             </div>
           )}

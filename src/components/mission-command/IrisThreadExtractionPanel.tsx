@@ -81,19 +81,19 @@ export function IrisThreadExtractionPanel({ missionId }: { missionId: string }) 
         <div className="flex items-start gap-2">
           <Zap className="h-4 w-4 mt-0.5" style={{ color: "#C49A2B" }} />
           <div>
-            <div className="text-sm text-white">IRIS Thread Intelligence</div>
-            <div className="text-xs text-white/55 mt-0.5">
+            <div className="text-[14px] text-white">IRIS Thread Intelligence</div>
+            <div className="text-[12px] text-white/55 mt-0.5">
               Scan question threads for proposal intelligence and add captured signals to
               IRIS Memory so future missions can benefit.
             </div>
-            <div className="text-[11px] text-white/45 mt-1.5">{pendingLabel}</div>
+            <div className="text-[12px] text-white/45 mt-1.5">{pendingLabel}</div>
           </div>
         </div>
         <button
           type="button"
           onClick={run}
           disabled={running || (counts.data?.pending ?? 0) === 0}
-          className="inline-flex items-center gap-2 rounded border border-white/15 px-3 py-1.5 text-xs text-white hover:bg-white/5 disabled:opacity-50 whitespace-nowrap"
+          className="inline-flex items-center gap-2 rounded border border-white/15 px-3 py-1.5 text-[12px] text-white hover:bg-white/5 disabled:opacity-50 whitespace-nowrap"
         >
           {running ? (
             <>
@@ -107,7 +107,7 @@ export function IrisThreadExtractionPanel({ missionId }: { missionId: string }) 
         </button>
       </div>
       {result && (
-        <div className="mt-3 text-xs text-white/70 space-y-1 border-t border-white/5 pt-3">
+        <div className="mt-3 text-[12px] text-white/70 space-y-1 border-t border-white/5 pt-3">
           <div>
             <span className="text-white">{result.signals_extracted}</span> intelligence signal
             {result.signals_extracted === 1 ? "" : "s"} added to IRIS Memory across{" "}
@@ -115,7 +115,7 @@ export function IrisThreadExtractionPanel({ missionId }: { missionId: string }) 
             {result.total_questions === 1 ? "" : "s"}.
           </div>
           {result.errors.length > 0 && (
-            <ul className="text-amber-400/80 text-[11px] list-disc pl-4">
+            <ul className="text-amber-400/80 text-[12px] list-disc pl-4">
               {result.errors.map((e, i) => (
                 <li key={i}>{e}</li>
               ))}
@@ -162,8 +162,8 @@ function ScoreGapsSection({ missionId }: { missionId: string }) {
         <div className="flex items-start gap-2">
           <Zap className="h-4 w-4 mt-0.5" style={{ color: "#C49A2B" }} />
           <div>
-            <div className="text-sm text-white">Re-Score All Answered Questions</div>
-            <div className="text-xs text-white/55 mt-0.5">
+            <div className="text-[14px] text-white">Re-Score All Answered Questions</div>
+            <div className="text-[12px] text-white/55 mt-0.5">
               Replay every Score Me result for this mission and log gaps, weak dimensions,
               and low-score risks back into IRIS Memory.
             </div>
@@ -173,7 +173,7 @@ function ScoreGapsSection({ missionId }: { missionId: string }) {
           type="button"
           onClick={run}
           disabled={running}
-          className="inline-flex items-center gap-2 rounded border border-white/15 px-3 py-1.5 text-xs text-white hover:bg-white/5 disabled:opacity-50 whitespace-nowrap"
+          className="inline-flex items-center gap-2 rounded border border-white/15 px-3 py-1.5 text-[12px] text-white hover:bg-white/5 disabled:opacity-50 whitespace-nowrap"
         >
           {running ? (
             <>
@@ -187,7 +187,7 @@ function ScoreGapsSection({ missionId }: { missionId: string }) {
         </button>
       </div>
       {result && (
-        <div className="mt-3 text-xs text-white/70 space-y-1">
+        <div className="mt-3 text-[12px] text-white/70 space-y-1">
           <div>
             <span className="text-white">{result.gaps_written}</span> gap
             {result.gaps_written === 1 ? "" : "s"} captured across{" "}
@@ -195,7 +195,7 @@ function ScoreGapsSection({ missionId }: { missionId: string }) {
             {result.total_questions === 1 ? "" : "s"}.
           </div>
           {result.errors.length > 0 && (
-            <ul className="text-amber-400/80 text-[11px] list-disc pl-4">
+            <ul className="text-amber-400/80 text-[12px] list-disc pl-4">
               {result.errors.map((e, i) => (
                 <li key={i}>{e}</li>
               ))}

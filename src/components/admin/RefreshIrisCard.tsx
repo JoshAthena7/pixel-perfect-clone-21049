@@ -47,14 +47,14 @@ export function RefreshIrisCard() {
           <RefreshCw className="h-5 w-5 text-sky-400" />
         </div>
         <div className="flex-1">
-          <h3 className="font-semibold">Refresh IRIS</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h3 className="font-medium">Refresh IRIS</h3>
+          <p className="mt-1 text-[14px] text-muted-foreground">
             Clear cached briefs and reset the AI circuit breaker. Use after seeding new
             intelligence sources or when IRIS answers feel stale.
           </p>
 
           {lastResult && (
-            <div className="mt-3 rounded-md border border-sky-500/20 bg-sky-500/[0.04] px-3 py-2 text-xs text-sky-200">
+            <div className="mt-3 rounded-md border border-sky-500/20 bg-sky-500/[0.04] px-3 py-2 text-[12px] text-sky-200">
               Cleared <span className="font-mono">{lastResult.cleared}</span> cached briefs ·
               circuit: <span className="font-mono">{lastResult.circuit}</span>
             </div>
@@ -64,7 +64,7 @@ export function RefreshIrisCard() {
             type="button"
             onClick={() => mutation.mutate()}
             disabled={mutation.isPending}
-            className="mt-4 inline-flex items-center gap-2 rounded-md border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-sm font-medium text-sky-200 hover:bg-sky-500/20 disabled:opacity-50"
+            className="mt-4 inline-flex items-center gap-2 rounded-md border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-[14px] font-medium text-sky-200 hover:bg-sky-500/20 disabled:opacity-50"
           >
             {mutation.isPending ? (
               <>

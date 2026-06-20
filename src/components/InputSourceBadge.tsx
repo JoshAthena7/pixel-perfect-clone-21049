@@ -106,13 +106,13 @@ export function LabeledField({
   return (
     <div className={cn("space-y-1.5", className)}>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-[12px] uppercase tracking-wider text-[var(--athena-gold)] font-medium">
+        <span className="text-[12px]   text-[var(--athena-gold)] font-medium">
           {label}
         </span>
         <InputSourceBadge source={source} />
       </div>
       {helper && !filled && (
-        <p className="hidden md:block text-[11px] italic text-muted-foreground">{helper}</p>
+        <p className="hidden md:block text-[12px] italic text-muted-foreground">{helper}</p>
       )}
       {children}
     </div>
@@ -147,7 +147,7 @@ export function IrisInfoCard({
       </div>
       <ul className="space-y-1">
         {items.map((it, i) => (
-          <li key={i} className="text-[11px] text-muted-foreground flex gap-2">
+          <li key={i} className="text-[12px] text-muted-foreground flex gap-2">
             <span style={{ color: "rgba(200,195,255,0.7)" }}>•</span>
             <span>{it}</span>
           </li>
@@ -189,7 +189,7 @@ export function StepMetaIndicator({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-wrap items-center gap-2 text-[11px]", className)}>
+    <div className={cn("flex flex-wrap items-center gap-2 text-[12px]", className)}>
       <span
         className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5"
         style={IRIS_STYLE}

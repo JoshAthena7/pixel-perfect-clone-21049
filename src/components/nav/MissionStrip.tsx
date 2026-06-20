@@ -146,7 +146,7 @@ export function MissionStrip() {
                   <div className="text-[14px] font-medium text-white truncate leading-tight">
                     {ctx?.name ?? <span className="inline-block h-3 w-32 bg-white/10 rounded animate-pulse" />}
                   </div>
-                  <div className="text-[11px] text-white/40 truncate leading-tight">
+                  <div className="text-[12px] text-white/40 truncate leading-tight">
                     {ctx ? (
                       [ctx.client_name, ctx.program_type].filter(Boolean).join(" · ") || " "
                     ) : (
@@ -163,25 +163,25 @@ export function MissionStrip() {
                 {days !== null && (
                   <Chip>
                     <Calendar className="h-3 w-3" />
-                    <span className={cn("text-[11px]", dayColor)}>
+                    <span className={cn("text-[12px]", dayColor)}>
                       {days < 0 ? `${Math.abs(days)}d past` : `${days} days`}
                     </span>
                   </Chip>
                 )}
                 {ctx && ctx.at_risk > 0 && (
-                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-[2px] text-[11px] border"
+                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-[2px] text-[12px] border"
                         style={{ background: "rgba(224,74,74,0.15)", color: "#f08080", borderColor: "rgba(224,74,74,0.3)" }}>
                     <AlertTriangle className="h-3 w-3" /> {ctx.at_risk} at risk
                   </span>
                 )}
                 {ctx?.intelligence_graph_completeness != null && (
-                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-[2px] text-[11px]"
+                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-[2px] text-[12px]"
                         style={{ background: "rgba(196,154,43,0.15)", color: "#C49A2B" }}>
                     Intel: {Math.round(ctx.intelligence_graph_completeness)}%
                   </span>
                 )}
                 {ctx && ctx.team_count > 0 && (
-                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-[2px] text-[11px]"
+                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-[2px] text-[12px]"
                         style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)" }}>
                     {ctx.team_count} team
                   </span>
@@ -191,7 +191,7 @@ export function MissionStrip() {
               {/* Days only on mobile */}
               <div className="md:hidden flex items-center gap-2">
                 {days !== null && (
-                  <span className={cn("text-[11px]", dayColor)}>
+                  <span className={cn("text-[12px]", dayColor)}>
                     {days < 0 ? `${Math.abs(days)}d past` : `${days}d`}
                   </span>
                 )}
@@ -213,7 +213,7 @@ export function MissionStrip() {
             </>
           ) : (
             <>
-              <span className="text-[13px] text-white/40 truncate">
+              <span className="text-[14px] text-white/40 truncate">
                 {simpleLabel || <span className="text-white/30">Select a mission to see context</span>}
               </span>
               <div className="ml-auto relative">
@@ -282,7 +282,7 @@ function StatusChip({ status }: { status: string }) {
     : s === "setup" ? { bg: "rgba(148,163,184,0.7)", color: "#0D1B3E" }
     : { bg: "rgba(255,255,255,0.1)", color: "white" };
   return (
-    <span className="rounded-full px-2 py-[2px] text-[11px] font-semibold uppercase tracking-wider"
+    <span className="rounded-full px-2 py-[2px] text-[12px] font-medium  "
           style={{ background: styles.bg, color: styles.color }}>
       {s}
     </span>
@@ -324,13 +324,13 @@ function TabPills({
           <div className="fixed inset-0 z-[80]">
             <div className="absolute inset-0 bg-black/60" onClick={() => setMoreOpen(false)} />
             <div className="absolute inset-x-0 bottom-0 rounded-t-xl bg-[#0D1B3E] border-t border-[var(--athena-gold)]/40 p-4 max-h-[70vh] overflow-y-auto">
-              <div className="text-xs uppercase tracking-widest text-[var(--athena-gold)] font-bold mb-3">All Tabs</div>
+              <div className="text-[12px]   text-[var(--athena-gold)] font-medium mb-3">All Tabs</div>
               {tabs.map((t) => (
                 <button
                   key={t.id}
                   onClick={() => { setMoreOpen(false); onPick(t.id); }}
                   className={cn(
-                    "w-full text-left px-3 py-2 rounded text-sm flex items-center gap-2",
+                    "w-full text-left px-3 py-2 rounded text-[14px] flex items-center gap-2",
                     t.id === activeTab ? "bg-[var(--athena-gold)]/20 text-[var(--athena-gold)]" : "text-white/80 hover:bg-white/5",
                   )}
                 >

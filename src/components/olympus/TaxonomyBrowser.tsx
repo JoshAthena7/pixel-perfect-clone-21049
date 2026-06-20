@@ -51,10 +51,10 @@ export function TaxonomyBrowser({
   }, [q.data]);
 
   if (q.isLoading) {
-    return <div className="text-[11px] text-white/40 py-4">Loading taxonomy…</div>;
+    return <div className="text-[12px] text-white/40 py-4">Loading taxonomy…</div>;
   }
   if (q.error) {
-    return <div className="text-[11px] text-red-400 py-4">{(q.error as Error).message}</div>;
+    return <div className="text-[12px] text-red-400 py-4">{(q.error as Error).message}</div>;
   }
 
   const roots = byParent.get(null) ?? [];
@@ -76,25 +76,25 @@ export function TaxonomyBrowser({
       </div>
 
       <div className="pt-3 border-t border-white/5">
-        <div className="text-[10px] uppercase tracking-wider text-red-400/80 mb-2">
+        <div className="text-[11px]   text-red-400/80 mb-2">
           Intelligence Gaps · {gaps.length}
         </div>
         {gaps.length === 0 ? (
-          <div className="text-[10px] text-white/30">No gaps — every leaf node has intel.</div>
+          <div className="text-[11px] text-white/30">No gaps — every leaf node has intel.</div>
         ) : (
           <div className="space-y-1 max-h-64 overflow-y-auto pr-1">
             {gaps.slice(0, 50).map((g) => (
               <button
                 key={g.id}
                 onClick={() => onSelect(g.id)}
-                className="w-full text-left text-[10px] text-white/50 hover:text-white/80 py-0.5"
+                className="w-full text-left text-[11px] text-white/50 hover:text-white/80 py-0.5"
               >
                 <span className="text-red-400/80">●</span> {g.node_name}{" "}
                 <span className="text-white/30 font-mono">{g.node_code}</span>
               </button>
             ))}
             {gaps.length > 50 && (
-              <div className="text-[10px] text-white/30">+{gaps.length - 50} more</div>
+              <div className="text-[11px] text-white/30">+{gaps.length - 50} more</div>
             )}
           </div>
         )}
@@ -125,8 +125,8 @@ function TreeNode({
 
   const badgeColor =
     node.count > 5 ? "text-emerald-400/90" : node.count > 0 ? "text-amber-400/90" : "text-red-400/60";
-  const nameSize = node.depth === 0 ? "text-[12px] font-semibold text-white/90" :
-    node.depth === 1 ? "text-[11px] text-white/80" : "text-[10px] text-white/60";
+  const nameSize = node.depth === 0 ? "text-[12px] font-medium text-white/90" :
+    node.depth === 1 ? "text-[12px] text-white/80" : "text-[11px] text-white/60";
 
   return (
     <div>
@@ -151,7 +151,7 @@ function TreeNode({
           <span className="w-3" />
         )}
         <span className={`flex-1 truncate ${nameSize}`}>{node.node_name}</span>
-        <span className={`text-[9px] tabular-nums ${badgeColor}`}>{node.count}</span>
+        <span className={`text-[11px] tabular-nums ${badgeColor}`}>{node.count}</span>
       </div>
       {hasChildren && isOpen && (
         <div>

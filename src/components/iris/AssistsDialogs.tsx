@@ -61,7 +61,7 @@ export function UpdateRealityDialog({ open, onOpenChange, missionId, onSent }: {
         <DialogHeader>
           <DialogTitle>Update Reality — Use when mission strategy needs to change</DialogTitle>
         </DialogHeader>
-        <p className="text-xs text-muted-foreground -mt-1">
+        <p className="text-[12px] text-muted-foreground -mt-1">
           For significant shifts to mission direction (north star, why-win/lose, state priorities, competitive landscape). For real-time observations or daily intel, use Mission Pulse instead.
         </p>
         <Textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="What changed about the mission strategy?" rows={5} />
@@ -121,10 +121,10 @@ export function SOSDialog({ open, onOpenChange, missionId }: { open: boolean; on
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle className="text-destructive">SOS</DialogTitle></DialogHeader>
         <Textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="Describe the emergency or blocker" rows={5} />
-        <div className="flex gap-2 text-sm">
+        <div className="flex gap-2 text-[14px]">
           <span className="text-muted-foreground">Priority:</span>
           {(["critical", "high", "medium"] as const).map((p) => (
-            <button key={p} onClick={() => setPriority(p)} className={`px-2 py-0.5 rounded text-xs border ${priority === p ? "bg-destructive text-destructive-foreground border-destructive" : "border-border"}`}>
+            <button key={p} onClick={() => setPriority(p)} className={`px-2 py-0.5 rounded text-[12px] border ${priority === p ? "bg-destructive text-destructive-foreground border-destructive" : "border-border"}`}>
               {p}
             </button>
           ))}

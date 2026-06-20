@@ -211,7 +211,7 @@ export function TalentDeskImportDialog({ onClose }: { onClose: () => void }) {
             <FileSpreadsheet className="h-5 w-5" style={{ color: "#c9a84c" }} />
             <div>
               <h2 className="text-white font-medium text-base">Import from TalentDesk</h2>
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
+              <p className="text-[12px]" style={{ color: "rgba(255,255,255,0.45)" }}>
                 Upload a CSV or Excel export. Email is the merge key.
               </p>
             </div>
@@ -240,7 +240,7 @@ export function TalentDeskImportDialog({ onClose }: { onClose: () => void }) {
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={parsing || busy}
-              className="w-full flex items-center justify-center gap-2 rounded-md py-6 text-sm transition-colors hover:bg-white/[0.02]"
+              className="w-full flex items-center justify-center gap-2 rounded-md py-6 text-[14px] transition-colors hover:bg-white/[0.02]"
               style={{ border: "1px dashed rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)" }}
             >
               {parsing ? (
@@ -256,7 +256,7 @@ export function TalentDeskImportDialog({ onClose }: { onClose: () => void }) {
               )}
             </button>
             {skipped > 0 && (
-              <p className="mt-2 text-xs" style={{ color: "#eab308" }}>
+              <p className="mt-2 text-[12px]" style={{ color: "#eab308" }}>
                 {skipped} row{skipped === 1 ? "" : "s"} skipped (missing or invalid email).
               </p>
             )}
@@ -274,14 +274,14 @@ export function TalentDeskImportDialog({ onClose }: { onClose: () => void }) {
 
               {preview.conflicts.length > 0 && (
                 <Section title="Duplicate emails in file" tone="error">
-                  <ul className="text-xs space-y-1">
+                  <ul className="text-[12px] space-y-1">
                     {preview.conflicts.map((c) => (
                       <li key={c.email} className="text-white/70">
                         {c.email} <span className="text-white/40">× {c.count}</span>
                       </li>
                     ))}
                   </ul>
-                  <p className="text-xs mt-2" style={{ color: "#ef4444" }}>
+                  <p className="text-[12px] mt-2" style={{ color: "#ef4444" }}>
                     Resolve duplicates in the source file and re-upload before importing.
                   </p>
                 </Section>
@@ -308,7 +308,7 @@ export function TalentDeskImportDialog({ onClose }: { onClose: () => void }) {
                       sub: m.email,
                     }))}
                   />
-                  <p className="text-xs mt-2 text-white/40">
+                  <p className="text-[12px] mt-2 text-white/40">
                     Only TalentDesk fields update. ATLAS role, invite status, and notes are preserved.
                   </p>
                 </Section>
@@ -320,7 +320,7 @@ export function TalentDeskImportDialog({ onClose }: { onClose: () => void }) {
                     {preview.missing.map((m) => {
                       const checked = removeIds.has(m.id);
                       return (
-                        <li key={m.id} className="flex items-center gap-2 text-xs">
+                        <li key={m.id} className="flex items-center gap-2 text-[12px]">
                           <input
                             type="checkbox"
                             checked={checked}
@@ -342,7 +342,7 @@ export function TalentDeskImportDialog({ onClose }: { onClose: () => void }) {
                       );
                     })}
                   </ul>
-                  <p className="text-xs mt-2 text-white/40">
+                  <p className="text-[12px] mt-2 text-white/40">
                     Check anyone to soft-remove from the roster. Unchecked = flagged only.
                   </p>
                 </Section>
@@ -356,7 +356,7 @@ export function TalentDeskImportDialog({ onClose }: { onClose: () => void }) {
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="px-3 py-2 text-sm rounded-md text-white/70 hover:bg-white/5"
+            className="px-3 py-2 text-[14px] rounded-md text-white/70 hover:bg-white/5"
           >
             Cancel
           </button>
@@ -364,7 +364,7 @@ export function TalentDeskImportDialog({ onClose }: { onClose: () => void }) {
             type="button"
             onClick={handleCommit}
             disabled={!canCommit}
-            className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-[14px] font-medium disabled:opacity-50"
             style={{ background: "#c9a84c", color: "#080c14" }}
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
@@ -379,8 +379,8 @@ export function TalentDeskImportDialog({ onClose }: { onClose: () => void }) {
 function Stat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div className="rounded-md p-3" style={{ border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
-      <div className="text-2xl font-semibold" style={{ color }}>{value}</div>
-      <div className="text-[11px] uppercase tracking-wide text-white/45 mt-0.5">{label}</div>
+      <div className="text-2xl font-medium" style={{ color }}>{value}</div>
+      <div className="text-[12px]  tracking-wide text-white/45 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -403,7 +403,7 @@ function Section({
     <div className="rounded-md p-3" style={{ border: `1px solid ${borderColor}`, background: "rgba(255,255,255,0.02)" }}>
       <div className="flex items-center gap-1.5 mb-2">
         {tone === "error" || tone === "warn" ? <AlertTriangle className="h-3.5 w-3.5" style={{ color: tone === "error" ? "#ef4444" : "#eab308" }} /> : null}
-        <h3 className="text-xs font-medium uppercase tracking-wide text-white/70">{title}</h3>
+        <h3 className="text-[12px] font-medium  tracking-wide text-white/70">{title}</h3>
       </div>
       {children}
     </div>
@@ -417,7 +417,7 @@ function PeopleList({ items }: { items: Array<{ key: string; name: string; sub: 
     <>
       <ul className="space-y-1">
         {visible.map((it) => (
-          <li key={it.key} className="flex items-center justify-between text-xs">
+          <li key={it.key} className="flex items-center justify-between text-[12px]">
             <span className="text-white/80 truncate">{it.name}</span>
             <span className="text-white/40 truncate ml-2">{it.sub}</span>
           </li>
@@ -427,7 +427,7 @@ function PeopleList({ items }: { items: Array<{ key: string; name: string; sub: 
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="mt-2 text-xs text-white/50 hover:text-white/80"
+          className="mt-2 text-[12px] text-white/50 hover:text-white/80"
         >
           {expanded ? "Show fewer" : `Show all ${items.length}`}
         </button>

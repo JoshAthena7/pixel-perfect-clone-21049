@@ -121,7 +121,7 @@ export function MissionSettingsTab({ missionId }: { missionId: string }) {
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h2 className="text-2xl font-semibold">Mission Settings</h2>
+        <h2 className="text-2xl font-medium">Mission Settings</h2>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -162,12 +162,12 @@ export function MissionSettingsTab({ missionId }: { missionId: string }) {
       <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
         <div>
           <Label>Submission Deadline</Label>
-          <p className="text-sm">
+          <p className="text-[14px]">
             {mission.submission_deadline
               ? format(new Date(mission.submission_deadline), "PPP p")
               : "Not set"}
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[12px] text-muted-foreground">
             To change the submission deadline contact your system administrator.
           </p>
         </div>
@@ -177,13 +177,13 @@ export function MissionSettingsTab({ missionId }: { missionId: string }) {
         </div>
         <div>
           <Label>BLAST OFF Date</Label>
-          <p className="text-sm">
+          <p className="text-[14px]">
             {mission.blast_off_at ? format(new Date(mission.blast_off_at), "PPP p") : "Not yet launched"}
           </p>
         </div>
         <div>
           <Label>Created At</Label>
-          <p className="text-sm">{format(new Date(mission.created_at), "PPP p")}</p>
+          <p className="text-[14px]">{format(new Date(mission.created_at), "PPP p")}</p>
         </div>
       </div>
 
@@ -193,11 +193,11 @@ export function MissionSettingsTab({ missionId }: { missionId: string }) {
       </Button>
 
       <div className="rounded-lg border-2 border-red-500/50 p-4 space-y-3">
-        <h3 className="text-red-500 font-semibold">Danger Zone</h3>
+        <h3 className="text-red-500 font-medium">Danger Zone</h3>
         <div className="flex items-center justify-between gap-2">
           <div>
             <p className="font-medium">Archive Mission</p>
-            <p className="text-xs text-muted-foreground">Available after submission outcome.</p>
+            <p className="text-[12px] text-muted-foreground">Available after submission outcome.</p>
           </div>
           <Button
             variant="outline"
@@ -212,7 +212,7 @@ export function MissionSettingsTab({ missionId }: { missionId: string }) {
         <div className="flex items-center justify-between gap-2">
           <div>
             <p className="font-medium">Delete Mission</p>
-            <p className="text-xs text-muted-foreground">Only available in Setup status.</p>
+            <p className="text-[12px] text-muted-foreground">Only available in Setup status.</p>
           </div>
           <Button
             className="bg-red-600 hover:bg-red-700 text-white"

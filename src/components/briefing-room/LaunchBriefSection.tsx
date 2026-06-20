@@ -48,7 +48,7 @@ export function LaunchBriefSection({ missionId }: { missionId: string }) {
           <span
             style={{
               fontSize: 11,
-              textTransform: "uppercase",
+              textTransform: "",
               letterSpacing: "0.18em",
               color: GOLD,
               fontWeight: 600,

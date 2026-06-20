@@ -92,7 +92,7 @@ function SectionHeader({ emoji, title, subtitle }: { emoji: string; title: strin
 function SavedTick({ visible }: { visible: boolean }) {
   return (
     <span
-      className="inline-flex items-center gap-1 text-[11px] transition-opacity"
+      className="inline-flex items-center gap-1 text-[12px] transition-opacity"
       style={{ color: "rgba(134,239,172,0.85)", opacity: visible ? 1 : 0 }}
     >
       <Check className="h-3 w-3" /> Saved
@@ -142,7 +142,7 @@ function PasteFromRfpExpander({
             setOpen(false);
             setVal("");
           }}
-          className="text-[11px] text-white/45"
+          className="text-[12px] text-white/45"
         >
           Cancel
         </button>
@@ -153,7 +153,7 @@ function PasteFromRfpExpander({
             setVal("");
             setOpen(false);
           }}
-          className="text-[11px] font-medium disabled:opacity-40"
+          className="text-[12px] font-medium disabled:opacity-40"
           style={{ color: GOLD }}
         >
           Add as RFP language
@@ -266,7 +266,7 @@ function TaggedListEditor({
       >
         <div className="flex items-center gap-1.5 mb-2">
           <Star className="h-3.5 w-3.5" fill={GOLD} color={GOLD} />
-          <span className="text-[11.5px] uppercase tracking-[0.1em]" style={{ color: GOLD }}>From the RFP</span>
+          <span className="text-[11.5px]  tracking-[0.1em]" style={{ color: GOLD }}>From the RFP</span>
         </div>
         <div className="flex flex-col gap-2">
           {clientItems.length === 0 && (
@@ -286,7 +286,7 @@ function TaggedListEditor({
 
         <div className="flex items-center gap-1.5 mb-2">
           <Diamond className="h-3.5 w-3.5 text-white" />
-          <span className="text-[11.5px] uppercase tracking-[0.1em] text-white/70">Our read</span>
+          <span className="text-[11.5px]  tracking-[0.1em] text-white/70">Our read</span>
         </div>
         <div className="flex flex-col gap-2">
           {teamItems.length === 0 && (
@@ -331,7 +331,7 @@ function TaggedListEditor({
                 }
               }}
               placeholder={inputPlaceholder}
-              className="w-full text-[13px] px-3 py-2 rounded bg-white/5 border border-white/10 text-white placeholder:text-white/30"
+              className="w-full text-[14px] px-3 py-2 rounded bg-white/5 border border-white/10 text-white placeholder:text-white/30"
             />
           )}
         </div>
@@ -378,21 +378,21 @@ function IrisSuggestionsPanel({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5">
           <Sparkles className="h-3.5 w-3.5" style={{ color: GOLD }} />
-          <span className="text-[12.5px] uppercase tracking-[0.1em] text-white/70">IRIS Suggestions</span>
+          <span className="text-[12.5px]  tracking-[0.1em] text-white/70">IRIS Suggestions</span>
         </div>
-        <span className="text-[11px] text-white/45">avg confidence {avgConf}%</span>
+        <span className="text-[12px] text-white/45">avg confidence {avgConf}%</span>
       </div>
       <div className="space-y-3">
         {rows.map((r) => {
           const pct = Math.max(0, Math.min(100, Math.round((r.confidence_score ?? 0) * 100)));
           return (
             <div key={r.id} className="rounded p-2.5" style={{ background: "rgba(255,255,255,0.02)" }}>
-              <p className="text-[13px] text-white">{r.extracted_value}</p>
+              <p className="text-[14px] text-white">{r.extracted_value}</p>
               <div className="mt-1.5 h-[3px] rounded bg-white/5 overflow-hidden">
                 <div className="h-full" style={{ width: `${pct}%`, background: GOLD }} />
               </div>
               {r.source_file_name && (
-                <p className="text-[11px] text-white/40 mt-1">Source: {r.source_file_name}</p>
+                <p className="text-[12px] text-white/40 mt-1">Source: {r.source_file_name}</p>
               )}
               <div className="mt-2 flex items-center gap-2 flex-wrap">
                 <button
@@ -497,7 +497,7 @@ function SimpleListEditor({
             }
           }}
           placeholder={addPlaceholder}
-          className="w-full text-[13px] px-3 py-2 rounded bg-white/5 border border-white/10 text-white placeholder:text-white/30"
+          className="w-full text-[14px] px-3 py-2 rounded bg-white/5 border border-white/10 text-white placeholder:text-white/30"
         />
       </div>
       <PasteFromRfpExpander
@@ -505,7 +505,7 @@ function SimpleListEditor({
         placeholder={pastePlaceholder}
         onSubmit={(t) => add(t, true)}
       />
-      <div className="text-[11px] text-white/40 mt-2">{items.length} of {max}</div>
+      <div className="text-[12px] text-white/40 mt-2">{items.length} of {max}</div>
     </div>
   );
 }
@@ -561,7 +561,7 @@ function ClaimTextarea({
         onChange={(e) => onChange(e.target.value.slice(0, maxLen))}
         placeholder={placeholder}
         rows={3}
-        className="w-full text-[13px] px-2.5 py-2 rounded bg-white/5 border text-white placeholder:text-white/30 resize-none"
+        className="w-full text-[14px] px-2.5 py-2 rounded bg-white/5 border text-white placeholder:text-white/30 resize-none"
         style={{
           borderColor: goldBorder ? `rgba(196,154,43,0.5)` : "rgba(255,255,255,0.1)",
           borderLeftWidth: goldBorder ? 3 : 1,
@@ -569,14 +569,14 @@ function ClaimTextarea({
         }}
       />
       <div className="flex items-center justify-between mt-1">
-        <span className="text-[11px] text-white/40">
+        <span className="text-[12px] text-white/40">
           {goldBorder ? (
             <span style={{ color: GOLD }}>★ From the RFP</span>
           ) : (
             "Our read"
           )}
         </span>
-        <span className="text-[11px] text-white/40">{value.length} / {maxLen}</span>
+        <span className="text-[12px] text-white/40">{value.length} / {maxLen}</span>
       </div>
       <PasteFromRfpExpander
         label="+ Paste client language →"
@@ -618,7 +618,7 @@ function StakeholderRow({
     >
       <div className="flex items-start gap-2">
         <div className="flex-1 min-w-0">
-          <div className="text-[13px] text-white font-medium">{item.name}</div>
+          <div className="text-[14px] text-white font-medium">{item.name}</div>
           {item.role && <div className="text-[12px] text-white/55">{item.role}</div>}
         </div>
         <button onClick={onRemove} className="text-white/40 hover:text-white mt-0.5">
@@ -632,7 +632,7 @@ function StakeholderRow({
             <button
               key={o.value}
               onClick={() => onChange({ ...item, influence: o.value })}
-              className="px-2 py-0.5 rounded-full text-[11px]"
+              className="px-2 py-0.5 rounded-full text-[12px]"
               style={{
                 border: sel ? `1px solid ${GOLD}` : "1px solid rgba(255,255,255,0.15)",
                 color: sel ? GOLD : "rgba(255,255,255,0.6)",
@@ -684,13 +684,13 @@ function StakeholderEditor({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Name"
-              className="w-full text-[13px] px-3 py-2 rounded bg-white/5 border border-white/10 text-white placeholder:text-white/30"
+              className="w-full text-[14px] px-3 py-2 rounded bg-white/5 border border-white/10 text-white placeholder:text-white/30"
             />
             <input
               value={role}
               onChange={(e) => setRole(e.target.value)}
               placeholder="Role / Title"
-              className="w-full text-[13px] px-3 py-2 rounded bg-white/5 border border-white/10 text-white placeholder:text-white/30"
+              className="w-full text-[14px] px-3 py-2 rounded bg-white/5 border border-white/10 text-white placeholder:text-white/30"
             />
             <div className="flex justify-end gap-2">
               <button onClick={() => { setAdding(false); setName(""); setRole(""); }} className="text-[11.5px] text-white/45">
@@ -781,9 +781,9 @@ function CompetitorChips({
           }
         }}
         placeholder="Type a competitor — press Enter or comma to add."
-        className="w-full text-[13px] px-3 py-2 rounded bg-white/5 border border-white/10 text-white placeholder:text-white/30"
+        className="w-full text-[14px] px-3 py-2 rounded bg-white/5 border border-white/10 text-white placeholder:text-white/30"
       />
-      <div className="text-[11px] text-white/40 mt-2">{items.length} of {max}</div>
+      <div className="text-[12px] text-white/40 mt-2">{items.length} of {max}</div>
     </div>
   );
 }
@@ -798,10 +798,10 @@ function TwoColumn({ left, right }: { left: React.ReactNode; right: React.ReactN
         style={{ background: "rgba(201,151,43,0.06)", border: "1px solid rgba(201,151,43,0.2)" }}
       >
         <div className="flex items-center gap-1.5 mb-2.5 flex-wrap">
-          <span className="text-[10px] font-semibold tracking-[0.08em] uppercase" style={{ color: "#C9972B" }}>
+          <span className="text-[11px] font-medium tracking-[0.08em] " style={{ color: "#C9972B" }}>
             ⚡ IRIS Suggested
           </span>
-          <span className="text-[9px] text-white/40 normal-case tracking-normal font-normal">— use as a guide only</span>
+          <span className="text-[11px] text-white/40 normal-case tracking-normal font-normal">— use as a guide only</span>
         </div>
         {left}
       </div>
@@ -809,7 +809,7 @@ function TwoColumn({ left, right }: { left: React.ReactNode; right: React.ReactN
         className="rounded-lg p-3.5"
         style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
       >
-        <div className="text-[10px] font-semibold tracking-[0.08em] uppercase text-white mb-2.5">✏ Your Input</div>
+        <div className="text-[11px] font-medium tracking-[0.08em]  text-white mb-2.5">✏ Your Input</div>
         {right}
       </div>
     </div>
@@ -840,20 +840,20 @@ function IrisLeft({
             className="rounded p-2.5"
             style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
           >
-            <p className="text-[13px] text-white/85 italic">{r.extracted_value}</p>
+            <p className="text-[14px] text-white/85 italic">{r.extracted_value}</p>
             <div className="mt-2 flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1 text-[10px] text-white/55">
+              <span className="inline-flex items-center gap-1 text-[11px] text-white/55">
                 <span className="h-1.5 w-1.5 rounded-full" style={{ background: dot }} /> {label} {Math.round(c * 100)}%
               </span>
-              {r.source_file_name && <span className="text-[10px] text-white/35 truncate">· {r.source_file_name}</span>}
+              {r.source_file_name && <span className="text-[11px] text-white/35 truncate">· {r.source_file_name}</span>}
               <button
                 onClick={() => onUse(r)}
-                className="ml-auto text-[11px] px-2 py-0.5 rounded"
+                className="ml-auto text-[12px] px-2 py-0.5 rounded"
                 style={{ color: "#C9972B", border: "1px solid rgba(201,151,43,0.4)" }}
               >
                 Use this →
               </button>
-              <button onClick={() => onDismiss(r)} className="text-[11px] text-white/40 hover:text-white">
+              <button onClick={() => onDismiss(r)} className="text-[12px] text-white/40 hover:text-white">
                 Dismiss
               </button>
             </div>
@@ -1267,13 +1267,13 @@ export function Step3Strategy({
 
       <div className="flex items-center justify-end gap-3 mb-2 -mt-2 min-h-[18px]">
         {saveState === "saving" && (
-          <span className="text-[11px] text-white/55">⏳ Saving…</span>
+          <span className="text-[12px] text-white/55">⏳ Saving…</span>
         )}
         {saveState === "saved" && (
-          <span className="text-[11px]" style={{ color: "rgba(134,239,172,0.95)" }}>✅ Saved</span>
+          <span className="text-[12px]" style={{ color: "rgba(134,239,172,0.95)" }}>✅ Saved</span>
         )}
         {saveState === "error" && (
-          <span className="inline-flex items-center gap-2 text-[11px]" style={{ color: "#fca5a5" }}>
+          <span className="inline-flex items-center gap-2 text-[12px]" style={{ color: "#fca5a5" }}>
             ⚠ Save failed — check your connection
             <button onClick={retrySave} className="underline hover:text-white">Retry</button>
           </span>
@@ -1291,7 +1291,7 @@ export function Step3Strategy({
       <SectionHeader emoji="🎯" title="Strategic Foundation" />
 
       <div className="mb-5">
-        <h3 className="text-white text-[15px] font-medium mb-2">North Star</h3>
+        <h3 className="text-white text-[14px] font-medium mb-2">North Star</h3>
         <p className="text-[12.5px] text-white/55 mt-0.5 mb-3">
           The single sentence that anchors everything. What is the one truth this pursuit is built on?
         </p>
@@ -1321,7 +1321,7 @@ export function Step3Strategy({
       </div>
 
       <div className="mb-6">
-        <h3 className="text-white text-[15px] font-medium mb-2">Central Claim</h3>
+        <h3 className="text-white text-[14px] font-medium mb-2">Central Claim</h3>
         <p className="text-[12.5px] text-white/55 mt-0.5 mb-3">
           Complete this sentence: <em>We win this if we convince the state that…</em>
         </p>
@@ -1356,7 +1356,7 @@ export function Step3Strategy({
       <SectionHeader emoji="🏆" title="How We Win" />
 
       <div className="mb-5">
-        <h3 className="text-white text-[15px] font-medium mb-2">Win Themes</h3>
+        <h3 className="text-white text-[14px] font-medium mb-2">Win Themes</h3>
         <TwoColumn
           left={
             <IrisLeft
@@ -1379,7 +1379,7 @@ export function Step3Strategy({
       </div>
 
       <div className="mb-5">
-        <h3 className="text-white text-[15px] font-medium mb-2">Discriminators</h3>
+        <h3 className="text-white text-[14px] font-medium mb-2">Discriminators</h3>
         <p className="text-[12.5px] text-white/55 mt-0.5 mb-3">
           What makes the client specifically different from every other bidder? Not generic strengths — the things only they can say.
         </p>
@@ -1404,7 +1404,7 @@ export function Step3Strategy({
       </div>
 
       <div className="mb-6">
-        <h3 className="text-white text-[15px] font-medium mb-2">Proof Points</h3>
+        <h3 className="text-white text-[14px] font-medium mb-2">Proof Points</h3>
         <p className="text-[12.5px] text-white/55 mt-0.5 mb-3">
           Evidence that backs the claim — data, outcomes, performance metrics. IRIS will suggest from your documents.
         </p>
@@ -1436,7 +1436,7 @@ export function Step3Strategy({
       <SectionHeader emoji="👀" title="What We're Watching" />
 
       <div className="mb-5">
-        <h3 className="text-white text-[15px] font-medium mb-2">Top Risks</h3>
+        <h3 className="text-white text-[14px] font-medium mb-2">Top Risks</h3>
         <TwoColumn
           left={
             <IrisLeft
@@ -1459,7 +1459,7 @@ export function Step3Strategy({
       </div>
 
       <div className="mb-5">
-        <h3 className="text-white text-[15px] font-medium mb-2">Key Stakeholders</h3>
+        <h3 className="text-white text-[14px] font-medium mb-2">Key Stakeholders</h3>
         <p className="text-[12.5px] text-white/55 mt-0.5 mb-3">
           Who has influence over this decision? IRIS will suggest from the documents — add anyone it missed.
         </p>
@@ -1476,7 +1476,7 @@ export function Step3Strategy({
       </div>
 
       <div className="mb-6">
-        <h3 className="text-white text-[15px] font-medium mb-2">Likely Competitors</h3>
+        <h3 className="text-white text-[14px] font-medium mb-2">Likely Competitors</h3>
         <p className="text-[12.5px] text-white/55 mt-0.5 mb-3">
           Who else is going to bid? IRIS will suggest based on program type and state history. (Monitoring intensity is set in Step 4.)
         </p>

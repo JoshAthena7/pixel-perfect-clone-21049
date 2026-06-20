@@ -148,11 +148,11 @@ function SourcesPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
       <div className="mb-6">
-        <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+        <div className="text-[12px]   text-muted-foreground">
           ORACLE · Admin
         </div>
-        <h1 className="text-2xl font-semibold mt-1">Sources</h1>
-        <div className="text-sm text-muted-foreground mt-1">
+        <h1 className="text-2xl font-medium mt-1">Sources</h1>
+        <div className="text-[14px] text-muted-foreground mt-1">
           {mission ? `${mission.name} — ${mission.client_name ?? "—"}` : missionId}
         </div>
       </div>
@@ -161,7 +161,7 @@ function SourcesPage() {
         <button
           onClick={() => runBatch("extract")}
           disabled={!!batchBusy}
-          className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary px-3 py-1.5 text-[14px] font-medium disabled:opacity-50"
         >
           {batchBusy === "extract" ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -173,7 +173,7 @@ function SourcesPage() {
         <button
           onClick={() => runBatch("densify")}
           disabled={!!batchBusy}
-          className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary px-3 py-1.5 text-[14px] font-medium disabled:opacity-50"
         >
           {batchBusy === "densify" ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -185,8 +185,8 @@ function SourcesPage() {
       </div>
 
       <div className="rounded-lg border border-border overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
+        <table className="w-full text-[14px]">
+          <thead className="bg-muted/40 text-[12px]   text-muted-foreground">
             <tr>
               <th className="text-left px-3 py-2">Document</th>
               <th className="text-left px-3 py-2">Type</th>
@@ -222,7 +222,7 @@ function SourcesPage() {
                     <td className="px-3 py-2 text-muted-foreground">{d.document_type ?? "—"}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{c?.nodes ?? 0}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{c?.proofs ?? 0}</td>
-                    <td className="px-3 py-2 text-right text-muted-foreground text-[11px]">
+                    <td className="px-3 py-2 text-right text-muted-foreground text-[12px]">
                       {new Date(d.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-3 py-2 text-right">

@@ -151,7 +151,7 @@ export function IrisConsolePanel({
       >
         <div className="flex items-center gap-2 min-w-0">
           <Zap size={12} style={{ color: GOLD }} />
-          <span style={{ color: GOLD, fontSize: 9, letterSpacing: "0.15em", fontFamily: "'Courier New', monospace", textTransform: "uppercase", fontWeight: 600 }}>
+          <span style={{ color: GOLD, fontSize: 9, letterSpacing: "0.15em", fontFamily: "'Courier New', monospace", textTransform: "", fontWeight: 600 }}>
             IRIS QUICK INTEL
           </span>
           {s?.shortCode && (
@@ -272,7 +272,7 @@ export function IrisConsolePanel({
 
           {history.length > 0 && (
             <div className="pt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-              <div style={{ fontSize: 8, color: "rgba(255,255,255,0.4)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>
+              <div style={{ fontSize: 8, color: "rgba(255,255,255,0.4)", letterSpacing: "0.15em", textTransform: "", marginBottom: 6 }}>
                 Recent · {history.length}
               </div>
               <div className="space-y-1.5">

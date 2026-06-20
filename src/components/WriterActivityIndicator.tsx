@@ -26,6 +26,6 @@ export function WriterActivityIndicator({ writerName, lastActiveAt }: Props) {
   const first = (writerName ?? "").trim().split(/\s+/)[0];
   const text = first ? `${first} — ${rel}` : rel;
   return (
-    <div className="text-[10px] font-normal text-muted-foreground">{text}</div>
+    <div className="text-[11px] font-normal text-muted-foreground">{text}</div>
   );
 }

@@ -78,14 +78,14 @@ function AdminMissionsPage() {
       <div className="mx-auto max-w-5xl px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-semibold text-white">Missions</h1>
-            <p className="mt-1 text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <h1 className="text-2xl font-medium text-white">Missions</h1>
+            <p className="mt-1 text-[14px]" style={{ color: "rgba(255,255,255,0.45)" }}>
               All ATLAS missions across the platform.
             </p>
           </div>
           <Link
             to="/olympus/missions/new"
-            className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-[14px] font-medium transition-colors"
             style={{
               background: "#c9a84c",
               color: "#080c14",
@@ -98,12 +98,12 @@ function AdminMissionsPage() {
 
         <div className="space-y-2">
           {isLoading && (
-            <div className="rounded-lg border p-6 text-sm" style={{ borderColor: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}>
+            <div className="rounded-lg border p-6 text-[14px]" style={{ borderColor: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}>
               Loading missions…
             </div>
           )}
           {!isLoading && missions.length === 0 && (
-            <div className="rounded-lg border p-6 text-sm" style={{ borderColor: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}>
+            <div className="rounded-lg border p-6 text-[14px]" style={{ borderColor: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}>
               No missions yet. Click <span style={{ color: "#c9a84c" }}>New mission</span> to create one.
             </div>
           )}
@@ -155,10 +155,10 @@ function AdminMissionsPage() {
                   style={{ background: dot, boxShadow: b === "Active" ? `0 0 8px ${dot}` : undefined }}
                 />
                 <div className="flex-1 min-w-0">
-                  <div className="text-white font-medium text-sm truncate">{m.name}</div>
+                  <div className="text-white font-medium text-[14px] truncate">{m.name}</div>
                   <div className="flex items-center gap-2 mt-0.5">
                     {m.client_name && (
-                      <span className="text-xs truncate" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <span className="text-[12px] truncate" style={{ color: "rgba(255,255,255,0.4)" }}>
                         {m.client_name}
                       </span>
                     )}
@@ -169,7 +169,7 @@ function AdminMissionsPage() {
                     )}
                   </div>
                 </div>
-                <div className="hidden sm:flex items-center gap-1.5 text-xs shrink-0" style={{ color: "rgba(255,255,255,0.5)" }}>
+                <div className="hidden sm:flex items-center gap-1.5 text-[12px] shrink-0" style={{ color: "rgba(255,255,255,0.5)" }}>
                   <UsersIcon className="h-3.5 w-3.5" />
                   {staff}
                 </div>
@@ -207,7 +207,7 @@ function AdminMissionsPage() {
                 </div>
                 {b === "Draft" && (
                   <span
-                    className="rounded-full text-[10px] font-semibold uppercase tracking-wider shrink-0"
+                    className="rounded-full text-[11px] font-medium   shrink-0"
                     style={{
                       padding: "3px 9px",
                       background: "rgba(201,168,76,0.18)",
@@ -219,7 +219,7 @@ function AdminMissionsPage() {
                   </span>
                 )}
                 <span
-                  className="rounded-full text-[10px] font-semibold uppercase tracking-wider shrink-0"
+                  className="rounded-full text-[11px] font-medium   shrink-0"
                   style={{
                     padding: "3px 9px",
                     background:

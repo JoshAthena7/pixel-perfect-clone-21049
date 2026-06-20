@@ -40,7 +40,7 @@ export function BriefSettingsTab({
             max={5000}
             value={cap}
             onChange={(e) => setCap(Number(e.target.value))}
-            className="bg-white/5 border border-white/10 rounded px-2 py-1.5 text-sm text-white w-32"
+            className="bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[14px] text-white w-32"
           />
         </div>
         <div>

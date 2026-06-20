@@ -41,7 +41,7 @@ export function SectionCard({
               color: "rgba(255,255,255,0.35)",
               background: "rgba(255,255,255,0.05)",
               letterSpacing: "0.08em",
-              textTransform: "uppercase",
+              textTransform: "",
               fontWeight: 500,
             }}
           >

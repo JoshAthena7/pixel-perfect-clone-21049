@@ -137,7 +137,7 @@ export function IntelReviewQueue({
           <button
             key={t.value}
             onClick={() => setStatus(t.value)}
-            className={`text-[10px] px-2 py-0.5 rounded-full border ${
+            className={`text-[11px] px-2 py-0.5 rounded-full border ${
               status === t.value
                 ? "border-white/40 text-white bg-white/5"
                 : "border-white/10 text-white/50 hover:text-white/80"
@@ -149,7 +149,7 @@ export function IntelReviewQueue({
       </div>
 
       {/* Counts bar */}
-      <div className="text-[10px] text-white/40">
+      <div className="text-[11px] text-white/40">
         {counts.needs_review} needs review · {counts.approved} approved · {counts.pushed} pushed ·{" "}
         {counts.dismissed} dismissed · {counts.error ?? 0} errors
       </div>
@@ -157,7 +157,7 @@ export function IntelReviewQueue({
       {/* Card list */}
       <div className="divide-y divide-white/5">
         {q.isLoading ? (
-          <div className="text-[11px] text-white/40 py-4">Loading…</div>
+          <div className="text-[12px] text-white/40 py-4">Loading…</div>
         ) : signals.length === 0 ? (
           <EmptyForStatus status={status} />
         ) : (
@@ -178,9 +178,9 @@ export function IntelReviewQueue({
           {openSignal && (
             <>
               <SheetHeader>
-                <SheetTitle className="text-white text-[13px]">{openSignal.title}</SheetTitle>
+                <SheetTitle className="text-white text-[14px]">{openSignal.title}</SheetTitle>
               </SheetHeader>
-              <div className="space-y-3 text-[11px] mt-4">
+              <div className="space-y-3 text-[12px] mt-4">
                 <div className="flex gap-2 flex-wrap">
                   <Badge className={scoreColor(openSignal.relevance_score)}>
                     score {openSignal.relevance_score}
@@ -192,20 +192,20 @@ export function IntelReviewQueue({
                 </div>
                 <div className="text-white/80">{openSignal.summary || "—"}</div>
                 <div>
-                  <div className="text-[9px] uppercase text-white/40 mb-1">Source</div>
+                  <div className="text-[11px]  text-white/40 mb-1">Source</div>
                   <div className="text-white/70">{openSignal.source_name ?? "—"}</div>
                   {(openSignal.metadata as { source_url?: string })?.source_url && (
                     <a
                       href={(openSignal.metadata as { source_url?: string }).source_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-[10px] text-amber-300 hover:underline mt-1"
+                      className="inline-flex items-center gap-1 text-[11px] text-amber-300 hover:underline mt-1"
                     >
                       <ExternalLink className="h-3 w-3" /> Open source
                     </a>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-[10px]">
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
                   <div>
                     <div className="text-white/40">Category</div>
                     <div className="text-white/70">{openSignal.category ?? "—"}</div>
@@ -225,10 +225,10 @@ export function IntelReviewQueue({
                 </div>
                 {openSignal.topic_tags?.length > 0 && (
                   <div>
-                    <div className="text-[9px] uppercase text-white/40 mb-1">Topics</div>
+                    <div className="text-[11px]  text-white/40 mb-1">Topics</div>
                     <div className="flex gap-1 flex-wrap">
                       {openSignal.topic_tags.map((t) => (
-                        <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/60">
+                        <span key={t} className="text-[11px] px-1.5 py-0.5 rounded bg-white/5 text-white/60">
                           {t}
                         </span>
                       ))}
@@ -252,7 +252,7 @@ export function IntelReviewQueue({
                     onClick={() => { updateStatus.mutate({ id: openSignal.id, newStatus: "dismissed" }); }}
                   />
                 </div>
-                <div className="text-[10px] text-white/30 italic pt-2">
+                <div className="text-[11px] text-white/30 italic pt-2">
                   Inline edit mode (taxonomy override, relevance slider) — Phase B+1.
                 </div>
               </div>
@@ -277,13 +277,13 @@ function Card({
     <div className="py-3 px-1 hover:bg-white/[0.02] cursor-pointer" onClick={onOpen}>
       <div className="flex gap-2">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 text-[10px] text-white/40">
+          <div className="flex items-center gap-2 mb-1 text-[11px] text-white/40">
             <span className={`px-1.5 py-0.5 rounded border ${scoreColor(s.relevance_score)}`}>
               {s.relevance_score}
             </span>
             {s.urgency && s.urgency !== "normal" && (
               <span
-                className={`text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                className={`text-[11px] font-medium   px-1.5 py-0.5 rounded ${
                   s.urgency === "immediate"
                     ? "bg-red-500/15 text-red-300 border border-red-400/40"
                     : "bg-amber-500/15 text-amber-300 border border-amber-400/40"
@@ -298,12 +298,12 @@ function Card({
           </div>
           <div className="text-[12px] text-white/90 font-medium truncate">{s.title}</div>
           {s.summary && (
-            <div className="text-[11px] text-white/50 truncate mt-0.5">{s.summary}</div>
+            <div className="text-[12px] text-white/50 truncate mt-0.5">{s.summary}</div>
           )}
           {s.topic_tags?.length > 0 && (
             <div className="flex gap-1 mt-1.5 flex-wrap">
               {s.topic_tags.slice(0, 3).map((t) => (
-                <span key={t} className="text-[9px] px-1 py-0.5 rounded bg-white/5 text-white/40">
+                <span key={t} className="text-[11px] px-1 py-0.5 rounded bg-white/5 text-white/40">
                   {t}
                 </span>
               ))}
@@ -335,14 +335,14 @@ function ActionBtn({
     emerald: "border-emerald-400/60 text-emerald-300 hover:bg-emerald-400/10",
     amber: "border-amber-400/60 text-amber-300 hover:bg-amber-400/10",
     red: "border-red-400/60 text-red-300 hover:bg-red-400/10",
-    primary: "border-amber-400/70 bg-amber-400/15 text-amber-200 font-semibold hover:bg-amber-400/25",
+    primary: "border-amber-400/70 bg-amber-400/15 text-amber-200 font-medium hover:bg-amber-400/25",
     secondary: "border-sky-400/50 text-sky-300 hover:bg-sky-400/10",
     muted: "border-white/15 text-white/45 hover:text-red-300 hover:border-red-400/50 hover:bg-red-400/5",
   }[color];
   return (
     <button
       onClick={onClick}
-      className={`text-[9px] uppercase tracking-wider border rounded px-2 ${
+      className={`text-[11px]   border rounded px-2 ${
         small ? "py-0.5" : "py-1"
       } ${cls}`}
     >
@@ -353,7 +353,7 @@ function ActionBtn({
 
 function Badge({ className, children }: { className: string; children: React.ReactNode }) {
   return (
-    <span className={`text-[10px] px-1.5 py-0.5 rounded border ${className}`}>{children}</span>
+    <span className={`text-[11px] px-1.5 py-0.5 rounded border ${className}`}>{children}</span>
   );
 }
 
@@ -366,5 +366,5 @@ function EmptyForStatus({ status }: { status: Status }) {
     dismissed: "Nothing dismissed.",
     errors: "No pipeline errors. The scraper and classifier are running cleanly.",
   };
-  return <div className="text-[11px] text-white/40 py-8 text-center">{messages[status]}</div>;
+  return <div className="text-[12px] text-white/40 py-8 text-center">{messages[status]}</div>;
 }

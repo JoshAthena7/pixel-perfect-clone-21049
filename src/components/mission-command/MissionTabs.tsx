@@ -168,7 +168,7 @@ function StatusPill({ status }: { status: string }) {
         : { bg: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)", border: "rgba(255,255,255,0.12)" };
   return (
     <span
-      className="rounded-full font-semibold uppercase tracking-wider border"
+      className="rounded-full font-medium   border"
       style={{ background: styles.bg, color: styles.color, borderColor: styles.border, fontSize: 10, padding: "2px 8px" }}
     >
       {s}

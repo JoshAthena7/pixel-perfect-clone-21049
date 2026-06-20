@@ -260,7 +260,7 @@ function MissionSwitcher({ missionId }: { missionId: string }) {
               letterSpacing: "0.1em",
               color: "rgba(255,255,255,0.4)",
               fontWeight: 600,
-              textTransform: "uppercase",
+              textTransform: "",
             }}
           >
             Mission

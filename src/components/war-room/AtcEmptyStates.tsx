@@ -104,8 +104,8 @@ export function AtcOrientationOverlay({ missionId }: { missionId: string }) {
               style={{ background: "rgba(255,255,255,0.04)", width: "100%" }}
             >
               <Icon className="w-4 h-4 mb-2" style={{ color: GOLD }} />
-              <div className="text-[12px] font-semibold text-white mb-1">{title}</div>
-              <div className="text-[11px] text-white/55 leading-snug">{body}</div>
+              <div className="text-[12px] font-medium text-white mb-1">{title}</div>
+              <div className="text-[12px] text-white/55 leading-snug">{body}</div>
             </div>
           ))}
         </div>
@@ -113,12 +113,12 @@ export function AtcOrientationOverlay({ missionId }: { missionId: string }) {
         <div className="mt-6 flex flex-col items-center gap-2">
           <button
             onClick={dismiss}
-            className="px-5 py-2 rounded text-[12px] font-semibold"
+            className="px-5 py-2 rounded text-[12px] font-medium"
             style={{ background: GOLD, color: "#1a1408" }}
           >
             Start Watching
           </button>
-          <button onClick={dismiss} className="text-[10px] text-white/40 hover:text-white/70 underline">
+          <button onClick={dismiss} className="text-[11px] text-white/40 hover:text-white/70 underline">
             Don't show this again
           </button>
         </div>
@@ -133,7 +133,7 @@ export function AtcOrientationOverlay({ missionId }: { missionId: string }) {
 export function ClosedMissionBanner() {
   return (
     <div
-      className="shrink-0 text-center text-[11px] py-1.5"
+      className="shrink-0 text-center text-[12px] py-1.5"
       style={{
         background: "rgba(196,154,43,0.12)",
         borderBottom: "1px solid rgba(196,154,43,0.3)",
@@ -241,8 +241,8 @@ export function TeamPulseEmpty() {
   return (
     <div className="px-4 py-10 text-center flex flex-col items-center gap-2">
       <Users className="w-8 h-8 text-white/30" />
-      <div className="text-[13px] text-white mt-1">No team members yet.</div>
-      <div className="text-[11px] text-white/45 max-w-[240px] leading-relaxed">
+      <div className="text-[14px] text-white mt-1">No team members yet.</div>
+      <div className="text-[12px] text-white/45 max-w-[240px] leading-relaxed">
         Add writers, SMEs, and reviewers in Mission Settings. They'll appear here the moment they're assigned.
       </div>
     </div>
@@ -252,7 +252,7 @@ export function TeamPulseEmpty() {
 export function TeamPulseNoAssignmentsBanner() {
   return (
     <div
-      className="mx-3 mt-2 mb-1 rounded px-3 py-2 text-[11px] text-white/55"
+      className="mx-3 mt-2 mb-1 rounded px-3 py-2 text-[12px] text-white/55"
       style={{ background: "rgba(255,255,255,0.03)" }}
     >
       📋 No questions assigned yet — writers are standing by.
@@ -264,8 +264,8 @@ export function RadarClearEmpty() {
   return (
     <div className="flex flex-col items-center justify-center text-center px-6 py-12 gap-3">
       <RadarSvg size={64} />
-      <div className="text-[13px] text-white mt-1">Radar is clear.</div>
-      <div className="text-[11px] text-white/45 max-w-[280px] leading-relaxed">
+      <div className="text-[14px] text-white mt-1">Radar is clear.</div>
+      <div className="text-[12px] text-white/45 max-w-[280px] leading-relaxed">
         When writers check in, post notes, run Score Me, or raise SOS — it appears here instantly.
         The mission hasn't started moving yet.
       </div>
@@ -275,7 +275,7 @@ export function RadarClearEmpty() {
 
 export function RadarFilterEmpty({ label, onClear }: { label: string; onClear: () => void }) {
   return (
-    <div className="px-4 py-6 text-center text-[11px] text-white/45">
+    <div className="px-4 py-6 text-center text-[12px] text-white/45">
       No {label} activity yet. Switch to All to see everything.{" "}
       <button onClick={onClear} className="text-amber-300 hover:underline">Clear filter</button>
     </div>
@@ -291,7 +291,7 @@ export function IrisOrientingCard() {
       <Clock className="w-4 h-4 text-white/40 mt-0.5 shrink-0" />
       <div className="min-w-0">
         <div className="text-[12px] text-white">IRIS is still orienting.</div>
-        <div className="text-[10px] text-white/45 mt-1 leading-relaxed">
+        <div className="text-[11px] text-white/45 mt-1 leading-relaxed">
           Once the mission has writers, questions, and some activity, IRIS will start flagging what needs your attention. Check back after the first team Check-In.
         </div>
       </div>
@@ -316,7 +316,7 @@ export function IrisHealthyCard({ generatedAt }: { generatedAt?: string | null }
         <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
         <div className="min-w-0 flex-1 pr-12">
           <div className="text-[12px] text-white">No flags right now.</div>
-          <div className="text-[10px] text-white/45 mt-1 leading-relaxed">
+          <div className="text-[11px] text-white/45 mt-1 leading-relaxed">
             IRIS scanned the mission {rel}. Everything looks healthy. Auto-refreshes every 15 minutes.
           </div>
         </div>
@@ -338,7 +338,7 @@ export function WriterDrawerNoQuestions({ firstName }: { firstName: string }) {
     <div className="flex flex-col items-center text-center px-6 py-12 gap-2">
       <Clipboard className="w-7 h-7 text-white/30" />
       <div className="text-[12px] text-white">No questions assigned.</div>
-      <div className="text-[10px] text-white/45 leading-relaxed max-w-[260px]">
+      <div className="text-[11px] text-white/45 leading-relaxed max-w-[260px]">
         Assign questions to {firstName} in the Flight Deck or Mission Settings.
       </div>
     </div>

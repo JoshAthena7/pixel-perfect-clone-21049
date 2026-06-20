@@ -36,7 +36,7 @@ export function SectionClientStory({ missionId, isAdmin }: { missionId: string; 
               className="rounded-lg p-4"
               style={{ background: "rgba(255,255,255,0.02)", border: "0.5px solid rgba(255,255,255,0.05)" }}
             >
-              <div className="mb-2" style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <div className="mb-2" style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "", letterSpacing: "0.05em" }}>
                 Client Strengths
               </div>
               {data.strengths.length === 0 ? (
@@ -58,7 +58,7 @@ export function SectionClientStory({ missionId, isAdmin }: { missionId: string; 
               className="rounded-lg p-4"
               style={{ background: "rgba(255,255,255,0.02)", border: "0.5px solid rgba(255,255,255,0.05)" }}
             >
-              <div className="mb-2" style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <div className="mb-2" style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "", letterSpacing: "0.05em" }}>
                 Key Differentiators
               </div>
               {data.differentiators.length === 0 ? (
@@ -80,7 +80,7 @@ export function SectionClientStory({ missionId, isAdmin }: { missionId: string; 
 
           {data.proofPoints.length > 0 && (
             <div>
-              <div className="mb-2" style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <div className="mb-2" style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "", letterSpacing: "0.05em" }}>
                 Key Proof Points and Outcomes
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -107,7 +107,7 @@ export function SectionClientStory({ missionId, isAdmin }: { missionId: string; 
               className="rounded-lg p-4"
               style={{ background: "rgba(255,255,255,0.02)", border: "0.5px solid rgba(255,255,255,0.05)" }}
             >
-              <div className="mb-2" style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <div className="mb-2" style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, textTransform: "", letterSpacing: "0.05em" }}>
                 Success Story
               </div>
               <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, lineHeight: 1.7 }}>

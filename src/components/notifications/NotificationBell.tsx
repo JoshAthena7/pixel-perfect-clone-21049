@@ -193,7 +193,7 @@ export function NotificationBell() {
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <>
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-semibold flex items-center justify-center px-1">
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[11px] font-medium flex items-center justify-center px-1">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
               <span className="absolute bottom-1 right-2 h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_var(--primary)]" />
@@ -204,13 +204,13 @@ export function NotificationBell() {
       <PopoverContent align="end" className="w-[420px] max-w-[95vw] p-0" sideOffset={8}>
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <div>
-            <div className="font-semibold text-foreground">Recent Activity</div>
-            <div className="text-xs text-muted-foreground">
+            <div className="font-medium text-foreground">Recent Activity</div>
+            <div className="text-[12px] text-muted-foreground">
               {events.length === 0 ? "Nothing recent" : `${events.length} event${events.length === 1 ? "" : "s"} across your missions`}
             </div>
           </div>
           {unreadCount > 0 && (
-            <button onClick={markAllRead} className="text-xs text-primary hover:underline">
+            <button onClick={markAllRead} className="text-[12px] text-primary hover:underline">
               Mark all read
             </button>
           )}
@@ -219,7 +219,7 @@ export function NotificationBell() {
           {events.length === 0 ? (
             <div className="px-6 py-10 text-center">
               <CheckCircle2 className="h-8 w-8 mx-auto text-green-400 mb-2" />
-              <p className="text-sm text-muted-foreground">No mission activity in the last 7 days.</p>
+              <p className="text-[14px] text-muted-foreground">No mission activity in the last 7 days.</p>
             </div>
           ) : (
             <ul className="divide-y divide-border">
@@ -239,12 +239,12 @@ export function NotificationBell() {
                   >
                     <Icon className={cn("h-4 w-4 shrink-0 mt-0.5", meta.cls)} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm text-foreground">{meta.label(e)}</p>
+                      <p className="text-[14px] text-foreground">{meta.label(e)}</p>
                       <div className="flex items-center gap-2 mt-0.5">
                         {missionName && (
-                          <span className="text-[10px] text-muted-foreground truncate">{missionName}</span>
+                          <span className="text-[11px] text-muted-foreground truncate">{missionName}</span>
                         )}
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-[11px] text-muted-foreground">
                           · {formatDistanceToNow(new Date(e.created_at), { addSuffix: true })}
                         </span>
                       </div>

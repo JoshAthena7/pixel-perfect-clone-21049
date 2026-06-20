@@ -147,7 +147,7 @@ export function Step2State({
 
       <div className="space-y-6">
         <div>
-          <label className="text-[12px] uppercase tracking-[0.12em] text-white/55 mb-2 block">State</label>
+          <label className="text-[12px]  tracking-[0.12em] text-white/55 mb-2 block">State</label>
           <Select value={code} onValueChange={setCode}>
             <SelectTrigger className="bg-white/[0.03] border-white/10 text-white h-11 max-w-md">
               <SelectValue placeholder="Choose a state…" />
@@ -166,7 +166,7 @@ export function Step2State({
           <div className="rounded-lg border border-white/10 bg-white/[0.02] p-5">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <div className="text-[11px] font-mono text-[#c9a84c]">{picked.code}</div>
+                <div className="text-[12px] font-mono text-[#c9a84c]">{picked.code}</div>
                 <div className="text-[17px] font-medium text-white mt-0.5">{picked.name}</div>
                 <div className="text-[12.5px] text-white/55 mt-1">
                   {existingPack ? (

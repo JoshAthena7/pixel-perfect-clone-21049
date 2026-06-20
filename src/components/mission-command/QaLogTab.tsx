@@ -149,8 +149,8 @@ export function QaLogTab({ missionId }: { missionId: string }) {
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Q&amp;A Log</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-2xl font-medium text-foreground">Q&amp;A Log</h2>
+          <p className="text-[14px] text-muted-foreground">
             Track all questions and answers issued by the state during the procurement period.
           </p>
         </div>
@@ -206,7 +206,7 @@ export function QaLogTab({ missionId }: { missionId: string }) {
         />
       ) : (
         <div className="rounded-lg border bg-card divide-y">
-          <div className="grid grid-cols-12 px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <div className="grid grid-cols-12 px-4 py-2 text-[12px] font-medium   text-muted-foreground">
             <div className="col-span-2">Q&amp;A #</div>
             <div className="col-span-4">Question</div>
             <div className="col-span-2">Date</div>
@@ -220,7 +220,7 @@ export function QaLogTab({ missionId }: { missionId: string }) {
             return (
               <div key={q.id}>
                 <button
-                  className="w-full grid grid-cols-12 px-4 py-3 text-sm hover:bg-muted/30 text-left"
+                  className="w-full grid grid-cols-12 px-4 py-3 text-[14px] hover:bg-muted/30 text-left"
                   onClick={() => setExpanded(isOpen ? null : q.id)}
                 >
                   <div className="col-span-2 flex items-center gap-1 font-medium">
@@ -234,7 +234,7 @@ export function QaLogTab({ missionId }: { missionId: string }) {
                   <div className="col-span-1 text-right text-muted-foreground">{q.sections_affected.length}</div>
                 </button>
                 {isOpen && (
-                  <div className="px-6 py-4 bg-muted/20 space-y-3 text-sm">
+                  <div className="px-6 py-4 bg-muted/20 space-y-3 text-[14px]">
                     <div><strong>Question:</strong><p className="mt-1 whitespace-pre-wrap">{q.question}</p></div>
                     <div><strong>State response:</strong><p className="mt-1 whitespace-pre-wrap">{response || <em className="text-muted-foreground">No response recorded.</em>}</p></div>
                     <div>
@@ -266,7 +266,7 @@ export function QaLogTab({ missionId }: { missionId: string }) {
                     )}
                     <div className="flex gap-2 pt-2">
                       {q.status === "reviewed" ? (
-                        <span className="text-sm text-green-700 font-medium">Reviewed ✓</span>
+                        <span className="text-[14px] text-green-700 font-medium">Reviewed ✓</span>
                       ) : (
                         <Button size="sm" variant="outline" onClick={() => markReviewed(q)}>Mark Reviewed</Button>
                       )}
@@ -374,7 +374,7 @@ function AddQaModal({
             <Label>Sections affected</Label>
             <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-1">
               {sections.map((s) => (
-                <label key={s.id} className="flex items-center gap-2 text-sm">
+                <label key={s.id} className="flex items-center gap-2 text-[14px]">
                   <Checkbox
                     checked={tags.includes(s.id)}
                     onCheckedChange={(c) => setTags((prev) => c ? [...prev, s.id] : prev.filter((x) => x !== s.id))}
@@ -450,14 +450,14 @@ function BulkImportModal({
         {entries.length === 0 ? (
           <div className="space-y-3">
             <Input type="file" accept=".pdf,.doc,.docx" onChange={(e) => handleFile(e.target.files?.[0] ?? null)} />
-            {busy && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> IRIS is parsing…</div>}
+            {busy && <div className="flex items-center gap-2 text-[14px] text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> IRIS is parsing…</div>}
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">{entries.length} entries extracted. Uncheck any you don't want to import.</p>
+            <p className="text-[14px] text-muted-foreground">{entries.length} entries extracted. Uncheck any you don't want to import.</p>
             <div className="border rounded-md divide-y max-h-96 overflow-y-auto">
               {entries.map((e, i) => (
-                <label key={i} className="flex gap-3 p-3 text-sm">
+                <label key={i} className="flex gap-3 p-3 text-[14px]">
                   <Checkbox
                     checked={e.checked}
                     onCheckedChange={(c) => setEntries((prev) => prev.map((x, j) => j === i ? { ...x, checked: !!c } : x))}
@@ -470,7 +470,7 @@ function BulkImportModal({
               ))}
             </div>
             {importing && (
-              <p className="text-sm">Importing {importing.done} of {importing.total}…</p>
+              <p className="text-[14px]">Importing {importing.done} of {importing.total}…</p>
             )}
             <DialogFooter>
               <Button variant="outline" onClick={() => setEntries([])}>Re-upload</Button>

@@ -33,7 +33,7 @@ export function OlympusSecondaryNav({ isAdmin = false }: { isAdmin?: boolean }) 
             key={it.to}
             to={it.to as any}
             className={cn(
-              "text-sm py-2 border-b-2 transition-colors -mb-px flex items-center gap-2",
+              "text-[14px] py-2 border-b-2 transition-colors -mb-px flex items-center gap-2",
               it.match
                 ? "border-[var(--athena-gold)] text-foreground font-medium"
                 : "border-transparent text-muted-foreground hover:text-foreground",
@@ -41,7 +41,7 @@ export function OlympusSecondaryNav({ isAdmin = false }: { isAdmin?: boolean }) 
           >
             {it.label}
             {it.badge != null && it.badge > 0 && (
-              <span className="rounded-full bg-[var(--athena-gold)]/20 text-[var(--athena-gold)] text-[10px] px-1.5 py-0.5">
+              <span className="rounded-full bg-[var(--athena-gold)]/20 text-[var(--athena-gold)] text-[11px] px-1.5 py-0.5">
                 {it.badge}
               </span>
             )}

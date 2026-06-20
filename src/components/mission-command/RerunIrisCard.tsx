@@ -203,7 +203,7 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
         <div className="flex items-start gap-3">
           <Sparkles className="h-5 w-5 mt-0.5 shrink-0" />
           <div>
-            <p className="text-[14px] font-semibold">IRIS hasn't fully processed this mission yet</p>
+            <p className="text-[14px] font-medium">IRIS hasn't fully processed this mission yet</p>
             <p className="text-[12.5px] opacity-80 mt-0.5">
               Questions and/or intelligence nodes are missing. Run IRIS now to extract
               questions from your RFP, build the Mission Intelligence Graph, and generate
@@ -213,7 +213,7 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
         </div>
         <button
           onClick={() => setOpen(true)}
-          className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-semibold border-2"
+          className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-md text-[14px] font-medium border-2"
           style={{ background: NAVY, color: GOLD, borderColor: NAVY }}
         >
           ⚡ Re-run IRIS Processing
@@ -225,7 +225,7 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
           <div className="w-full max-w-xl rounded-xl border border-white/10 bg-[#0B1224] p-6 shadow-2xl">
             <div className="flex items-center gap-2 mb-1">
               <Sparkles className="h-5 w-5" style={{ color: GOLD }} />
-              <h2 className="text-[16px] font-semibold text-white">
+              <h2 className="text-[16px] font-medium text-white">
                 IRIS is Processing Your Documents
               </h2>
             </div>
@@ -234,7 +234,7 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
             </p>
 
             {lines.length === 0 && !running && !fatal && (
-              <p className="text-[13px] text-white/70 mb-4">
+              <p className="text-[14px] text-white/70 mb-4">
                 Ready to start. IRIS will process documents, build the graph, and generate
                 question briefs.
               </p>
@@ -244,7 +244,7 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
               {lines.map((l) => (
                 <li
                   key={l.id}
-                  className={`text-[13px] ${
+                  className={`text-[14px] ${
                     l.state === "done"
                       ? "text-emerald-300"
                       : l.state === "error"
@@ -275,7 +275,7 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
               <div className="rounded-md border border-red-500/40 bg-red-500/10 p-3 mb-4">
                 <div className="flex items-start gap-2">
                   <AlertCircle className="h-4 w-4 text-red-300 mt-0.5 shrink-0" />
-                  <p className="text-[13px] text-red-200">{fatal}</p>
+                  <p className="text-[14px] text-red-200">{fatal}</p>
                 </div>
               </div>
             )}
@@ -284,21 +284,21 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
               {!running && !done && !fatal && (
                 <button
                   onClick={run}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-semibold"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-[14px] font-medium"
                   style={{ background: GOLD, color: NAVY }}
                 >
                   <Sparkles className="h-4 w-4" /> Start Processing
                 </button>
               )}
               {running && (
-                <div className="flex items-center gap-2 text-[13px] text-white/70">
+                <div className="flex items-center gap-2 text-[14px] text-white/70">
                   <Loader2 className="h-4 w-4 animate-spin" /> Working…
                 </div>
               )}
               {fatal && !running && (
                 <button
                   onClick={() => setOpen(false)}
-                  className="px-4 py-2 rounded-md text-[13px] font-medium border border-white/15 text-white/80 hover:bg-white/[0.04]"
+                  className="px-4 py-2 rounded-md text-[14px] font-medium border border-white/15 text-white/80 hover:bg-white/[0.04]"
                 >
                   Close
                 </button>
@@ -306,7 +306,7 @@ export function RerunIrisCard({ missionId }: { missionId: string }) {
               {done && (
                 <button
                   onClick={closeAndRefresh}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-[13px] font-semibold"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-[14px] font-medium"
                   style={{ background: GOLD, color: NAVY }}
                 >
                   <CheckCircle2 className="h-4 w-4" /> Done — View Mission

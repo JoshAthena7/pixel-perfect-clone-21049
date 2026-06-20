@@ -52,7 +52,7 @@ export function IntelStatusWidget({ missionId }: { missionId: string }) {
         style={{
           fontSize: 11,
           letterSpacing: "0.18em",
-          textTransform: "uppercase",
+          textTransform: "",
           color: GOLD,
           fontWeight: 700,
         }}
@@ -111,7 +111,7 @@ function Pill({ label, value, color }: { label: string; value: number; color: st
       className="rounded-md px-2.5 py-2 flex items-center justify-between"
       style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
     >
-      <span style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+      <span style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", textTransform: "", letterSpacing: "0.06em" }}>
         {label}
       </span>
       <span style={{ fontSize: 14, fontWeight: 600, color }}>{value}</span>

@@ -95,7 +95,7 @@ export function CompetitorIntelPanel({
     <div className="mt-8 space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-[15px] font-medium text-white">
+          <h3 className="text-[14px] font-medium text-white">
             Competitor Intelligence Cards
           </h3>
           <p className="text-[12.5px] text-white/55 mt-0.5">
@@ -107,7 +107,7 @@ export function CompetitorIntelPanel({
           <button
             onClick={run}
             disabled={running}
-            className="inline-flex items-center gap-2 text-[13px] px-4 py-2 rounded font-medium disabled:opacity-50"
+            className="inline-flex items-center gap-2 text-[14px] px-4 py-2 rounded font-medium disabled:opacity-50"
             style={{ background: "#C49A2B", color: "#0D1B3E" }}
           >
             {running ? (
@@ -131,7 +131,7 @@ export function CompetitorIntelPanel({
       {cards.length === 0 && !running ? (
         <div className="rounded-xl border border-dashed border-white/15 bg-white/[0.02] p-8 text-center">
           <Sparkles className="h-6 w-6 mx-auto mb-2" style={{ color: "#C49A2B" }} />
-          <p className="text-[13px] text-white/70">
+          <p className="text-[14px] text-white/70">
             No competitor cards yet. Confirm your competitors above, then click{" "}
             <span className="text-amber-300">Confirm &amp; Generate Intelligence</span>.
           </p>
@@ -164,7 +164,7 @@ export function CompetitorIntelPanel({
         >
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="h-4 w-4" style={{ color: "#C49A2B" }} />
-            <h4 className="text-[13px] font-semibold tracking-wide text-white">
+            <h4 className="text-[14px] font-medium tracking-wide text-white">
               IRIS Competitive Landscape Summary
             </h4>
           </div>

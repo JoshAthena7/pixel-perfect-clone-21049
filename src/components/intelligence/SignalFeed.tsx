@@ -66,7 +66,7 @@ export function SignalFeed({ missionId }: { missionId: string }) {
       <div
         style={{
           fontSize: 10,
-          textTransform: "uppercase",
+          textTransform: "",
           letterSpacing: "0.08em",
           color: "rgba(255,255,255,0.45)",
           fontWeight: 600,
@@ -100,7 +100,7 @@ export function SignalFeed({ missionId }: { missionId: string }) {
                     style={{
                       fontSize: 9,
                       fontWeight: 600,
-                      textTransform: "uppercase",
+                      textTransform: "",
                       letterSpacing: "0.05em",
                       padding: "2px 8px",
                       borderRadius: 999,

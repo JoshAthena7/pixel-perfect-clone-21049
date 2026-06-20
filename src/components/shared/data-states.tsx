@@ -61,7 +61,7 @@ export function ErrorState({
       )}
     >
       <AlertTriangle className="h-10 w-10 text-slate-400" aria-hidden />
-      <p className="mt-4 max-w-md text-sm text-slate-600">{message}</p>
+      <p className="mt-4 max-w-md text-[14px] text-slate-600">{message}</p>
       {onRetry && (
         <Button onClick={onRetry} variant="outline" className="mt-5">
           Try Again
@@ -103,8 +103,8 @@ export function EmptyState({
         ) : (
           <div className="h-10 w-10 rounded-full bg-slate-200" aria-hidden />
         ))}
-      <p className="mt-4 text-sm font-medium text-slate-800">{title}</p>
-      {description && <p className="mt-2 max-w-md text-sm text-slate-500">{description}</p>}
+      <p className="mt-4 text-[14px] font-medium text-slate-800">{title}</p>
+      {description && <p className="mt-2 max-w-md text-[14px] text-slate-500">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   );
@@ -125,7 +125,7 @@ export function AiFailureBanner({
   return (
     <div
       className={cn(
-        "flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900",
+        "flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-[14px] text-amber-900",
         className,
       )}
     >
@@ -135,7 +135,7 @@ export function AiFailureBanner({
         <button
           type="button"
           onClick={onRetry}
-          className="shrink-0 rounded border border-amber-400 px-2 py-1 text-xs font-medium hover:bg-amber-100"
+          className="shrink-0 rounded border border-amber-400 px-2 py-1 text-[12px] font-medium hover:bg-amber-100"
         >
           Retry IRIS
         </button>

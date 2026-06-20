@@ -152,7 +152,7 @@ function OnboardingWizard() {
       <div className="mx-auto max-w-2xl px-6 py-12">
         {/* Progress */}
         <div className="mb-10">
-          <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-widest text-white/40">
+          <div className="mb-3 flex items-center justify-between text-[12px]   text-white/40">
             <span>IRIS Onboarding</span>
             <span>Step {step + 1} of {totalSteps}</span>
           </div>
@@ -170,12 +170,12 @@ function OnboardingWizard() {
               I'm IRIS. I read every signal, every requirement, every move the state has made. My job is to keep you ahead of the evaluator. Before we drop into the mission, I need three minutes from you so I can brief you on the right things.
             </p>
             {inviteRole && (
-              <p className="text-sm text-white/50">
+              <p className="text-[14px] text-white/50">
                 Your role on this mission: <span className="text-white/80 capitalize">{inviteRole.replaceAll("_", " ")}</span>
               </p>
             )}
             <div className="flex items-center justify-between pt-6">
-              <button className="text-xs uppercase tracking-widest text-white/40 hover:text-white/70" onClick={() => persistAndAdvance("done")}>
+              <button className="text-[12px]   text-white/40 hover:text-white/70" onClick={() => persistAndAdvance("done")}>
                 Skip for now
               </button>
               <Button onClick={() => setStep(1)} className="bg-amber-400 text-black hover:bg-amber-300">
@@ -188,7 +188,7 @@ function OnboardingWizard() {
         {step === 1 && (
           <div className="space-y-6">
             <h2 className="text-2xl font-light text-white">Who are you?</h2>
-            <p className="text-sm text-white/60">So I can address you correctly and route messages to the right place.</p>
+            <p className="text-[14px] text-white/60">So I can address you correctly and route messages to the right place.</p>
             <div className="space-y-4">
               <div>
                 <Label className="text-white/70">Full name</Label>
@@ -200,7 +200,7 @@ function OnboardingWizard() {
               </div>
               <div>
                 <Label className="text-white/70">Time zone</Label>
-                <select value={timezone} onChange={(e) => setTimezone(e.target.value)} className="mt-1 w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white">
+                <select value={timezone} onChange={(e) => setTimezone(e.target.value)} className="mt-1 w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-[14px] text-white">
                   {TIMEZONES.map((tz) => <option key={tz} value={tz}>{tz}</option>)}
                 </select>
               </div>
@@ -212,13 +212,13 @@ function OnboardingWizard() {
         {step === 2 && (
           <div className="space-y-6">
             <h2 className="text-2xl font-light text-white">What do you know cold?</h2>
-            <p className="text-sm text-white/60">Pick everything you can write or speak to without prep. I use this to route questions and SME asks to you.</p>
+            <p className="text-[14px] text-white/60">Pick everything you can write or speak to without prep. I use this to route questions and SME asks to you.</p>
             <div className="flex flex-wrap gap-2">
               {EXPERTISE_TAXONOMY.map((t) => {
                 const on = tags.includes(t);
                 return (
                   <button key={t} type="button" onClick={() => toggleTag(t)}
-                    className={`rounded-full border px-3 py-1.5 text-xs transition ${on ? "border-amber-300/60 bg-amber-300/10 text-amber-200" : "border-white/10 bg-white/[0.03] text-white/60 hover:border-white/30 hover:text-white"}`}>
+                    className={`rounded-full border px-3 py-1.5 text-[12px] transition ${on ? "border-amber-300/60 bg-amber-300/10 text-amber-200" : "border-white/10 bg-white/[0.03] text-white/60 hover:border-white/30 hover:text-white"}`}>
                     {on && <Check className="mr-1 inline h-3 w-3" />}{t}
                   </button>
                 );
@@ -246,7 +246,7 @@ function OnboardingWizard() {
         {step === 3 && (
           <div className="space-y-6">
             <h2 className="text-2xl font-light text-white">How should I reach you?</h2>
-            <p className="text-sm text-white/60">Last step. Then I drop you into the mission.</p>
+            <p className="text-[14px] text-white/60">Last step. Then I drop you into the mission.</p>
             <div className="space-y-4">
               <div>
                 <Label className="text-white/70">Slack handle (optional)</Label>
@@ -254,7 +254,7 @@ function OnboardingWizard() {
               </div>
               <div>
                 <Label className="text-white/70">When IRIS briefs you, lead with…</Label>
-                <select value={pov} onChange={(e) => setPov(e.target.value)} className="mt-1 w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white">
+                <select value={pov} onChange={(e) => setPov(e.target.value)} className="mt-1 w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-[14px] text-white">
                   <option value="evaluator_first">What the evaluator wants</option>
                   <option value="risk_first">What's at risk</option>
                   <option value="strategy_first">What our move is</option>
@@ -274,8 +274,8 @@ function StepNav({ onBack, onNext, onSkip, nextLabel = "Continue", busy }: { onB
   return (
     <div className="flex items-center justify-between pt-6">
       <div className="flex items-center gap-4">
-        <button className="text-xs uppercase tracking-widest text-white/40 hover:text-white/70" onClick={onBack}>← Back</button>
-        {onSkip && <button className="text-xs uppercase tracking-widest text-white/40 hover:text-white/70" onClick={onSkip}>Skip</button>}
+        <button className="text-[12px]   text-white/40 hover:text-white/70" onClick={onBack}>← Back</button>
+        {onSkip && <button className="text-[12px]   text-white/40 hover:text-white/70" onClick={onSkip}>Skip</button>}
       </div>
       <Button onClick={onNext} disabled={busy} className="bg-amber-400 text-black hover:bg-amber-300">
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{nextLabel} <ArrowRight className="ml-2 h-4 w-4" /></>}

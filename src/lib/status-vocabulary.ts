@@ -106,7 +106,7 @@ export function statusPillStyle(raw: string | null | undefined): React.CSSProper
     fontSize: 10,
     fontWeight: 600,
     letterSpacing: "0.04em",
-    textTransform: "uppercase" as const,
+    textTransform: "" as const,
     display: "inline-block",
   };
 }

@@ -160,7 +160,7 @@ function RoleSelect({
 }) {
   return (
     <label className="block">
-      <span className="text-[11px] uppercase tracking-[0.14em] text-white/55 mb-1.5 block">
+      <span className="text-[12px]  tracking-[0.14em] text-white/55 mb-1.5 block">
         {label}
       </span>
       <select

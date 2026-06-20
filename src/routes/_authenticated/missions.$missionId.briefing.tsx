@@ -68,7 +68,7 @@ const glass: React.CSSProperties = {
 const cardLabel: React.CSSProperties = {
   fontSize: 11,
   letterSpacing: "0.18em",
-  textTransform: "uppercase",
+  textTransform: "",
   color: GOLD,
   fontWeight: 700,
 };
@@ -223,7 +223,7 @@ function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
         <div className="lg:col-span-3 relative">
           <StateMap stateCode={mission?.state_code} />
           <div className="relative">
-            <h1 className="font-bold" style={{ fontSize: 36, lineHeight: 1.1, letterSpacing: "-0.01em" }}>
+            <h1 className="font-medium" style={{ fontSize: 36, lineHeight: 1.1, letterSpacing: "-0.01em" }}>
               {mission?.name ?? "Mission"}
             </h1>
             <div className="mt-2 space-y-0.5" style={{ color: GOLD, fontWeight: 500, fontSize: 12, lineHeight: 1.4 }}>
@@ -296,7 +296,7 @@ function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
               </div>
               {msDays !== null && msDays > 0 ? (
                 <>
-                  <h3 className="mt-3 font-bold" style={{ fontSize: 24, lineHeight: 1.2 }}>
+                  <h3 className="mt-3 font-medium" style={{ fontSize: 24, lineHeight: 1.2 }}>
                     {msName}
                   </h3>
                   <div className="mt-2" style={{ fontSize: 16, color: GOLD, fontWeight: 600 }}>
@@ -429,7 +429,7 @@ function TodaysFocusCard({ missionId, mission, bare = false }: { missionId: stri
           {finalItems.slice(0, 4).map((item: string, i: number) => (
             <li key={i} className="flex gap-4">
               <span
-                className="shrink-0 grid place-items-center rounded-lg font-bold"
+                className="shrink-0 grid place-items-center rounded-lg font-medium"
                 style={{
                   width: 32,
                   height: 32,
@@ -754,7 +754,7 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
                   </div>
                 </div>
                 <div
-                  className="mt-3 font-bold"
+                  className="mt-3 font-medium"
                   style={{ fontSize: 12, color: isCurrent || isComplete ? TEXT : META_SOFT }}
                 >
                   {p.name}
@@ -780,7 +780,7 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
           }}
         >
           <div style={cardLabel}>Current Phase</div>
-          <div className="mt-2 font-bold" style={{ fontSize: 18 }}>
+          <div className="mt-2 font-medium" style={{ fontSize: 18 }}>
             {stages[currentIndex]}
           </div>
         </div>
@@ -803,7 +803,7 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
               : null;
             return (
               <>
-                <div className="mt-2 font-bold" style={{ fontSize: 18 }}>{label}</div>
+                <div className="mt-2 font-medium" style={{ fontSize: 18 }}>{label}</div>
                 {dateStr && (
                   <div className="mt-1" style={{ fontSize: 13, color: GOLD }}>
                     {fmtUtc(dateStr)}
@@ -843,7 +843,7 @@ function MissionJourneyCard({ missionId, mission }: { missionId: string; mission
                   />
                   <span style={{ fontSize: 13, color: past ? META_SOFT : TEXT, flex: 1 }}>{m.title}</span>
                   {m.milestone_type && (
-                    <span style={{ fontSize: 10, color: META_SOFT, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    <span style={{ fontSize: 10, color: META_SOFT, textTransform: "", letterSpacing: "0.06em" }}>
                       {String(m.milestone_type).replace(/_/g, " ")}
                     </span>
                   )}
@@ -1191,7 +1191,7 @@ function StrategicRisksCard({ missionId }: { missionId: string }) {
                       fontSize: 10,
                       fontWeight: 800,
                       letterSpacing: "0.08em",
-                      textTransform: "uppercase",
+                      textTransform: "",
                       color: c,
                       padding: "2px 8px",
                       borderRadius: 999,
@@ -1272,7 +1272,7 @@ function CompetitorsCard({ missionId }: { missionId: string }) {
                     fontSize: 10,
                     fontWeight: 700,
                     letterSpacing: "0.06em",
-                    textTransform: "uppercase",
+                    textTransform: "",
                     color: GOLD,
                     padding: "2px 8px",
                     borderRadius: 999,
@@ -1306,7 +1306,7 @@ function CompetitorBullets({ label, color, items }: { label: string; color: stri
   if (list.length === 0) return null;
   return (
     <div>
-      <div style={{ fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color, fontWeight: 700 }}>
+      <div style={{ fontSize: 10, letterSpacing: "0.08em", textTransform: "", color, fontWeight: 700 }}>
         {label}
       </div>
       <ul className="mt-1 space-y-0.5">
@@ -1360,7 +1360,7 @@ function WhatChangedCard({ missionId }: { missionId: string }) {
               return (
                 <li key={ev.id} className="flex items-start gap-2">
                   <span
-                    className="shrink-0 mt-0.5 font-bold"
+                    className="shrink-0 mt-0.5 font-medium"
                     style={{
                       color: resolved ? "rgba(255,255,255,0.4)" : "#4ade80",
                       fontSize: 14,
@@ -1463,7 +1463,7 @@ function LeadershipBroadcastCard({
       <div className="flex items-center justify-between gap-2 mb-2">
         <div
           className="flex items-center gap-1.5"
-          style={{ fontSize: 10, letterSpacing: "0.12em", fontWeight: 700, color: META_SOFT, textTransform: "uppercase" }}
+          style={{ fontSize: 10, letterSpacing: "0.12em", fontWeight: 700, color: META_SOFT, textTransform: "" }}
         >
           <Megaphone size={11} /> Leadership Broadcast
         </div>
@@ -1698,7 +1698,7 @@ function MissionLeadersCard({ missionId }: { missionId: string }) {
             return (
               <div key={`${l.role}-${idx}`} className="flex flex-col items-center text-center" style={{ width: 140 }}>
                 <div
-                  className="grid place-items-center font-bold"
+                  className="grid place-items-center font-medium"
                   style={{
                     width: 56,
                     height: 56,
@@ -1711,7 +1711,7 @@ function MissionLeadersCard({ missionId }: { missionId: string }) {
                 >
                   {initials}
                 </div>
-                <div className="mt-3 font-bold" style={{ fontSize: 13.5 }}>
+                <div className="mt-3 font-medium" style={{ fontSize: 13.5 }}>
                   {name}
                 </div>
                 <div style={{ fontSize: 11.5, color: GOLD, marginTop: 2 }}>{l.role}</div>
@@ -1834,7 +1834,7 @@ function MessageLeaderDialog({
         <DialogHeader>
           <DialogTitle>Message {leader.member.name}</DialogTitle>
         </DialogHeader>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[12px] text-muted-foreground">
           Delivered inside Atlas — no external email is sent. For critical escalations
           that need email, use the red alert icon on the leader card.
         </p>
@@ -1880,7 +1880,7 @@ function NorthStarCompactCard({ missionId }: { missionId: string }) {
           color: GOLD,
           fontSize: 8,
           letterSpacing: "0.1em",
-          textTransform: "uppercase",
+          textTransform: "",
           fontWeight: 700,
           marginBottom: 8,
         }}
@@ -1952,7 +1952,7 @@ function CompactMissionJourneyCard({ missionId, mission }: { missionId: string; 
 
   const labelStyle: React.CSSProperties = {
     fontSize: 9,
-    textTransform: "uppercase",
+    textTransform: "",
     letterSpacing: "0.08em",
     color: META_SOFT,
     fontWeight: 600,
@@ -1984,7 +1984,7 @@ function CompactMissionJourneyCard({ missionId, mission }: { missionId: string; 
             style={{
               fontSize: 9,
               letterSpacing: "0.06em",
-              textTransform: "uppercase",
+              textTransform: "",
               color: META_SOFT,
               fontWeight: 500,
             }}

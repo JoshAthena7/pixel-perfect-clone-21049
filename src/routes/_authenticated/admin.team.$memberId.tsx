@@ -163,7 +163,7 @@ function MemberProfilePage() {
           <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/admin/team" })}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to roster
           </Button>
-          <p className="text-sm text-destructive">Failed to load member.</p>
+          <p className="text-[14px] text-destructive">Failed to load member.</p>
         </div>
       </div>
     );
@@ -175,43 +175,43 @@ function MemberProfilePage() {
   return (
     <div className="min-h-screen bg-background px-8 py-8 text-foreground">
       <div className="mx-auto max-w-5xl space-y-6">
-        <Link to="/admin/team" className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
+        <Link to="/admin/team" className="inline-flex items-center gap-2 text-[12px] text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3.5 w-3.5" /> Back to roster
         </Link>
 
         {/* Header */}
         <div className="rounded-lg border p-6 flex items-start gap-5">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted text-xl font-semibold">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted text-xl font-medium">
             {member.avatar_url
               ? <img src={member.avatar_url} alt="" className="h-16 w-16 rounded-full object-cover" />
               : initials}
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold truncate">{fullName}</h1>
-            <p className="text-sm text-muted-foreground truncate">
+            <h1 className="text-2xl font-medium truncate">{fullName}</h1>
+            <p className="text-[14px] text-muted-foreground truncate">
               {ROLE_OPTIONS.find((r) => r.value === currentRole)?.label ?? "Unassigned"}
             </p>
-            <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
+            <div className="mt-2 flex flex-wrap gap-3 text-[12px] text-muted-foreground">
               <span className="inline-flex items-center gap-1"><Mail className="h-3 w-3" /> {member.email}</span>
               {member.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {member.phone}</span>}
               {member.address && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {member.address}</span>}
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="text-[10px]">{member.atlas_invite_status}</Badge>
-              <Badge variant="outline" className="text-[10px]">Profile {member.atlas_profile_completeness}%</Badge>
-              {member.atlas_onboarding_complete && <Badge className="text-[10px]">Onboarded</Badge>}
-              {member.atlas_hipaa_acknowledged && <Badge variant="secondary" className="text-[10px]">HIPAA ack</Badge>}
+              <Badge variant="outline" className="text-[11px]">{member.atlas_invite_status}</Badge>
+              <Badge variant="outline" className="text-[11px]">Profile {member.atlas_profile_completeness}%</Badge>
+              {member.atlas_onboarding_complete && <Badge className="text-[11px]">Onboarded</Badge>}
+              {member.atlas_hipaa_acknowledged && <Badge variant="secondary" className="text-[11px]">HIPAA ack</Badge>}
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">
             <div className="w-48">
-              <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Atlas role</Label>
+              <Label className="text-[11px]   text-muted-foreground">Atlas role</Label>
               <Select
                 value={currentRole}
                 disabled={roleMut.isPending}
                 onValueChange={(v) => { if (v !== currentRole) roleMut.mutate(v); }}
               >
-                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-8 text-[12px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {ROLE_OPTIONS.map((r) => (
                     <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
@@ -231,7 +231,7 @@ function MemberProfilePage() {
         {/* Editable details */}
         <div className="rounded-lg border p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Profile details</h2>
+            <h2 className="text-[14px] font-medium   text-muted-foreground">Profile details</h2>
             <Button size="sm" disabled={!dirty || saveMut.isPending} onClick={() => saveMut.mutate()}>
               {saveMut.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               Save changes
@@ -264,11 +264,11 @@ function MemberProfilePage() {
               <Textarea rows={2} value={form.address} onChange={(e) => update("address", e.target.value)} />
             </div>
             <div>
-              <Label>Skills <span className="text-muted-foreground text-xs">(comma-separated)</span></Label>
+              <Label>Skills <span className="text-muted-foreground text-[12px]">(comma-separated)</span></Label>
               <Input value={form.skills} onChange={(e) => update("skills", e.target.value)} />
             </div>
             <div>
-              <Label>Languages <span className="text-muted-foreground text-xs">(comma-separated)</span></Label>
+              <Label>Languages <span className="text-muted-foreground text-[12px]">(comma-separated)</span></Label>
               <Input value={form.languages} onChange={(e) => update("languages", e.target.value)} />
             </div>
           </div>
@@ -286,22 +286,22 @@ function MemberProfilePage() {
 
         {member.atlas_resume_url && (
           <a href={member.atlas_resume_url} target="_blank" rel="noreferrer"
-             className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
+             className="inline-flex items-center gap-2 text-[14px] text-primary hover:underline">
             <FileText className="h-4 w-4" /> View resume
           </a>
         )}
 
         {/* Activity */}
         <div className="rounded-lg border p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Recent activity</h2>
+          <h2 className="text-[14px] font-medium   text-muted-foreground mb-3">Recent activity</h2>
           {activity.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No activity yet.</p>
+            <p className="text-[14px] text-muted-foreground">No activity yet.</p>
           ) : (
             <ul className="space-y-2">
               {activity.map((a: any) => (
-                <li key={a.id} className="flex items-start justify-between gap-4 text-sm border-b last:border-0 pb-2">
+                <li key={a.id} className="flex items-start justify-between gap-4 text-[14px] border-b last:border-0 pb-2">
                   <span>{a.action}</span>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">{fmt(a.created_at)}</span>
+                  <span className="text-[12px] text-muted-foreground whitespace-nowrap">{fmt(a.created_at)}</span>
                 </li>
               ))}
             </ul>
@@ -315,8 +315,8 @@ function MemberProfilePage() {
 function InfoCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="rounded-md border p-3">
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
-      <div className="mt-1 text-sm break-words">{children}</div>
+      <div className="text-[11px]   text-muted-foreground">{label}</div>
+      <div className="mt-1 text-[14px] break-words">{children}</div>
     </div>
   );
 }

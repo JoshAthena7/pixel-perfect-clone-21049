@@ -123,7 +123,7 @@ export function StepFieldList({
         )}
       </div>
 
-      {error && <div className="text-[13px] text-red-400">{error}</div>}
+      {error && <div className="text-[14px] text-red-400">{error}</div>}
 
       <div className="space-y-5">
         {fields.map((f) => (

@@ -121,19 +121,19 @@ export function NudgeModal({
           {/* Writer info row */}
           <div className="flex items-center gap-3 rounded border border-white/5 bg-white/[0.02] p-3">
             <div
-              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-xs font-semibold shrink-0"
+              className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-[12px] font-medium shrink-0"
               style={{ color: target.liveColor }}
             >
               {initials(target.name)}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium truncate">{target.name}</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/55 uppercase tracking-wide">
+                <span className="text-[14px] font-medium truncate">{target.name}</span>
+                <span className="text-[11px] px-1.5 py-0.5 rounded bg-white/5 text-white/55  tracking-wide">
                   {target.role}
                 </span>
               </div>
-              <div className="text-[11px] mt-0.5 text-white/55">
+              <div className="text-[12px] mt-0.5 text-white/55">
                 {target.questionCount}q · <span style={{ color: target.liveColor }}>{target.liveLabel}</span>
               </div>
             </div>
@@ -141,9 +141,9 @@ export function NudgeModal({
 
           {/* Channel selector */}
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-white/45 mb-1.5">Channel</div>
+            <div className="text-[11px]   text-white/45 mb-1.5">Channel</div>
             {noChannels ? (
-              <div className="rounded border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-200 flex items-start gap-2">
+              <div className="rounded border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-[12px] text-amber-200 flex items-start gap-2">
                 <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
                 <span>No messaging integration configured for this mission. Set up Slack or Teams in mission settings.</span>
               </div>
@@ -163,17 +163,17 @@ export function NudgeModal({
 
           {/* Message preview */}
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-white/45 mb-1.5">Message</div>
+            <div className="text-[11px]   text-white/45 mb-1.5">Message</div>
             {customize ? (
               <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={6}
-                className="text-[13px] bg-white/[0.04] border-white/10 rounded resize-none"
+                className="text-[14px] bg-white/[0.04] border-white/10 rounded resize-none"
               />
             ) : (
               <div
-                className="text-[13px] leading-relaxed text-white/85 whitespace-pre-wrap"
+                className="text-[14px] leading-relaxed text-white/85 whitespace-pre-wrap"
                 style={{
                   background: "rgba(255,255,255,0.04)",
                   borderRadius: 4,
@@ -189,7 +189,7 @@ export function NudgeModal({
                 if (!customize) setMessage(defaultMessage);
                 setCustomize(!customize);
               }}
-              className="mt-2 text-[11px] text-white/55 hover:text-white inline-flex items-center gap-1"
+              className="mt-2 text-[12px] text-white/55 hover:text-white inline-flex items-center gap-1"
             >
               {customize ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
               Customize message
@@ -201,7 +201,7 @@ export function NudgeModal({
             type="button"
             onClick={() => sendMut.mutate()}
             disabled={sendMut.isPending || noChannels || (channel === "slack" && !slackOn) || (channel === "teams" && !teamsOn)}
-            className="w-full inline-flex items-center justify-center gap-2 rounded py-2.5 text-sm font-semibold text-black transition disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full inline-flex items-center justify-center gap-2 rounded py-2.5 text-[14px] font-medium text-black transition disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ background: GOLD }}
           >
             <Send className="w-3.5 h-3.5" />

@@ -114,7 +114,7 @@ export function MissionEditPanel({
           <SheetDescription>Update mission details. Changes save immediately.</SheetDescription>
         </SheetHeader>
         {loading ? (
-          <div className="py-10 text-sm text-muted-foreground">Loading…</div>
+          <div className="py-10 text-[14px] text-muted-foreground">Loading…</div>
         ) : (
           <div className="space-y-4 py-4">
             <div>

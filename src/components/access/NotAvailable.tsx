@@ -19,10 +19,10 @@ export function NotAvailable({
 
   return (
     <div className="mx-auto flex min-h-[60vh] max-w-xl flex-col items-center justify-center px-8 text-center">
-      <p className="text-sm text-muted-foreground">{message}</p>
+      <p className="text-[14px] text-muted-foreground">{message}</p>
       <Link
         to="/atrium"
-        className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
+        className="mt-4 text-[12px] font-medium  tracking-[0.18em] text-muted-foreground hover:text-foreground"
       >
         Back to Atrium
       </Link>

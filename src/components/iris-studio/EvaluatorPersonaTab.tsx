@@ -23,13 +23,13 @@ export function EvaluatorPersonaTab({
       <div className={STUDIO_CARD + " space-y-5 max-w-2xl"}>
         <div>
           <FieldLabel>PERSONA NAME</FieldLabel>
-          <input className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-sm text-white"
+          <input className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[14px] text-white"
             value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div>
           <FieldLabel>EVALUATOR LENS</FieldLabel>
           <FieldDesc>What this evaluator looks for first.</FieldDesc>
-          <input className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-sm text-white"
+          <input className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[14px] text-white"
             value={lens} onChange={(e) => setLens(e.target.value)} />
         </div>
         <div>
@@ -40,13 +40,13 @@ export function EvaluatorPersonaTab({
               <li key={i} className="flex items-center gap-2 text-[12px] text-white/80">
                 <span className="text-white/40">{i + 1}.</span>
                 <span className="flex-1">{p}</span>
-                <button type="button" className="text-white/40 hover:text-white text-[11px]"
+                <button type="button" className="text-white/40 hover:text-white text-[12px]"
                   onClick={() => setPriorities(priorities.filter((_, j) => j !== i))}>remove</button>
               </li>
             ))}
           </ul>
           <div className="flex gap-2">
-            <input className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1.5 text-sm text-white"
+            <input className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[14px] text-white"
               placeholder="Add a priority"
               value={newPri} onChange={(e) => setNewPri(e.target.value)} />
             <button type="button" className="px-3 py-1.5 rounded bg-white/10 text-[12px] text-white"
