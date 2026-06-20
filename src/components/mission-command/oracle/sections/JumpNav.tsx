@@ -59,26 +59,27 @@ export function JumpNav({ active }: { active: SectionId }) {
       {SECTIONS.map((s, i) => {
         const isActive = active === s.id;
         return (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => scrollToSection(s.id)}
-            className="transition-colors"
-            style={{
-              padding: "4px 10px",
-              fontSize: 11,
-              color: isActive ? "white" : "rgba(255,255,255,0.4)",
-              background: "transparent",
-              border: "none",
-              borderBottom: `2px solid ${isActive ? "rgba(196,154,43,0.7)" : "transparent"}`,
-              cursor: "pointer",
-            }}
-          >
-            {s.label}
+          <span key={s.id} className="inline-flex items-center">
+            <button
+              type="button"
+              onClick={() => scrollToSection(s.id)}
+              className="transition-colors"
+              style={{
+                padding: "4px 10px",
+                fontSize: 11,
+                color: isActive ? "white" : "rgba(255,255,255,0.4)",
+                background: "transparent",
+                border: "none",
+                borderBottom: `2px solid ${isActive ? "rgba(196,154,43,0.7)" : "transparent"}`,
+                cursor: "pointer",
+              }}
+            >
+              {s.label}
+            </button>
             {i < SECTIONS.length - 1 && (
-              <span style={{ marginLeft: 8, color: "rgba(255,255,255,0.15)" }}>·</span>
+              <span style={{ color: "rgba(255,255,255,0.15)", margin: "0 2px" }}>·</span>
             )}
-          </button>
+          </span>
         );
       })}
     </div>
