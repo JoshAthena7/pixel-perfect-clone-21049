@@ -828,7 +828,7 @@ function StatusIcon({ status, urgency }: { status: ItemStatus; urgency: Checklis
   );
 }
 
-type ChecklistUrgency = "critical" | "high" | "normal" | "low";
+
 
 function StatusDetail({ status, onRetry }: { status: ItemStatus; onRetry: (d: MissionDoc) => void }) {
   if (status.kind === "processing") {
