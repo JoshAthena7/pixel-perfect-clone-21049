@@ -6537,6 +6537,92 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_iris_config: {
+        Row: {
+          brief_citation_density: string
+          brief_length_cap: number
+          brief_tone: string
+          created_at: string
+          cultural_standards: string[]
+          elevenlabs_model_id: string
+          elevenlabs_similarity_boost: number
+          elevenlabs_speed: number
+          elevenlabs_stability: number
+          elevenlabs_streaming: boolean
+          elevenlabs_style: number
+          elevenlabs_use_speaker_boost: boolean
+          elevenlabs_voice_id: string
+          evaluator_lens: string
+          evaluator_persona_name: string
+          evaluator_priorities: string[]
+          language_audit_enabled: boolean
+          mission_id: string
+          person_first_pairs: Json
+          personality_formality: number
+          personality_tone: number
+          state_terminology: Json
+          updated_at: string
+        }
+        Insert: {
+          brief_citation_density?: string
+          brief_length_cap?: number
+          brief_tone?: string
+          created_at?: string
+          cultural_standards?: string[]
+          elevenlabs_model_id?: string
+          elevenlabs_similarity_boost?: number
+          elevenlabs_speed?: number
+          elevenlabs_stability?: number
+          elevenlabs_streaming?: boolean
+          elevenlabs_style?: number
+          elevenlabs_use_speaker_boost?: boolean
+          elevenlabs_voice_id?: string
+          evaluator_lens?: string
+          evaluator_persona_name?: string
+          evaluator_priorities?: string[]
+          language_audit_enabled?: boolean
+          mission_id: string
+          person_first_pairs?: Json
+          personality_formality?: number
+          personality_tone?: number
+          state_terminology?: Json
+          updated_at?: string
+        }
+        Update: {
+          brief_citation_density?: string
+          brief_length_cap?: number
+          brief_tone?: string
+          created_at?: string
+          cultural_standards?: string[]
+          elevenlabs_model_id?: string
+          elevenlabs_similarity_boost?: number
+          elevenlabs_speed?: number
+          elevenlabs_stability?: number
+          elevenlabs_streaming?: boolean
+          elevenlabs_style?: number
+          elevenlabs_use_speaker_boost?: boolean
+          elevenlabs_voice_id?: string
+          evaluator_lens?: string
+          evaluator_persona_name?: string
+          evaluator_priorities?: string[]
+          language_audit_enabled?: boolean
+          mission_id?: string
+          person_first_pairs?: Json
+          personality_formality?: number
+          personality_tone?: number
+          state_terminology?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_iris_config_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: true
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_iris_extractions: {
         Row: {
           confidence_score: number | null
