@@ -1447,3 +1447,196 @@ function LeadershipBroadcastBand({ missionId }: { missionId: string }) {
     </div>
   );
 }
+
+/* ───────── New UI bits ───────── */
+
+function IrisActionBand({ text }: { text: string }) {
+  return (
+    <div
+      style={{
+        minHeight: 32,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "6px 14px",
+        marginBottom: 12,
+        background: "rgba(196,154,43,0.06)",
+        borderLeft: "3px solid rgba(196,154,43,0.5)",
+        borderRadius: 4,
+      }}
+    >
+      <span style={{ color: GOLD, fontSize: 14 }}>⚡</span>
+      <span style={{ fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: "0.08em" }}>IRIS</span>
+      <span style={{ color: "rgba(255,255,255,0.25)" }}>·</span>
+      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.9)", lineHeight: 1.4 }}>{text}</span>
+    </div>
+  );
+}
+
+function QuestionContextStrip({ q }: { q: Q }) {
+  const section = q.question_number ? q.question_number.split(".").slice(0, 2).join(".") : null;
+  const parts: { label: string; value: string; color?: string }[] = [];
+  if (section) parts.push({ label: "Section", value: section });
+  if (q.word_limit != null) parts.push({ label: "Word Limit", value: String(q.word_limit) });
+  if (q.page_limit != null) parts.push({ label: "Page Limit", value: String(q.page_limit) });
+  if (q.evaluation_weight != null) parts.push({ label: "Eval Weight", value: `${q.evaluation_weight}%` });
+  if (q.point_value != null) parts.push({ label: "Points", value: String(q.point_value) });
+  if (q.requires_exhibit != null) {
+    parts.push({
+      label: "Exhibit",
+      value: q.requires_exhibit ? "Required" : "Not required",
+      color: q.requires_exhibit ? AMBER : "rgba(34,197,94,0.7)",
+    });
+  }
+  if (parts.length === 0) return null;
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 10,
+        fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+        fontSize: 9,
+        letterSpacing: "0.06em",
+        textTransform: "uppercase",
+        color: "rgba(255,255,255,0.55)",
+        background: "rgba(255,255,255,0.02)",
+        padding: "6px 12px",
+        borderBottom: "1px solid rgba(255,255,255,0.05)",
+        marginBottom: 12,
+      }}
+    >
+      {parts.map((p, i) => (
+        <span key={p.label} style={{ display: "inline-flex", gap: 6 }}>
+          <span>{p.label}:</span>
+          <span style={{ color: p.color ?? "rgba(255,255,255,0.85)" }}>{p.value}</span>
+          {i < parts.length - 1 && <span style={{ color: "rgba(255,255,255,0.2)" }}>·</span>}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function SosBanner({
+  active, staleAt, onDismiss,
+}: { active: boolean; staleAt: string | null; onDismiss: () => void }) {
+  if (!active && !staleAt) return null;
+  if (active) {
+    return (
+      <div style={{
+        marginBottom: 14, padding: "8px 12px", background: "rgba(239,68,68,0.1)",
+        border: `1px solid ${RED}`, borderRadius: 6, fontSize: 12, color: "#fecaca",
+        display: "flex", alignItems: "center", gap: 8,
+      }}>
+        <span style={{ flex: 1 }}>🆘 Awaiting SME assignment — your Engagement Lead has been notified.</span>
+        <button onClick={onDismiss} title="Dismiss" style={{
+          background: "transparent", border: "none", color: "#fecaca",
+          cursor: "pointer", fontSize: 14, padding: "0 4px",
+        }}>×</button>
+      </div>
+    );
+  }
+  // Stale (>72h, no acknowledgment)
+  const rel = relTime(staleAt);
+  return (
+    <div style={{
+      marginBottom: 14, padding: "8px 12px", background: "rgba(245,158,11,0.08)",
+      border: `1px solid ${AMBER}`, borderRadius: 6, fontSize: 12, color: "#fde68a",
+      display: "flex", alignItems: "center", gap: 8,
+    }}>
+      <span style={{ flex: 1 }}>⚠ SME request from {rel} — no response yet. Contact your lead directly.</span>
+      <button onClick={onDismiss} title="Dismiss" style={{
+        background: "transparent", border: "none", color: "#fde68a",
+        cursor: "pointer", fontSize: 14, padding: "0 4px",
+      }}>×</button>
+    </div>
+  );
+}
+
+function StatusPills({
+  current, pensDown, onChange,
+}: { current: SimpleStatus; pensDown: boolean; onChange: (next: SimpleStatus) => void }) {
+  const PILLS: { value: SimpleStatus; label: string; color: string; description: string }[] = [
+    { value: "not_started", label: "Not Started", color: "rgba(255,255,255,0.3)", description: "Question not yet opened" },
+    { value: "drafting", label: "Drafting", color: "rgba(96,165,250,0.8)", description: "Actively writing your response" },
+    { value: "in_review", label: "In Review", color: "rgba(251,191,36,0.8)", description: "With your lead or team for review" },
+    { value: "finalized", label: "Finalized", color: "rgba(74,222,128,0.8)", description: "Complete — ready for submission" },
+  ];
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4 }}>
+      {PILLS.map((p) => {
+        const active = current === p.value;
+        const disabled = pensDown && p.value !== "finalized" && p.value !== "in_review";
+        return (
+          <button
+            key={p.value}
+            type="button"
+            title={p.description}
+            disabled={disabled}
+            onClick={(e) => { e.stopPropagation(); onChange(p.value); }}
+            style={{
+              all: "unset",
+              cursor: disabled ? "not-allowed" : "pointer",
+              padding: "6px 4px",
+              borderRadius: 6,
+              textAlign: "center",
+              fontSize: 10,
+              fontWeight: active ? 700 : 600,
+              color: active ? GOLD : "rgba(255,255,255,0.7)",
+              background: active ? "rgba(196,154,43,0.15)" : "rgba(255,255,255,0.03)",
+              border: `1px solid ${active ? GOLD : "rgba(255,255,255,0.08)"}`,
+              opacity: disabled ? 0.4 : 1,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+            }}
+          >
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: p.color }} />
+            {p.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ConfidencePills({
+  current, onChange,
+}: { current: "high" | "medium" | "low" | null; onChange: (v: "high" | "medium" | "low") => void }) {
+  const PILLS: { value: "high" | "medium" | "low"; label: string; emoji: string; color: string }[] = [
+    { value: "high", label: "High", emoji: "🟢", color: GREEN },
+    { value: "medium", label: "Medium", emoji: "🟡", color: AMBER },
+    { value: "low", label: "Low", emoji: "🔴", color: RED },
+  ];
+  return (
+    <div style={{ display: "flex", gap: 6 }}>
+      {PILLS.map((p) => {
+        const active = current === p.value;
+        const unset = current == null;
+        return (
+          <button
+            key={p.value}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onChange(p.value); }}
+            style={{
+              all: "unset",
+              cursor: "pointer",
+              minWidth: 60,
+              height: 28,
+              padding: "0 10px",
+              borderRadius: 6,
+              fontSize: 11,
+              fontWeight: active ? 700 : 600,
+              color: active ? p.color : unset ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.6)",
+              background: active ? `${p.color}26` : "rgba(255,255,255,0.03)",
+              borderLeft: `3px solid ${p.color}${active ? "" : "55"}`,
+              border: `1px solid ${active ? p.color : "rgba(255,255,255,0.08)"}`,
+              display: "inline-flex", alignItems: "center", gap: 6,
+              opacity: unset ? 0.7 : 1,
+            }}
+          >
+            <span>{p.emoji}</span>{p.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
