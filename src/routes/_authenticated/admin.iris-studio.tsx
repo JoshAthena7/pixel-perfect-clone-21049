@@ -17,7 +17,7 @@ import { toast } from "sonner";
 
 const GOLD = "#C49A2B";
 
-type Mission = { id: string; mission_name: string | null };
+type Mission = { id: string; name: string | null };
 
 const TAB_KEYS = ["brief", "language", "evaluator", "voice", "personality"] as const;
 type TabKey = (typeof TAB_KEYS)[number];
@@ -43,7 +43,7 @@ function IrisStudioPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("missions")
-        .select("id, mission_name")
+        .select("id, name")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Mission[];
@@ -65,7 +65,7 @@ function IrisStudioPage() {
     enabled: Boolean(missionId),
   });
 
-  const saveMutation = useMutation({
+  const saveMutation = useMutation<unknown, Error, Record<string, unknown>>({
     mutationFn: async (patch: Record<string, unknown>) => {
       if (!missionId) throw new Error("Pick a mission first.");
       return updateConfig({ data: { missionId, patch } });
@@ -82,7 +82,7 @@ function IrisStudioPage() {
   const config = configQuery.data as Record<string, unknown> | undefined;
   const headerLabel = useMemo(() => {
     const m = missions.find((x) => x.id === missionId);
-    return m?.mission_name ?? "Select a mission";
+    return m?.name ?? "Select a mission";
   }, [missions, missionId]);
 
   return (
@@ -106,7 +106,7 @@ function IrisStudioPage() {
               <SelectContent>
                 {missions.map((m) => (
                   <SelectItem key={m.id} value={m.id}>
-                    {m.mission_name ?? m.id.slice(0, 8)}
+                    {m.name ?? m.id.slice(0, 8)}
                   </SelectItem>
                 ))}
               </SelectContent>
