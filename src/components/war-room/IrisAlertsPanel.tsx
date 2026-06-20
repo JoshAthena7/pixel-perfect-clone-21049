@@ -7,6 +7,7 @@ import { generateIrisAlerts, type IrisAlert } from "@/lib/iris-alerts.functions"
 import { AlertsSkeleton, IrisHealthyCard, IrisOrientingCard } from "./AtcEmptyStates";
 import { supabase } from "@/integrations/supabase/client";
 import { AssignSmeModal } from "./AssignSmeModal";
+import { UnansweredNotesSection } from "./UnansweredNotesSection";
 
 function relTime(iso: string | null | undefined) {
   if (!iso) return "—";
@@ -113,6 +114,7 @@ export function IrisAlertsPanel({ missionId, bare = false, onCountChange, missio
 
   const body = (
     <>
+      <UnansweredNotesSection missionId={missionId} />
       {sosAlerts.length > 0 && (
         <ul className="space-y-1.5 mb-2">
           {sosAlerts.map((s) => (
