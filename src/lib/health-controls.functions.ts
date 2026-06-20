@@ -54,22 +54,47 @@ export const getMissionHealthSummary = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ missionId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const { data: rows, error } = await supabase
-      .from("mission_questions")
-      .select("id, health_status, is_withdrawn")
-      .eq("mission_id", data.missionId);
+    const [{ data: rows, error }, { data: progressRows }] = await Promise.all([
+      supabase
+        .from("mission_questions")
+        .select("id, health_status, is_withdrawn")
+        .eq("mission_id", data.missionId),
+      supabase
+        .from("question_progress")
+        .select("question_id, assignee_id, status, acceptance_status, last_activity_at")
+        .eq("mission_id", data.missionId),
+    ]);
     if (error) throw new Error(error.message);
+    // Build progress map: question_id -> "best" progress signal
+    const progressByQ: Record<string, any> = {};
+    for (const p of (progressRows ?? []) as any[]) {
+      const cur = progressByQ[p.question_id];
+      // Prefer the row with the most signal (assignee + status)
+      if (!cur || (p.assignee_id && !cur.assignee_id)) progressByQ[p.question_id] = p;
+    }
+    const now = Date.now();
     const live = (rows ?? []).filter((r: any) => !r.is_withdrawn);
-    const counts = { healthy: 0, watch: 0, at_risk: 0, unscored: 0 };
+    const counts = { healthy: 0, watch: 0, at_risk: 0, unstarted: 0, unscored: 0 };
     for (const r of live) {
       const s = (r as any).health_status as string | null;
+      const p = progressByQ[(r as any).id];
+      const isAssigned = !!p?.assignee_id;
+      const hasProblemFlag = p?.acceptance_status === "need_help" || p?.acceptance_status === "need_sme";
+      const stalled = isAssigned && p?.last_activity_at && (now - new Date(p.last_activity_at).getTime()) / 3600_000 > 48;
       if (s === "healthy") counts.healthy++;
       else if (s === "watch") counts.watch++;
-      else if (s === "at_risk") counts.at_risk++;
-      else counts.unscored++;
+      else if (s === "at_risk") {
+        // Reclassify: only genuinely "at risk" if assigned + flagged/stalled
+        if (hasProblemFlag || stalled) counts.at_risk++;
+        else counts.unstarted++;
+      } else if (!s || s === "unstarted" || s === "not_started") {
+        if (hasProblemFlag || stalled) counts.at_risk++;
+        else counts.unstarted++;
+      } else counts.unscored++;
     }
     return { total: live.length, ...counts };
   });
+
 
 /* ───────────── Manager flags ───────────── */
 export const listMissionFlags = createServerFn({ method: "POST" })

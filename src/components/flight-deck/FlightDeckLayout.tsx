@@ -335,6 +335,32 @@ function FlightDeckHeader({ name, status }: { name: string; status: string | nul
 /* -------------------- No-Assignment Empty State -------------------- */
 function NoAssignmentState({ missionId }: { missionId: string | null }) {
   const { isAdmin } = useIsAdmin();
+  if (isAdmin && missionId) {
+    return (
+      <div className="rounded-xl border border-border bg-surface/30 px-6 py-12">
+        <div className="mx-auto flex max-w-[480px] flex-col items-center text-center">
+          <Eye className="h-8 w-8" style={{ color: "#C49A2B" }} />
+          <div className="mt-4 text-[16px] font-medium text-white">
+            You're viewing the Flight Deck as an admin.
+          </div>
+          <div className="mt-2 text-[13px] text-muted-foreground" style={{ lineHeight: 1.6 }}>
+            Writers see their assigned questions here. To see the team at work, visit ATC.
+          </div>
+          <Link
+            to="/missions/$missionId/war-room"
+            params={{ missionId }}
+            className="mt-5 inline-flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-[12px] font-medium"
+            style={{
+              background: "#C49A2B",
+              color: "#070f1c",
+            }}
+          >
+            Open ATC →
+          </Link>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="rounded-xl border border-border bg-surface/30 px-6 py-12">
       <div className="mx-auto flex max-w-[440px] flex-col items-center text-center">
@@ -344,7 +370,7 @@ function NoAssignmentState({ missionId }: { missionId: string | null }) {
           className="mt-2 text-[13px] text-muted-foreground"
           style={{ lineHeight: 1.6 }}
         >
-          Your Engagement Lead will assign questions when the mission is ready for writing.
+          Check back once your Engagement Lead assigns your questions.
         </div>
         {missionId && (
           <Link
@@ -359,21 +385,6 @@ function NoAssignmentState({ missionId }: { missionId: string | null }) {
           >
             View Mission Brief →
           </Link>
-        )}
-        {isAdmin && missionId && (
-          <>
-            <div className="mt-4 text-[10px] italic text-muted-foreground/70">
-              You are viewing as admin. Writers will see their assigned questions here.
-            </div>
-            <Link
-              to="/missions/$missionId/team"
-              params={{ missionId }}
-              className="mt-1 text-[11px] hover:underline"
-              style={{ color: "#C49A2B" }}
-            >
-              Go to Team to assign questions →
-            </Link>
-          </>
         )}
       </div>
     </div>

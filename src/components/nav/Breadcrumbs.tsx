@@ -2,8 +2,9 @@ import { Link, useParams, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { tabLabel, isValidTab } from "@/components/mission-command/MissionTabs";
+import { shortMissionCode } from "@/lib/mission-display";
 
-type Crumb = { label: string; to?: string; params?: Record<string, string> };
+type Crumb = { label: string; fullLabel?: string; to?: string; params?: Record<string, string> };
 
 function useCrumbs(): Crumb[] {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -39,7 +40,7 @@ function useCrumbs(): Crumb[] {
     return [
       { label: "Olympus", to: "/olympus/missions" },
       { label: "Missions", to: "/olympus/missions" },
-      { label: missionName ?? "Mission" },
+      { label: shortMissionCode(missionName), fullLabel: missionName ?? undefined },
       { label: "Setup" },
     ];
   }
@@ -48,7 +49,7 @@ function useCrumbs(): Crumb[] {
     return [
       { label: "Olympus", to: "/olympus/missions" },
       { label: "Missions", to: "/olympus/missions" },
-      { label: missionName ?? "Mission", to: "/olympus/missions/$missionId", params: { missionId } },
+      { label: shortMissionCode(missionName), fullLabel: missionName ?? undefined, to: "/olympus/missions/$missionId", params: { missionId } },
       { label: tabLabel(tab) },
     ];
   }
@@ -76,7 +77,7 @@ export function Breadcrumbs() {
       {list.map((c, i) => {
         const last = i === list.length - 1;
         return (
-          <span key={`${c.label}-${i}`} className="flex items-center gap-1.5 min-w-0">
+          <span key={`${c.label}-${i}`} className="flex items-center gap-1.5 min-w-0" title={c.fullLabel}>
             {c.to && !last ? (
               <Link
                 to={c.to as any}

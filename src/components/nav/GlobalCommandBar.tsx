@@ -12,8 +12,9 @@ import { tabLabel, isValidTab } from "@/components/mission-command/MissionTabs";
 import { cn } from "@/lib/utils";
 import { getWriterMissionLanding } from "@/lib/writer-missions.functions";
 import atlasWordmark from "@/assets/atlas-wordmark.png.asset.json";
+import { shortMissionCode } from "@/lib/mission-display";
 
-type Crumb = { label: string; to?: string; params?: Record<string, string>; pill?: boolean };
+type Crumb = { label: string; fullLabel?: string; to?: string; params?: Record<string, string>; pill?: boolean };
 
 function AtlasLogo() {
   return (
@@ -57,13 +58,13 @@ function useCrumbs(missionName?: string | null): Crumb[] {
   if (pathname === "/olympus/missions" || pathname === "/olympus/missions/") return [{ label: "Missions" }];
   if (pathname === "/olympus/missions/new") return [missionsCrumb, { label: "New Mission" }];
   if (missionId && /\/wizard$/.test(pathname)) {
-    return [missionsCrumb, { label: missionName ?? "Mission", pill: true }, { label: "Setup" }];
+    return [missionsCrumb, { label: shortMissionCode(missionName), fullLabel: missionName ?? undefined, pill: true }, { label: "Setup" }];
   }
   if (missionId) {
     const tab = typeof search.tab === "string" && isValidTab(search.tab) ? search.tab : "overview";
     return [
       missionsCrumb,
-      { label: missionName ?? "Mission", to: "/olympus/missions/$missionId", params: { missionId }, pill: true },
+      { label: shortMissionCode(missionName), fullLabel: missionName ?? undefined, to: "/olympus/missions/$missionId", params: { missionId }, pill: true },
       { label: tabLabel(tab) },
     ];
   }
@@ -149,7 +150,7 @@ export function GlobalCommandBar({ email, isAdmin = false }: { email?: string | 
                 </span>
               );
               return (
-                <span key={`${c.label}-${i}`} className="flex items-center gap-1.5 min-w-0">
+                <span key={`${c.label}-${i}`} className="flex items-center gap-1.5 min-w-0" title={c.fullLabel}>
                   {c.to && !last ? (
                     <Link to={c.to as any} params={c.params as any} className="hover:opacity-80 min-w-0">
                       {inner}

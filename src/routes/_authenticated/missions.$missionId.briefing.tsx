@@ -291,12 +291,18 @@ function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
               <div className="flex items-center gap-2" style={cardLabel}>
                 <Sparkles size={12} /> Next Milestone
               </div>
-              <h3 className="mt-3 font-bold" style={{ fontSize: 24, lineHeight: 1.2 }}>
-                {msName}
-              </h3>
-              {msDays !== null && (
-                <div className="mt-2" style={{ fontSize: 16, color: GOLD, fontWeight: 600 }}>
-                  {msDays} Days Remaining
+              {msDays !== null && msDays > 0 ? (
+                <>
+                  <h3 className="mt-3 font-bold" style={{ fontSize: 24, lineHeight: 1.2 }}>
+                    {msName}
+                  </h3>
+                  <div className="mt-2" style={{ fontSize: 16, color: GOLD, fontWeight: 600 }}>
+                    {msDays} Days Remaining
+                  </div>
+                </>
+              ) : (
+                <div className="mt-3" style={{ fontSize: 14, color: META, lineHeight: 1.5 }}>
+                  No upcoming milestones{daysRemaining != null ? ` — submission in ${daysRemaining} days.` : "."}
                 </div>
               )}
             </div>

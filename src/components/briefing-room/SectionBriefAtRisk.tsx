@@ -96,7 +96,7 @@ export function SectionBriefAtRisk({ missionId, isAdmin }: { missionId: string; 
                     flexShrink: 0,
                   }}
                 >
-                  AT RISK
+                  At Risk
                 </span>
                 <span className="truncate" style={{ color: "white", fontSize: 11 }}>
                   {r.title}

@@ -587,7 +587,10 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         {/* LEFT */}
         <div className="flex items-center gap-3 shrink-0 min-w-0">
           <Radar className="w-4 h-4" style={{ color: GOLD }} />
-          <span className="font-semibold truncate" style={{ color: GOLD, fontSize: 13 }}>{missionName}</span>
+          <div className="flex flex-col leading-tight min-w-0">
+            <span className="font-semibold truncate" style={{ color: GOLD, fontSize: 13 }}>{missionName}</span>
+            <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase" }}>Air Traffic Control</span>
+          </div>
           <span
             className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded"
             style={{ background: "rgba(34,197,94,0.15)", color: "#86efac" }}
@@ -603,17 +606,18 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
             className="text-[11px] font-semibold whitespace-nowrap"
             style={{ color: healthState === "at_risk" ? "#f87171" : healthState === "watch" ? "#fbbf24" : "#4ade80" }}
           >
-            {healthState === "at_risk" ? "AT RISK" : healthState === "watch" ? "WATCH" : "ON TRACK"}
+            {healthState === "at_risk" ? "At Risk" : healthState === "watch" ? "Watch" : "On Track"}
           </span>
         </div>
 
-        {/* CENTER pills */}
+        {/* CENTER pills — consistent ● dot prefix, no emoji */}
         <div className="flex-1 flex items-center justify-center gap-2 flex-wrap min-w-0">
-          <StatPill icon="👥" value={d.writers.length} label="Writers" />
+          <StatPill icon="●" value={d.writers.length} label="Writers" />
           <StatPill icon="✓" value={d.pipeline.ready} label="Finalized" />
           <StatPill icon="●" value={d.stats.writersActiveToday} label="Active" />
           <StatPill icon="⚠" value={d.stats.atRiskCount ?? 0} label="At Risk" danger={(d.stats.atRiskCount ?? 0) > 0} />
-          <StatPill icon="📌" value={notesTodayQ.data ?? 0} label="Notes today" />
+          <StatPill icon="◯" value={(d.stats as any).unstartedCount ?? 0} label="Unstarted" />
+          <StatPill icon="●" value={notesTodayQ.data ?? 0} label="Notes today" />
         </div>
 
         {/* RIGHT */}

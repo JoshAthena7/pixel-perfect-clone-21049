@@ -213,7 +213,7 @@ function TeamSubStep({
   return (
     <div>
       <p className="text-[11px] uppercase tracking-[0.18em] text-amber-300/80 mb-1">
-        Phase 4 of 7 — Team &amp; Assignments
+        Step 7 of 9 — Team &amp; Assignments
       </p>
       <WizardStepHeading
         title="Step 4A — Assemble Your Mission Team"
@@ -329,13 +329,13 @@ function RosterCard({
   onAdd: () => void;
 }) {
   const name = fullName(member);
-  const skill = member.job_title ?? member.skills?.[0] ?? "—";
+  const skill = member.job_title ?? member.skills?.[0] ?? null;
   return (
     <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
       <Avatar name={name} />
       <div className="flex-1 min-w-0">
         <p className="text-[13px] text-white font-medium truncate">{name}</p>
-        <p className="text-[11.5px] text-white/55 truncate">{skill}</p>
+        {skill ? <p className="text-[11.5px] text-white/55 truncate">{skill}</p> : <p className="text-[9px] italic text-white/35 truncate">No role assigned</p>}
         <p className="text-[11px] text-white/40 mt-0.5">
           {loadCount} active mission{loadCount === 1 ? "" : "s"}
         </p>
@@ -369,9 +369,12 @@ function AssignedCard({
       <Avatar name={name} />
       <div className="flex-1 min-w-0">
         <p className="text-[13px] text-white font-medium truncate">{name}</p>
-        <p className="text-[11.5px] text-white/45 truncate">
-          {row.member?.job_title ?? row.member?.skills?.[0] ?? "—"}
-        </p>
+        {(() => {
+          const role = row.member?.job_title ?? row.member?.skills?.[0];
+          return role
+            ? <p className="text-[11.5px] text-white/45 truncate">{role}</p>
+            : <p className="text-[9px] italic text-white/35 truncate">No role assigned</p>;
+        })()}
       </div>
       <select
         value={currentRole}
@@ -702,11 +705,11 @@ function AssignmentsSubStep({
         <ArrowLeft className="h-3 w-3" /> Back to Team
       </button>
       <p className="text-[11px] uppercase tracking-[0.18em] text-amber-300/80 mb-1">
-        Phase 4 of 7 — Team &amp; Assignments
+        Step 7 of 9 — Team &amp; Assignments
       </p>
       <WizardStepHeading
         title="Step 4B — Assign Questions"
-        subtitle="Assign every question to a lead writer. Every question must have an owner before BLAST OFF."
+        subtitle="Assign every question to a lead writer. Every question must have an owner before launch."
       />
 
       {totalCount === 0 && (
@@ -991,11 +994,16 @@ function AssignmentsSubStep({
 /* ============================================================
  * helpers
  * ============================================================ */
+function titleCase(s: string): string {
+  return s.toLowerCase().replace(/\b([a-z])/g, (_m, c) => c.toUpperCase());
+}
+
 function fullName(m: { first_name?: string | null; last_name?: string | null } | null | undefined): string {
   if (!m) return "Unknown";
   const f = (m.first_name ?? "").trim();
   const l = (m.last_name ?? "").trim();
-  return `${f} ${l}`.trim() || "Unknown";
+  const combined = `${f} ${l}`.trim();
+  return combined ? titleCase(combined) : "Unknown";
 }
 
 function initials(name: string): string {

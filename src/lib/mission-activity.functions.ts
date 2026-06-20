@@ -392,11 +392,16 @@ export const getMissionActivity = createServerFn({ method: "POST" })
           detail: "",
         });
       } else if (r.event_type === "brief_exported") {
+        const summary = q?.question_number
+          ? `${firstName} exported the brief for Q${q.question_number}`
+          : meta.question_number
+            ? `${firstName} exported the brief for Q${meta.question_number}`
+            : `${firstName} exported a brief`;
         items.push({
           id: `brief:${r.id}`, stream: "brief_exported", created_at: r.created_at,
           actor: actorFull, question_id: r.question_id,
-          question_number: q?.question_number ?? null, question_text: q?.question_text ?? null,
-          summary: `${firstName} exported the brief for ${qLabel}`,
+          question_number: q?.question_number ?? meta.question_number ?? null, question_text: q?.question_text ?? null,
+          summary,
           detail: "",
         });
       } else if (r.event_type === "nudge_sent") {
