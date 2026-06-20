@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { runOracleStage } from "@/lib/oracle-pipeline.functions";
 import { toast } from "sonner";
-import { Loader2, Zap, ArrowRight } from "lucide-react";
+import { Loader2, Zap, Plus, ArrowRight } from "lucide-react";
 import { TaxonomyBrowser } from "./TaxonomyBrowser";
 import { IntelReviewQueue } from "./IntelReviewQueue";
 import { SourcesPanel } from "./SourcesPanel";
 import { HealthColumn } from "./HealthColumn";
+import {
+  FeedAtlasDrawer,
+  type FeedAtlasTab,
+} from "@/components/mission-command/oracle/FeedAtlasDrawer";
 
 
 
@@ -74,8 +77,15 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
   const [missionId, setMissionId] = useState<string | null>(initialMissionId ?? null);
   const [leftTab, setLeftTab] = useState<"taxonomy" | "sources">("taxonomy");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [feedOpen, setFeedOpen] = useState(false);
+  const [feedTab, setFeedTab] = useState<FeedAtlasTab>("documents");
   const lastRunQ = useLastPipelineRun();
   const runStage = useServerFn(runOracleStage);
+
+  const openFeed = (tab: FeedAtlasTab = "documents") => {
+    setFeedTab(tab);
+    setFeedOpen(true);
+  };
 
   // Pick default mission once loaded
   useEffect(() => {
@@ -150,8 +160,34 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
             )}
             Run Pipeline
           </button>
+          {missionId && (
+            <button
+              onClick={() => openFeed("documents")}
+              className="inline-flex items-center gap-1.5"
+              style={{
+                background: "rgba(196,154,43,1)",
+                color: "#000",
+                fontWeight: 600,
+                fontSize: 11,
+                padding: "8px 16px",
+                borderRadius: 4,
+              }}
+            >
+              <Plus className="h-3 w-3" /> Feed ATLAS
+            </button>
+          )}
         </div>
       </div>
+
+      {missionId && (
+        <FeedAtlasDrawer
+          open={feedOpen}
+          onOpenChange={setFeedOpen}
+          missionId={missionId}
+          activeTab={feedTab}
+          onTabChange={setFeedTab}
+        />
+      )}
 
       {/* 3-column shell */}
       <div className="grid" style={{ gridTemplateColumns: "24% 48% 28%", height: "calc(100vh - 48px)" }}>
