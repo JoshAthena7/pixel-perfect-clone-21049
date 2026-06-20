@@ -26,6 +26,7 @@ type NavItem = {
   Icon: typeof ClipboardList;
   to: string;
   matchSegs: string[];
+  tooltip?: string;
 };
 
 function buildItems(missionId: string): NavItem[] {
