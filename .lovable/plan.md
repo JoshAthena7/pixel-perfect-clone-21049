@@ -1,54 +1,72 @@
-# Unify Intel Loading — One Surface
+# IRIS Studio — Phase 1 Build Plan
 
-Reorganization only. No schema changes, no new pipelines. We're collapsing today's four entry points (Setup Wizard, Intelligence page "Add Single Item", Intelligence page "Refresh IRIS", Intelligence page "Open Setup Wizard" banner, plus the standalone "Add Single Item" on the ORACLE page) down to **three**:
+You chose **(a) full scaffold first** + **secure server-side** ElevenLabs. Before I spend hours building, I want to lock the scope of the scaffold tabs, because your spec only fully details two of them.
 
-1. Setup Wizard Step 1 — initial mission setup only
-2. **"+ Feed ATLAS"** drawer on the ORACLE page — the canonical ongoing path
-3. **"Feed ORACLE →"** contextual link in Briefing Room — only when coverage <30%
+## What this plan delivers
 
-Everything else becomes read-only.
+A working `/admin/iris-studio` page with five tabs, real ElevenLabs voice via a server function (key never touches the browser), and the language-enforcement system wired into every IRIS AI prompt.
 
-## Files I plan to touch
+## Tabs in IRIS Studio
 
-**New**
-- `src/components/mission-command/oracle/FeedAtlasDrawer.tsx` — the unified drawer (header + 3 tabs + close)
-- `src/components/mission-command/oracle/feed/DocumentsTab.tsx` — wraps existing Setup Wizard Step 1 upload UI
-- `src/components/mission-command/oracle/feed/ManualItemTab.tsx` — inline form → `oracle_signals` insert (status `needs_review`, tier `mission`, `user_created=true`)
-- `src/components/mission-command/oracle/feed/StatePackTab.tsx` — admin-only, reads `oracle_signals` for `tier='state' AND state_code=mission.state_code`
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ Brief Settings │ Language & Inclusion │ Evaluator │ Voice │ … │
+└──────────────────────────────────────────────────────────────┘
+```
 
-**Edited**
-- `src/routes/_authenticated/missions.$missionId.olympus.tsx` — add gold "+ Feed ATLAS" button in header, mount drawer, route the page's existing "Add Single Item" button to open drawer on Manual tab
-- `src/routes/_authenticated/missions.$missionId.intelligence.tsx` — remove "Add Single Item" button, "Refresh IRIS" button, and Setup Wizard banner; add "Manage intelligence →" text link in sidebar; replace banner with one muted line inside Executive Summary band
-- `src/components/intelligence/IntelLoadBanner.tsx` — delete (or no-op) since the banner is removed
-- `src/components/mission-command/oracle/sections/IntelSidebar.tsx` and/or `IntelFeed.tsx` — remove standalone Add-Single-Item modal trigger, wire to drawer
-- Briefing Room intel status widget — add conditional "Feed ORACLE →" gold link only when approved+pushed < 15; remove any existing Setup Wizard links
-- Setup Wizard Step 1 component — add one muted italic line: "You can also add documents anytime via the ORACLE page — no need to re-run the wizard."
-- `src/routes/_authenticated/admin.state-intel.index.tsx` — read `?from_mission=` query param, show "← Return to [mission name] ORACLE" banner when present
+1. **Brief Settings** — scaffold only (mission picker + 3 placeholder fields: brief tone, length cap, citation density). Saves to `mission_iris_config`.
+2. **Language & Inclusion** — full build per spec: 28 person-first pairs, 8 cultural standards, NJ state terminology, Language Audit.
+3. **Evaluator Persona** — scaffold only (3 placeholder fields: persona name, lens, priorities). Saves to `mission_iris_config`.
+4. **Voice Studio** — full build per spec: voice library grid, model selector, 5 character controls, streaming toggle, Test IRIS Voice.
+5. **Personality** — scaffold only (tone slider, formality slider).
 
-## Tab-by-tab behavior
+The three "scaffold only" tabs render real controls bound to columns, but aren't the focus — you can flesh them out in a later prompt.
 
-**Documents tab (default)** — Lift the existing Setup Wizard Step 1 drag-drop + tagging pills + "Analyze with IRIS" component as-is. Same `mission_documents` query, same pipeline trigger. Success banner inside the drawer; drawer stays open; center-column Intel Review Queue refreshes via existing query invalidation.
+## Database (one migration)
 
-**Manual Item tab** — Inline form (no nested modal). Fields per spec: Category (9-pill selector), Title, What happened, Why it matters, Recommended action, Source name, Urgency (4 pills, default Normal), Topic tags (comma list → `string[]`). Submit inserts into `oracle_signals` with `status='needs_review'`, `tier='mission'`, `mission_id`, `user_created=true`. Clear form on success, toast, invalidate review queue.
+New table `mission_iris_config` with the columns from your spec plus scaffold fields for the other tabs. Standard RLS scoped by mission membership, GRANTs to authenticated + service_role.
 
-**State Pack tab (admin-only)** — If signals exist for `tier='state' AND state_code=mission.state_code`: header line + compact list + "Refresh State Pack" + "Manage all state packs →" (`/admin/state-intel?from_mission={id}`). Else: empty state + "Create State Pack" button → same admin page with state pre-selected. Hidden entirely for non-admins.
+## ElevenLabs — secure architecture
 
-## Audit checklist when done
+```text
+Browser  ──(POST)──►  /api/iris/voices            (server fn, lists voices)
+Browser  ──(POST)──►  /api/iris/tts               (server fn, returns audio/mpeg)
+                            │
+                            └─► ElevenLabs API with ELEVENLABS_API_KEY (server env)
+```
 
-- ORACLE page header shows gold "+ Feed ATLAS"
-- Drawer opens with Documents tab active, three tabs visible (State Pack hidden for non-admins)
-- Intelligence page sidebar: ORACLE HEALTH + SECTION NAV + "Manage intelligence →" only
-- Intelligence page has zero Setup Wizard references
-- Briefing Room shows "Feed ORACLE →" only when intel coverage <30%
-- Setup Wizard Step 1 has the informational note
-- ORACLE page "Add Single Item" opens drawer on Manual tab (no separate modal)
-- `/admin/state-intel?from_mission=…` shows return banner
-- No console errors
+- One secret: `ELEVENLABS_API_KEY` added via Lovable Cloud (server-side only).
+- A `voiceConfigured` server fn returns `{ configured: boolean }` so the UI shows the green/amber banner without ever shipping the key.
+- Read-aloud in IRIS Chat goes through the same `/api/iris/tts` route.
 
-## What I will NOT change
+## Files I'll create
 
-Review Queue logic, `oracle_signals` schema, document processing pipeline internals, Setup Wizard steps 2–9, Flight Deck/ATC nav, RLS policies, `/admin/state-intel` page content (only the back-link banner is added).
+- `supabase/migrations/...mission_iris_config.sql`
+- `src/lib/iris-voice.functions.ts` — `listVoices`, `synthesizeSpeech`, `isVoiceConfigured`
+- `src/lib/iris-config.functions.ts` — `getIrisConfig`, `updateIrisConfig`
+- `src/lib/iris/language-prompt.ts` — `buildLanguagePrompt(config)` (pure)
+- `src/lib/iris/default-person-first.ts` — the 28 default pairs
+- `src/routes/_authenticated/admin/iris-studio.tsx` — page with tabs
+- `src/components/iris-studio/{BriefSettingsTab,LanguageInclusionTab,EvaluatorPersonaTab,VoiceStudioTab,PersonalityTab}.tsx`
+- `src/components/iris-studio/{VoiceCard,LanguagePairTable,LanguageAuditModal}.tsx`
 
-## Open question before I start
+## Files I'll modify
 
-The prompt references `/missions/[id]/olympus` as "the ORACLE page." The codebase has both `missions.$missionId.olympus.tsx` and `missions.$missionId.oracle.tsx`. I'll target `missions.$missionId.olympus.tsx` since the route name matches. If `oracle.tsx` is the actually-used one, flag it in your reply and I'll move the work there.
+- `src/components/dev/DevToolsPanel.tsx` — add "Language Audit →" quick action
+- IRIS Chat component — add Read Aloud toggle (hidden when not configured)
+- IRIS brief generation server fn(s) — append `buildLanguagePrompt(config)` to system prompt
+
+## Out of scope for this build
+
+- Custom voice cloning (you marked it "Coming Soon")
+- Fleshing out Brief Settings / Evaluator Persona / Personality tabs beyond skeleton
+- Storing audit results in DB (spec says ephemeral)
+- Connecting to a real ElevenLabs connector (using direct API + secret, per spec; can swap later)
+
+## Confirm before I start
+
+1. **Where does IRIS Chat live?** I'll search the codebase, but if you know the component name (e.g. `IrisChat`, `AskIrisPanel`), say so to save me a round trip.
+2. **Mission selector in IRIS Studio**: should the page default to the currently-selected mission from your global mission picker, or always show a dropdown at the top?
+3. **OK to add the `ELEVENLABS_API_KEY` secret now?** I'll prompt for it via `add_secret` once you approve.
+
+Reply "go" to execute, or adjust any of the above.
