@@ -371,17 +371,7 @@ function OracleEmptyGuide({ onFeed }: { onFeed: () => void }) {
             onClick={goReview}
             className="text-[11px] text-white/55 hover:text-white/80 inline-flex items-center gap-1"
           >
-            Go to Review Queue <ArrowRight className="h-3 w-3" />
-          </button>
-        </GuideStep>
-        <GuideStep n={2} title="Review extracted items"
-          body="IRIS will surface items here for your review. Approve what's accurate.">
-          <button
-            type="button"
-            onClick={goReview}
-            className="text-[11px] text-white/55 hover:text-white/80 inline-flex items-center gap-1"
-          >
-            Go to Review Queue <ArrowRight className="h-3 w-3" />
+            View Processing Queue <ArrowRight className="h-3 w-3" />
           </button>
         </GuideStep>
         <GuideStep n={3} title="IRIS briefs go live"
