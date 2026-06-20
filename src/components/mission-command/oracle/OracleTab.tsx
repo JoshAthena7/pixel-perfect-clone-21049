@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useMissionAccess } from "@/hooks/useAccess";
-import { AskIrisButton } from "@/components/iris/AskIrisButton";
+
 import { RequestChangeButton } from "@/components/RequestChangeButton";
 import { WriterIntelView } from "@/components/oracle/WriterIntelView";
 import { listOracleSignalsForMission } from "@/lib/oracle-intel.functions";
@@ -103,9 +103,6 @@ export function OracleTab({ missionId }: { missionId: string }) {
             surface="oracle:intelligence"
             missionId={missionId}
             section="Intelligence"
-          />
-          <AskIrisButton
-            prefill={`Explain this page (IRIS) for mission ${mission?.name ?? missionId}.`}
           />
         </div>
 

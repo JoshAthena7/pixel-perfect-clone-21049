@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Megaphone, MessagesSquare, BarChart3, Sparkles } from "lucide-react";
+import { Megaphone, MessagesSquare, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,16 +21,10 @@ type Props = {
   onOpenIris: () => void;
 };
 
-export function AdminQuickBar({ onPrefillIris, onOpenIris }: Props) {
+export function AdminQuickBar({ onPrefillIris: _onPrefillIris, onOpenIris: _onOpenIris }: Props) {
   const navigate = useNavigate();
   const [announceOpen, setAnnounceOpen] = useState(false);
 
-  const askIrisAdmin = () => {
-    onPrefillIris(
-      "Give me an executive briefing across the portfolio: active missions, top risks, deadlines this week, teams under-staffed, and any state-level signals I should know about.",
-    );
-    onOpenIris();
-  };
 
   return (
     <>
@@ -38,7 +32,6 @@ export function AdminQuickBar({ onPrefillIris, onOpenIris }: Props) {
         <ActionBtn label="Global Announcement" icon={<Megaphone className="h-4 w-4" />} onClick={() => setAnnounceOpen(true)} />
         <ActionBtn label="Threads" icon={<MessagesSquare className="h-4 w-4" />} onClick={() => navigate({ to: "/admin" as never })} />
         <ActionBtn label="Fast Report" icon={<BarChart3 className="h-4 w-4" />} onClick={() => navigate({ to: "/reports" as never })} />
-        <ActionBtn label="Ask IRIS (Admin)" icon={<Sparkles className="h-4 w-4" />} onClick={askIrisAdmin} />
       </div>
 
       <AnnouncementDialog open={announceOpen} onOpenChange={setAnnounceOpen} />
