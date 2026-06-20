@@ -23,7 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { MomentumScorePill } from "@/components/momentum/MomentumScore";
 import {
-  Radar, RefreshCw, MessageSquare, Eye, Flag, MessageCircle, Zap, RotateCcw,
+  Radar, MessageSquare, Eye, Flag, MessageCircle, Zap, RotateCcw,
   Users, ChevronDown, ChevronUp,
 } from "lucide-react";
 
@@ -119,22 +119,6 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
     },
   });
 
-  // notes posted today count for status strip
-  const notesTodayQ = useQuery({
-    queryKey: ["war-room-notes-today", missionId],
-    refetchInterval: 120_000,
-    queryFn: async () => {
-      const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
-      const { count, error } = await supabase
-        .from("mission_assist_events")
-        .select("id", { head: true, count: "exact" })
-        .eq("mission_id", missionId)
-        .eq("event_type", "sticky_note_posted")
-        .gte("created_at", dayStart.toISOString());
-      if (error) throw error;
-      return count ?? 0;
-    },
-  });
 
   const [filterWriterId, setFilterWriterId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
@@ -286,20 +270,6 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   const allWritersUnassigned = d.writers.length > 0 && d.writers.every((w: any) => (w.questionCount ?? 0) === 0);
   const missionTooNew = d.writers.length === 0 && totalQuestions === 0;
 
-  // ---------------- Status pill helpers ----------------
-  const StatPill = ({ icon, value, label, danger = false }: { icon: string; value: number | string; label: string; danger?: boolean }) => (
-    <span
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px]"
-      style={{
-        background: danger ? "rgba(224,74,74,0.15)" : "rgba(255,255,255,0.05)",
-        color: danger ? "#fca5a5" : "rgba(255,255,255,0.85)",
-      }}
-    >
-      <span className="opacity-80">{icon}</span>
-      <span className="font-semibold">{value}</span>
-      <span className="opacity-60">{label}</span>
-    </span>
-  );
 
   // ---------------- COLUMN: TEAM ----------------
   const renderWriterRow = (w: any) => (
@@ -416,58 +386,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                   </button>
                 )}
               </div>
-              {filteredSos.length > 0 && (
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-white/45 mb-2">Questions Needing Attention</div>
-                  <ul className="space-y-1.5 max-h-[280px] overflow-y-auto pr-1">
-                    {filteredSos.map((s: any) => (
-                      <li key={s.questionId} className="rounded border border-white/10 bg-white/[0.02] p-2.5">
-                        <div className="text-[12px] font-medium truncate">
-                          <span className="text-white/45 font-mono mr-1.5">{s.questionNumber}</span>{s.questionTitle}…
-                        </div>
-                        <div className="text-[11px] text-white/55">{s.writerName}</div>
-                        <ul className="mt-1 space-y-0.5">
-                          {s.reasons.map((r: string) => (
-                            <li key={r} className="text-[10px] text-amber-300">• {r}</li>
-                          ))}
-                        </ul>
-                        <div className="flex flex-wrap gap-1 mt-1.5">
-                          <button onClick={() => flagMut.mutate({ qid: s.questionId, reason: s.reasons[0] })}
-                            className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 inline-flex items-center gap-1">
-                            <Flag className="w-3 h-3" /> Flag
-                          </button>
-                          <button onClick={() => navigate({ to: "/missions/$missionId/flight-deck", params: { missionId }, hash: s.questionId })}
-                            className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 inline-flex items-center gap-1">
-                            📌 Notes
-                          </button>
-                          <button onClick={() => briefMut.mutate(s.questionId)}
-                            disabled={briefMut.isPending}
-                            className="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-200 hover:bg-amber-500/25 inline-flex items-center gap-1">
-                            <Zap className="w-3 h-3" /> Brief
-                          </button>
-                          <button onClick={() => setReassignFor(s.questionId)}
-                            className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10">
-                            Reassign
-                          </button>
-                        </div>
-                        {reassignFor === s.questionId && (
-                          <div className="mt-1.5 flex gap-1.5">
-                            <Select onValueChange={(v) => reassignMut.mutate({ qid: s.questionId, writerId: v })}>
-                              <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Pick writer…" /></SelectTrigger>
-                              <SelectContent>
-                                {d.writers.filter((w: any) => w.userId !== s.writerId).map((w: any) => (
-                                  <SelectItem key={w.userId} value={w.userId}>{w.name} ({formatRoleLabel(w.role)})</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => setReassignFor(null)}>Cancel</Button>
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {/* Attention queue is now promoted to a top-level row above the columns. */}
             </div>
           )}
         </div>
@@ -575,52 +494,42 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         @keyframes atc-sos { 0%,100%{opacity:1; box-shadow:0 0 0 0 rgba(239,68,68,.7)} 50%{opacity:.7; box-shadow:0 0 12px 2px rgba(239,68,68,.6)} }
       `}</style>
 
-      {/* Mission status strip — pinned */}
+      {/* Mission status strip — pinned, minimal */}
       <div
         className="shrink-0 flex items-center gap-4 px-4 border-b text-[12px]"
         style={{
-          height: 48,
+          height: 44,
           background: "#050d18",
           borderColor: "rgba(255,255,255,0.08)",
         }}
       >
-        {/* LEFT */}
+        {/* LEFT — mission identity only */}
         <div className="flex items-center gap-3 shrink-0 min-w-0">
           <Radar className="w-4 h-4" style={{ color: GOLD }} />
-          <div className="flex flex-col leading-tight min-w-0">
-            <span className="font-semibold truncate" style={{ color: GOLD, fontSize: 13 }}>{missionName}</span>
-            <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase" }}>Air Traffic Control</span>
-          </div>
-          <span
-            className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded"
-            style={{ background: "rgba(34,197,94,0.15)", color: "#86efac" }}
-          >
-            {String(d.mission?.status ?? "active")}
-          </span>
+          <span className="font-semibold truncate" style={{ color: GOLD, fontSize: 13 }}>{missionName}</span>
           {daysToDeadline != null && (
-            <span className={`text-[11px] whitespace-nowrap ${daysToDeadline < 14 ? "text-amber-300" : "text-white/90"}`}>
+            <span className={`text-[11px] whitespace-nowrap ${daysToDeadline < 14 ? "text-amber-300" : "text-white/60"}`}>
               {daysToDeadline < 0 ? `${Math.abs(daysToDeadline)}d overdue` : `${daysToDeadline}d to submission`}
             </span>
           )}
-          <span
-            className="text-[11px] font-semibold whitespace-nowrap"
-            style={{ color: healthState === "at_risk" ? "#f87171" : healthState === "watch" ? "#fbbf24" : "#4ade80" }}
-          >
-            {healthState === "at_risk" ? "At Risk" : healthState === "watch" ? "Watch" : "On Track"}
+        </div>
+
+        {/* CENTER — one summary sentence, replaces six pills */}
+        <div className="flex-1 flex items-center justify-center min-w-0">
+          <span className="text-[12px] text-white/70 truncate">
+            <span className="text-white/90 font-medium">{d.pipeline.ready}</span>
+            <span className="text-white/45"> of </span>
+            <span className="text-white/90 font-medium">{d.stats.totalQuestions ?? 0}</span>
+            <span className="text-white/45"> finalized · </span>
+            <span className={(d.stats.atRiskCount ?? 0) > 0 ? "text-red-300 font-medium" : "text-white/70"}>
+              {d.stats.atRiskCount ?? 0} at risk
+            </span>
+            <span className="text-white/45"> · </span>
+            <span className="text-white/70">{d.writers.length} writers</span>
           </span>
         </div>
 
-        {/* CENTER pills — consistent ● dot prefix, no emoji */}
-        <div className="flex-1 flex items-center justify-center gap-2 flex-wrap min-w-0">
-          <StatPill icon="●" value={d.writers.length} label="Writers" />
-          <StatPill icon="✓" value={d.pipeline.ready} label="Finalized" />
-          <StatPill icon="●" value={d.stats.writersActiveToday} label="Active" />
-          <StatPill icon="⚠" value={d.stats.atRiskCount ?? 0} label="At Risk" danger={(d.stats.atRiskCount ?? 0) > 0} />
-          <StatPill icon="◯" value={(d.stats as any).unstartedCount ?? 0} label="Unstarted" />
-          <StatPill icon="●" value={notesTodayQ.data ?? 0} label="Notes today" />
-        </div>
-
-        {/* RIGHT */}
+        {/* RIGHT — SOS only when active; momentum stays */}
         <div className="flex items-center gap-3 shrink-0">
           {sosCount > 0 && (
             <button
@@ -641,21 +550,103 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
               ⚠ {sosCount > 1 ? `${sosCount} SOS` : "SOS"}
             </button>
           )}
-          <span className="text-[10px] text-white/45 whitespace-nowrap" style={{ fontFamily: "'Courier New', monospace" }}>
-            IRIS: {relTime(d.lastIrisRun)}
-          </span>
-          <Button
-            size="sm" variant="ghost" className="h-7 gap-1.5"
-            onClick={() => { dataQ.refetch(); trendQ.refetch(); }}
-          >
-            <RefreshCw className="w-3.5 h-3.5" /> Refresh
-          </Button>
           <MomentumScorePill missionId={missionId} />
-
         </div>
       </div>
 
       {readOnly && <ClosedMissionBanner />}
+
+      {/* Health verdict — the page's headline */}
+      <div
+        className="shrink-0 px-5 py-3 border-b border-white/[0.06]"
+        style={{ background: "linear-gradient(180deg, #060f1c 0%, #070f1c 100%)" }}
+      >
+        <div className="flex items-baseline gap-4 flex-wrap">
+          <span
+            className="font-semibold tracking-tight"
+            style={{
+              fontSize: 26,
+              lineHeight: 1.1,
+              color: healthState === "at_risk" ? "#f87171" : healthState === "watch" ? "#fbbf24" : "#4ade80",
+            }}
+          >
+            {healthState === "at_risk" ? "At Risk" : healthState === "watch" ? "Watch" : "On Track"}
+          </span>
+          <span className="text-[12px] text-white/55">
+            {healthState === "at_risk"
+              ? `${d.stats.atRiskCount ?? 0} question${(d.stats.atRiskCount ?? 0) === 1 ? "" : "s"} need intervention`
+              : healthState === "watch"
+              ? `${d.stats.watchCount ?? 0} item${(d.stats.watchCount ?? 0) === 1 ? "" : "s"} worth watching`
+              : "All systems nominal"}
+          </span>
+          <span className="ml-auto text-[10px] text-white/35 whitespace-nowrap" style={{ fontFamily: "'Courier New', monospace" }}>
+            IRIS · {relTime(d.lastIrisRun)}
+          </span>
+        </div>
+      </div>
+
+      {/* Attention queue — promoted out of the radar drawer */}
+      {filteredSos.length > 0 && (
+        <div className="shrink-0 px-5 py-3 border-b border-white/[0.06] max-h-[260px] overflow-y-auto">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[10px] uppercase tracking-wider text-white/55 font-semibold">
+              Needs attention
+            </span>
+            <span className="text-[10px] text-white/40">· {filteredSos.length}</span>
+          </div>
+          <ul className="space-y-1.5">
+            {filteredSos.slice(0, 5).map((s: any) => (
+              <li key={s.questionId} className="group rounded border border-white/[0.06] hover:border-white/15 bg-white/[0.015] px-3 py-2 transition-colors">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-white/40 font-mono text-[11px] shrink-0">{s.questionNumber}</span>
+                  <span className="text-[12.5px] text-white/90 truncate flex-1">{s.questionTitle}</span>
+                  <span className="text-[10.5px] text-white/45 shrink-0">{s.writerName}</span>
+                </div>
+                <div className="text-[10.5px] text-amber-300/85 mt-0.5 truncate">
+                  {s.reasons.slice(0, 2).join(" · ")}
+                </div>
+                <div className="flex flex-wrap gap-1 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => flagMut.mutate({ qid: s.questionId, reason: s.reasons[0] })}
+                    className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 inline-flex items-center gap-1">
+                    <Flag className="w-3 h-3" /> Flag
+                  </button>
+                  <button onClick={() => navigate({ to: "/missions/$missionId/flight-deck", params: { missionId }, hash: s.questionId })}
+                    className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10">
+                    Open
+                  </button>
+                  <button onClick={() => briefMut.mutate(s.questionId)}
+                    disabled={briefMut.isPending}
+                    className="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-200 hover:bg-amber-500/25 inline-flex items-center gap-1">
+                    <Zap className="w-3 h-3" /> Brief
+                  </button>
+                  <button onClick={() => setReassignFor(s.questionId)}
+                    className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10">
+                    Reassign
+                  </button>
+                </div>
+                {reassignFor === s.questionId && (
+                  <div className="mt-1.5 flex gap-1.5">
+                    <Select onValueChange={(v) => reassignMut.mutate({ qid: s.questionId, writerId: v })}>
+                      <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Pick writer…" /></SelectTrigger>
+                      <SelectContent>
+                        {d.writers.filter((w: any) => w.userId !== s.writerId).map((w: any) => (
+                          <SelectItem key={w.userId} value={w.userId}>{w.name} ({formatRoleLabel(w.role)})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => setReassignFor(null)}>Cancel</Button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+          {filteredSos.length > 5 && (
+            <div className="text-[10.5px] text-white/45 mt-2 px-1">
+              + {filteredSos.length - 5} more in radar
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Mobile tab bar */}
       <div className="atc-mobile shrink-0 flex border-b border-white/[0.06] bg-[#050d18]">
