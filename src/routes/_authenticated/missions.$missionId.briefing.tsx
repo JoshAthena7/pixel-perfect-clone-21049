@@ -15,7 +15,7 @@ import {
   RefreshCw,
   Megaphone,
   Users,
-  Mail,
+  Mail as _Mail,
   ArrowRight,
   Check,
   Plus,
