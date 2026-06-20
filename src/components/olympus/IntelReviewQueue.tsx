@@ -41,10 +41,24 @@ function relative(iso: string | null | undefined): string {
   if (!iso) return "";
   const ms = Date.now() - new Date(iso).getTime();
   const s = Math.floor(ms / 1000);
-  if (s < 60) return `${s}s`;
-  if (s < 3600) return `${Math.floor(s / 60)}m`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h`;
-  return `${Math.floor(s / 86400)}d`;
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+}
+
+function formatCategory(cat: string | null | undefined): string {
+  if (!cat) return "";
+  const map: Record<string, string> = {
+    regulatory_state: "Regulatory · State",
+    regulatory_federal: "Regulatory · Federal",
+    evidence_base: "Evidence Base",
+    field_intelligence: "Field Intelligence",
+    policy_innovation: "Policy Innovation",
+    competitive_landscape: "Competitive",
+  };
+  if (map[cat]) return map[cat];
+  return cat.split(/[_\s]+/).filter(Boolean).map((w) => w[0]?.toUpperCase() + w.slice(1)).join(" ");
 }
 
 function scoreColor(score: number): string {
