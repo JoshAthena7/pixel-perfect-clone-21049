@@ -1388,6 +1388,30 @@ function BriefViewer({ q, onClose, onExport }: { q: Q; onClose: () => void; onEx
   );
 }
 
+function AdminOnlyModelBadge({ model, generatedAt }: { model: string; generatedAt?: string | null }) {
+  const [isAdmin, setIsAdmin] = useState(false);
+  React.useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const { supabase } = await import("@/integrations/supabase/client");
+        const { data: u } = await supabase.auth.getUser();
+        if (!u?.user?.id) return;
+        const { data } = await supabase.rpc("has_role" as any, { _user_id: u.user.id, _role: "admin" });
+        if (alive) setIsAdmin(Boolean(data));
+      } catch { /* admin check is best-effort */ }
+    })();
+    return () => { alive = false; };
+  }, []);
+  if (!isAdmin) return null;
+  const when = generatedAt ? new Date(generatedAt).toLocaleString() : null;
+  return (
+    <div style={{ fontFamily: "monospace", fontSize: 7, color: "rgba(255,255,255,0.35)", marginTop: 2, letterSpacing: "0.04em" }}>
+      {model}{when && ` · ${when}`}
+    </div>
+  );
+}
+
 function Section({ title, body }: { title: string; body: string }) {
   return (
     <div style={{ marginBottom: 16 }}>
