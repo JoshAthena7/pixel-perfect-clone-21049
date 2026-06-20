@@ -151,7 +151,7 @@ export const askIrisQuickIntel = createServerFn({ method: "POST" })
       const { data: sigData } = await supabase.rpc("hybrid_oracle_search", {
         p_mission_id: data.missionId,
         p_query_text: data.query,
-        p_query_embedding: embedding ? toPgVector(embedding) : null,
+        p_query_embedding: embedding ? toPgVector(embedding) : undefined,
         p_limit: 8,
       });
       signals = Array.isArray(sigData) ? sigData : [];
