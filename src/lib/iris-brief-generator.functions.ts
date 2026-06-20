@@ -344,43 +344,20 @@ CONTENT RULES:
 }`,
       ].join("\n");
 
-      // 3) AI gateway
-      const apiKey = process.env.LOVABLE_API_KEY;
-      if (!apiKey) {
-        throw new Error("IRIS brief generator is offline (LOVABLE_API_KEY missing).");
+      // 3) AI gateway via task router (complex reasoning -> gpt-5-mini)
+      const { callAI } = await import("@/lib/ai-model-router.server");
+      let aiResult: { content: string; model: string };
+      try {
+        aiResult = await callAI("brief_combined", system, userMsg, { json: true });
+      } catch (e: any) {
+        const msg = String(e?.message ?? "");
+        if (msg.includes("rate limited")) throw new Error("IRIS is rate limited. Try again in a moment.");
+        if (msg.includes("credits exhausted")) throw new Error("AI credits exhausted.");
+        throw new Error(`IRIS brief generator failed: ${msg.slice(0, 200)}`);
       }
-
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Lovable-API-Key": apiKey,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          response_format: { type: "json_object" },
-          max_tokens: 16000,
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: userMsg },
-          ],
-        }),
-      });
-
-      if (res.status === 429) throw new Error("IRIS is rate limited. Try again in a moment.");
-      if (res.status === 402) throw new Error("AI credits exhausted.");
-      if (!res.ok) {
-        const body = await res.text().catch(() => "");
-        console.error("[iris-brief] gateway error", res.status, body);
-        throw new Error(`IRIS brief generator failed (${res.status}): ${body.slice(0, 200)}`);
-      }
-
-      const j = (await res.json()) as {
-        choices?: Array<{ message?: { content?: string }; finish_reason?: string }>;
-      };
-      const finishReason = j.choices?.[0]?.finish_reason;
-      const raw = (j.choices?.[0]?.message?.content ?? "").trim();
+      const raw = aiResult.content;
+      const modelUsed = aiResult.model;
+      const finishReason: string | undefined = undefined;
       const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
       const start = cleaned.indexOf("{");
       if (start === -1) {
