@@ -431,6 +431,76 @@ function ThemeList({
             <div className="mt-1 shrink-0">
               <AuthorityIcon authority={it.signal_authority} />
             </div>
+        ) : collapsible ? (
+          (() => {
+            const [title, ...rest] = String(it.text ?? "").split(" — ");
+            const detail = rest.join(" — ").trim();
+            const isExpanded = expandedIds.has(it.id);
+            return (
+              <div key={it.id} style={{ background: "rgba(255,255,255,0.02)", borderRadius: 6 }}>
+                <button
+                  type="button"
+                  onClick={() => toggleExpand(it.id)}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 text-left"
+                >
+                  <span
+                    style={{
+                      width: 4,
+                      height: 4,
+                      borderRadius: 999,
+                      background: GOLD,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span
+                    style={{
+                      color: "white",
+                      fontSize: 12,
+                      fontWeight: 500,
+                      flex: 1,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {title}
+                  </span>
+                  <span style={{ color: MUTED, fontSize: 10 }}>{isExpanded ? "▲" : "↓"}</span>
+                </button>
+                {isExpanded && (
+                  <div className="px-3 pb-2 pt-1" style={{ borderTop: `1px solid ${CARD_BORDER}` }}>
+                    {detail && (
+                      <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 11.5, lineHeight: 1.5 }}>
+                        {detail}
+                      </div>
+                    )}
+                    {it.rfp_reference && (
+                      <div style={{ color: MUTED, fontSize: 10, marginTop: 4 }}>{it.rfp_reference}</div>
+                    )}
+                    {canEdit && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <button onClick={() => setEditingId(it.id)} style={{ color: MUTED }} aria-label="Edit">
+                          <Pencil size={11} />
+                        </button>
+                        <button onClick={() => removeItem(it.id)} style={{ color: MUTED }} aria-label="Remove">
+                          <X size={12} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()
+        ) : (
+          <div
+            key={it.id}
+            className="flex items-start gap-2 rounded-lg p-2"
+            style={{ background: "rgba(255,255,255,0.02)" }}
+          >
+            <div className="mt-1 shrink-0">
+              <AuthorityIcon authority={it.signal_authority} />
+            </div>
             <div className="flex-1 min-w-0">
               <div style={{ color: "white", fontSize: 12, lineHeight: 1.5 }}>
                 {it.text}
@@ -461,11 +531,6 @@ function ThemeList({
             )}
           </div>
         ),
-      )}
-      {adding && (
-        <ItemForm onCancel={() => setAdding(false)} onSave={addItem} />
-      )}
-      {canEdit && !adding && (
         <button
           onClick={() => setAdding(true)}
           className="inline-flex items-center gap-1"
