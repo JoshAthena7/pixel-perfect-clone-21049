@@ -157,6 +157,15 @@ export function StickyNotesPanel({
   const [me, setMe] = useState<string | null>(null);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
 
+  const checkSlackConfigured = useServerFn(isSlackConfigured);
+  const postSlackFn = useServerFn(postNoteToSlackFn);
+  const { data: slackCfg } = useQuery({
+    queryKey: ["slack-configured"],
+    queryFn: () => checkSlackConfigured(),
+    staleTime: 5 * 60_000,
+  });
+  const slackEnabled = !!slackCfg?.configured;
+
   const queryKey = ["sticky-notes-v2", questionId];
 
   // Load current user + lead/admin status
@@ -240,7 +249,7 @@ export function StickyNotesPanel({
         is_resolved: false,
         seen_by: [],
         escalation_level: 0,
-        pinned_to_slack: shareSlack && !!SLACK_WEBHOOK_URL,
+        pinned_to_slack: shareSlack && slackEnabled,
       };
       const { data: inserted, error } = await supabase
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -320,14 +329,25 @@ export function StickyNotesPanel({
           } as never);
       }
 
-      if (shareSlack && SLACK_WEBHOOK_URL) {
-        postNoteToSlack({
-          noteId: note.id,
-          noteType: selectedType,
-          content: body,
-          questionNumber,
-          questionTitle: questionText,
-        });
+      if (shareSlack && slackEnabled) {
+        postSlackFn({
+          data: {
+            noteType: selectedType,
+            content: body,
+            questionNumber,
+            questionTitle: questionText,
+          },
+        })
+          .then(async (r) => {
+            if (r?.ok) {
+              await supabase
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .from("question_notes" as any)
+                .update({ slack_posted: true, slack_posted_at: new Date().toISOString() } as never)
+                .eq("id", note.id);
+            }
+          })
+          .catch((err) => console.warn("[sticky-notes] Slack post failed", err));
       }
 
       qc.setQueryData<NoteRow[]>(queryKey, (prev) => [note, ...(prev ?? [])]);
