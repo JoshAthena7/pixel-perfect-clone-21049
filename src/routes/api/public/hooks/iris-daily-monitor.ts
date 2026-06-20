@@ -171,14 +171,14 @@ For each distinct signal you identify in the content, output a JSON array. Each 
 - population: affected population if identifiable (e.g. "duals", "children", "LTSS", "BH"), otherwise null
 - relevance_score: 0-100 (100 = directly impacts active Medicaid managed care procurements)
 - confidence_score: 0-100
-- iris_recommendation: one sentence on what Athena should do with this signal
+- iris_recommendation: one sentence on what the client (or Athena, advising the client) should do with this signal
 
 Output ONLY valid JSON array. No preamble. No explanation outside the array.
 If no meaningful signals exist in the content, return an empty array [].
 
 Signal classification guide:
 - signal: something changed or is changing in the Medicaid landscape
-- opportunity: creates strategic advantage for Athena or a client
+- opportunity: creates strategic advantage for a client/MCO competing for an RFP (Athena advises; it is not the bidder)
 - risk_candidate: threatens an active mission or future pursuit
 - intel_card_candidate: reusable fact for future proposals or missions
 - mission_brief_update_candidate: should update an active Mission Brief
