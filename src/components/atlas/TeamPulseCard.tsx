@@ -6,12 +6,13 @@
  * localStorage. Inspiration & Trivia are IRIS-generated per mission per day.
  * Team tab shows recent wins, supportive nudges, and a shoutout box.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, Brain, Users, Loader2, PartyPopper, Send, Lock } from "lucide-react";
+import { Sparkles, Brain, Users, Loader2, PartyPopper, Send, Lock, Trophy, X, Flame } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureMissionMoment } from "@/lib/atlas-moments.functions";
+import { submitTriviaAnswer, fetchTriviaLeaderboard } from "@/lib/trivia-scoring.functions";
 import { toast } from "sonner";
 
 const GOLD = "#C49A2B";
