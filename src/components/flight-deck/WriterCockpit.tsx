@@ -1034,6 +1034,25 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   }
 }
 
+function GroundingIndicator({ brief }: { brief: any }) {
+  const sources = Array.isArray(brief?.oracle_sources) ? brief.oracle_sources : [];
+  const count = brief?.oracle_nodes_used ?? sources.length;
+  if (!count || count === 0) {
+    return (
+      <div style={{ fontSize: 9, color: "#f59e0b", marginTop: 6, fontStyle: "italic" }}>
+        ◈ No ORACLE grounding — IRIS is drawing from general knowledge.
+      </div>
+    );
+  }
+  const branches = Array.from(new Set(sources.map((s: any) => s?.branch).filter(Boolean))).slice(0, 2);
+  return (
+    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", marginTop: 6 }}>
+      <span style={{ color: GOLD }}>◈</span> Grounded in {count} ORACLE signal{count === 1 ? "" : "s"}
+      {branches.length > 0 && ` · ${branches.join(" · ")}`}
+    </div>
+  );
+}
+
 function Stat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div style={{ padding: "6px 10px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: `1px solid ${color}40`, display: "flex", alignItems: "center", gap: 6 }}>
