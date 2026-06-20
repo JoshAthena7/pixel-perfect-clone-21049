@@ -18,11 +18,12 @@ function AdminInsightsPage() {
   return (
     <div className="p-8" style={{ background: "#080c14", minHeight: "100vh", color: "rgba(255,255,255,0.9)" }}>
       <div className="max-w-4xl">
-        <h1 className="text-2xl font-semibold mb-2" style={{ color: "#c9a84c" }}>
-          Debriefs
-        </h1>
-        <p className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
-          Platform-wide debriefs. Coming in V2.
+        <div className="uppercase tracking-[0.16em] text-[10px] mb-1" style={{ color: "#c9a84c" }}>
+          ADMIN · INSIGHTS
+        </div>
+        <h1 className="text-2xl font-semibold text-white">Debriefs</h1>
+        <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.55)" }}>
+          Platform-wide post-mission debriefs and lessons learned. Coming in V2.
         </p>
       </div>
     </div>
