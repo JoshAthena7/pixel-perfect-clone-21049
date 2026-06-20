@@ -109,7 +109,7 @@ function AdminLayout() {
           </button>
           {toolsOpen && (
             <div
-              className="absolute right-0 top-full mt-1 flex flex-col gap-0.5 py-1.5 px-1.5 rounded-md z-40"
+              className="absolute left-0 top-full mt-1 flex flex-col gap-0.5 py-1.5 px-1.5 rounded-md z-40"
               style={{
                 background: "#0c1626",
                 border: "1px solid rgba(255,255,255,0.08)",
