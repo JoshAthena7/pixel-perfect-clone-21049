@@ -360,6 +360,7 @@ function ThemeList({
   emptyRead,
   addLabel,
   onChange,
+  collapsible = false,
 }: {
   items: TaggedItem[];
   canEdit: boolean;
@@ -367,9 +368,18 @@ function ThemeList({
   emptyRead: string;
   addLabel: string;
   onChange: (next: TaggedItem[]) => Promise<boolean>;
+  collapsible?: boolean;
 }) {
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const toggleExpand = (id: string) =>
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   async function removeItem(id: string) {
     await onChange(items.filter((i) => i.id !== id));
