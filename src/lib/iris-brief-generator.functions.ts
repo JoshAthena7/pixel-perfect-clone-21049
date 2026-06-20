@@ -242,8 +242,23 @@ export const generateIrisBrief = createServerFn({ method: "POST" })
       const totalNodes =
         decodeNodes.length + winAngleNodes.length + evidenceNodes.length + riskNodes.length;
 
+      // 1b) Hybrid semantic+keyword search across all approved/pushed signals,
+      // run AFTER we have the question text in hand. Four focused queries
+      // mirror the brief layers. Results are merged into question_intel_links
+      // (and the oracle_sources UI list) but do NOT alter the taxonomy-grounded
+      // prompt above — they're enrichment, not replacement.
+      const qText = String(question.question_text ?? "");
+      const [hybridDecode, hybridWinAngle, hybridEvidence, hybridRisk] = qText
+        ? await Promise.all([
+            hybridOracleSearchSafe(supabase, data.missionId, `compliance requirements: ${qText}`, "decode"),
+            hybridOracleSearchSafe(supabase, data.missionId, `competitive differentiation win strategy: ${qText}`, "winAngle"),
+            hybridOracleSearchSafe(supabase, data.missionId, `evidence base research proof points: ${qText}`, "evidence"),
+            hybridOracleSearchSafe(supabase, data.missionId, `risks landmines evaluation criteria: ${qText}`, "risk"),
+          ])
+        : [[], [], [], []];
+
       console.log(
-        `[iris-brief] ORACLE nodes: decode=${decodeNodes.length} winAngle=${winAngleNodes.length} evidence=${evidenceNodes.length} risk=${riskNodes.length} total=${totalNodes}`,
+        `[iris-brief] ORACLE nodes: decode=${decodeNodes.length} winAngle=${winAngleNodes.length} evidence=${evidenceNodes.length} risk=${riskNodes.length} total=${totalNodes} | hybrid=${hybridDecode.length + hybridWinAngle.length + hybridEvidence.length + hybridRisk.length}`,
       );
 
       const contextBlock = serializeContextForPrompt(ctx, "question");
