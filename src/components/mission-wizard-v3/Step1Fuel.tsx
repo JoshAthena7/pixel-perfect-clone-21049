@@ -46,6 +46,7 @@ const BASICS_FIELDS = [
 ];
 
 import type { DocumentPurpose } from "@/lib/oracle/types";
+import { OracleDocumentChecklist } from "@/components/mission-command/oracle/checklist/OracleDocumentChecklist";
 
 const PURPOSE_OPTIONS: { value: DocumentPurpose; label: string; desc: string }[] = [
   { value: "procurement", label: "Procurement", desc: "IRIS extracts requirements, evaluation criteria, and compliance obligations." },
