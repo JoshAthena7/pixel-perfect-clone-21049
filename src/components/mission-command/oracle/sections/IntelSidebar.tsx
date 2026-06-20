@@ -6,9 +6,8 @@ import { Loader2, Plus, RefreshCw, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 import { OracleIntakeModal } from "@/components/oracle/OracleIntakeModal";
-import { GOLD, SECTIONS, coverageSentence, coveragePercent } from "./coverage";
-import { scrollToSection, type } from "./JumpNav";
-import { type SectionId } from "./coverage";
+import { GOLD, SECTIONS, coverageSentence, coveragePercent, type SectionId } from "./coverage";
+import { scrollToSection } from "./JumpNav";
 
 export function IntelSidebar({
   missionId,
