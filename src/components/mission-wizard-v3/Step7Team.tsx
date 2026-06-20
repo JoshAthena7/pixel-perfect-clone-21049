@@ -991,11 +991,16 @@ function AssignmentsSubStep({
 /* ============================================================
  * helpers
  * ============================================================ */
+function titleCase(s: string): string {
+  return s.toLowerCase().replace(/\b([a-z])/g, (_m, c) => c.toUpperCase());
+}
+
 function fullName(m: { first_name?: string | null; last_name?: string | null } | null | undefined): string {
   if (!m) return "Unknown";
   const f = (m.first_name ?? "").trim();
   const l = (m.last_name ?? "").trim();
-  return `${f} ${l}`.trim() || "Unknown";
+  const combined = `${f} ${l}`.trim();
+  return combined ? titleCase(combined) : "Unknown";
 }
 
 function initials(name: string): string {
