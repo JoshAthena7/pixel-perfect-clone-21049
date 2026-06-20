@@ -184,31 +184,33 @@ export function OracleDocumentChecklist({
 
       const title = cleanTitle(file.name);
       const { data: userData } = await supabase.auth.getUser();
+      const insertPayload: Record<string, unknown> = {
+        mission_id: missionId,
+        document_type: item.document_type,
+        document_purpose: item.document_purpose,
+        document_checklist_category: item.checklist_category,
+        title,
+        file_url: path,
+        is_primary: item.checklist_category === "primary_rfp",
+        processing_status: "pending",
+        uploaded_by: userData.user?.id ?? null,
+        content_summary: head || null,
+        metadata: {
+          full_text_length: extractedText.length,
+          persisted_text_length: capped.length,
+          intelligence_tier: 1,
+          upload_timestamp: new Date().toISOString(),
+          extraction_method: "browser_pdf_parse",
+          text_extraction_ok: extractedText.length > 500,
+          uploaded_via: variant === "wizard" ? "wizard_step1" : "feed_atlas_drawer",
+          checklist_item_id: item.id,
+          ...chunkMeta,
+        },
+      };
       const { data: doc, error: insErr } = await supabase
         .from("mission_documents")
-        .insert({
-          mission_id: missionId,
-          document_type: item.document_type,
-          document_purpose: item.document_purpose,
-          document_checklist_category: item.checklist_category,
-          title,
-          file_url: path,
-          is_primary: item.checklist_category === "primary_rfp",
-          processing_status: "pending",
-          uploaded_by: userData.user?.id ?? null,
-          content_summary: head || null,
-          metadata: {
-            full_text_length: extractedText.length,
-            persisted_text_length: capped.length,
-            intelligence_tier: 1,
-            upload_timestamp: new Date().toISOString(),
-            extraction_method: "browser_pdf_parse",
-            text_extraction_ok: extractedText.length > 500,
-            uploaded_via: variant === "wizard" ? "wizard_step1" : "feed_atlas_drawer",
-            checklist_item_id: item.id,
-            ...chunkMeta,
-          },
-        })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .insert(insertPayload as any)
         .select("id, title, file_url, document_type, document_purpose, document_checklist_category, processing_status, processing_error_message, items_extracted")
         .single();
       if (insErr) throw insErr;
