@@ -21,6 +21,7 @@ import { GlobalSearch } from "@/components/nav/GlobalSearch";
 import { PulseBar } from "@/components/nav/PulseBar";
 import { SplashGate } from "@/components/splash/SplashScreen";
 import { DevToolsPanel } from "@/components/dev/DevToolsPanel";
+import { IrisConsoleLauncher } from "@/components/iris-console/IrisConsoleLauncher";
 
 function NotFoundComponent() {
   return (
@@ -99,6 +100,7 @@ function RootComponent() {
       <Toaster theme="dark" position="top-right" />
       <SplashGate />
       <DevToolsPanel />
+      <IrisConsoleLauncher />
     </QueryClientProvider>
   );
 }
