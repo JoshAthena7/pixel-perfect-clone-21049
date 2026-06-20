@@ -115,7 +115,7 @@ export function LaunchSequence({
           {bigText}
         </div>
 
-        <div className="mt-5 text-[12px] tracking-[0.32em] font-mono text-white/55">
+        <div className="mt-5 text-[12px] tracking-[0.32em] text-white/55">
           {phase === "ready"
             ? launchDone
               ? "Mission active · entering briefing"

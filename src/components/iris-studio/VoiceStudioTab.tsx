@@ -132,7 +132,7 @@ export function VoiceStudioTab({
           <div className="mb-2 rounded border p-3"
                style={{ borderColor: "rgba(196,154,43,0.8)", background: "rgba(196,154,43,0.06)" }}>
             <div className="text-[12px] font-medium text-white">Custom voice</div>
-            <div className="text-[11px] text-white/60 mt-1 font-mono">{voiceId}</div>
+            <div className="text-[11px] text-white/60 mt-1">{voiceId}</div>
           </div>
         )}
 
@@ -235,7 +235,7 @@ export function VoiceStudioTab({
         <div>
           <div className="flex items-center justify-between">
             <FieldLabel>SPEECH PACE</FieldLabel>
-            <span className="text-[11px] text-white/60 font-mono">{speed.toFixed(2)}x</span>
+            <span className="text-[11px] text-white/60">{speed.toFixed(2)}x</span>
           </div>
           <Slider value={[speed]} min={0.5} max={2.0} step={0.05} onValueChange={(v) => setSpeed(v[0])} />
           <div className="flex justify-between text-[11px] text-white/40 mt-1">
@@ -317,7 +317,7 @@ function SliderRow({
     <div>
       <div className="flex items-center justify-between">
         <FieldLabel>{label}</FieldLabel>
-        <span className="text-[11px] text-white/60 font-mono">{value.toFixed(2)}</span>
+        <span className="text-[11px] text-white/60">{value.toFixed(2)}</span>
       </div>
       <Slider value={[value]} min={min} max={max} step={step} onValueChange={(v) => setValue(v[0])} />
       <div className="flex justify-between text-[11px] text-white/40 mt-1">
