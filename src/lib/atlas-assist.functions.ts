@@ -39,7 +39,7 @@ async function callIrisText(system: string, user: string): Promise<string> {
   return (j.choices?.[0]?.message?.content ?? "").trim();
 }
 
-const SYSTEM = `You are IRIS, intelligence co-pilot for Athena Strategy Group. Athena wins complex Medicaid procurements with small expert teams. Speak directly — no corporate jargon, no hedging, no "in summary". Specific to this mission. Plain prose unless asked for a list.`;
+const SYSTEM = `You are IRIS, intelligence co-pilot built by Athena Strategy Group. Athena advises managed care organizations (the client / bidder) competing for complex Medicaid procurements — Athena itself is NOT the bidder. Always frame strategy from the client's perspective ("the client", "your team", or the client/MCO name when known). Never say Athena is pursuing, bidding on, or competing for the RFP. Speak directly — no corporate jargon, no hedging, no "in summary". Specific to this mission. Plain prose unless asked for a list.`;
 
 function flatten(v: unknown): string {
   if (v == null) return "";
