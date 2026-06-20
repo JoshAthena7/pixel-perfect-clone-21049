@@ -96,14 +96,19 @@ export function IntelReviewQueue({
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, newStatus }: { id: string; newStatus: "approved" | "pushed" | "dismissed" }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("oracle_signals")
         .update({ status: newStatus })
-        .eq("id", id);
+        .eq("id", id)
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("You don't have permission to update this signal. Ask a Founder, PM, or Admin.");
+      }
       // Record human feedback — drives the nightly relevance learning loop.
       // Non-blocking; recordSignalFeedback never throws.
       void recordSignalFeedback(id, missionId, newStatus);
+      return { id, newStatus };
     },
     onMutate: async ({ id, newStatus }) => {
       await qc.cancelQueries({ queryKey });
@@ -122,7 +127,10 @@ export function IntelReviewQueue({
       if (ctx?.prev) qc.setQueryData(queryKey, ctx.prev);
       toast.error(e.message);
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
+      const label = res?.newStatus === "approved" ? "Approved" : res?.newStatus === "pushed" ? "Pushed to IRIS" : "Dismissed";
+      toast.success(`Signal ${label.toLowerCase()}.`);
+      qc.invalidateQueries({ queryKey });
       qc.invalidateQueries({ queryKey: ["olympus", "taxonomy"] });
     },
   });
