@@ -1,80 +1,54 @@
-# Mission invite emails + onboarding wizard
+# Unify Intel Loading — One Surface
 
-## What already exists
+Reorganization only. No schema changes, no new pipelines. We're collapsing today's four entry points (Setup Wizard, Intelligence page "Add Single Item", Intelligence page "Refresh IRIS", Intelligence page "Open Setup Wizard" banner, plus the standalone "Add Single Item" on the ORACLE page) down to **three**:
 
-- Email template `mission-invite.tsx` (subject "Your Mission Awaits — {missionName}", CTA → `acceptUrl`)
-- Send route `/lovable/email/transactional/send` with the `mission-invite` template registered
-- `atlas_invites` (has `mission_id`) and `atlas_invite_tokens` (14-day expiry)
-- `/welcome/$token` page that validates the token and routes signed-in users to `/welcome` or `/home`
-- Mission Setup → Team Assignments tab with an "Invite" button (currently just flips a status flag — no email)
-- Email domain `notify.athenacommandcenter.com` verified
+1. Setup Wizard Step 1 — initial mission setup only
+2. **"+ Feed ATLAS"** drawer on the ORACLE page — the canonical ongoing path
+3. **"Feed ORACLE →"** contextual link in Briefing Room — only when coverage <30%
 
-## Gaps to close
+Everything else becomes read-only.
 
-1. The "Invite" button doesn't generate a token, doesn't include mission context, doesn't send an email.
-2. The sender is currently `noreply@athenacommandcenter.com`. You want `IRIS <iris@athenacommandcenter.com>`.
-3. There is no `/welcome` (no-token) onboarding wizard — `welcome.$token` assumes one exists.
+## Files I plan to touch
 
-## Plan
+**New**
+- `src/components/mission-command/oracle/FeedAtlasDrawer.tsx` — the unified drawer (header + 3 tabs + close)
+- `src/components/mission-command/oracle/feed/DocumentsTab.tsx` — wraps existing Setup Wizard Step 1 upload UI
+- `src/components/mission-command/oracle/feed/ManualItemTab.tsx` — inline form → `oracle_signals` insert (status `needs_review`, tier `mission`, `user_created=true`)
+- `src/components/mission-command/oracle/feed/StatePackTab.tsx` — admin-only, reads `oracle_signals` for `tier='state' AND state_code=mission.state_code`
 
-### 1. Sender identity
-Update `src/routes/lovable/email/transactional/send.ts` so the queued `from` reads `IRIS <iris@athenacommandcenter.com>`.
+**Edited**
+- `src/routes/_authenticated/missions.$missionId.olympus.tsx` — add gold "+ Feed ATLAS" button in header, mount drawer, route the page's existing "Add Single Item" button to open drawer on Manual tab
+- `src/routes/_authenticated/missions.$missionId.intelligence.tsx` — remove "Add Single Item" button, "Refresh IRIS" button, and Setup Wizard banner; add "Manage intelligence →" text link in sidebar; replace banner with one muted line inside Executive Summary band
+- `src/components/intelligence/IntelLoadBanner.tsx` — delete (or no-op) since the banner is removed
+- `src/components/mission-command/oracle/sections/IntelSidebar.tsx` and/or `IntelFeed.tsx` — remove standalone Add-Single-Item modal trigger, wire to drawer
+- Briefing Room intel status widget — add conditional "Feed ORACLE →" gold link only when approved+pushed < 15; remove any existing Setup Wizard links
+- Setup Wizard Step 1 component — add one muted italic line: "You can also add documents anytime via the ORACLE page — no need to re-run the wizard."
+- `src/routes/_authenticated/admin.state-intel.index.tsx` — read `?from_mission=` query param, show "← Return to [mission name] ORACLE" banner when present
 
-### 2. New server function: `sendMissionInvite`
-File: `src/lib/mission-invite.functions.ts` (auth-gated, mission lead / admin only).
+## Tab-by-tab behavior
 
-Inputs: `{ missionId, memberId }`.
+**Documents tab (default)** — Lift the existing Setup Wizard Step 1 drag-drop + tagging pills + "Analyze with IRIS" component as-is. Same `mission_documents` query, same pipeline trigger. Success banner inside the drawer; drawer stays open; center-column Intel Review Queue refreshes via existing query invalidation.
 
-Does:
-- Look up the team member's email, name, role on the mission
-- Look up mission name, engagement lead name, expected start date
-- Upsert `atlas_invites` row with `mission_id`
-- Invalidate prior unused tokens, mint a fresh 32-byte token, hash + insert into `atlas_invite_tokens` (14-day expiry)
-- POST to `/lovable/email/transactional/send` with `templateName: 'mission-invite'`, `recipientEmail`, `idempotencyKey: mission-invite-<inviteId>-<tokenHash>`, and `templateData: { recipientName, missionName, role, engagementLeadName, expectedStartDate, acceptUrl: https://athenacommandcenter.com/welcome/<rawToken> }`
-- Update `atlas_team_members.atlas_invite_status = 'invite_sent'` + write `atlas_activity_log`
+**Manual Item tab** — Inline form (no nested modal). Fields per spec: Category (9-pill selector), Title, What happened, Why it matters, Recommended action, Source name, Urgency (4 pills, default Normal), Topic tags (comma list → `string[]`). Submit inserts into `oracle_signals` with `status='needs_review'`, `tier='mission'`, `mission_id`, `user_created=true`. Clear form on success, toast, invalidate review queue.
 
-### 3. Wire the Invite button
-`src/components/mission-command/TeamAssignmentsTab.tsx` → replace the current `sendInvite` (which only flips a flag) with a `useServerFn(sendMissionInvite)` call. Toast on success ("Invite emailed to {email}") and error.
+**State Pack tab (admin-only)** — If signals exist for `tier='state' AND state_code=mission.state_code`: header line + compact list + "Refresh State Pack" + "Manage all state packs →" (`/admin/state-intel?from_mission={id}`). Else: empty state + "Create State Pack" button → same admin page with state pre-selected. Hidden entirely for non-admins.
 
-### 4. New onboarding wizard at `/welcome`
-File: `src/routes/welcome.tsx` (auth-gated; if no user → redirect to `/auth`).
+## Audit checklist when done
 
-Four steps with a progress bar at top, IRIS-voice copy throughout, dark Athena UI:
+- ORACLE page header shows gold "+ Feed ATLAS"
+- Drawer opens with Documents tab active, three tabs visible (State Pack hidden for non-admins)
+- Intelligence page sidebar: ORACLE HEALTH + SECTION NAV + "Manage intelligence →" only
+- Intelligence page has zero Setup Wizard references
+- Briefing Room shows "Feed ORACLE →" only when intel coverage <30%
+- Setup Wizard Step 1 has the informational note
+- ORACLE page "Add Single Item" opens drawer on Manual tab (no separate modal)
+- `/admin/state-intel?from_mission=…` shows return banner
+- No console errors
 
-1. **Welcome / mission context** — "IRIS here. You've been brought onto {missionName}. Here's what matters." Shows mission name, client, role, submission deadline, days remaining, team size, at-risk question count (already returned by `lookupWelcomeInvite`). Continue.
-2. **Profile basics** — first name, last name, job title, phone (optional). Writes to `profiles` + `atlas_team_members`.
-3. **Expertise tags** — multi-select chips from a fixed taxonomy (clinical operations, Medicaid policy, behavioral health, IT/data, finance, compliance, etc.) plus a free-text "Other expertise" field. Writes to `user_expertise`.
-4. **Communication prefs** — daily brief email yes/no, Slack handle (optional), preferred contact time. Writes to `profiles`.
+## What I will NOT change
 
-On final step → set `profiles.has_onboarded = true`, redirect to the mission they were invited to (`/mission/{id}` or `/home` if no mission on the invite).
+Review Queue logic, `oracle_signals` schema, document processing pipeline internals, Setup Wizard steps 2–9, Flight Deck/ATC nav, RLS policies, `/admin/state-intel` page content (only the back-link banner is added).
 
-A "Skip for now" link at every step writes whatever's there and lets them in. Their pending steps remain accessible from a banner on `/home`.
+## Open question before I start
 
-### 5. Backend touch-ups
-- `profiles` already has the fields needed (`has_onboarded`, `first_name`, `last_name`, `job_title`, `phone`). No schema change.
-- Add a tiny server fn `completeOnboardingStep(step, data)` that writes the per-step data and conditionally sets `has_onboarded`.
-
-## Out of scope (separate ask if you want them)
-
-- Bulk invite (multiple writers at once)
-- Reminder emails for un-accepted invites
-- An admin view showing who's onboarded vs pending across all missions
-- Custom welcome video / personal note from the Engagement Lead
-
-## Files touched
-
-Created:
-- `src/lib/mission-invite.functions.ts`
-- `src/lib/onboarding.functions.ts`
-- `src/routes/welcome.tsx`
-
-Edited:
-- `src/routes/lovable/email/transactional/send.ts` (sender)
-- `src/components/mission-command/TeamAssignmentsTab.tsx` (wire Invite button)
-- `src/lib/email-templates/mission-invite.tsx` (subject + IRIS-voice copy tweak so it sounds like it's from IRIS, not generic Athena ops)
-
-## Confirm before I build
-
-- Sender exact string: **`IRIS <iris@athenacommandcenter.com>`** — ok?
-- Onboarding fields above — anything to add/remove (e.g. years of proposal experience, security clearance, time zone)?
-- After onboarding, drop them on the **specific mission** they were invited to, not `/home`?
+The prompt references `/missions/[id]/olympus` as "the ORACLE page." The codebase has both `missions.$missionId.olympus.tsx` and `missions.$missionId.oracle.tsx`. I'll target `missions.$missionId.olympus.tsx` since the route name matches. If `oracle.tsx` is the actually-used one, flag it in your reply and I'll move the work there.

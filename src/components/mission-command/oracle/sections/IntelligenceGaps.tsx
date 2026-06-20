@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { GOLD } from "./coverage";
-import { OracleIntakeModal } from "@/components/oracle/OracleIntakeModal";
 
 const DOMAIN_PRIORITY: Record<string, number> = {
   competitive_landscape: 0,
@@ -13,7 +14,8 @@ const DOMAIN_PRIORITY: Record<string, number> = {
 };
 
 export function IntelligenceGaps({ missionId }: { missionId: string }) {
-  const [open, setOpen] = useState(false);
+
+
 
   const { data } = useQuery({
     queryKey: ["intel-gaps", missionId],
@@ -101,23 +103,18 @@ export function IntelligenceGaps({ missionId }: { missionId: string }) {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
+      <Link
+        to="/missions/$missionId/olympus"
+        params={{ missionId }}
+        className="inline-flex items-center gap-1 hover:underline"
         style={{
           marginTop: 12,
           fontSize: 11,
           color: GOLD,
-          background: "transparent",
-          border: "none",
-          cursor: "pointer",
-          padding: 0,
         }}
       >
-        Fill a gap → Add Single Item
-      </button>
-
-      <OracleIntakeModal missionId={missionId} open={open} onOpenChange={setOpen} />
+        Fill a gap → Manage intelligence <ArrowRight className="h-3 w-3" />
+      </Link>
     </section>
   );
 }

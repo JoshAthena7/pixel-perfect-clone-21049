@@ -444,6 +444,14 @@ export function Step1Fuel({
         subtitle="Upload everything. IRIS will read it all and pre-populate your entire mission setup."
       />
 
+      <p
+        className="mt-1 mb-4 italic"
+        style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}
+      >
+        You can also add documents anytime via the ORACLE page — no need to re-run the wizard.
+      </p>
+
+
       <div className="space-y-6">
         <div>
           <label className="text-[12px] uppercase tracking-[0.14em] text-white/55 mb-2 block">

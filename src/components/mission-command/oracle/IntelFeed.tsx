@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, Loader2, Plus, RefreshCw } from "lucide-react";
+import { Eye, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/select";
 import { addManualIntelEvent } from "@/lib/intel-events-manual.functions";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
-import { OracleIntakeModal } from "@/components/oracle/OracleIntakeModal";
 import { listOracleSignalsForMission } from "@/lib/oracle-intel.functions";
 
 const GOLD = "#C49A2B";
@@ -155,7 +154,6 @@ function formatCategory(cat?: string | null): string | null {
 
 export function IntelFeed({ missionId }: { missionId: string }) {
   const [filter, setFilter] = useState<FilterId>("all");
-  const [addOpen, setAddOpen] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const seedTriedRef = useRef<Set<string>>(new Set());
   const qc = useQueryClient();
@@ -273,23 +271,8 @@ export function IntelFeed({ missionId }: { missionId: string }) {
 
   return (
     <div className="space-y-4">
-      {oracleEmpty && !isLoading && (
-        <div
-          className="rounded-lg px-4 py-2 text-xs flex items-center justify-between gap-3"
-          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}
-        >
-          <span>
-            Showing legacy intelligence. Load mission documents in the Setup Wizard to activate ORACLE briefings.
-          </span>
-          <a
-            href={`/missions/${missionId}/setup?step=1`}
-            className="shrink-0 underline"
-            style={{ color: GOLD }}
-          >
-            Open Setup Wizard →
-          </a>
-        </div>
-      )}
+      {/* Setup-Wizard banner removed — intel loading happens on the ORACLE page
+          via "+ Feed ATLAS". Intelligence is read-only here. */}
       {seeding && (
         <div
           className="rounded-lg px-4 py-3 flex items-center gap-3"
@@ -330,56 +313,8 @@ export function IntelFeed({ missionId }: { missionId: string }) {
         <Stat label="This Week" value={stats.recent} />
         <Stat label="IRIS Generated" value={stats.iris} />
         <Stat label="Human Added" value={stats.human} />
-        <div className="ml-auto flex items-center gap-2">
-          <button
-            onClick={async () => {
-              if (seeding) return;
-              setSeeding(true);
-              try {
-                const res = await seedFn({ data: { missionId, force: true } });
-                if (res?.inserted || (res as any)?.cascadeInserted) {
-                  toast.success(
-                    `IRIS generated ${res?.inserted ?? 0} + ${(res as any)?.cascadeInserted ?? 0} cascade events`,
-                  );
-                } else {
-                  toast.message("IRIS refresh complete");
-                }
-                qc.invalidateQueries({ queryKey: ["intel-events", missionId] });
-                qc.invalidateQueries({ queryKey: ["intel-counts", missionId] });
-              } catch (e) {
-                console.log("[intel-feed] refresh failed", e);
-                toast.error("IRIS refresh failed");
-              } finally {
-                setSeeding(false);
-              }
-            }}
-            disabled={seeding}
-            className="inline-flex items-center gap-1.5 rounded-full transition-colors disabled:opacity-50"
-            style={{
-              padding: "5px 12px",
-              fontSize: 11,
-              color: GOLD,
-              background: "rgba(196,154,43,0.1)",
-              border: "0.5px solid rgba(196,154,43,0.3)",
-            }}
-          >
-            {seeding ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
-            Refresh IRIS
-          </button>
-          <button
-            onClick={() => setAddOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-full transition-colors"
-            style={{
-              padding: "5px 12px",
-              fontSize: 11,
-              color: GOLD,
-              background: "rgba(196,154,43,0.1)",
-              border: "0.5px solid rgba(196,154,43,0.3)",
-            }}
-          >
-            <Plus className="h-3 w-3" /> Add Single Item
-          </button>
-        </div>
+        {/* Refresh-IRIS and Add-Single-Item buttons removed — the canonical
+            ongoing entry point is "+ Feed ATLAS" on the ORACLE page. */}
 
       </div>
 
@@ -424,14 +359,10 @@ export function IntelFeed({ missionId }: { missionId: string }) {
         </div>
       )}
 
-      <OracleIntakeModal
-        missionId={missionId}
-        open={addOpen}
-        onOpenChange={setAddOpen}
-      />
     </div>
   );
 }
+
 
 function EventCard({ event }: { event: any }) {
   const color = TYPE_COLORS[event.event_type] || "#64748b";

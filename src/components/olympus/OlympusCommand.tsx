@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { runOracleStage } from "@/lib/oracle-pipeline.functions";
 import { toast } from "sonner";
-import { Loader2, Zap, ArrowRight } from "lucide-react";
+import { Loader2, Zap, Plus, ArrowRight } from "lucide-react";
 import { TaxonomyBrowser } from "./TaxonomyBrowser";
 import { IntelReviewQueue } from "./IntelReviewQueue";
 import { SourcesPanel } from "./SourcesPanel";
 import { HealthColumn } from "./HealthColumn";
+import {
+  FeedAtlasDrawer,
+  type FeedAtlasTab,
+} from "@/components/mission-command/oracle/FeedAtlasDrawer";
 
 
 
@@ -74,8 +77,15 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
   const [missionId, setMissionId] = useState<string | null>(initialMissionId ?? null);
   const [leftTab, setLeftTab] = useState<"taxonomy" | "sources">("taxonomy");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [feedOpen, setFeedOpen] = useState(false);
+  const [feedTab, setFeedTab] = useState<FeedAtlasTab>("documents");
   const lastRunQ = useLastPipelineRun();
   const runStage = useServerFn(runOracleStage);
+
+  const openFeed = (tab: FeedAtlasTab = "documents") => {
+    setFeedTab(tab);
+    setFeedOpen(true);
+  };
 
   // Pick default mission once loaded
   useEffect(() => {
@@ -150,8 +160,34 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
             )}
             Run Pipeline
           </button>
+          {missionId && (
+            <button
+              onClick={() => openFeed("documents")}
+              className="inline-flex items-center gap-1.5"
+              style={{
+                background: "rgba(196,154,43,1)",
+                color: "#000",
+                fontWeight: 600,
+                fontSize: 11,
+                padding: "8px 16px",
+                borderRadius: 4,
+              }}
+            >
+              <Plus className="h-3 w-3" /> Feed ATLAS
+            </button>
+          )}
         </div>
       </div>
+
+      {missionId && (
+        <FeedAtlasDrawer
+          open={feedOpen}
+          onOpenChange={setFeedOpen}
+          missionId={missionId}
+          activeTab={feedTab}
+          onTabChange={setFeedTab}
+        />
+      )}
 
       {/* 3-column shell */}
       <div className="grid" style={{ gridTemplateColumns: "24% 48% 28%", height: "calc(100vh - 48px)" }}>
@@ -179,6 +215,7 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
                 missionId={missionId}
                 selectedNodeId={selectedNodeId}
                 onSelect={setSelectedNodeId}
+                onFeed={() => openFeed("documents")}
               />
             ) : (
               <TaxonomyBrowser selectedNodeId={selectedNodeId} onSelect={setSelectedNodeId} />
@@ -253,10 +290,12 @@ function OracleLeftColumn({
   missionId,
   selectedNodeId,
   onSelect,
+  onFeed,
 }: {
   missionId: string;
   selectedNodeId: string | null;
   onSelect: (id: string | null) => void;
+  onFeed: () => void;
 }) {
   const countQ = useQuery({
     queryKey: ["oracle-approved-count", missionId],
@@ -276,13 +315,13 @@ function OracleLeftColumn({
   }
 
   if ((countQ.data ?? 0) < 10) {
-    return <OracleEmptyGuide missionId={missionId} />;
+    return <OracleEmptyGuide onFeed={onFeed} />;
   }
 
   return <TaxonomyBrowser selectedNodeId={selectedNodeId} onSelect={onSelect} />;
 }
 
-function OracleEmptyGuide({ missionId }: { missionId: string }) {
+function OracleEmptyGuide({ onFeed }: { onFeed: () => void }) {
   const goReview = () => {
     const el = document.querySelector('[data-olympus-col="review"]');
     if (el) (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "start" });
@@ -303,17 +342,26 @@ function OracleEmptyGuide({ missionId }: { missionId: string }) {
         </div>
       </div>
       <ol className="space-y-4">
-        <GuideStep n={1} title="Run the Setup Wizard"
-          body="Upload your RFP and documents. IRIS extracts intelligence automatically.">
-          <Link
-            to="/olympus/wizard/$missionId"
-            params={{ missionId }}
-            search={{ step: 1 }}
+        <GuideStep n={1} title="Feed ATLAS"
+          body="Upload your RFP and documents, or add a manual intelligence item. IRIS extracts the rest.">
+          <button
+            type="button"
+            onClick={onFeed}
             className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium"
             style={{ background: "#d4af37", color: "#070f1c" }}
           >
-            Open Setup Wizard <ArrowRight className="h-3 w-3" />
-          </Link>
+            + Feed ATLAS <ArrowRight className="h-3 w-3" />
+          </button>
+        </GuideStep>
+        <GuideStep n={2} title="Review extracted items"
+          body="IRIS will surface items here for your review. Approve what's accurate.">
+          <button
+            type="button"
+            onClick={goReview}
+            className="text-[11px] text-white/55 hover:text-white/80 inline-flex items-center gap-1"
+          >
+            Go to Review Queue <ArrowRight className="h-3 w-3" />
+          </button>
         </GuideStep>
         <GuideStep n={2} title="Review extracted items"
           body="IRIS will surface items here for your review. Approve what's accurate.">

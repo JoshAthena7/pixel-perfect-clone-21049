@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { CheckCircle2, Upload } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useAccess";
 import { MomentumScoreCompact } from "@/components/momentum/MomentumScore";
 
 const GOLD = "#D4AF37";
+const COVERAGE_TARGET = 15;
 
 type Counts = { approved: number; pushed: number; needs_review: number; dismissed: number };
 
@@ -33,7 +34,7 @@ export function IntelStatusWidget({ missionId }: { missionId: string }) {
 
   const counts = data ?? { approved: 0, pushed: 0, needs_review: 0, dismissed: 0 };
   const active = counts.approved + counts.pushed;
-  const ready = active >= 10;
+  const ready = active >= COVERAGE_TARGET;
 
   if (!isAdmin) return null;
 
@@ -84,14 +85,15 @@ export function IntelStatusWidget({ missionId }: { missionId: string }) {
           ORACLE Active
         </div>
       ) : (
+        // Coverage <15: surface a single contextual link to the ORACLE page.
+        // No Setup Wizard link — ORACLE is the canonical intel surface.
         <Link
-          to="/olympus/missions/$missionId/wizard"
+          to="/missions/$missionId/olympus"
           params={{ missionId }}
-          className="inline-flex items-center gap-2 px-3 py-2 rounded-full w-full justify-center"
-          style={{ background: GOLD, color: "#0a0a0a", fontSize: 12, fontWeight: 600 }}
+          className="inline-flex items-center gap-1 hover:underline"
+          style={{ fontSize: 11, fontWeight: 600, color: GOLD }}
         >
-          <Upload size={14} />
-          Load Intel
+          Feed ORACLE <ArrowRight className="h-3 w-3" />
         </Link>
       )}
     </div>
