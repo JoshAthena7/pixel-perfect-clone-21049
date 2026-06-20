@@ -159,6 +159,7 @@ export function MissionSidebar({ missionId, email }: { missionId: string; email?
             <Link
               key={it.id}
               to={it.to as never}
+              title={it.tooltip}
               className="flex items-center gap-2.5 px-4 py-2.5 transition-colors hover:bg-white/[0.04]"
               style={{
                 borderLeft: `3px solid ${active ? GOLD : "transparent"}`,
