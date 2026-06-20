@@ -137,12 +137,13 @@ export function LanguageInclusionTab({
       setAuditProgress("Scanning question progress…");
       const { data: progress } = await supabase
         .from("question_progress")
-        .select("id, draft_content, iris_brief")
+        .select("id, metadata")
+        .eq("mission_id", missionId)
         .limit(500);
       (progress ?? []).forEach((p) => {
-        const row = p as { id: string; draft_content?: string; iris_brief?: string };
-        scan("question_progress", "draft_content", row.id, row.draft_content);
-        scan("question_progress", "iris_brief", row.id, row.iris_brief);
+        const row = p as { id: string; metadata?: unknown };
+        const txt = row.metadata ? JSON.stringify(row.metadata) : "";
+        scan("question_progress", "metadata", row.id, txt);
       });
 
       setAuditResults(violations);
