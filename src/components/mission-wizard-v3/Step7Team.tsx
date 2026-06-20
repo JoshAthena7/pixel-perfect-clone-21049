@@ -329,7 +329,7 @@ function RosterCard({
   onAdd: () => void;
 }) {
   const name = fullName(member);
-  const skill = member.job_title ?? member.skills?.[0] ?? "—";
+  const skill = member.job_title ?? member.skills?.[0] ?? null;
   return (
     <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
       <Avatar name={name} />
