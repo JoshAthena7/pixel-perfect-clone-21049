@@ -58,13 +58,13 @@ function useCrumbs(missionName?: string | null): Crumb[] {
   if (pathname === "/olympus/missions" || pathname === "/olympus/missions/") return [{ label: "Missions" }];
   if (pathname === "/olympus/missions/new") return [missionsCrumb, { label: "New Mission" }];
   if (missionId && /\/wizard$/.test(pathname)) {
-    return [missionsCrumb, { label: missionName ?? "Mission", pill: true }, { label: "Setup" }];
+    return [missionsCrumb, { label: shortMissionCode(missionName), fullLabel: missionName ?? undefined, pill: true }, { label: "Setup" }];
   }
   if (missionId) {
     const tab = typeof search.tab === "string" && isValidTab(search.tab) ? search.tab : "overview";
     return [
       missionsCrumb,
-      { label: missionName ?? "Mission", to: "/olympus/missions/$missionId", params: { missionId }, pill: true },
+      { label: shortMissionCode(missionName), fullLabel: missionName ?? undefined, to: "/olympus/missions/$missionId", params: { missionId }, pill: true },
       { label: tabLabel(tab) },
     ];
   }
