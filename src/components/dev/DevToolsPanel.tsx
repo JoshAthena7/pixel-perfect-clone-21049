@@ -532,6 +532,7 @@ export function DevToolsPanel() {
       <div
         role="dialog"
         aria-hidden={!open}
+        inert={!open as any}
         style={{
           position: "fixed",
           left: 0,
@@ -547,6 +548,8 @@ export function DevToolsPanel() {
           color: "rgba(255,255,255,0.85)",
           display: "flex",
           flexDirection: "column",
+          visibility: open ? "visible" : "hidden",
+          pointerEvents: open ? "auto" : "none",
         }}
       >
         <div className="flex items-center justify-between px-6 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
