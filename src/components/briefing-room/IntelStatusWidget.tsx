@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useAccess";
 import { MomentumScoreCompact } from "@/components/momentum/MomentumScore";
+import { OracleMissingCompactWarning } from "@/components/mission-command/oracle/checklist/OracleMissingCompactWarning";
 
 const GOLD = "#D4AF37";
 const COVERAGE_TARGET = 15;
