@@ -147,7 +147,7 @@ export function StyleGuideTab({ missionId }: { missionId: string }) {
 
         <Field
           label="Voice and Tone"
-          helper="How should Athena sound in this proposal?"
+          helper="How should the client sound in this proposal?"
         >
           <Textarea rows={4} value={sg.voice_and_tone}
                     onChange={(e) => set("voice_and_tone", e.target.value)} />
