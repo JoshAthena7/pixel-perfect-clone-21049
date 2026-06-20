@@ -30,6 +30,7 @@ const MAIN_TABS: Tab[] = [
 
 const PLATFORM_TOOLS: Tab[] = [
   { id: "iris-control", label: "IRIS Control", to: "/admin/iris-control", match: (p) => p.startsWith("/admin/iris-control") },
+  { id: "iris-studio", label: "IRIS Studio", to: "/admin/iris-studio", match: (p) => p.startsWith("/admin/iris-studio") },
   { id: "iris-writer-view", label: "IRIS Writer View", to: "/admin/iris-writer-view", match: (p) => p.startsWith("/admin/iris-writer-view") },
   { id: "iris-refresh", label: "IRIS Refresh", to: "/admin/iris-refresh", match: (p) => p.startsWith("/admin/iris-refresh") },
   { id: "settings", label: "Settings", to: "/admin/settings", match: (p) => p.startsWith("/admin/settings") },
