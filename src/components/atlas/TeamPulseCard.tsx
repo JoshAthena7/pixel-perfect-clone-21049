@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, Brain, Users, Loader2, PartyPopper, Send, Lock, Trophy, X, Flame } from "lucide-react";
+import { Sparkles, Brain, Users, Loader2, PartyPopper, Send, Lock, Trophy, X, Flame, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureMissionMoment } from "@/lib/atlas-moments.functions";
 import { submitTriviaAnswer, fetchTriviaLeaderboard } from "@/lib/trivia-scoring.functions";
