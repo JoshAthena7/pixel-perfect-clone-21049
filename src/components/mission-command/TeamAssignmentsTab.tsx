@@ -142,13 +142,20 @@ function TeamSub({ missionId }: { missionId: string }) {
   };
 
   const sendInviteFn = useServerFn(sendMissionInvite);
-  const sendInvite = async (memberId: string) => {
+  const [inviteTarget, setInviteTarget] = useState<{ memberId: string; name: string; email: string } | null>(null);
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const confirmInvite = async () => {
+    if (!inviteTarget) return;
+    setInviteBusy(true);
     try {
-      const res = await sendInviteFn({ data: { missionId, memberId } });
+      const res = await sendInviteFn({ data: { missionId, memberId: inviteTarget.memberId } });
       toast.success(`Invite emailed to ${res.email}`);
       qc.invalidateQueries({ queryKey: ["mt-team", missionId] });
+      setInviteTarget(null);
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to send invite");
+    } finally {
+      setInviteBusy(false);
     }
   };
 
@@ -215,7 +222,9 @@ function TeamSub({ missionId }: { missionId: string }) {
                   <td className="px-3 py-2">
                     <div className="flex gap-1 justify-end">
                       {a.atlas_invite_status !== "active" && (
-                        <Button size="sm" variant="ghost" onClick={() => sendInvite(m.member_id)}>Invite</Button>
+                        <Button size="sm" variant="ghost" onClick={() => setInviteTarget({ memberId: m.member_id, name: `${a.first_name ?? ""} ${a.last_name ?? ""}`.trim() || "this member", email: (a as any).email ?? "" })}>
+                          {a.atlas_invite_status === "invite_sent" ? "Re-invite" : "Invite"}
+                        </Button>
                       )}
                       <Button size="sm" variant="ghost" onClick={() => tryRemove(m)}>
                         <Trash2 className="size-4" />
@@ -246,6 +255,26 @@ function TeamSub({ missionId }: { missionId: string }) {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmRemove}>Remove</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!inviteTarget} onOpenChange={(o) => !o && !inviteBusy && setInviteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Send invite email?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will email <span className="font-medium text-foreground">{inviteTarget?.name}</span>
+              {inviteTarget?.email ? <> at <span className="font-mono text-xs">{inviteTarget.email}</span></> : null} from{" "}
+              <span className="font-mono text-xs">IRIS@athenacommandcenter.com</span> with a 14-day link to join this mission and start onboarding.
+              Nothing is sent until you confirm.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={inviteBusy}>Not yet</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmInvite} disabled={inviteBusy}>
+              {inviteBusy ? "Sending…" : "Send invite"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
