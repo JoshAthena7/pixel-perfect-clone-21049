@@ -1371,6 +1371,7 @@ function BriefViewer({ q, onClose, onExport }: { q: Q; onClose: () => void; onEx
           </div>
         </div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginBottom: 16, fontStyle: "italic" }}>{q.question_text}</div>
+        <GroundingIndicator brief={b} />
         {q.iris_decoded_intent && (
           <Section title="Decoded Intent" body={q.iris_decoded_intent} />
         )}
