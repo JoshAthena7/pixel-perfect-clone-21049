@@ -74,9 +74,10 @@ export const extractMissionLessons = createServerFn({ method: "POST" })
         `Mission: ${m.name ?? "(unnamed)"}. State: ${m.state_code ?? "?"}.\n` +
           `High-scoring section analyses: ${highScores
             .slice(0, 5)
-            .map((s: { full_analysis?: string | null }) =>
-              (s.full_analysis ?? "").substring(0, 200),
-            )
+            .map((s) => {
+              const a = (s as { full_analysis?: unknown }).full_analysis;
+              return typeof a === "string" ? a.substring(0, 200) : JSON.stringify(a ?? "").substring(0, 200);
+            })
             .join(" | ")}.\n` +
           `Win themes: ${JSON.stringify((c?.win_themes ?? []) as unknown[]).slice(0, 600)}.\n` +
           `What pattern made these sections score high?`,
