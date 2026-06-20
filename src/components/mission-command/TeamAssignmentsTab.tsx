@@ -197,8 +197,8 @@ function TeamSub({ missionId }: { missionId: string }) {
                       </div>
                       <div>
                         <div className="font-medium">{a.first_name} {a.last_name}</div>
-                        <div className="text-[12px] text-muted-foreground">{a.job_title}</div>
                       </div>
+
                     </div>
                   </td>
                   <td className="px-3 py-2">
