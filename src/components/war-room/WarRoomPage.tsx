@@ -119,22 +119,6 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
     },
   });
 
-  // notes posted today count for status strip
-  const notesTodayQ = useQuery({
-    queryKey: ["war-room-notes-today", missionId],
-    refetchInterval: 120_000,
-    queryFn: async () => {
-      const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
-      const { count, error } = await supabase
-        .from("mission_assist_events")
-        .select("id", { head: true, count: "exact" })
-        .eq("mission_id", missionId)
-        .eq("event_type", "sticky_note_posted")
-        .gte("created_at", dayStart.toISOString());
-      if (error) throw error;
-      return count ?? 0;
-    },
-  });
 
   const [filterWriterId, setFilterWriterId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
