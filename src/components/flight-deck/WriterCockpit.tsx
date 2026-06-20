@@ -80,6 +80,9 @@ type Q = {
   iris_brief_generated_at: string | null;
   evaluation_weight: number | null;
   page_limit: number | null;
+  word_limit: number | null;
+  point_value: number | null;
+  requires_exhibit: boolean | null;
   progress_id: string;
   progress_status: string;
   acceptance_status: string | null;
@@ -90,6 +93,7 @@ type Q = {
   assigned_at: string | null;
   brief_opened_at: string | null;
   brief_exported_at: string | null;
+  brief_export_count: number | null;
   last_activity_at: string | null;
   sme_assigned: boolean | null;
   primary_win_theme: string | null;
