@@ -384,68 +384,119 @@ function TriviaTab({ missionId }: { missionId: string }) {
         </button>
       </div>
 
-      <div className="pr-32 pt-2" style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>
-        {c.question || "—"}
-      </div>
-      <div className="mt-3 grid grid-cols-1 gap-1.5">
-        {opts.map((opt, i) => {
-          const isCorrectOpt = i === correctIdx;
-          const isPicked = pickedIndex === i;
-          const isLocked = answered || submitting || timedOut;
-          let bg = "rgba(255,255,255,0.04)";
-          let border = "rgba(255,255,255,0.1)";
-          let color = "rgba(255,255,255,0.85)";
-          let opacity = 1;
-          if (timedOut && !answered) {
-            if (isCorrectOpt) {
-              bg = "rgba(74,222,128,0.1)";
-              border = "rgba(74,222,128,0.4)";
-              color = "#86EFAC";
-            } else {
-              opacity = 0.4;
-            }
-          } else if (answered) {
-            if (isCorrectOpt) {
-              bg = "rgba(74,222,128,0.2)";
-              border = "rgba(74,222,128,0.6)";
-              color = "#86EFAC";
-            } else if (isPicked) {
-              bg = "rgba(248,113,113,0.15)";
-              border = "rgba(248,113,113,0.5)";
-              color = "#FCA5A5";
-            } else {
-              bg = "rgba(255,255,255,0.02)";
-              color = "rgba(255,255,255,0.4)";
-            }
-          }
-          return (
-            <button
-              key={i}
-              disabled={isLocked}
-              onClick={() => handlePick(i)}
-              className="text-left rounded-md transition-colors"
-              style={{
-                background: bg,
-                border: `0.5px solid ${border}`,
-                color,
-                padding: "6px 10px",
-                fontSize: 11,
-                opacity,
-                cursor: isLocked ? "not-allowed" : "pointer",
-                pointerEvents: isLocked ? "none" : "auto",
-              }}
-            >
-              {opt}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Timeout inline message */}
-      {timedOut && !answered && (
-        <div className="mt-2 text-center text-[11px]" style={{ color: "rgba(255,255,255,0.55)" }}>
-          ⏱ Time's up — {opts[correctIdx] ?? ""} was correct
+      {answered && !expanded ? (
+        <div className="pt-2">
+          <button
+            onClick={() => setExpanded(true)}
+            className="w-full flex items-center justify-between rounded-md px-3 py-2 text-left transition-colors hover:bg-white/5"
+            style={{
+              background: wasTimeout ? "rgba(248,113,113,0.06)" : "rgba(74,222,128,0.06)",
+              border: `0.5px solid ${wasTimeout ? "rgba(248,113,113,0.25)" : "rgba(74,222,128,0.25)"}`,
+            }}
+          >
+            <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.75)" }}>
+              {wasTimeout ? (
+                <>⏱ Timed out today · answer was <span style={{ color: "#86EFAC" }}>{opts[correctIdx] ?? ""}</span></>
+              ) : todaysAnswer?.is_correct ? (
+                <>✓ Answered today · <span style={{ color: GOLD, fontWeight: 600 }}>+{todaysAnswer?.points_earned ?? 0} pts</span></>
+              ) : (
+                <>Answered today · answer was <span style={{ color: "#86EFAC" }}>{opts[correctIdx] ?? ""}</span></>
+              )}
+            </span>
+            <span className="text-[10px] flex items-center gap-1" style={{ color: "rgba(255,255,255,0.45)" }}>
+              Show question <ChevronDown className="h-3 w-3" />
+            </span>
+          </button>
         </div>
+      ) : (
+        <>
+          <div className="pr-32 pt-2" style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>
+            {c.question || "—"}
+          </div>
+          <div className="mt-3 grid grid-cols-1 gap-1.5">
+            {opts.map((opt, i) => {
+              const isCorrectOpt = i === correctIdx;
+              const isPicked = pickedIndex === i;
+              const isLocked = answered || submitting || timedOut;
+              let bg = "rgba(255,255,255,0.04)";
+              let border = "rgba(255,255,255,0.1)";
+              let color = "rgba(255,255,255,0.85)";
+              let opacity = 1;
+              if (timedOut && !answered) {
+                if (isCorrectOpt) {
+                  bg = "rgba(74,222,128,0.1)";
+                  border = "rgba(74,222,128,0.4)";
+                  color = "#86EFAC";
+                } else {
+                  opacity = 0.4;
+                }
+              } else if (answered) {
+                if (isCorrectOpt) {
+                  bg = "rgba(74,222,128,0.2)";
+                  border = "rgba(74,222,128,0.6)";
+                  color = "#86EFAC";
+                } else if (isPicked) {
+                  bg = "rgba(248,113,113,0.15)";
+                  border = "rgba(248,113,113,0.5)";
+                  color = "#FCA5A5";
+                } else {
+                  bg = "rgba(255,255,255,0.02)";
+                  color = "rgba(255,255,255,0.4)";
+                }
+              }
+              return (
+                <button
+                  key={i}
+                  disabled={isLocked}
+                  onClick={() => handlePick(i)}
+                  className="text-left rounded-md transition-colors"
+                  style={{
+                    background: bg,
+                    border: `0.5px solid ${border}`,
+                    color,
+                    padding: "6px 10px",
+                    fontSize: 11,
+                    opacity,
+                    cursor: isLocked ? "not-allowed" : "pointer",
+                    pointerEvents: isLocked ? "none" : "auto",
+                  }}
+                >
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+
+          {timedOut && !answered && (
+            <div className="mt-2 text-center text-[11px]" style={{ color: "rgba(255,255,255,0.55)" }}>
+              ⏱ Time's up — {opts[correctIdx] ?? ""} was correct
+            </div>
+          )}
+
+          {answered && (
+            <div className="mt-2 flex items-center justify-between">
+              <div className="text-[10px]" style={{ color: "rgba(255,255,255,0.5)" }}>
+                {wasTimeout ? "⏱ Timed out today" : `You earned ${todaysAnswer?.points_earned ?? 0} pts today`}
+              </div>
+              <button
+                onClick={() => setExpanded(false)}
+                className="text-[10px] hover:text-white/80 transition-colors"
+                style={{ color: "rgba(255,255,255,0.45)" }}
+              >
+                Hide question
+              </button>
+            </div>
+          )}
+
+          {answered && c.explanation && (
+            <div
+              className="mt-3 rounded-md px-3 py-2 text-[11px] italic"
+              style={{ background: "rgba(196,154,43,0.06)", borderLeft: `2px solid ${GOLD}`, color: "rgba(255,255,255,0.78)", lineHeight: 1.6 }}
+            >
+              {c.explanation}
+            </div>
+          )}
+        </>
       )}
 
       {/* Floating points toast */}
@@ -470,22 +521,6 @@ function TriviaTab({ missionId }: { missionId: string }) {
         </div>
       )}
 
-      {answered && (
-        <div className="mt-2 text-[10px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-          {wasTimeout
-            ? "⏱ Timed out today"
-            : `You earned ${todaysAnswer?.points_earned ?? 0} pts today`}
-        </div>
-      )}
-
-      {answered && c.explanation && (
-        <div
-          className="mt-3 rounded-md px-3 py-2 text-[11px] italic"
-          style={{ background: "rgba(196,154,43,0.06)", borderLeft: `2px solid ${GOLD}`, color: "rgba(255,255,255,0.78)", lineHeight: 1.6 }}
-        >
-          {c.explanation}
-        </div>
-      )}
 
       {leaderboardOpen && (
         <LeaderboardPanel missionId={missionId} onClose={() => setLeaderboardOpen(false)} />
