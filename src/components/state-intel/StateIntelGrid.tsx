@@ -87,11 +87,19 @@ export function StateIntelGrid() {
         </Button>
       </div>
 
-      {isLoading ? (
+      {isLoading && !timedOut ? (
         <div className="text-sm text-white/55 mt-8">Loading…</div>
+      ) : isError || (isLoading && timedOut) ? (
+        <div className="mt-12 border border-dashed border-white/10 rounded-lg p-8 text-center">
+          <p className="text-sm text-white/70 mb-3">Unable to load state packs.</p>
+          <Button size="sm" variant="outline" onClick={() => refetch()}>Retry</Button>
+        </div>
       ) : packs.length === 0 ? (
         <div className="mt-12 border border-dashed border-white/10 rounded-lg p-8 text-center">
-          <p className="text-sm text-white/60">No state packs yet. Add a state to get started.</p>
+          <p className="text-sm text-white/60 mb-3">No state packs added yet.</p>
+          <Button size="sm" onClick={() => setOpen(true)} className="gap-2">
+            <Plus className="w-4 h-4" /> Add first state
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-6">
