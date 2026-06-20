@@ -127,9 +127,12 @@ function StaffPage() {
       <div className="mx-auto max-w-5xl px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-semibold text-white">Staff</h1>
+            <div className="uppercase tracking-[0.16em] text-[10px] mb-1" style={{ color: "#c9a84c" }}>
+              ADMIN · STAFF
+            </div>
+            <h1 className="text-2xl font-semibold text-white">Staff Directory</h1>
             <p className="mt-1 text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
-              {staff.length} member{staff.length === 1 ? "" : "s"} across ATLAS.
+              {staff.length} member{staff.length === 1 ? "" : "s"} across ATLAS · roles, missions, and availability.
             </p>
           </div>
           <div className="flex items-center gap-2">

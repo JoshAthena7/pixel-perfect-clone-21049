@@ -70,9 +70,12 @@ function MessagingPage() {
       <div className="mx-auto max-w-5xl px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-semibold text-white">Messaging</h1>
+            <div className="uppercase tracking-[0.16em] text-[10px] mb-1" style={{ color: "#c9a84c" }}>
+              ADMIN · MESSAGING
+            </div>
+            <h1 className="text-2xl font-semibold text-white">Broadcasts</h1>
             <p className="mt-1 text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
-              Broadcast announcements to staff across ATLAS.
+              Send announcements to staff across ATLAS. Recipients see them in-app and via email.
             </p>
           </div>
           <button
