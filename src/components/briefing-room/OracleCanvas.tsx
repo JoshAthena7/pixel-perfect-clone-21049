@@ -90,13 +90,20 @@ function Section({
   );
 }
 
+export type OracleCanvasSection = "northStar" | "winThemes" | "risks" | "competitors" | "badge";
+
 export function OracleCanvas({
   missionId,
   canEdit,
+  only,
+  winThemesCollapsed = false,
 }: {
   missionId: string;
   canEdit: boolean;
+  only?: OracleCanvasSection[];
+  winThemesCollapsed?: boolean;
 }) {
+  const show = (s: OracleCanvasSection) => !only || only.includes(s);
   const { data: oracleConfig, refetch } = useQuery({
     queryKey: ["oracle-canvas", missionId],
     queryFn: async () => {
