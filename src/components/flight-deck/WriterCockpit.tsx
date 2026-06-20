@@ -1023,6 +1023,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                   {!q.brief_exported_at && q.iris_brief && <button onClick={() => handleExportBrief(q)} style={btn("#6b7280")}><Download size={12}/> Export Brief</button>}
                   {q.iris_brief_status === "stale" && <span style={{ fontSize: 11, color: AMBER }}>⚠ Brief is stale — admin must regenerate</span>}
                 </div>
+                {q.iris_brief && <GroundingIndicator brief={q.iris_brief} />}
               </div>
             </div>
           </div>
@@ -1031,6 +1032,25 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
       </div>
     );
   }
+}
+
+function GroundingIndicator({ brief }: { brief: any }) {
+  const sources = Array.isArray(brief?.oracle_sources) ? brief.oracle_sources : [];
+  const count = brief?.oracle_nodes_used ?? sources.length;
+  if (!count || count === 0) {
+    return (
+      <div style={{ fontSize: 9, color: "#f59e0b", marginTop: 6, fontStyle: "italic" }}>
+        ◈ No ORACLE grounding — IRIS is drawing from general knowledge.
+      </div>
+    );
+  }
+  const branches = Array.from(new Set(sources.map((s: any) => s?.branch).filter(Boolean))).slice(0, 2);
+  return (
+    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", marginTop: 6 }}>
+      <span style={{ color: GOLD }}>◈</span> Grounded in {count} ORACLE signal{count === 1 ? "" : "s"}
+      {branches.length > 0 && ` · ${branches.join(" · ")}`}
+    </div>
+  );
 }
 
 function Stat({ label, value, color }: { label: string; value: number; color: string }) {
@@ -1341,6 +1361,9 @@ function BriefViewer({ q, onClose, onExport }: { q: Q; onClose: () => void; onEx
           <div>
             <div style={{ fontFamily: "monospace", color: GOLD, fontSize: 12 }}>{q.question_number}</div>
             <div style={{ fontSize: 16, fontWeight: 700 }}>IRIS Question Brief</div>
+            {b?.model_used && (
+              <AdminOnlyModelBadge model={b.model_used} generatedAt={q.iris_brief_generated_at} />
+            )}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={onExport} style={btn(GOLD)}><Download size={12}/> Export</button>
@@ -1348,6 +1371,7 @@ function BriefViewer({ q, onClose, onExport }: { q: Q; onClose: () => void; onEx
           </div>
         </div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginBottom: 16, fontStyle: "italic" }}>{q.question_text}</div>
+        <GroundingIndicator brief={b} />
         {q.iris_decoded_intent && (
           <Section title="Decoded Intent" body={q.iris_decoded_intent} />
         )}
@@ -1361,6 +1385,30 @@ function BriefViewer({ q, onClose, onExport }: { q: Q; onClose: () => void; onEx
           <div style={{ padding: 20, textAlign: "center", color: "rgba(255,255,255,0.5)" }}>Brief content not yet available.</div>
         )}
       </div>
+    </div>
+  );
+}
+
+function AdminOnlyModelBadge({ model, generatedAt }: { model: string; generatedAt?: string | null }) {
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const { supabase } = await import("@/integrations/supabase/client");
+        const { data: u } = await supabase.auth.getUser();
+        if (!u?.user?.id) return;
+        const { data } = await supabase.rpc("has_role" as any, { _user_id: u.user.id, _role: "admin" });
+        if (alive) setIsAdmin(Boolean(data));
+      } catch { /* admin check is best-effort */ }
+    })();
+    return () => { alive = false; };
+  }, []);
+  if (!isAdmin) return null;
+  const when = generatedAt ? new Date(generatedAt).toLocaleString() : null;
+  return (
+    <div style={{ fontFamily: "monospace", fontSize: 7, color: "rgba(255,255,255,0.35)", marginTop: 2, letterSpacing: "0.04em" }}>
+      {model}{when && ` · ${when}`}
     </div>
   );
 }
