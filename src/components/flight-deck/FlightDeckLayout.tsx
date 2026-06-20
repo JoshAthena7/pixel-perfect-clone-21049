@@ -31,6 +31,7 @@ import { ShoutoutToastListener } from "@/components/atlas/ShoutoutToastListener"
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useIsAdmin } from "@/hooks/useAccess";
+import { useMissionNoteCounts, QuestionNoteBadge } from "@/components/flight-deck/QuestionNoteBadge";
 
 type Props = {
   memberId: string | null;
@@ -421,7 +422,10 @@ function NavStrip({
       <span className="text-muted-foreground/40">·</span>
       {activeQ && (
         <>
-          <span className="font-mono text-[11px] text-[color:var(--athena-gold)]">{activeQ.question_number}</span>
+          <span style={{ position: "relative", display: "inline-block" }}>
+            <span className="font-mono text-[11px] text-[color:var(--athena-gold)]">{activeQ.question_number}</span>
+            <NavStripNoteBadge missionId={missionId} questionId={activeQ.id} />
+          </span>
           <span className="text-[12px] font-medium text-foreground truncate max-w-[40ch]">{activeQ.question_text}</span>
           <span className={cn("rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider", badge.cls)}>
             {badge.label}
@@ -463,6 +467,25 @@ function NavStrip({
         )}
       </div>
     </div>
+  );
+}
+
+function NavStripNoteBadge({ missionId, questionId }: { missionId: string | null; questionId: string }) {
+  const { data } = useMissionNoteCounts(missionId);
+  const entry = data?.[questionId];
+  if (!entry || entry.total === 0) return null;
+  return (
+    <span
+      style={{
+        position: "absolute",
+        top: -8,
+        right: -14,
+        transform: "scale(0.85)",
+        transformOrigin: "top right",
+      }}
+    >
+      <QuestionNoteBadge entry={entry} />
+    </span>
   );
 }
 
