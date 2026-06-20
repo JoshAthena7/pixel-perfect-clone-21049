@@ -568,6 +568,7 @@ export function AskIrisPanel() {
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <ReadAloudToggle messages={messages} />
             <button onClick={() => setState("collapsed")} title="Minimize" className="h-7 w-7 inline-flex items-center justify-center text-white/65 hover:text-white">
               <ChevronRight className="h-4 w-4" />
             </button>
