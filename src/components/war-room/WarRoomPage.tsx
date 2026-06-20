@@ -416,58 +416,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                   </button>
                 )}
               </div>
-              {filteredSos.length > 0 && (
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-white/45 mb-2">Questions Needing Attention</div>
-                  <ul className="space-y-1.5 max-h-[280px] overflow-y-auto pr-1">
-                    {filteredSos.map((s: any) => (
-                      <li key={s.questionId} className="rounded border border-white/10 bg-white/[0.02] p-2.5">
-                        <div className="text-[12px] font-medium truncate">
-                          <span className="text-white/45 font-mono mr-1.5">{s.questionNumber}</span>{s.questionTitle}…
-                        </div>
-                        <div className="text-[11px] text-white/55">{s.writerName}</div>
-                        <ul className="mt-1 space-y-0.5">
-                          {s.reasons.map((r: string) => (
-                            <li key={r} className="text-[10px] text-amber-300">• {r}</li>
-                          ))}
-                        </ul>
-                        <div className="flex flex-wrap gap-1 mt-1.5">
-                          <button onClick={() => flagMut.mutate({ qid: s.questionId, reason: s.reasons[0] })}
-                            className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 inline-flex items-center gap-1">
-                            <Flag className="w-3 h-3" /> Flag
-                          </button>
-                          <button onClick={() => navigate({ to: "/missions/$missionId/flight-deck", params: { missionId }, hash: s.questionId })}
-                            className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 inline-flex items-center gap-1">
-                            📌 Notes
-                          </button>
-                          <button onClick={() => briefMut.mutate(s.questionId)}
-                            disabled={briefMut.isPending}
-                            className="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-200 hover:bg-amber-500/25 inline-flex items-center gap-1">
-                            <Zap className="w-3 h-3" /> Brief
-                          </button>
-                          <button onClick={() => setReassignFor(s.questionId)}
-                            className="text-[10px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10">
-                            Reassign
-                          </button>
-                        </div>
-                        {reassignFor === s.questionId && (
-                          <div className="mt-1.5 flex gap-1.5">
-                            <Select onValueChange={(v) => reassignMut.mutate({ qid: s.questionId, writerId: v })}>
-                              <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Pick writer…" /></SelectTrigger>
-                              <SelectContent>
-                                {d.writers.filter((w: any) => w.userId !== s.writerId).map((w: any) => (
-                                  <SelectItem key={w.userId} value={w.userId}>{w.name} ({formatRoleLabel(w.role)})</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => setReassignFor(null)}>Cancel</Button>
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {/* Attention queue is now promoted to a top-level row above the columns. */}
             </div>
           )}
         </div>
