@@ -242,19 +242,40 @@ export function DevToolsPanel() {
   if (!isAdmin) return null;
 
   const resolveRoute = (s: ScreenCard): string | null => {
-    if (s.href) {
-      // Substitute [id] / dynamic mission segment if href requires it (currently none do).
-      return s.href;
-    }
-    // Mission-context fallbacks
-    if (s.id === "empty-oracle" || s.id === "empty-intel" || s.id === "empty-atc") {
+    if (s.href) return s.href;
+
+    // Mission-context fallbacks (need missionId in URL)
+    const needMission: Record<string, string> = {
+      "empty-oracle": `/missions/${missionId}/olympus`,
+      "empty-intel": `/missions/${missionId}/intelligence`,
+      "empty-atc": `/missions/${missionId}/war-room`,
+      "empty-flight-deck": `/missions/${missionId}/flight-deck`,
+      "empty-briefing": `/missions/${missionId}/briefing`,
+      "role-readonly": `/missions/${missionId}/briefing`,
+    };
+    if (s.id in needMission) {
       if (!missionId) return null;
-      if (s.id === "empty-oracle") return `/missions/${missionId}/olympus`;
-      if (s.id === "empty-intel") return `/missions/${missionId}/intelligence`;
-      if (s.id === "empty-atc") return `/missions/${missionId}/war-room`;
+      return needMission[s.id];
     }
+
+    // Wizard: prefer current mission, otherwise new-mission wizard
+    if (s.id.startsWith("wiz-")) {
+      return missionId ? `/olympus/wizard/${missionId}` : `/olympus/wizard/new`;
+    }
+
+    // Other simulate cards that have a real destination
+    const fixed: Record<string, string> = {
+      "empty-mission": "/olympus/missions/new",
+      "new-user": "/welcome",
+      "err-access": "/admin",
+      "err-pipeline": "/admin/iris-control",
+      "admin-mission": missionId ? `/admin/missions/${missionId}` : "/admin",
+    };
+    if (s.id in fixed) return fixed[s.id];
+
     return null;
   };
+
 
   const setFlag = (flag?: string) => {
     if (!flag) return;
@@ -402,9 +423,17 @@ export function DevToolsPanel() {
     }
     if (s.kind === "simulate") {
       setFlag(s.flag);
-      toast.success(`${s.name}: flag set. Refresh the target page to see it.`);
+      const href = resolveRoute(s);
+      if (href) {
+        window.location.assign(href);
+      } else if (s.flag?.startsWith("atlas_preview_role:")) {
+        toast.success(`${s.name}: role set. Refresh a mission page to see it.`);
+      } else {
+        toast.success(`${s.name}: flag set. Open the relevant page to see the state.`);
+      }
       return;
     }
+
   };
 
   const clearSplash = () => {
