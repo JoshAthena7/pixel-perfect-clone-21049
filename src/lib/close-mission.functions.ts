@@ -41,8 +41,10 @@ export const closeMission = createServerFn({ method: "POST" })
       throw new Error("Forbidden — admin or mission owner required");
     }
 
-    const patch: Record<string, unknown> = { status: data.status };
-    if (data.markDebriefComplete) patch.debrief_completed = true;
+    const patch = {
+      status: data.status,
+      ...(data.markDebriefComplete ? { debrief_completed: true } : {}),
+    };
 
     const { error: updErr } = await context.supabase
       .from("missions")
