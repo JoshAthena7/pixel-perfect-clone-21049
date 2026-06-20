@@ -456,7 +456,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
                               <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Pick writer…" /></SelectTrigger>
                               <SelectContent>
                                 {d.writers.filter((w: any) => w.userId !== s.writerId).map((w: any) => (
-                                  <SelectItem key={w.userId} value={w.userId}>{w.name} ({w.role})</SelectItem>
+                                  <SelectItem key={w.userId} value={w.userId}>{w.name} ({formatRoleLabel(w.role)})</SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
