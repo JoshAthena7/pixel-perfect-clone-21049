@@ -286,20 +286,6 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   const allWritersUnassigned = d.writers.length > 0 && d.writers.every((w: any) => (w.questionCount ?? 0) === 0);
   const missionTooNew = d.writers.length === 0 && totalQuestions === 0;
 
-  // ---------------- Status pill helpers ----------------
-  const StatPill = ({ icon, value, label, danger = false }: { icon: string; value: number | string; label: string; danger?: boolean }) => (
-    <span
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px]"
-      style={{
-        background: danger ? "rgba(224,74,74,0.15)" : "rgba(255,255,255,0.05)",
-        color: danger ? "#fca5a5" : "rgba(255,255,255,0.85)",
-      }}
-    >
-      <span className="opacity-80">{icon}</span>
-      <span className="font-semibold">{value}</span>
-      <span className="opacity-60">{label}</span>
-    </span>
-  );
 
   // ---------------- COLUMN: TEAM ----------------
   const renderWriterRow = (w: any) => (
