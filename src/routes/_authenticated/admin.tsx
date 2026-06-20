@@ -106,6 +106,20 @@ function AdminLayout() {
           >
             {toolsOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
             Platform Tools
+            <span
+              className="ml-1 inline-flex items-center justify-center rounded-full"
+              style={{
+                minWidth: 16,
+                height: 14,
+                padding: "0 5px",
+                fontSize: 9,
+                background: "rgba(255,255,255,0.06)",
+                color: "rgba(255,255,255,0.55)",
+                fontWeight: 600,
+              }}
+            >
+              {PLATFORM_TOOLS.length}
+            </span>
           </button>
           {toolsOpen && (
             <div
