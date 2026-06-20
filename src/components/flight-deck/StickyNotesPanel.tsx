@@ -496,7 +496,7 @@ export function StickyNotesPanel({
           .trim()
           .slice(0, 80)}"`,
         metadata: {
-          reply_id: (inserted as { id: string }).id,
+          reply_id: (inserted as unknown as { id: string }).id,
           parent_note_id: parent.id,
           question_id: questionId,
           mission_id: missionId,
