@@ -587,7 +587,10 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         {/* LEFT */}
         <div className="flex items-center gap-3 shrink-0 min-w-0">
           <Radar className="w-4 h-4" style={{ color: GOLD }} />
-          <span className="font-semibold truncate" style={{ color: GOLD, fontSize: 13 }}>{missionName}</span>
+          <div className="flex flex-col leading-tight min-w-0">
+            <span className="font-semibold truncate" style={{ color: GOLD, fontSize: 13 }}>{missionName}</span>
+            <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase" }}>Air Traffic Control</span>
+          </div>
           <span
             className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded"
             style={{ background: "rgba(34,197,94,0.15)", color: "#86efac" }}
