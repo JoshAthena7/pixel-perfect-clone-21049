@@ -139,14 +139,15 @@ function TeamSub({ missionId }: { missionId: string }) {
     qc.invalidateQueries({ queryKey: ["mt-team", missionId] });
   };
 
+  const sendInviteFn = useServerFn(sendMissionInvite);
   const sendInvite = async (memberId: string) => {
-    const { error } = await supabase
-      .from("atlas_team_members")
-      .update({ atlas_invite_status: "invited", atlas_invite_sent_at: new Date().toISOString() })
-      .eq("id", memberId);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Invite sent.");
-    qc.invalidateQueries({ queryKey: ["mt-team", missionId] });
+    try {
+      const res = await sendInviteFn({ data: { missionId, memberId } });
+      toast.success(`Invite emailed to ${res.email}`);
+      qc.invalidateQueries({ queryKey: ["mt-team", missionId] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to send invite");
+    }
   };
 
   if (isError) return <ErrorState message="Couldn't load mission team." onRetry={() => refetch()} />;
