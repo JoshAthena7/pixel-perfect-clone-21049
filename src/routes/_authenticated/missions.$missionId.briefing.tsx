@@ -480,7 +480,8 @@ function extractFocusItems(content: any, summary?: string | null): string[] {
 /* ───────────────── 2c. IRIS Brief (combined: Today's Focus + IRIS Guidance) ───────────────── */
 function IrisBriefCard({ missionId, mission }: { missionId: string; mission: any }) {
   const [open, setOpen] = React.useState(true);
-  const { data: brief } = useQuery({
+  const qc = useQueryClient();
+  const { data: brief, isFetching, refetch } = useQuery({
     queryKey: ["briefing-todays-focus", missionId],
     queryFn: async () => {
       const { data } = await supabase
@@ -502,30 +503,57 @@ function IrisBriefCard({ missionId, mission }: { missionId: string; mission: any
   const preview =
     (focusItems[0] ?? fallback[0] ?? guidanceLines[0] ?? "Tap to view today's focus and IRIS guidance.").trim();
 
+  const handleRefresh = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    qc.invalidateQueries({ queryKey: ["briefing-todays-focus-derived", missionId] });
+    refetch();
+  };
+
   return (
     <section style={glass}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="w-full flex items-center justify-between gap-3"
-        style={{ background: "transparent", textAlign: "left" }}
-      >
-        <div className="flex items-center gap-2" style={cardLabel}>
-          <Zap size={14} /> <span>IRIS Brief</span>
-        </div>
-        <div className="flex items-center gap-3">
-          {rel && (
-            <span style={{ fontSize: 9, color: META_SOFT, fontWeight: 500 }}>
-              Generated {rel}
-            </span>
-          )}
+      <div className="w-full flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="flex items-center gap-2 flex-1 min-w-0"
+          style={{ background: "transparent", textAlign: "left" }}
+        >
+          <div className="flex items-center gap-2" style={cardLabel}>
+            <Zap size={14} /> <span>IRIS Brief</span>
+          </div>
           <ChevronDown
             size={14}
             style={{ color: META_SOFT, transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "rotate(0)" }}
           />
+        </button>
+        <div className="flex items-center gap-3 shrink-0">
+          {rel && (
+            <span style={{ fontSize: 11, color: META_SOFT, fontWeight: 500 }}>
+              Generated {rel}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isFetching}
+            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 transition-colors disabled:opacity-50"
+            style={{
+              fontSize: 11,
+              color: META,
+              border: "1px solid rgba(255,255,255,0.1)",
+              background: "transparent",
+            }}
+            aria-label="Refresh IRIS Brief"
+          >
+            <RefreshCw
+              size={11}
+              style={isFetching ? { animation: "spin 1s linear infinite" } : undefined}
+            />
+            Refresh
+          </button>
         </div>
-      </button>
+      </div>
 
       {!open && (
         <p
