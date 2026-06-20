@@ -770,6 +770,24 @@ function ColumnShell({ header, headerAccent, children }: {
   );
 }
 
+const ROLE_DISPLAY: Record<string, string> = {
+  engagement_lead: "Engagement Lead",
+  project_manager: "Project Manager",
+  writer: "Writer",
+  sme: "SME",
+  reviewer: "Reviewer",
+  admin: "Admin",
+};
+function formatRoleLabel(role: any): string {
+  const key = String(role ?? "").toLowerCase();
+  if (ROLE_DISPLAY[key]) return ROLE_DISPLAY[key];
+  return key.split(/[_\s]+/).filter(Boolean).map((w) => w[0]?.toUpperCase() + w.slice(1)).join(" ");
+}
+function isLeadRole(role: any): boolean {
+  const key = String(role ?? "").toLowerCase();
+  return key === "engagement_lead" || key === "project_manager" || key === "admin";
+}
+
 // =================== Writer row ===================
 function deriveLive(w: any) {
   const total = w.questionCount ?? 0;
