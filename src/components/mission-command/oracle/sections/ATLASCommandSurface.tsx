@@ -377,6 +377,11 @@ function ATLASCommandSurfaceInner({
   /* -------------------- hover + selection ------------------------------- */
   const [hoverId, setHoverId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [terrainActive, setTerrainActive] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setTerrainActive(true), 2000);
+    return () => clearTimeout(t);
+  }, []);
 
   const connectedToHover = useMemo(() => {
     if (!hoverId) return new Set<string>();
