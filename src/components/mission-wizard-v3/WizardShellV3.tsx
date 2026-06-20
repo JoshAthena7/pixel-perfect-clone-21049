@@ -95,8 +95,9 @@ export function WizardShellV3({
               )}
               style={{ color: active ? "#C49A2B" : done ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.3)" }}
             >
-              {done ? <Check className="h-3 w-3" /> : <span className="text-[10px] tabular-nums">{s.n}</span>}
+              <span className="text-[10px] tabular-nums">{s.n}</span>
               <span>{s.label}</span>
+              {done && <Check className="h-3 w-3 opacity-70" />}
             </button>
           );
         })}
