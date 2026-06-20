@@ -366,7 +366,7 @@ function OracleEmptyGuide({ onFeed }: { onFeed: () => void }) {
       }}
     >
       <div className="text-center mb-5">
-        <div style={{ color: "#d4af37", fontSize: 13, fontWeight: 600 }}>⚡ ORACLE is empty</div>
+        <div style={{ color: "#d4af37", fontSize: 13, fontWeight: 600 }}>◈ ORACLE is empty</div>
         <div className="text-white/55 text-[11px] mt-1">
           Three steps to activate IRIS briefings:
         </div>
