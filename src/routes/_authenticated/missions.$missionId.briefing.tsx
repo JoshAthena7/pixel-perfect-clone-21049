@@ -2039,3 +2039,14 @@ function EmptyState({ children }: { children: React.ReactNode }) {
 function truncate(s: string, n: number) {
   return s.length > n ? s.slice(0, n).trim() + "…" : s;
 }
+
+function normalizeWatchTitle(s: string): string {
+  if (!s) return "";
+  // Detect ALL CAPS (strip quoted segments first), then title-case
+  const isAllCaps = s.replace(/["'()]/g, "").replace(/\s+/g, " ").trim().length > 0 &&
+    s === s.toUpperCase() && /[A-Z]/.test(s);
+  const out = isAllCaps
+    ? s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+    : s;
+  return truncate(out, 120);
+}
