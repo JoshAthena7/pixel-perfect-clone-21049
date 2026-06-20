@@ -403,7 +403,7 @@ function ATLASCommandSurfaceInner({
   return (
     <div
       ref={containerRef}
-      className="relative w-full rounded-lg overflow-hidden mb-6"
+      className="relative w-full rounded-lg overflow-x-auto overflow-y-hidden mb-6"
       style={{ height: TOTAL_H, background: "#000308", border: `1px solid rgba(${GOLD},0.18)` }}
     >
       {/* scoped styles */}
