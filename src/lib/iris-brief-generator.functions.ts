@@ -56,6 +56,45 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { buildMissionContext, serializeContextForPrompt } from "@/lib/iris/build-mission-context";
 import { buildLanguagePrompt } from "@/lib/iris/language-prompt";
+import { generateEmbedding, buildQueryEmbeddingText, toPgVector } from "@/lib/embeddings.server";
+
+type HybridSignalRow = {
+  id: string;
+  title: string | null;
+  what_happened: string | null;
+  why_it_matters: string | null;
+  category: string | null;
+  tier: string | null;
+  urgency: string | null;
+  relevance_score: number | null;
+  source_name: string | null;
+  similarity_score: number | null;
+};
+
+async function hybridOracleSearchSafe(
+  supabase: any,
+  missionId: string,
+  queryText: string,
+  label: string,
+): Promise<HybridSignalRow[]> {
+  try {
+    const embedding = await generateEmbedding(queryText);
+    const { data, error } = await supabase.rpc("hybrid_oracle_search", {
+      p_mission_id: missionId,
+      p_query_text: queryText,
+      p_query_embedding: embedding ? toPgVector(embedding) : null,
+      p_limit: 8,
+    });
+    if (error) {
+      console.warn(`[iris-brief] hybrid_oracle_search(${label}) error`, error.message);
+      return [];
+    }
+    return (Array.isArray(data) ? data : []) as HybridSignalRow[];
+  } catch (e: any) {
+    console.warn(`[iris-brief] hybrid_oracle_search(${label}) threw`, e?.message);
+    return [];
+  }
+}
 
 const Input = z.object({
   missionId: z.string().uuid(),
