@@ -283,10 +283,10 @@ export const getWarRoomData = createServerFn({ method: "POST" })
     const watchCount = (questionsRes.data ?? []).filter((q: any) => q.health_status === "watch").length;
     // Reclassify at_risk: only count as at_risk when actually assigned + flagged/stalled.
     // Otherwise it's "unstarted".
-    const progressByQ: Record<string, any> = {};
+    const progressByQRecent: Record<string, any> = {};
     for (const p of progressRes.data ?? []) {
-      const cur = progressByQ[p.question_id];
-      if (!cur || (p.assignee_id && !cur.assignee_id)) progressByQ[p.question_id] = p;
+      const cur = progressByQRecent[p.question_id];
+      if (!cur || (p.assignee_id && !cur.assignee_id)) progressByQRecent[p.question_id] = p;
     }
     let atRiskCount = 0;
     let unstartedCount = 0;
