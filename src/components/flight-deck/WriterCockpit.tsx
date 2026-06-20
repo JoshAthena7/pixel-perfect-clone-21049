@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { fireAssistEvent } from "@/lib/fireAssistEvent";
 import {
-  updateProgressStatus, nextStatuses, type ProgressStatus,
+  updateProgressStatus, nextStatuses, dbToSimple, type ProgressStatus, type SimpleStatus,
 } from "@/lib/writer-cockpit.functions";
 import { buildLineOfSight } from "@/lib/iris-line-of-sight.functions";
 import { ScoreMeDialog } from "@/components/flight-deck/ScoreMeDialog";
