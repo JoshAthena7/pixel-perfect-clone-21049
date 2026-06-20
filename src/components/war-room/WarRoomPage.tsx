@@ -815,11 +815,11 @@ function WriterRow({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-[12px] font-medium text-white truncate">{w.name}</span>
-          <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-white/55 uppercase tracking-wide shrink-0">{w.role}</span>
+          <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-white/55 tracking-wide shrink-0">{formatRoleLabel(w.role)}</span>
         </div>
         <div className="text-[10px] text-white/45 mt-0.5 truncate" style={{ fontFamily: "'Courier New', monospace" }}>
           {noQuestions
-            ? <span className="italic text-white/40">— Unassigned · <span style={{ color: !w.lastActivity ? "#f87171" : undefined }}>{lastSeen}</span></span>
+            ? <span className="italic text-white/40">— {isLeadRole(w.role) ? "No questions assigned" : "Unassigned"} · <span style={{ color: !w.lastActivity ? "#f87171" : undefined }}>{lastSeen}</span></span>
             : <>
                 {total}q ·{" "}
                 <span className="text-green-400">{finalized}✓</span>{" "}
