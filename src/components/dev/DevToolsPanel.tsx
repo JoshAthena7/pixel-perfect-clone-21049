@@ -297,6 +297,7 @@ export function DevToolsPanel() {
         sessionStorage.setItem(flag, "1");
       }
     } catch {}
+    notifyDevSimChange();
   };
 
   const runModal = async (s: ScreenCard) => {
