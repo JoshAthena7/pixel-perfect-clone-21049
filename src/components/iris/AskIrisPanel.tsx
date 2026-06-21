@@ -749,11 +749,8 @@ function staticGreeting(iris: ReturnType<typeof useIris>): string {
 function HomeState(props: {
   greeting: string;
   onPostUpdate: () => void;
-  onFindSme: () => void;
   onBriefMe: () => void;
-  onDraftForMe: () => void;
-  onGetHelp: () => void;
-  onSos: () => void;
+  onIntelUpdate: () => void;
 }) {
   return (
     <div className="space-y-4">
@@ -767,12 +764,12 @@ function HomeState(props: {
       <div>
         <div className="text-[12px] text-white/45 mb-2">What do you need?</div>
         <div className="flex flex-col gap-2">
-          <ActionCard icon={<FileText className="h-3.5 w-3.5" />} label="Brief me" sub="Today's intel summary" onClick={props.onBriefMe} />
-          <ActionCard icon={<Users className="h-3.5 w-3.5" />} label="Find an SME" sub="Get expert help fast" onClick={props.onFindSme} />
-          <ActionCard icon={<AlertTriangle className="h-3.5 w-3.5" />} label="SOS" sub="Critically blocked" onClick={props.onSos} danger />
+          <ActionCard icon={<FileText className="h-3.5 w-3.5" />} label="Brief me" sub="Today's mission status" onClick={props.onBriefMe} />
+          <ActionCard icon={<Globe className="h-3.5 w-3.5" />} label="Intel update" sub="New signals since yesterday" onClick={props.onIntelUpdate} />
         </div>
       </div>
     </div>
+
   );
 }
 
