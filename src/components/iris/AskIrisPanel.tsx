@@ -328,11 +328,26 @@ export function AskIrisPanel() {
     setWaitingFirstToken(true);
     const assistantId = crypto.randomUUID();
     setMessages((m) => [...m, { id: assistantId, role: "assistant", text: "", at: Date.now() }]);
+
+    // 15-second hard timeout — if no first token arrives, abort and offer retry.
+    const controller = new AbortController();
+    let firstTokenSeen = false;
+    const timeoutId = window.setTimeout(() => {
+      if (!firstTokenSeen) controller.abort();
+    }, 15_000);
+
+    const showRetryable = (text: string) => {
+      setMessages((m) => m.map((mm) => mm.id === assistantId
+        ? { ...mm, text, isError: true, retryHistory: history }
+        : mm));
+    };
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const last = history.filter((h) => h.role !== "system").slice(-10).map((h) => ({ role: h.role, content: h.text }));
       const res = await fetch("/api/chat/iris", {
         method: "POST",
+        signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
           ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
@@ -349,8 +364,8 @@ export function AskIrisPanel() {
         }),
       });
       if (!res.ok || !res.body) {
-        const errTxt = await res.text();
-        setMessages((m) => m.map((mm) => mm.id === assistantId ? { ...mm, text: errTxt || "IRIS couldn't respond. Try again." } : mm));
+        const errTxt = await res.text().catch(() => "");
+        showRetryable(errTxt || "⚡ IRIS couldn't respond. The intelligence pipeline may be catching up.");
         return;
       }
       const reader = res.body.getReader();
@@ -360,20 +375,42 @@ export function AskIrisPanel() {
         const { value, done } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
-        if (waitingFirstToken) setWaitingFirstToken(false);
+        if (!firstTokenSeen && chunk.length > 0) {
+          firstTokenSeen = true;
+          window.clearTimeout(timeoutId);
+          setWaitingFirstToken(false);
+        }
         acc += chunk;
         setMessages((m) => m.map((mm) => mm.id === assistantId ? { ...mm, text: acc } : mm));
       }
-      if (!acc) {
-        setMessages((m) => m.map((mm) => mm.id === assistantId ? { ...mm, text: "Response interrupted. Ask again?" } : mm));
+      if (!acc.trim()) {
+        showRetryable("⚡ IRIS returned an empty response. This can happen when the intelligence pipeline is catching up.");
+        return;
+      }
+      // Append mission stamp if model omitted it.
+      const ms = iris.mission_summary;
+      if (ms) {
+        const stampPattern = new RegExp(`${ms.shortCode.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}.*ORACLE signals`);
+        if (!stampPattern.test(acc)) {
+          const stamp = `${ms.shortCode} · ${ms.daysToSubmission ?? "?"}d to submission · ${ms.finalizedQuestions} finalized · ${ms.approvedSignals} ORACLE signals`;
+          setMessages((m) => m.map((mm) => mm.id === assistantId ? { ...mm, text: `${acc}\n\n${stamp}` } : mm));
+        }
       }
     } catch (e) {
-      setMessages((m) => m.map((mm) => mm.id === assistantId ? { ...mm, text: `Response interrupted. ${(e as Error).message}. Ask again?` } : mm));
+      const err = e as Error;
+      if (err.name === "AbortError") {
+        showRetryable("⚡ IRIS is taking longer than usual.");
+      } else {
+        showRetryable(`⚡ IRIS hit an error: ${err.message}`);
+      }
     } finally {
+      window.clearTimeout(timeoutId);
       setStreaming(false);
       setWaitingFirstToken(false);
     }
   };
+
+
 
   const runRisks = async (text: string) => {
     setMessages((m) => [...m, { id: crypto.randomUUID(), role: "user", text, at: Date.now() }]);
