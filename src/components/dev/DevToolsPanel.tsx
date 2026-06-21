@@ -293,6 +293,9 @@ export function DevToolsPanel() {
         if (role === "Admin") sessionStorage.removeItem(ROLE_KEY);
         else sessionStorage.setItem(ROLE_KEY, role);
         setActiveRole(role);
+      } else if (flag.startsWith("atlas_sim_wizard:")) {
+        // value carries step + optional variant: "1:empty" | "1:ready" | "2" | "9"
+        sessionStorage.setItem("atlas_sim_wizard", flag.slice("atlas_sim_wizard:".length));
       } else {
         sessionStorage.setItem(flag, "1");
       }
