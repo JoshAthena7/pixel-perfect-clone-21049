@@ -2,6 +2,9 @@ import { createFileRoute, Outlet, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MissionSidebar, MissionBottomTabs } from "@/components/nav/MissionSidebar";
+import { MissionContextBar } from "@/components/mission-context/MissionContextBar";
+import { MissionWelcomeOverlay } from "@/components/mission-context/MissionWelcomeOverlay";
+import { QuickStartButton } from "@/components/mission-context/QuickStartButton";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId")({
   loader: async ({ params }) => {
