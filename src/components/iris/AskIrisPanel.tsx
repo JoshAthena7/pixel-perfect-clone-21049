@@ -589,13 +589,11 @@ Use ONLY the mission context provided. If you don't have specific data on someth
             <HomeState
               greeting={greeting ?? "How can I help with this mission?"}
               onPostUpdate={() => setUpdateOpen(true)}
-              onFindSme={onFindSme}
               onBriefMe={onBriefMe}
-              onDraftForMe={onDraftForMe}
-              onGetHelp={onGetHelp}
-              onSos={() => setSosOpen(true)}
+              onIntelUpdate={onIntelUpdate}
             />
           ) : (
+
             <ConversationState
               messages={messages}
               waitingFirstToken={waitingFirstToken && streaming}
