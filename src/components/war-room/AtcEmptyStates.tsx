@@ -88,7 +88,7 @@ export function AtcOrientationOverlay({ missionId }: { missionId: string }) {
         <div className="flex flex-col items-center text-center">
           <RadarSvg size={120} />
           <h2 className="mt-4 text-white" style={{ fontSize: 22, fontWeight: 300, letterSpacing: "0.1em" }}>
-            Air Traffic Control
+            Mission Control
           </h2>
           <p className="mt-3 italic text-[14px] leading-relaxed" style={{ color: GOLD }}>
             You're in ATC — the only place on the mission where you can see everything at once.

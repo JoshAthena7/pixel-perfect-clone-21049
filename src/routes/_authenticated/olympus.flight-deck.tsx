@@ -282,7 +282,7 @@ function FlightDeck() {
         <Link to="/olympus" className="inline-flex items-center gap-1 text-[14px] text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Back
         </Link>
-        <h1 className="text-2xl font-medium mt-4">Flight Deck</h1>
+        <h1 className="text-2xl font-medium mt-4">My Questions</h1>
         <p className="text-muted-foreground mt-2">
           Your account is not linked to a team member profile yet.
         </p>
@@ -343,7 +343,7 @@ function FlightDeck() {
         <div className="mx-auto max-w-6xl px-6 py-5 flex items-center gap-4">
           <div>
             <p className="text-[11px] tracking-[0.2em] text-[#C49A2B]">Athena · ATLAS</p>
-            <h1 className="text-2xl font-medium text-foreground">Flight Deck</h1>
+            <h1 className="text-2xl font-medium text-foreground">My Questions</h1>
             <p className="text-[12px] text-muted-foreground">
               {userName || "Writer"} · {totalLoad} active {totalLoad === 1 ? "assignment" : "assignments"}
             </p>

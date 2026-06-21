@@ -23,6 +23,7 @@ const MUTED = "#666680";
 type NavItem = {
   id: string;
   label: string;
+  subtitle?: string;
   Icon: typeof ClipboardList;
   to: string;
   matchSegs: string[];
@@ -33,36 +34,41 @@ function buildItems(missionId: string): NavItem[] {
   return [
     {
       id: "brief",
-      label: "BRIEF",
+      label: "Briefing",
+      subtitle: "Mission strategy",
       Icon: ClipboardList,
       to: `/missions/${missionId}/briefing`,
       matchSegs: ["briefing", ""],
     },
     {
       id: "intelligence",
-      label: "INTELLIGENCE",
+      label: "Intel Feed",
+      subtitle: "What IRIS found",
       Icon: Eye,
       to: `/missions/${missionId}/oracle`,
       matchSegs: ["oracle", "insights"],
     },
     {
       id: "flight-deck",
-      label: "FLIGHT DECK",
+      label: "My Questions",
+      subtitle: "Your assignments",
       Icon: Rocket,
       to: `/missions/${missionId}/flight-deck`,
       matchSegs: ["flight-deck"],
     },
     {
       id: "war-room",
-      label: "ATC",
+      label: "Mission Control",
+      subtitle: "Team oversight",
       Icon: Radar,
       to: `/missions/${missionId}/war-room`,
       matchSegs: ["war-room"],
-      tooltip: "Air Traffic Control — mission oversight for leads and managers.",
+      tooltip: "Mission Control — oversight for leads and managers.",
     },
     {
       id: "olympus",
-      label: "ORACLE",
+      label: "Signal Review",
+      subtitle: "Review & approve intel",
       Icon: Settings,
       to: `/admin`,
       matchSegs: ["__admin__"],
@@ -160,22 +166,36 @@ export function MissionSidebar({ missionId, email }: { missionId: string; email?
               key={it.id}
               to={it.to as never}
               title={it.tooltip}
-              className="flex items-center gap-2.5 px-4 py-2.5 transition-colors hover:bg-white/[0.04]"
+              className="flex items-start gap-2.5 px-4 py-2 transition-colors hover:bg-white/[0.04]"
               style={{
                 borderLeft: `3px solid ${active ? GOLD : "transparent"}`,
                 background: active ? "rgba(212,168,67,0.06)" : "transparent",
               }}
             >
-              <it.Icon className="h-[16px] w-[16px] shrink-0" style={{ color }} />
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: active ? 600 : 500,
-                  letterSpacing: "0.06em",
-                  color,
-                }}
-              >
-                {it.label}
+              <it.Icon className="h-[16px] w-[16px] shrink-0 mt-[3px]" style={{ color }} />
+              <span className="flex flex-col min-w-0" style={{ gap: 2 }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: active ? 600 : 500,
+                    color,
+                    lineHeight: 1.1,
+                  }}
+                >
+                  {it.label}
+                </span>
+                {it.subtitle && (
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 400,
+                      color: "rgba(255,255,255,0.35)",
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    {it.subtitle}
+                  </span>
+                )}
               </span>
             </Link>
           );

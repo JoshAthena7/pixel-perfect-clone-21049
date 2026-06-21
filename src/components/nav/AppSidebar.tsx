@@ -31,9 +31,9 @@ type NavItem = {
 };
 
 const MISSION_ITEMS: NavItem[] = [
-  { to: "/missions/$missionId/briefing", label: "BRIEF", Icon: ClipboardList, needsMission: true },
-  { to: "/missions/$missionId/oracle", label: "INTELLIGENCE", Icon: Eye, needsMission: true },
-  { to: "/missions/$missionId/flight-deck", label: "FLIGHT DECK", Icon: Rocket, needsMission: true },
+  { to: "/missions/$missionId/briefing", label: "Briefing", Icon: ClipboardList, needsMission: true },
+  { to: "/missions/$missionId/oracle", label: "Intel Feed", Icon: Eye, needsMission: true },
+  { to: "/missions/$missionId/flight-deck", label: "My Questions", Icon: Rocket, needsMission: true },
 ];
 
 // Admin nav lives entirely in the top tab bar at /admin (Missions | Staff | Messaging | IRIS Control).

@@ -539,7 +539,7 @@ function ATLASCommandSurfaceInner({
               textTransform: "uppercase",
             }}
           >
-            ◈ ORACLE INTELLIGENCE TERRAIN
+            ◈ SIGNAL REVIEW
           </span>
         </div>
 

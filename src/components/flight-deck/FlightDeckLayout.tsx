@@ -322,7 +322,7 @@ function FlightDeckHeader({ name, status }: { name: string; status: string | nul
     : "bg-slate-500/15 text-slate-300 border-slate-500/40";
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <h1 className="text-2xl font-medium text-foreground">{name || "Flight Deck"}</h1>
+      <h1 className="text-2xl font-medium text-foreground">{name || "My Questions"}</h1>
       {status && (
         <span className={cn("rounded-full border px-2.5 py-0.5 text-[12px] font-medium  ", tone)}>
           {status.replace(/_/g, " ")}
