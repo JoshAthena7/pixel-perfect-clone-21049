@@ -216,9 +216,12 @@ export function AskIrisPanel() {
     return pageLabel;
   }, [iris, pageLabel]);
 
-  const placeholder = iris.current_question_id
-    ? `Ask IRIS about question ${iris.current_question_number ?? ""}...`
-    : "Ask IRIS anything about this mission...";
+  const placeholder = mode === "research"
+    ? "Ask for a full strategic analysis from cited live sources..."
+    : iris.current_question_id
+      ? `Ask about question ${iris.current_question_number ?? ""} — status, intel, risks, evaluator strategy...`
+      : "Ask about mission status, intel, risks, or evaluator strategy...";
+
 
   // ---------- Send / stream ----------
   const send = async (raw: string) => {
