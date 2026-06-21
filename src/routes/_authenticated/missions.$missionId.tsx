@@ -5,6 +5,7 @@ import { MissionSidebar, MissionBottomTabs } from "@/components/nav/MissionSideb
 import { MissionContextBar } from "@/components/mission-context/MissionContextBar";
 import { MissionWelcomeOverlay } from "@/components/mission-context/MissionWelcomeOverlay";
 import { QuickStartButton } from "@/components/mission-context/QuickStartButton";
+import { MissionPulseStrip } from "@/components/mission/MissionPulseStrip";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId")({
   loader: async ({ params }) => {
