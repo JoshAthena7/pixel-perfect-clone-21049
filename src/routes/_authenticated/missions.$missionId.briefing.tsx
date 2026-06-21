@@ -181,6 +181,15 @@ function OracleCanvasSlot({ missionId }: { missionId: string }) {
 /* ───────────────── 1. Hero ───────────────── */
 function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
   const navigate = useNavigate();
+  const { data: access } = useMissionAccess(missionId);
+  const role = (access?.role ?? "").toLowerCase();
+  const isManager =
+    !!access?.isAdmin ||
+    ["engagement_lead", "project_manager", "lead", "lead_writer", "founder", "pm"].includes(role);
+  const ctaLabel = isManager ? "Go to Mission Control →" : "Go to My Questions →";
+  const ctaTarget = isManager
+    ? ("/missions/$missionId/war-room" as const)
+    : ("/missions/$missionId/flight-deck" as const);
   const subDate = mission?.submission_deadline ? new Date(mission.submission_deadline) : null;
   const daysRemaining = subDate
     ? Math.max(0, Math.ceil((subDate.getTime() - Date.now()) / 86400000))
