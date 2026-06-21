@@ -151,20 +151,19 @@ export function ClosedMissionBanner() {
 function Bar({ w = "100%", h = 8, className = "" }: { w?: string | number; h?: number; className?: string }) {
   return (
     <div
-      className={`rounded bg-white/[0.08] ${className}`}
+      className={`atlas-skeleton rounded ${className}`}
       style={{
         width: typeof w === "number" ? `${w}px` : w,
         height: h,
-        animation: "atc-skeleton-pulse 1.5s ease-in-out infinite",
       }}
     />
   );
 }
 
 export function SkeletonStyles() {
-  return (
-    <style>{`@keyframes atc-skeleton-pulse { 0%,100% { opacity: 0.4 } 50% { opacity: 0.7 } }`}</style>
-  );
+  // Shimmer keyframes live in src/styles.css (.atlas-skeleton). Kept as a
+  // no-op for backwards compatibility with existing call sites.
+  return null;
 }
 
 export function TeamPulseSkeleton({ count = 5 }: { count?: number }) {
@@ -178,9 +177,9 @@ export function TeamPulseSkeleton({ count = 5 }: { count?: number }) {
           style={{ minHeight: 64, borderLeft: "4px solid rgba(255,255,255,0.06)" }}
         >
           <div
-            className="w-8 h-8 rounded-full bg-white/[0.08] shrink-0"
-            style={{ animation: "atc-skeleton-pulse 1.5s ease-in-out infinite" }}
+            className="atlas-skeleton w-8 h-8 rounded-full shrink-0"
           />
+
           <div className="flex-1 space-y-1.5">
             <Bar w="60%" />
             <Bar w="80%" h={6} />
