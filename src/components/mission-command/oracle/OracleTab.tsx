@@ -130,7 +130,9 @@ export function OracleTab({ missionId }: { missionId: string }) {
           signals={signals as any[]}
         />
 
-        <KeySignals signals={signals as any[]} />
+        <div id="oracle-review-queue">
+          <KeySignals signals={signals as any[]} />
+        </div>
 
         <StakeholderIntel missionId={missionId} signals={signals as any[]} />
 
