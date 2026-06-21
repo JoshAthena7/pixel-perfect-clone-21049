@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -141,9 +141,11 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   const [pulseOpen, setPulseOpen] = useState(false);
   const [checkInFor, setCheckInFor] = useState<Q | null>(null);
   const [stickyNotesFor, setStickyNotesFor] = useState<Q | null>(null);
+  const [autoBriefing, setAutoBriefing] = useState<Set<string>>(new Set());
   
   const updateStatus = useServerFn(updateProgressStatus);
   const triggerLineOfSight = useServerFn(buildLineOfSight);
+  const autoGenerateBrief = useServerFn(generateIrisBrief);
 
   useEffect(() => {
     (async () => {
@@ -165,6 +167,12 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
       .then(() => qc.invalidateQueries({ queryKey: ["writer-cockpit", missionId, userId] }))
       .catch((e) => console.log("[WriterCockpit] buildLineOfSight failed", e));
   }, [missionId, userId, triggerLineOfSight, qc]);
+
+  const tried = useRef<Set<string>>(new Set());
+
+
+
+
 
   const refreshKey = ["writer-cockpit", missionId, userId];
   const { data: cockpit, isLoading } = useQuery({
@@ -342,6 +350,31 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
       };
     },
   });
+
+  // FIVE-4: Auto-generate IRIS brief when a writer expands a question with
+  // no brief yet. Silent — fires once per question per mount.
+  useEffect(() => {
+    if (!expanded || !missionId) return;
+    const q = (cockpit?.questions ?? []).find((x: Q) => x.id === expanded);
+    if (!q) return;
+    if (q.iris_brief || q.iris_decoded_intent) return;
+    if (q.iris_brief_status === "generating") return;
+    if (tried.current.has(expanded)) return;
+    tried.current.add(expanded);
+    const qid = expanded;
+    setAutoBriefing((s) => new Set(s).add(qid));
+    autoGenerateBrief({ data: { missionId, questionId: qid } })
+      .catch((e) => console.log("[WriterCockpit] auto-brief failed", e))
+      .finally(() => {
+        setAutoBriefing((s) => {
+          const n = new Set(s);
+          n.delete(qid);
+          return n;
+        });
+        qc.invalidateQueries({ queryKey: ["writer-cockpit", missionId, userId] });
+      });
+  }, [expanded, cockpit, missionId, userId, autoGenerateBrief, qc]);
+
 
   // Refresh on focus
   useEffect(() => {
@@ -533,6 +566,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
 
   return (
     <div style={{ background: BG, color: "white", minHeight: "100vh", display: "grid", gridTemplateColumns: "1fr 320px", alignItems: "start" }}>
+      <style>{`@keyframes iris-sweep { 0% { transform: translateX(-150%); } 100% { transform: translateX(350%); } }`}</style>
       {/* LEFT ZONE */}
       <div style={{ padding: "24px 28px", maxWidth: "100%", overflowX: "hidden" }}>
         {/* Header */}
@@ -988,6 +1022,16 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                   <div style={{ padding: "10px 12px", borderLeft: `2px solid ${GOLD}`, background: "rgba(201,151,43,0.06)", borderRadius: 4 }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: GOLD, letterSpacing: "0.1em", marginBottom: 4 }}>⚡ IRIS DECODED INTENT</div>
                     <div style={{ fontSize: 12, fontStyle: "italic", color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>{q.iris_decoded_intent}</div>
+                  </div>
+                ) : autoBriefing.has(q.id) || q.iris_brief_status === "generating" ? (
+                  <div style={{ background: "rgba(196,154,43,0.04)", padding: 16, borderRadius: 4 }}>
+                    <div style={{ fontSize: 11, color: GOLD, fontWeight: 600, marginBottom: 8 }}>⚡ IRIS is briefing you…</div>
+                    <div style={{ height: 2, background: "rgba(255,255,255,0.05)", overflow: "hidden", borderRadius: 2, marginBottom: 8 }}>
+                      <div style={{ width: "40%", height: "100%", background: "rgba(196,154,43,0.6)", animation: "iris-sweep 1.5s ease-in-out infinite" }} />
+                    </div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)" }}>
+                      Reading ORACLE signals · Analyzing question requirements
+                    </div>
                   </div>
                 ) : !q.iris_brief ? (
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontStyle: "italic" }}>
