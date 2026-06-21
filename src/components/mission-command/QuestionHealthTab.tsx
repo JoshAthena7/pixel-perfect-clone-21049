@@ -590,7 +590,7 @@ function StatCard({
     <button
       onClick={onClick}
       className={cn(
-        "rounded-xl border p-4 text-left transition-all",
+        "rounded-xl border p-4 text-left transition-colors",
         palette,
         active && "ring-2 ring-offset-2 ring-offset-background ring-primary",
       )}

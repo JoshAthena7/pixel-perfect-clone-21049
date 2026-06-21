@@ -560,7 +560,7 @@ function AssignmentCard({
       type="button"
       onClick={onClick}
       className={cn(
-        "w-full text-left rounded-lg px-3 py-2.5 cursor-pointer transition-all relative",
+        "w-full text-left rounded-lg px-3 py-2.5 cursor-pointer transition-colors relative",
         active && "ring-1",
       )}
       style={{
