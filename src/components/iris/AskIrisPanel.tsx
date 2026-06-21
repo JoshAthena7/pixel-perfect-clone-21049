@@ -722,40 +722,44 @@ Use ONLY the mission context provided. If you don't have specific data on someth
             </button>
           </div>
 
-          {/* Mode toggle pills */}
+          {/* Mode toggle pills — Fast cites approved signals; Deep is full strategic synthesis with live sources */}
           <div className="flex items-center gap-1.5 mt-2">
             <button
               type="button"
               onClick={() => setMode("quick")}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[12px] font-medium transition"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-medium transition"
               style={{
-                background: mode === "quick" ? "rgba(127,119,221,0.18)" : "rgba(255,255,255,0.04)",
-                border: mode === "quick" ? `0.5px solid ${IRIS_BORDER}` : "0.5px solid rgba(255,255,255,0.08)",
-                color: mode === "quick" ? "white" : "rgba(255,255,255,0.55)",
+                background: mode === "quick" ? "rgba(196,154,43,0.16)" : "rgba(255,255,255,0.04)",
+                border: mode === "quick" ? `1px solid ${GOLD}` : "0.5px solid rgba(255,255,255,0.08)",
+                color: mode === "quick" ? GOLD : "rgba(255,255,255,0.55)",
+                boxShadow: mode === "quick" ? `0 0 0 1px ${GOLD}33` : "none",
               }}
-              title="Fast answers from IRIS (no live web search)"
+              title="Fast — cites approved ORACLE signals. <3s. Use when you want a quick grounded answer."
             >
-              <span aria-hidden>⚡</span> Quick
+              <span aria-hidden>⚡</span> Fast
             </button>
+            <span className="text-white/20 text-[12px]">|</span>
             <button
               type="button"
               onClick={() => setMode("research")}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[12px] font-medium transition"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-medium transition"
               style={{
-                background: mode === "research" ? "rgba(196,154,43,0.18)" : "rgba(255,255,255,0.04)",
-                border: mode === "research" ? `0.5px solid ${GOLD}66` : "0.5px solid rgba(255,255,255,0.08)",
+                background: mode === "research" ? "rgba(196,154,43,0.16)" : "rgba(255,255,255,0.04)",
+                border: mode === "research" ? `1px solid ${GOLD}` : "0.5px solid rgba(255,255,255,0.08)",
                 color: mode === "research" ? GOLD : "rgba(255,255,255,0.55)",
+                boxShadow: mode === "research" ? `0 0 0 1px ${GOLD}33` : "none",
               }}
-              title="Searches live sources including CMS, KFF, MACPAC, and state Medicaid sites. Returns cited answers."
+              title="Deep — full strategic analysis with live cited sources from CMS, KFF, MACPAC, state Medicaid sites. 5–10s."
             >
-              <span aria-hidden>🔍</span> Research
+              <span aria-hidden>🔍</span> Deep
             </button>
             <div className="ml-auto text-[11px] text-white/35">
               {mode === "research"
-                ? "Cited live web intelligence · 3–8s"
-                : "Shift+Enter for newline · ` to toggle"}
+                ? "Cited live web · 5–10s"
+                : "Cites approved signals · <3s"}
             </div>
           </div>
+
           {iris.current_mission_id && (
             <div className="mt-1.5 flex items-center justify-end">
               <button
