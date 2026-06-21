@@ -351,6 +351,31 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
     },
   });
 
+  // FIVE-4: Auto-generate IRIS brief when a writer expands a question with
+  // no brief yet. Silent — fires once per question per mount.
+  useEffect(() => {
+    if (!expanded || !missionId) return;
+    const q = (cockpit?.questions ?? []).find((x: Q) => x.id === expanded);
+    if (!q) return;
+    if (q.iris_brief || q.iris_decoded_intent) return;
+    if (q.iris_brief_status === "generating") return;
+    if (tried.current.has(expanded)) return;
+    tried.current.add(expanded);
+    const qid = expanded;
+    setAutoBriefing((s) => new Set(s).add(qid));
+    autoGenerateBrief({ data: { missionId, questionId: qid } })
+      .catch((e) => console.log("[WriterCockpit] auto-brief failed", e))
+      .finally(() => {
+        setAutoBriefing((s) => {
+          const n = new Set(s);
+          n.delete(qid);
+          return n;
+        });
+        qc.invalidateQueries({ queryKey: ["writer-cockpit", missionId, userId] });
+      });
+  }, [expanded, cockpit, missionId, userId, autoGenerateBrief, qc]);
+
+
   // Refresh on focus
   useEffect(() => {
     const h = () => qc.invalidateQueries({ queryKey: refreshKey });
