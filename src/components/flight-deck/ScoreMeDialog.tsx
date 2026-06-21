@@ -100,16 +100,27 @@ export function ScoreMeDialog({
       "PerformCare will develop a process within the Call Center to identify Youth involved with DCP&P and refer calls to appropriate staff. We will obtain CSOC approval prior to implementation and maintain documentation of all referrals.",
     );
     setResult({
-      score: 7,
-      summary: "Solid draft with a clear process — strengthen the measurable outcomes and explicit DCP&P coordination steps.",
-      rubric: [
-        { criterion: "Responsiveness", score: 8, note: "Directly addresses the question." },
-        { criterion: "Measurable outcomes", score: 5, note: "Add specific volume / cycle-time targets." },
-        { criterion: "Coordination clarity", score: 7, note: "Name the DCP&P liaison role." },
+      overall_score: 7,
+      iris_verdict:
+        "Solid draft with a clear process — strengthen the measurable outcomes and explicit DCP&P coordination.",
+      what_lands: [
+        "Direct response to the question prompt.",
+        "Names the CSOC approval gate.",
+        "Reads in a recognizable PerformCare voice.",
       ],
-      authenticity: { score: 8, note: "Reads like a real PerformCare voice." },
-      gaps: ["Define escalation SLA", "Cite NJ DCF guidance"],
-    } as unknown as ScoreMeResult);
+      what_needs_work: [
+        "No measurable volume or cycle-time target.",
+        "DCP&P liaison role is unnamed.",
+        "Escalation SLA is implicit, not stated.",
+      ],
+      the_one_fix:
+        "Name the DCP&P liaison role and add a measurable referral SLA (e.g. 'within 1 business day').",
+      opportunities: [
+        "Cite the latest NJ DCF guidance for credibility.",
+        "Tie the process to the YouthLink case rate.",
+      ],
+      compliance_flags: [],
+    } as ScoreMeResult);
     try { sessionStorage.removeItem("atlas_dev_modal_state"); } catch {}
   }, [open]);
 
