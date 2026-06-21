@@ -566,6 +566,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
 
   return (
     <div style={{ background: BG, color: "white", minHeight: "100vh", display: "grid", gridTemplateColumns: "1fr 320px", alignItems: "start" }}>
+      <style>{`@keyframes iris-sweep { 0% { transform: translateX(-150%); } 100% { transform: translateX(350%); } }`}</style>
       {/* LEFT ZONE */}
       <div style={{ padding: "24px 28px", maxWidth: "100%", overflowX: "hidden" }}>
         {/* Header */}
