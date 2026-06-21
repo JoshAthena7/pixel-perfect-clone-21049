@@ -148,7 +148,6 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   const [stickyNotesFor, setStickyNotesFor] = useState<Q | null>(null);
   const [autoBriefing, setAutoBriefing] = useState<Set<string>>(new Set());
   const sim = useDevSim();
-  const devLoadingTargetRef = useRef<string | null>(null);
 
   const navigate = useNavigate();
   const { isAdmin } = useIsAdmin();
