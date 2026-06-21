@@ -73,9 +73,12 @@ function MissionLayout() {
     <div className="flex" style={{ minHeight: "calc(100vh - 48px)" }}>
       <MissionSidebar missionId={missionId} email={email} />
       <div className="flex-1 min-w-0 pb-16 md:pb-0">
+        <MissionContextBar missionId={missionId} />
         <Outlet />
       </div>
       <MissionBottomTabs missionId={missionId} />
+      <MissionWelcomeOverlay missionId={missionId} />
+      <QuickStartButton missionId={missionId} />
     </div>
   );
 }
