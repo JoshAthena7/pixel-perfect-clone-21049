@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { refreshIrisAllForMission } from "@/lib/iris-refresh-all-for-mission.functions";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 import { getIrisPipelineStatus, getIrisWiringSnapshot } from "@/lib/iris-health.functions";
+import { useDevSim } from "@/hooks/useDevSim";
 import { backfillSignalEmbeddings } from "@/lib/embeddings-backfill.functions";
 import {
   RefreshCw,
