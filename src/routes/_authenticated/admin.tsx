@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 type Tab = { id: string; label: string; to: string; match: (p: string) => boolean; highlight?: boolean };
 
 const MAIN_TABS: Tab[] = [
-  { id: "mission-command", label: "ORACLE Command", to: "/olympus", match: (p) => p === "/olympus" || p === "/olympus/", highlight: true },
+  { id: "mission-command", label: "Platform Intel", to: "/olympus", match: (p) => p === "/olympus" || p === "/olympus/", highlight: true },
   { id: "missions", label: "Missions", to: "/admin", match: (p) => p === "/admin" || p === "/admin/" || p.startsWith("/admin/missions") },
   { id: "staff", label: "Staff", to: "/admin/team", match: (p) => p.startsWith("/admin/team") },
   { id: "messaging", label: "Messaging", to: "/admin/messaging", match: (p) => p.startsWith("/admin/messaging") },
@@ -32,8 +32,8 @@ const PLATFORM_TOOLS: Tab[] = [
   { id: "iris-control", label: "IRIS Control", to: "/admin/iris-control", match: (p) => p.startsWith("/admin/iris-control") },
   { id: "iris-console", label: "IRIS Console", to: "/admin/iris-console", match: (p) => p.startsWith("/admin/iris-console") },
   { id: "iris-studio", label: "IRIS Studio", to: "/admin/iris-studio", match: (p) => p.startsWith("/admin/iris-studio") },
-  { id: "iris-writer-view", label: "IRIS Writer View", to: "/admin/iris-writer-view", match: (p) => p.startsWith("/admin/iris-writer-view") },
-  { id: "iris-refresh", label: "IRIS Refresh", to: "/admin/iris-refresh", match: (p) => p.startsWith("/admin/iris-refresh") },
+  { id: "iris-writer-view", label: "Writer Preview", to: "/admin/iris-writer-view", match: (p) => p.startsWith("/admin/iris-writer-view") },
+  { id: "iris-refresh", label: "Clear brief cache", to: "/admin/iris-refresh", match: (p) => p.startsWith("/admin/iris-refresh") },
   { id: "settings", label: "Settings", to: "/admin/settings", match: (p) => p.startsWith("/admin/settings") },
 ];
 
@@ -106,7 +106,7 @@ function AdminLayout() {
             aria-expanded={toolsOpen}
           >
             {toolsOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-            Platform Tools
+            IRIS Tools
             <span
               className="ml-1 inline-flex items-center justify-center rounded-full"
               style={{
