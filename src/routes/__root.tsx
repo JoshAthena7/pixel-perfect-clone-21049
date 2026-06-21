@@ -22,6 +22,9 @@ import { PulseBar } from "@/components/nav/PulseBar";
 import { SplashGate } from "@/components/splash/SplashScreen";
 import { DevToolsPanel } from "@/components/dev/DevToolsPanel";
 import { IrisConsoleLauncher } from "@/components/iris-console/IrisConsoleLauncher";
+import { RouteProgressBar } from "@/components/ui/RouteProgressBar";
+import { ScrollToTop } from "@/components/ui/ScrollToTop";
+
 
 function NotFoundComponent() {
   return (
@@ -92,9 +95,14 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSync />
+      <RouteProgressBar />
+      <ScrollToTop />
       <PulseBar />
       <GlobalSearch />
-      <main className={isTransitioning ? "atlas-route-frame is-transitioning" : "atlas-route-frame"}>
+      <main
+        className={isTransitioning ? "atlas-route-frame is-transitioning" : "atlas-route-frame"}
+        style={{ willChange: isTransitioning ? "opacity" : "auto" }}
+      >
         <Outlet />
       </main>
       <Toaster theme="dark" position="top-right" />

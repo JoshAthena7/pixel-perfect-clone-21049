@@ -168,18 +168,49 @@
   .atlas-route-frame {
     min-height: 100vh;
     background: var(--background);
-    transition: opacity 120ms ease-out, filter 120ms ease-out;
+    /* Apple/Linear easing — fast start, smooth deceleration. Opacity only;
+       blur during route change is expensive and adds nothing. */
+    transition: opacity 180ms cubic-bezier(0.25, 0, 0, 1);
   }
 
   .atlas-route-frame.is-transitioning {
-    opacity: 0.72;
-    filter: blur(1px);
+    opacity: 0.78;
     pointer-events: none;
+  }
+
+  /* Shimmer skeleton primitive — used by <AtlasSkeleton />. */
+  .atlas-skeleton {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      rgba(255, 255, 255, 0.07) 50%,
+      rgba(255, 255, 255, 0.03) 100%
+    );
+    background-size: 200% 100%;
+    animation: atlas-skeleton-shimmer 1.4s ease-in-out infinite;
+  }
+
+  @keyframes atlas-skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Subtle slide-in for the sidebar's active left border. */
+  @keyframes atlas-nav-indicator-in {
+    from { transform: scaleY(0.2); opacity: 0; }
+    to   { transform: scaleY(1);   opacity: 1; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .atlas-route-frame { transition: none; }
-    .atlas-route-frame.is-transitioning { filter: none; }
+    .atlas-route-frame.is-transitioning { opacity: 1; }
+    .atlas-skeleton { animation: none; }
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   @media (max-width: 640px) {
