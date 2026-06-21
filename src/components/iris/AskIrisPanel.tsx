@@ -563,13 +563,39 @@ Use ONLY the mission context provided. If you don't have specific data on someth
         className="fixed top-[64px] right-0 bottom-0 z-40 flex flex-col w-full md:w-[420px] shadow-2xl"
         style={{ background: PANEL_BG, borderLeft: `1px solid ${IRIS_BORDER}` }}
       >
-        {/* Header */}
+        {/* Header — always shows mission identity, never a URL path */}
         <div className="h-16 px-4 flex items-center justify-between" style={{ borderBottom: `1px solid rgba(127,119,221,0.2)` }}>
           <div className="flex items-center gap-2 min-w-0">
             <IrisMark className="h-6 w-6 shrink-0" />
-            <div className="min-w-0">
-              <div className="text-white text-[16px] font-medium leading-tight">IRIS</div>
-              <div className="text-[12px] text-white/55 truncate">{contextLine}</div>
+            <div className="min-w-0 flex flex-col">
+              <div className="flex items-baseline gap-2">
+                <span className="text-white text-[15px] font-medium leading-none">IRIS</span>
+                <span className="text-[10px] uppercase tracking-wider text-white/35 leading-none">Intelligence Analyst</span>
+              </div>
+              {iris.mission_summary ? (
+                <div className="mt-1 text-[11px] font-mono text-white/65 truncate">
+                  <span className="text-white/80">{iris.mission_summary.shortCode}</span>
+                  <span className="text-white/30"> · </span>
+                  <span>{iris.mission_summary.stateCode}</span>
+                  <span className="text-white/30"> · </span>
+                  <span
+                    style={{
+                      color: iris.mission_summary.daysToSubmission !== null && iris.mission_summary.daysToSubmission <= 7
+                        ? "rgba(248,113,113,0.85)" : "rgba(255,255,255,0.55)",
+                    }}
+                  >
+                    {iris.mission_summary.daysToSubmission !== null
+                      ? `${iris.mission_summary.daysToSubmission}d to submission`
+                      : "submission date not set"}
+                  </span>
+                  <span className="text-white/30"> · </span>
+                  <span>{iris.mission_summary.approvedSignals} signals</span>
+                </div>
+              ) : (
+                <div className="mt-1 text-[11px] text-white/45 truncate">
+                  {iris.current_mission_id ? "Loading mission…" : `Viewing: ${pageLabel}`}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -582,6 +608,8 @@ Use ONLY the mission context provided. If you don't have specific data on someth
             </button>
           </div>
         </div>
+
+
 
         {/* Content */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3">
