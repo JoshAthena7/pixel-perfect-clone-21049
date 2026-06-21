@@ -75,6 +75,7 @@ function MissionLayout() {
       <MissionSidebar missionId={missionId} email={email} />
       <div className="flex-1 min-w-0 pb-16 md:pb-0">
         <MissionContextBar missionId={missionId} />
+        <MissionPulseStrip missionId={missionId} />
         <Outlet />
       </div>
       <MissionBottomTabs missionId={missionId} />
