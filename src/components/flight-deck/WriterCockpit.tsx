@@ -603,7 +603,6 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
     return <div style={{ background: BG, minHeight: "100vh", color: "white", padding: 40 }}>Loading your cockpit…</div>;
   }
 
-  const sim = useDevSim();
   const isEmpty = questions.length === 0 || sim.emptyFlightDeck;
   const showAdminView = isAdmin && isEmpty && !sim.emptyFlightDeck;
   const missionCode = (missionName || "").split(/\s*-\s*/)[0]?.trim() || "this mission";
