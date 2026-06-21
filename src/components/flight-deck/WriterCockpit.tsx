@@ -137,6 +137,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   const qc = useQueryClient();
   const [userId, setUserId] = useState<string | null>(null);
   const [firstName, setFirstName] = useState<string>("");
+  const [userInitials, setUserInitials] = useState<string>("");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [briefOpenFor, setBriefOpenFor] = useState<Q | null>(null);
   const [scoreMeFor, setScoreMeFor] = useState<Q | null>(null);
