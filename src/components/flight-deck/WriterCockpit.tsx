@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   AlertTriangle, ChevronDown, ChevronRight, FileText, Flag,
-  MessageSquare, Sparkles, Lock, Download, LifeBuoy, Activity, Radio, Gauge, Pin,
+  MessageSquare, Sparkles, Lock, Download, LifeBuoy, Activity, Radio, Gauge, Pin, X,
 } from "lucide-react";
 import { fireAssistEvent } from "@/lib/fireAssistEvent";
 import {
@@ -18,6 +19,7 @@ import { MissionPulsePanel } from "@/components/flight-deck/MissionPulsePanel";
 import { CheckInDialog } from "@/components/flight-deck/CheckInDialog";
 import { StickyNotesPanel } from "@/components/flight-deck/StickyNotesPanel";
 import { AtlasAssistBar } from "@/components/atlas/AtlasAssistBar";
+import { useIsAdmin } from "@/hooks/useAccess";
 
 import { TeamPulseCard } from "@/components/atlas/TeamPulseCard";
 import { NarrativeBriefSection } from "@/components/flight-deck/NarrativeBriefSection";
