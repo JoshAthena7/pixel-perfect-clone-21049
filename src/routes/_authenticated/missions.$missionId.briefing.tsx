@@ -146,7 +146,9 @@ function BriefingPage() {
     );
   }
 
+  return (
     <>
+
       <style>{`
         @keyframes pulse-ring {
           0% { transform: scale(0.95); opacity: 0.7; }
