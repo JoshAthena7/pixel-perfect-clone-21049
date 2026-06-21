@@ -47,15 +47,20 @@ function calc(q: QRow, a: ARow | undefined, hasSme: boolean): HealthStatus {
   }
 
   // Assignment
-  if (!a) h = worst(h, "at_risk");
-  else if (a.acceptance_status === "capacity_concern") h = worst(h, "watch");
-  else if (a.acceptance_status === "need_help" && !hasSme) h = worst(h, "watch");
-  else if (
-    a.acceptance_status === "pending" &&
-    a.assigned_at &&
-    differenceInHours(now, new Date(a.assigned_at)) > 48
-  )
-    h = worst(h, "at_risk");
+  // Unassigned questions are NOT at_risk — they're just unstarted. Only
+  // genuinely flagged assignments (need_help / need_sme / capacity_concern /
+  // long-pending acceptance) earn an at_risk / watch escalation.
+  if (a) {
+    if (a.acceptance_status === "capacity_concern") h = worst(h, "watch");
+    else if (a.acceptance_status === "need_help" && !hasSme) h = worst(h, "at_risk");
+    else if ((a as any).acceptance_status === "need_sme" && !hasSme) h = worst(h, "at_risk");
+    else if (
+      a.acceptance_status === "pending" &&
+      a.assigned_at &&
+      differenceInHours(now, new Date(a.assigned_at)) > 48
+    )
+      h = worst(h, "at_risk");
+  }
 
   // Activity
   if (
