@@ -643,13 +643,13 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
 
       {/* Columns — single-column stack on mobile, three columns on desktop */}
       <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
-        <div className="w-full md:w-[26%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden border-b md:border-b-0 md:border-r border-white/[0.06]">
+        <div id="atc-team-col" className="w-full md:w-[26%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden border-b md:border-b-0 md:border-r border-white/[0.06]">
           {teamColumn}
         </div>
         <div className="w-full md:w-[44%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden border-b md:border-b-0 md:border-r border-white/[0.06]">
           {radarColumn}
         </div>
-        <div className="w-full md:w-[30%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden">
+        <div id="atc-alerts-col" className="w-full md:w-[30%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden">
           {alertsColumn}
         </div>
       </div>
