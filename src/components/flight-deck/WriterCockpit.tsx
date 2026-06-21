@@ -168,6 +168,32 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
       .catch((e) => console.log("[WriterCockpit] buildLineOfSight failed", e));
   }, [missionId, userId, triggerLineOfSight, qc]);
 
+  // FIVE-4: Auto-generate IRIS brief when a writer expands a question with
+  // no brief yet. Silent — no button click. Fires once per question per mount.
+  const tried = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!expanded || !missionId) return;
+    const q = (cockpit?.questions ?? []).find((x: Q) => x.id === expanded);
+    if (!q) return;
+    if (q.iris_brief || q.iris_decoded_intent) return;
+    if (q.iris_brief_status === "generating") return;
+    if (tried.current.has(expanded)) return;
+    tried.current.add(expanded);
+    setAutoBriefing((s) => new Set(s).add(expanded));
+    autoGenerateBrief({ data: { missionId, questionId: expanded } })
+      .catch((e) => console.log("[WriterCockpit] auto-brief failed", e))
+      .finally(() => {
+        setAutoBriefing((s) => {
+          const n = new Set(s);
+          n.delete(expanded);
+          return n;
+        });
+        qc.invalidateQueries({ queryKey: ["writer-cockpit", missionId, userId] });
+      });
+  }, [expanded, cockpit, missionId, userId, autoGenerateBrief, qc]);
+
+
+
   const refreshKey = ["writer-cockpit", missionId, userId];
   const { data: cockpit, isLoading } = useQuery({
     queryKey: refreshKey,
