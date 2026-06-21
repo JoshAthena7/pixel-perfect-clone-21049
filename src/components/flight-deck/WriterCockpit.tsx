@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   AlertTriangle, ChevronDown, ChevronRight, FileText, Flag,
-  MessageSquare, Sparkles, Lock, Download, LifeBuoy, Activity, Radio, Gauge, Pin,
+  MessageSquare, Sparkles, Lock, Download, LifeBuoy, Activity, Radio, Gauge, Pin, X,
 } from "lucide-react";
 import { fireAssistEvent } from "@/lib/fireAssistEvent";
 import {
@@ -18,6 +19,7 @@ import { MissionPulsePanel } from "@/components/flight-deck/MissionPulsePanel";
 import { CheckInDialog } from "@/components/flight-deck/CheckInDialog";
 import { StickyNotesPanel } from "@/components/flight-deck/StickyNotesPanel";
 import { AtlasAssistBar } from "@/components/atlas/AtlasAssistBar";
+import { useIsAdmin } from "@/hooks/useAccess";
 
 import { TeamPulseCard } from "@/components/atlas/TeamPulseCard";
 import { NarrativeBriefSection } from "@/components/flight-deck/NarrativeBriefSection";
@@ -135,17 +137,46 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   const qc = useQueryClient();
   const [userId, setUserId] = useState<string | null>(null);
   const [firstName, setFirstName] = useState<string>("");
+  const [userInitials, setUserInitials] = useState<string>("");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [briefOpenFor, setBriefOpenFor] = useState<Q | null>(null);
   const [scoreMeFor, setScoreMeFor] = useState<Q | null>(null);
   const [pulseOpen, setPulseOpen] = useState(false);
+  const [teamPulseOpen, setTeamPulseOpen] = useState(false);
   const [checkInFor, setCheckInFor] = useState<Q | null>(null);
   const [stickyNotesFor, setStickyNotesFor] = useState<Q | null>(null);
   const [autoBriefing, setAutoBriefing] = useState<Set<string>>(new Set());
-  
+
+  const navigate = useNavigate();
+  const { isAdmin } = useIsAdmin();
   const updateStatus = useServerFn(updateProgressStatus);
   const triggerLineOfSight = useServerFn(buildLineOfSight);
   const autoGenerateBrief = useServerFn(generateIrisBrief);
+
+  // Engagement Lead lookup for empty-state messaging.
+  const { data: engagementLead } = useQuery({
+    queryKey: ["mission-engagement-lead", missionId],
+    enabled: !!missionId,
+    queryFn: async () => {
+      const { data: mtm } = await supabase
+        .from("mission_team_members")
+        .select("member_id, mission_role")
+        .eq("mission_id", missionId)
+        .in("mission_role", ["engagement_lead", "Engagement Lead", "ENGAGEMENT_LEAD"]);
+      const memberId = mtm?.[0]?.member_id;
+      if (!memberId) return null;
+      const { data: atm } = await supabase
+        .from("atlas_team_members")
+        .select("first_name, last_name, email, avatar_url")
+        .eq("id", memberId)
+        .maybeSingle();
+      if (!atm) return null;
+      const fullName = [atm.first_name, atm.last_name].filter(Boolean).join(" ").trim() || atm.email || "Your Lead";
+      const first = (atm.first_name || atm.email || "Lead").split(/[\s@]/)[0];
+      const initials = `${(atm.first_name?.[0] ?? "").toUpperCase()}${(atm.last_name?.[0] ?? "").toUpperCase()}`.trim() || (atm.email?.[0] ?? "L").toUpperCase();
+      return { displayName: fullName, firstName: first, initials, email: atm.email as string | null, avatarUrl: atm.avatar_url as string | null };
+    },
+  });
 
   useEffect(() => {
     (async () => {
@@ -155,7 +186,14 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
       setUserId(u.id);
       const { data: p } = await supabase
         .from("profiles").select("display_name").eq("id", u.id).maybeSingle();
-      setFirstName((p?.display_name ?? u.email ?? "").split(" ")[0].split("@")[0]);
+      const raw = (p?.display_name ?? u.email ?? "").trim();
+      const first = raw.split(" ")[0].split("@")[0];
+      setFirstName(first);
+      const parts = raw.split(/\s+/).filter(Boolean);
+      const initials = parts.length >= 2
+        ? `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
+        : (first.slice(0, 2) || "U").toUpperCase();
+      setUserInitials(initials);
     })();
   }, []);
 
@@ -564,108 +602,175 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
     return <div style={{ background: BG, minHeight: "100vh", color: "white", padding: 40 }}>Loading your cockpit…</div>;
   }
 
+  const isEmpty = questions.length === 0;
+  const showAdminView = isAdmin && isEmpty;
+  const missionCode = (missionName || "").split(/\s*-\s*/)[0]?.trim() || "this mission";
+  const leadMailto = engagementLead?.email
+    ? `mailto:${engagementLead.email}?subject=${encodeURIComponent(`[${missionCode}] Question assignments`)}&body=${encodeURIComponent(`Hi ${engagementLead.firstName} — have my questions been assigned yet?`)}`
+    : null;
+
   return (
-    <div style={{ background: BG, color: "white", minHeight: "100vh", display: "grid", gridTemplateColumns: "1fr 320px", alignItems: "start" }}>
+    <div style={{ background: BG, color: "white", minHeight: "100vh", display: "grid", gridTemplateColumns: isEmpty || showAdminView ? "1fr" : "1fr 320px", alignItems: "start" }}>
       <style>{`@keyframes iris-sweep { 0% { transform: translateX(-150%); } 100% { transform: translateX(350%); } }`}</style>
       {/* LEFT ZONE */}
-      <div style={{ padding: "24px 28px", maxWidth: "100%", overflowX: "hidden" }}>
+      <div style={{ padding: "24px 28px", maxWidth: "100%", overflowX: "hidden", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: "0.04em" }}>
             ATLAS <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 400 }}>· {missionName}</span>
           </div>
-          {daysRem !== null && (
-            <div style={{
-              padding: "4px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600,
-              background: daysRem < 7 ? "rgba(239,68,68,0.15)" : daysRem < 14 ? "rgba(245,158,11,0.15)" : "rgba(34,197,94,0.15)",
-              color: daysRem < 7 ? RED : daysRem < 14 ? AMBER : GREEN,
-              border: `1px solid currentColor`,
-            }}>
-              {daysRem}d to submission
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {daysRem !== null && (
+              <div style={{
+                padding: "4px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600,
+                background: daysRem < 7 ? "rgba(239,68,68,0.15)" : daysRem < 14 ? "rgba(245,158,11,0.15)" : "rgba(34,197,94,0.15)",
+                color: daysRem < 7 ? RED : daysRem < 14 ? AMBER : GREEN,
+                border: `1px solid currentColor`,
+              }}>
+                {daysRem}d to submission
+              </div>
+            )}
+            <button
+              type="button"
+              aria-label="Mission pulse"
+              title="Mission pulse — trivia, inspiration, team"
+              onClick={() => setTeamPulseOpen(true)}
+              style={{
+                width: 32, height: 32, borderRadius: "50%",
+                border: "1px solid rgba(255,255,255,0.1)",
+                background: "rgba(255,255,255,0.03)",
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer", color: "rgba(255,255,255,0.65)",
+              }}
+            >
+              <Activity size={14} />
+            </button>
+          </div>
+        </div>
+
+        {showAdminView ? (
+          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+            <div style={{ maxWidth: 460 }}>
+              <div style={{ fontSize: 16, fontWeight: 600, color: "rgba(255,255,255,0.92)", marginBottom: 8 }}>
+                You're viewing My Questions as an admin.
+              </div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", marginBottom: 24, lineHeight: 1.55 }}>
+                Writers see their assigned questions here.
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate({ to: "/missions/$missionId/war-room", params: { missionId } })}
+                style={{
+                  height: 36, padding: "0 18px", borderRadius: 8, border: "none",
+                  background: GOLD, color: "#0b0f15", fontWeight: 700, fontSize: 12,
+                  cursor: "pointer", letterSpacing: "0.02em",
+                }}
+              >
+                Go to Mission Control →
+              </button>
             </div>
-          )}
-        </div>
+          </div>
+        ) : isEmpty ? (
+          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+            <div style={{ maxWidth: 480 }}>
+              <div style={{
+                width: 52, height: 52, borderRadius: "50%",
+                border: `1.5px solid ${GOLD}`, background: "#0a1828",
+                color: GOLD, fontSize: 16, fontWeight: 700, letterSpacing: "0.04em",
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                margin: "0 auto 20px",
+              }}>
+                {userInitials || "U"}
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: "rgba(255,255,255,0.95)", marginBottom: 8 }}>
+                You're on {missionCode}{firstName ? `, ${firstName}` : ""}.
+              </div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginBottom: 28 }}>
+                Your questions haven't been assigned yet.
+              </div>
 
-        {/* Welcome bar */}
-        <div style={{
-          padding: "16px 18px", marginBottom: 20, borderRadius: 10,
-          background: "linear-gradient(180deg, #0b1d34 0%, #081325 100%)",
-          borderTop: `2px solid ${GOLD}`,
-        }}>
-          <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 6 }}>
-            Your Cockpit{firstName ? `, ${firstName}` : ""}.
-          </div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.5, marginBottom: 12 }}>
-            You own {questions.length} question{questions.length === 1 ? "" : "s"} on this mission. These are yours.
-            Work your brief. Update your status. Flag what needs help.
-            Assignments are set by your admin — talk to your Engagement Lead if something needs to change.
-          </div>
-          {(stats.finalized + stats.inReview + stats.active + stats.atRisk) > 0 && (
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <Stat label="Finalized" value={stats.finalized} color={GREEN} />
-              <Stat label="In Review" value={stats.inReview} color={PURPLE} />
-              <Stat label="Active" value={stats.active} color={GOLD} />
-              <Stat label="At Risk" value={stats.atRisk} color={RED} />
+              {engagementLead ? (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 999, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: "50%",
+                    border: `1px solid ${GOLD}`, background: "#0a1828",
+                    color: GOLD, fontSize: 10, fontWeight: 700,
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {engagementLead.initials}
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", textAlign: "left" }}>
+                    <span style={{ color: "rgba(255,255,255,0.95)", fontWeight: 600 }}>{engagementLead.displayName}</span> is your Engagement Lead.
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>They handle question assignments.</div>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
+                  No Engagement Lead has been assigned to this mission yet.
+                </div>
+              )}
+
+              <div style={{ marginTop: 24, display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap" }}>
+                {engagementLead && leadMailto && (
+                  <a
+                    href={leadMailto}
+                    style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", textDecoration: "none" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = "underline"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = "none"; }}
+                  >
+                    Send {engagementLead.firstName} a message →
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: "/missions/$missionId/briefing", params: { missionId } })}
+                  style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.5)" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.textDecoration = "underline"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.textDecoration = "none"; }}
+                >
+                  Read the mission briefing →
+                </button>
+              </div>
             </div>
-          )}
-        </div>
-
-        <LeadershipBroadcastBand missionId={missionId} />
-
-        {cockpit?.pensDown && (
-          <div style={{
-            padding: "12px 14px", marginBottom: 16, borderRadius: 8,
-            background: "rgba(239,68,68,0.12)", border: `1px solid ${RED}`, color: "#fecaca",
-            display: "flex", alignItems: "center", gap: 8, fontSize: 12,
-          }}>
-            <Lock size={14} /> PENS DOWN — submission window closed. Move to Revising or Finalized only.
-          </div>
-        )}
-
-        <div
-          style={{
-            position: "relative",
-            background: "rgba(255,255,255,0.025)",
-            borderTop: "1px solid rgba(255,255,255,0.07)",
-            borderBottom: "1px solid rgba(255,255,255,0.07)",
-            padding: "12px 16px",
-            borderRadius: 0,
-            marginBottom: 4,
-          }}
-        >
-          <span
-            style={{
-              position: "absolute",
-              top: 6,
-              right: 10,
-              fontSize: 8,
-              textTransform: "",
-              letterSpacing: "0.08em",
-              color: "rgba(255,255,255,0.25)",
-              pointerEvents: "none",
-            }}
-          >
-            Mission Pulse
-          </span>
-          <TeamPulseCard missionId={missionId} />
-        </div>
-        <div
-          style={{
-            height: 1,
-            background:
-              "linear-gradient(to right, transparent, rgba(196,154,43,0.25), transparent)",
-            margin: "4px 0 12px",
-          }}
-        />
-
-        {questions.length === 0 ? (
-          <div style={{ padding: 60, textAlign: "center", color: "rgba(255,255,255,0.5)" }}>
-            <FileText size={36} style={{ opacity: 0.4, marginBottom: 12 }} />
-            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>No questions assigned yet.</div>
-            <div style={{ fontSize: 12 }}>Check back once your Engagement Lead assigns your questions.</div>
           </div>
         ) : (
           <>
+            {/* Welcome bar */}
+            <div style={{
+              padding: "16px 18px", marginBottom: 20, borderRadius: 10,
+              background: "linear-gradient(180deg, #0b1d34 0%, #081325 100%)",
+              borderTop: `2px solid ${GOLD}`,
+            }}>
+              <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 6 }}>
+                Your Cockpit{firstName ? `, ${firstName}` : ""}.
+              </div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.5, marginBottom: 12 }}>
+                You own {questions.length} question{questions.length === 1 ? "" : "s"} on this mission. These are yours.
+                Work your brief. Update your status. Flag what needs help.
+                Assignments are set by your admin — talk to your Engagement Lead if something needs to change.
+              </div>
+              {(stats.finalized + stats.inReview + stats.active + stats.atRisk) > 0 && (
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <Stat label="Finalized" value={stats.finalized} color={GREEN} />
+                  <Stat label="In Review" value={stats.inReview} color={PURPLE} />
+                  <Stat label="Active" value={stats.active} color={GOLD} />
+                  <Stat label="At Risk" value={stats.atRisk} color={RED} />
+                </div>
+              )}
+            </div>
+
+            <LeadershipBroadcastBand missionId={missionId} />
+
+            {cockpit?.pensDown && (
+              <div style={{
+                padding: "12px 14px", marginBottom: 16, borderRadius: 8,
+                background: "rgba(239,68,68,0.12)", border: `1px solid ${RED}`, color: "#fecaca",
+                display: "flex", alignItems: "center", gap: 8, fontSize: 12,
+              }}>
+                <Lock size={14} /> PENS DOWN — submission window closed. Move to Revising or Finalized only.
+              </div>
+            )}
+
             <Group title="🔴 Needs Immediate Attention" color={RED} items={grouped.atRisk} render={renderCard} />
             <Group title="🟡 Keep an Eye On" color={AMBER} items={grouped.watch} render={renderCard} />
             <Group title="🟢 On Track" color={GREEN} items={grouped.healthy} render={renderCard} />
@@ -674,6 +779,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
       </div>
 
       {/* RIGHT PANEL */}
+      {!isEmpty && !showAdminView && (
       <aside style={{
         position: "sticky", top: 0, alignSelf: "start", height: "100vh", overflowY: "auto",
         background: PANEL, borderLeft: "1px solid rgba(255,255,255,0.06)", padding: "20px 16px",
@@ -709,6 +815,43 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
 
         <PulseStrip pulse={cockpit?.pulse ?? []} />
       </aside>
+      )}
+
+      {/* Team Pulse slide-in panel (relocated Trivia / Inspiration / Team) */}
+      {teamPulseOpen && (
+        <>
+          <div
+            onClick={() => setTeamPulseOpen(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 90 }}
+          />
+          <aside
+            style={{
+              position: "fixed", top: 0, right: 0, height: "100vh", width: 280, zIndex: 91,
+              background: PANEL, borderLeft: "1px solid rgba(255,255,255,0.08)",
+              padding: "16px 14px", overflowY: "auto",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <span style={{ fontSize: 10, letterSpacing: "0.12em", color: "rgba(255,255,255,0.45)", textTransform: "uppercase" }}>
+                Mission Pulse
+              </span>
+              <button
+                type="button"
+                onClick={() => setTeamPulseOpen(false)}
+                aria-label="Close mission pulse"
+                style={{
+                  width: 24, height: 24, borderRadius: 6, border: "none",
+                  background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.7)",
+                  cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+            <TeamPulseCard missionId={missionId} />
+          </aside>
+        </>
+      )}
 
       {briefOpenFor && (
         <BriefViewer
