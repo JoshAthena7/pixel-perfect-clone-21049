@@ -20,6 +20,7 @@ import { CheckInDialog } from "@/components/flight-deck/CheckInDialog";
 import { StickyNotesPanel } from "@/components/flight-deck/StickyNotesPanel";
 import { AtlasAssistBar } from "@/components/atlas/AtlasAssistBar";
 import { useIsAdmin } from "@/hooks/useAccess";
+import { useDevSim } from "@/hooks/useDevSim";
 
 import { TeamPulseCard } from "@/components/atlas/TeamPulseCard";
 import { NarrativeBriefSection } from "@/components/flight-deck/NarrativeBriefSection";
