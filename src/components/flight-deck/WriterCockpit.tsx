@@ -779,6 +779,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
       </div>
 
       {/* RIGHT PANEL */}
+      {!isEmpty && !showAdminView && (
       <aside style={{
         position: "sticky", top: 0, alignSelf: "start", height: "100vh", overflowY: "auto",
         background: PANEL, borderLeft: "1px solid rgba(255,255,255,0.06)", padding: "20px 16px",
@@ -814,6 +815,43 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
 
         <PulseStrip pulse={cockpit?.pulse ?? []} />
       </aside>
+      )}
+
+      {/* Team Pulse slide-in panel (relocated Trivia / Inspiration / Team) */}
+      {teamPulseOpen && (
+        <>
+          <div
+            onClick={() => setTeamPulseOpen(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 90 }}
+          />
+          <aside
+            style={{
+              position: "fixed", top: 0, right: 0, height: "100vh", width: 280, zIndex: 91,
+              background: PANEL, borderLeft: "1px solid rgba(255,255,255,0.08)",
+              padding: "16px 14px", overflowY: "auto",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <span style={{ fontSize: 10, letterSpacing: "0.12em", color: "rgba(255,255,255,0.45)", textTransform: "uppercase" }}>
+                Mission Pulse
+              </span>
+              <button
+                type="button"
+                onClick={() => setTeamPulseOpen(false)}
+                aria-label="Close mission pulse"
+                style={{
+                  width: 24, height: 24, borderRadius: 6, border: "none",
+                  background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.7)",
+                  cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+            <TeamPulseCard missionId={missionId} />
+          </aside>
+        </>
+      )}
 
       {briefOpenFor && (
         <BriefViewer
