@@ -443,6 +443,32 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   }, [missionId, userId]);
 
   const questions = cockpit?.questions ?? [];
+
+  // DevTools: atlas-dev-iris-loading dispatch — flash the "IRIS is briefing
+  // you…" sweep on the currently expanded question (or the first one).
+  // Reads `expanded` and `questions` via refs so the listener stays stable.
+  const expandedRef = useRef<string | null>(null);
+  const questionsRef = useRef<typeof questions>(questions);
+  expandedRef.current = expanded;
+  questionsRef.current = questions;
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const ms = ((e as CustomEvent).detail?.ms as number | undefined) ?? 5000;
+      const qid = expandedRef.current ?? questionsRef.current[0]?.id;
+      if (!qid) return;
+      devLoadingTargetRef.current = qid;
+      setAutoBriefing((prev) => new Set(prev).add(qid));
+      window.setTimeout(() => {
+        setAutoBriefing((prev) => {
+          const next = new Set(prev);
+          next.delete(qid);
+          return next;
+        });
+      }, ms);
+    };
+    window.addEventListener("atlas-dev-iris-loading", handler);
+    return () => window.removeEventListener("atlas-dev-iris-loading", handler);
+  }, []);
   const fbByQid = useMemo(() => {
     const m = new Map<string, any[]>();
     for (const f of (cockpit?.feedback ?? [])) {
