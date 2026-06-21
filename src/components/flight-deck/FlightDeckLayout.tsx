@@ -227,10 +227,30 @@ export function FlightDeckLayout({
     window.addEventListener("atlas:thread:open", handleThreadOpen);
     window.addEventListener("atlas:oracle:open", handleOracleOpen);
     window.addEventListener("atlas:pulse:prefill", handlePulsePrefill);
+
+    // DevTools: atlas-dev-whisper — there's no dedicated whisper card yet,
+    // so we surface the whisper text as a gold-toned toast on the deck.
+    const handleDevWhisper = (e: Event) => {
+      const detail = ((e as CustomEvent).detail ?? {}) as { text?: string };
+      if (!detail.text) return;
+      toast(detail.text, {
+        duration: 5000,
+        style: {
+          background: "rgba(196,154,43,0.95)",
+          color: "white",
+          border: "none",
+          fontSize: 12,
+          fontWeight: 500,
+        },
+      });
+    };
+    window.addEventListener("atlas-dev-whisper", handleDevWhisper);
+
     return () => {
       window.removeEventListener("atlas:thread:open", handleThreadOpen);
       window.removeEventListener("atlas:oracle:open", handleOracleOpen);
       window.removeEventListener("atlas:pulse:prefill", handlePulsePrefill);
+      window.removeEventListener("atlas-dev-whisper", handleDevWhisper);
     };
   }, [activeMissionId, navigate]);
 

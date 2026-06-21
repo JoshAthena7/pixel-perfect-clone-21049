@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SplashScreen } from "@/components/splash/SplashScreen";
 import { triggerIrisBolt } from "@/lib/iris-bolt";
+import { notifyDevSimChange } from "@/hooks/useDevSim";
 
 const SUPABASE_URL =
   (import.meta as any).env?.VITE_SUPABASE_URL ?? "https://hqtmulghixcirvamdcol.supabase.co";
@@ -77,22 +78,22 @@ const CATEGORIES: Category[] = [
     id: "roles",
     label: "Role Views",
     cards: [
-      { id: "role-writer",   name: "Writer (5 questions)", description: "Flight Deck as a writer",         kind: "simulate", flag: "atlas_preview_role:Writer",          destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Writer View",          status: "amber" },
-      { id: "role-sme",      name: "SME View",             description: "SME review queue",                kind: "simulate", flag: "atlas_preview_role:SME",             destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "SME View",             status: "amber" },
-      { id: "role-lead",     name: "Engagement Lead",      description: "ATC with full team data",         kind: "simulate", flag: "atlas_preview_role:Engagement Lead", destinationUrl: `/missions/${M}/war-room`,    destinationLabel: "Engagement Lead View", status: "amber" },
-      { id: "role-reviewer", name: "Reviewer",             description: "Red team review mode",            kind: "simulate", flag: "atlas_preview_role:Reviewer",        destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Reviewer View",        status: "amber" },
-      { id: "role-readonly", name: "Read-Only (Closed)",   description: "Mission after submission deadline", kind: "simulate", flag: "atlas_sim_readonly",                destinationUrl: `/missions/${M}/briefing`,    destinationLabel: "Read-Only Mission",    status: "amber" },
+      { id: "role-writer",   name: "Writer (5 questions)", description: "Flight Deck as a writer",         kind: "simulate", flag: "atlas_preview_role:Writer",          destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Writer View",          status: "green" },
+      { id: "role-sme",      name: "SME View",             description: "SME review queue",                kind: "simulate", flag: "atlas_preview_role:SME",             destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "SME View",             status: "green" },
+      { id: "role-lead",     name: "Engagement Lead",      description: "ATC with full team data",         kind: "simulate", flag: "atlas_preview_role:Engagement Lead", destinationUrl: `/missions/${M}/war-room`,    destinationLabel: "Engagement Lead View", status: "green" },
+      { id: "role-reviewer", name: "Reviewer",             description: "Red team review mode",            kind: "simulate", flag: "atlas_preview_role:Reviewer",        destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Reviewer View",        status: "green" },
+      { id: "role-readonly", name: "Read-Only (Closed)",   description: "Mission after submission deadline", kind: "simulate", flag: "atlas_sim_readonly",                destinationUrl: `/missions/${M}/briefing`,    destinationLabel: "Read-Only Mission",    status: "green" },
     ],
   },
   {
     id: "empty",
     label: "Empty States",
     cards: [
-      { id: "empty-mission",      name: "Empty Mission",       description: "New mission, nothing set up",     kind: "simulate", flag: "atlas_sim_empty_mission",     destinationUrl: `/missions/${M}/briefing`,     destinationLabel: "Empty Mission",       status: "amber" },
+      { id: "empty-mission",      name: "Empty Mission",       description: "New mission, nothing set up",     kind: "simulate", flag: "atlas_sim_empty_mission",     destinationUrl: `/missions/${M}/briefing`,     destinationLabel: "Empty Mission",       status: "green" },
       { id: "empty-oracle",       name: "Empty ORACLE",        description: "ORACLE with zero intel",          kind: "iframe",   href: `/missions/${M}/olympus?preview=1&sim=empty_oracle`,                                                                  status: "green" },
-      { id: "empty-flight-deck",  name: "Empty Flight Deck",   description: "Writer with no assigned questions", kind: "simulate", flag: "atlas_sim_empty_flightdeck",  destinationUrl: `/missions/${M}/flight-deck`,  destinationLabel: "Empty Flight Deck",   status: "amber" },
+      { id: "empty-flight-deck",  name: "Empty Flight Deck",   description: "Writer with no assigned questions", kind: "simulate", flag: "atlas_sim_empty_flightdeck",  destinationUrl: `/missions/${M}/flight-deck`,  destinationLabel: "Empty Flight Deck",   status: "green" },
       { id: "empty-atc",          name: "Empty ATC",           description: "No team activity",                kind: "iframe",   href: `/missions/${M}/war-room?preview=1&sim=empty_atc`,                                                                    status: "green" },
-      { id: "empty-briefing",     name: "Empty Briefing Room", description: "No north star or win themes",     kind: "simulate", flag: "atlas_sim_empty_briefing",    destinationUrl: `/missions/${M}/briefing`,     destinationLabel: "Empty Briefing Room", status: "amber" },
+      { id: "empty-briefing",     name: "Empty Briefing Room", description: "No north star or win themes",     kind: "simulate", flag: "atlas_sim_empty_briefing",    destinationUrl: `/missions/${M}/briefing`,     destinationLabel: "Empty Briefing Room", status: "green" },
       { id: "empty-intel",        name: "Empty Intelligence",  description: "Zero items in feed",              kind: "iframe",   href: `/missions/${M}/intelligence?preview=1&sim=empty_intelligence`,                                                       status: "green" },
     ],
   },
@@ -101,7 +102,7 @@ const CATEGORIES: Category[] = [
     label: "Admin Pages",
     cards: [
       { id: "admin-home",            name: "Admin Home",        description: "Cross-mission dashboard",         kind: "iframe", href: "/admin?preview=1",                                                                                       status: "green" },
-      { id: "admin-mission",         name: "Mission Setup",     description: "Admin mission setup tab",         kind: "simulate", flag: "atlas_sim_mission_setup",       destinationUrl: `/admin/missions/${M}`,    destinationLabel: "Mission Setup", status: "amber" },
+      { id: "admin-mission",         name: "Mission Setup",     description: "Admin mission setup tab",         kind: "simulate", flag: "atlas_sim_mission_setup",       destinationUrl: `/admin/missions/${M}`,    destinationLabel: "Mission Setup", status: "green" },
       { id: "admin-state-intel",     name: "State Intel",       description: "State intelligence packs",        kind: "iframe", href: "/admin/state-intel?preview=1",                                                                            status: "green" },
       { id: "admin-iris-control",    name: "IRIS Control",      description: "Pipeline health dashboard",       kind: "iframe", href: "/admin/iris-control?preview=1",                                                                           status: "green" },
       { id: "admin-iris-writer",     name: "IRIS Writer View",  description: "IRIS writer surface",             kind: "iframe", href: "/admin/iris-writer-view?preview=1",                                                                       status: "green" },
@@ -117,10 +118,10 @@ const CATEGORIES: Category[] = [
     id: "wizard",
     label: "Wizard Steps",
     cards: [
-      { id: "wiz-1-empty", name: "Wizard Step 1 (Empty)", description: "Fuel IRIS — no docs uploaded",       kind: "simulate", flag: "atlas_sim_wizard:1:empty", destinationUrl: `/olympus/wizard/${M}`, destinationLabel: "Wizard Step 1 (Empty)", status: "amber" },
-      { id: "wiz-1-ready", name: "Wizard Step 1 (Ready)", description: "Docs tagged, ready to analyze",      kind: "simulate", flag: "atlas_sim_wizard:1:ready", destinationUrl: `/olympus/wizard/${M}`, destinationLabel: "Wizard Step 1 (Ready)", status: "amber" },
-      { id: "wiz-2",       name: "Wizard Step 2",         description: "State intelligence step",            kind: "simulate", flag: "atlas_sim_wizard:2",       destinationUrl: `/olympus/wizard/${M}`, destinationLabel: "Wizard Step 2",         status: "amber" },
-      { id: "wiz-9",       name: "Wizard Step 9",         description: "Review & Launch final step",         kind: "simulate", flag: "atlas_sim_wizard:9",       destinationUrl: `/olympus/wizard/${M}`, destinationLabel: "Wizard Step 9",         status: "amber" },
+      { id: "wiz-1-empty", name: "Wizard Step 1 (Empty)", description: "Fuel IRIS — no docs uploaded",       kind: "simulate", flag: "atlas_sim_wizard:1:empty", destinationUrl: `/olympus/wizard/${M}`, destinationLabel: "Wizard Step 1 (Empty)", status: "green" },
+      { id: "wiz-1-ready", name: "Wizard Step 1 (Ready)", description: "Docs tagged, ready to analyze",      kind: "simulate", flag: "atlas_sim_wizard:1:ready", destinationUrl: `/olympus/wizard/${M}`, destinationLabel: "Wizard Step 1 (Ready)", status: "green" },
+      { id: "wiz-2",       name: "Wizard Step 2",         description: "State intelligence step",            kind: "simulate", flag: "atlas_sim_wizard:2",       destinationUrl: `/olympus/wizard/${M}`, destinationLabel: "Wizard Step 2",         status: "green" },
+      { id: "wiz-9",       name: "Wizard Step 9",         description: "Review & Launch final step",         kind: "simulate", flag: "atlas_sim_wizard:9",       destinationUrl: `/olympus/wizard/${M}`, destinationLabel: "Wizard Step 9",         status: "green" },
     ],
   },
   {
@@ -128,9 +129,9 @@ const CATEGORIES: Category[] = [
     label: "Error & Edge States",
     cards: [
       { id: "err-404",         name: "404 Page",           description: "Page not found",                    kind: "iframe",   href: "/this-page-does-not-exist-404-test",                                                                       status: "green" },
-      { id: "err-access",      name: "Access Denied",      description: "Non-admin tries admin page",        kind: "simulate", flag: "atlas_sim_access_denied",  destinationUrl: `/missions/${M}/briefing`, destinationLabel: "Access Denied", status: "amber" },
+      { id: "err-access",      name: "Access Denied",      description: "Non-admin tries admin page",        kind: "simulate", flag: "atlas_sim_access_denied",  destinationUrl: `/missions/${M}/briefing`, destinationLabel: "Access Denied", status: "green" },
       { id: "err-mission-404", name: "Mission Not Found",  description: "Invalid mission ID",                kind: "iframe",   href: "/missions/00000000-0000-0000-0000-000000000000/briefing?preview=1",                                       status: "green" },
-      { id: "err-pipeline",    name: "Pipeline Error",     description: "IRIS Control with a cron failure",  kind: "simulate", flag: "atlas_sim_pipeline_error", destinationUrl: "/admin/iris-control",     destinationLabel: "Pipeline Error", status: "amber" },
+      { id: "err-pipeline",    name: "Pipeline Error",     description: "IRIS Control with a cron failure",  kind: "simulate", flag: "atlas_sim_pipeline_error", destinationUrl: "/admin/iris-control",     destinationLabel: "Pipeline Error", status: "green" },
     ],
   },
   {
@@ -138,11 +139,11 @@ const CATEGORIES: Category[] = [
     label: "Modals & Panels",
     cards: [
       { id: "m-checkin-ontrack", name: "Check-In: On Track",    description: "Check-in submitted as On Track",    kind: "modal", modal: "checkin_ontrack", destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Check-In: On Track", status: "amber" },
-      { id: "m-checkin-blocked", name: "Check-In: Blocked",     description: "Check-in submitted as Blocked",     kind: "modal", modal: "checkin_blocked", destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Check-In: Blocked", status: "amber" },
-      { id: "m-checkin-sme",     name: "Check-In: Need SME",    description: "Check-in requesting SME help",      kind: "modal", modal: "checkin_sme",     destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Check-In: Need SME", status: "amber" },
+      { id: "m-checkin-blocked", name: "Check-In: Blocked",     description: "Check-in submitted as Blocked",     kind: "modal", modal: "checkin_blocked", destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Check-In: Blocked", status: "green" },
+      { id: "m-checkin-sme",     name: "Check-In: Need SME",    description: "Check-in requesting SME help",      kind: "modal", modal: "checkin_sme",     destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Check-In: Need SME", status: "green" },
       { id: "m-score-empty",     name: "Score Me: Empty",       description: "Score Me before pasting draft",     kind: "modal", modal: "score_me",        destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Score Me", status: "amber" },
-      { id: "m-score-results",   name: "Score Me: Results",     description: "Score Me with rubric + authenticity", kind: "modal", modal: "score_me_results", destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Score Me: Results", status: "amber" },
-      { id: "m-evaluator",       name: "Evaluator Simulation",  description: "Evaluator voice feedback mode",     kind: "modal", modal: "evaluator_sim",   destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Evaluator Sim", status: "amber" },
+      { id: "m-score-results",   name: "Score Me: Results",     description: "Score Me with rubric + authenticity", kind: "modal", modal: "score_me_results", destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Score Me: Results", status: "green" },
+      { id: "m-evaluator",       name: "Evaluator Simulation",  description: "Evaluator voice feedback mode",     kind: "modal", modal: "evaluator_sim",   destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Evaluator Sim", status: "green" },
       { id: "m-sticky-empty",    name: "Sticky Notes: Empty",   description: "No notes pinned yet",               kind: "modal", modal: "sticky_empty",    destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Sticky Notes", status: "amber" },
       { id: "m-sticky-notes",    name: "Sticky Notes: With Notes", description: "Sticky notes with sample cards", kind: "modal", modal: "sticky_notes",    destinationUrl: `/missions/${M}/flight-deck`, destinationLabel: "Sticky Notes", status: "amber" },
       { id: "m-nudge",           name: "Nudge: With Team",      description: "Nudge modal with team members",     kind: "modal", modal: "nudge",           destinationUrl: `/missions/${M}/war-room`,    destinationLabel: "Nudge", status: "amber" },
@@ -156,11 +157,11 @@ const CATEGORIES: Category[] = [
     id: "anims",
     label: "Animations",
     cards: [
-      { id: "a-splash",       name: "Splash Screen",     description: "Constellation load animation",   kind: "anim", anim: "splash",       destinationUrl: "/admin",                          destinationLabel: "Splash",       status: "amber" },
-      { id: "a-iris-loading", name: "IRIS Brief Loading", description: "Particle field thinking state", kind: "anim", anim: "iris_loading", destinationUrl: `/missions/${M}/flight-deck`,      destinationLabel: "IRIS Loading", status: "amber" },
-      { id: "a-whisper",      name: "Whisper Arrival",   description: "Whisper drop animation",         kind: "anim", anim: "whisper",      destinationUrl: `/missions/${M}/flight-deck`,      destinationLabel: "Whisper",      status: "amber" },
-      { id: "a-scan",         name: "Score Me Scan",     description: "Evaluator reading scan line",    kind: "anim", anim: "scan",         destinationUrl: `/missions/${M}/flight-deck`,      destinationLabel: "Score Scan",   status: "amber" },
-      { id: "a-bolt",         name: "Bolt Flash",        description: "Lightning bolt IRIS activation", kind: "anim", anim: "bolt",                                                                                              status: "amber" },
+      { id: "a-splash",       name: "Splash Screen",     description: "Constellation load animation",   kind: "anim", anim: "splash",       destinationUrl: "/admin",                          destinationLabel: "Splash",       status: "green" },
+      { id: "a-iris-loading", name: "IRIS Brief Loading", description: "Particle field thinking state", kind: "anim", anim: "iris_loading", destinationUrl: `/missions/${M}/flight-deck`,      destinationLabel: "IRIS Loading", status: "green" },
+      { id: "a-whisper",      name: "Whisper Arrival",   description: "Whisper drop animation",         kind: "anim", anim: "whisper",      destinationUrl: `/missions/${M}/flight-deck`,      destinationLabel: "Whisper",      status: "green" },
+      { id: "a-scan",         name: "Score Me Scan",     description: "Evaluator reading scan line",    kind: "anim", anim: "scan",         destinationUrl: `/missions/${M}/flight-deck`,      destinationLabel: "Score Scan",   status: "green" },
+      { id: "a-bolt",         name: "Bolt Flash",        description: "Lightning bolt IRIS activation", kind: "anim", anim: "bolt",                                                                                              status: "green" },
     ],
   },
 ];
@@ -292,10 +293,14 @@ export function DevToolsPanel() {
         if (role === "Admin") sessionStorage.removeItem(ROLE_KEY);
         else sessionStorage.setItem(ROLE_KEY, role);
         setActiveRole(role);
+      } else if (flag.startsWith("atlas_sim_wizard:")) {
+        // value carries step + optional variant: "1:empty" | "1:ready" | "2" | "9"
+        sessionStorage.setItem("atlas_sim_wizard", flag.slice("atlas_sim_wizard:".length));
       } else {
         sessionStorage.setItem(flag, "1");
       }
     } catch {}
+    notifyDevSimChange();
   };
 
   const runModal = async (s: ScreenCard) => {
@@ -316,6 +321,7 @@ export function DevToolsPanel() {
       else if (modal === "evaluator_sim") sessionStorage.setItem(MODAL_STATE_KEY, "evaluator");
       else sessionStorage.removeItem(MODAL_STATE_KEY);
     } catch {}
+    notifyDevSimChange();
 
     if ((needFlightDeck && !onFlightDeck) || (needWarRoom && !onWarRoom)) {
       const url = resolveUrl(s.destinationUrl, missionId);
@@ -470,6 +476,8 @@ export function DevToolsPanel() {
       const keys = Object.keys(sessionStorage).filter((k) => k.startsWith("atlas_"));
       keys.forEach((k) => sessionStorage.removeItem(k));
     } catch {}
+    setActiveRole("Admin");
+    notifyDevSimChange();
     toast.success("All session flags cleared.");
   };
 
@@ -486,11 +494,11 @@ export function DevToolsPanel() {
       else sessionStorage.setItem(ROLE_KEY, role);
     } catch {}
     setActiveRole(role);
+    notifyDevSimChange();
     if (role === "Admin") {
-      toast.success("Reset to Admin. Reloading…");
-      setTimeout(() => window.location.reload(), 400);
+      toast.success("Reset to Admin — UI restored.");
     } else {
-      toast.success(`Now previewing as ${role}. Refresh to see role-specific UI.`);
+      toast.success(`Now previewing as ${role}. Role-gated UI updates live.`);
     }
   };
 

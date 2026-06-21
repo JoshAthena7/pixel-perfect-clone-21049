@@ -20,6 +20,7 @@ import { CheckInDialog } from "@/components/flight-deck/CheckInDialog";
 import { StickyNotesPanel } from "@/components/flight-deck/StickyNotesPanel";
 import { AtlasAssistBar } from "@/components/atlas/AtlasAssistBar";
 import { useIsAdmin } from "@/hooks/useAccess";
+import { useDevSim } from "@/hooks/useDevSim";
 
 import { TeamPulseCard } from "@/components/atlas/TeamPulseCard";
 import { NarrativeBriefSection } from "@/components/flight-deck/NarrativeBriefSection";
@@ -146,6 +147,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   const [checkInFor, setCheckInFor] = useState<Q | null>(null);
   const [stickyNotesFor, setStickyNotesFor] = useState<Q | null>(null);
   const [autoBriefing, setAutoBriefing] = useState<Set<string>>(new Set());
+  const sim = useDevSim();
 
   const navigate = useNavigate();
   const { isAdmin } = useIsAdmin();
@@ -440,6 +442,32 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   }, [missionId, userId]);
 
   const questions = cockpit?.questions ?? [];
+
+  // DevTools: atlas-dev-iris-loading dispatch — flash the "IRIS is briefing
+  // you…" sweep on the currently expanded question (or the first one).
+  // Reads `expanded` and `questions` via refs so the listener stays stable.
+  const expandedRef = useRef<string | null>(null);
+  const questionsRef = useRef<typeof questions>(questions);
+  expandedRef.current = expanded;
+  questionsRef.current = questions;
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const ms = ((e as CustomEvent).detail?.ms as number | undefined) ?? 5000;
+      const qid = expandedRef.current ?? questionsRef.current[0]?.id;
+      if (!qid) return;
+      // (kept simple — no per-target bookkeeping needed)
+      setAutoBriefing((prev) => new Set(prev).add(qid));
+      window.setTimeout(() => {
+        setAutoBriefing((prev) => {
+          const next = new Set(prev);
+          next.delete(qid);
+          return next;
+        });
+      }, ms);
+    };
+    window.addEventListener("atlas-dev-iris-loading", handler);
+    return () => window.removeEventListener("atlas-dev-iris-loading", handler);
+  }, []);
   const fbByQid = useMemo(() => {
     const m = new Map<string, any[]>();
     for (const f of (cockpit?.feedback ?? [])) {
@@ -602,8 +630,8 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
     return <div style={{ background: BG, minHeight: "100vh", color: "white", padding: 40 }}>Loading your cockpit…</div>;
   }
 
-  const isEmpty = questions.length === 0;
-  const showAdminView = isAdmin && isEmpty;
+  const isEmpty = questions.length === 0 || sim.emptyFlightDeck;
+  const showAdminView = isAdmin && isEmpty && !sim.emptyFlightDeck;
   const missionCode = (missionName || "").split(/\s*-\s*/)[0]?.trim() || "this mission";
   const leadMailto = engagementLead?.email
     ? `mailto:${engagementLead.email}?subject=${encodeURIComponent(`[${missionCode}] Question assignments`)}&body=${encodeURIComponent(`Hi ${engagementLead.firstName} — have my questions been assigned yet?`)}`

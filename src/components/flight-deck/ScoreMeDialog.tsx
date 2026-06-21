@@ -72,6 +72,58 @@ export function ScoreMeDialog({
     return () => window.clearInterval(id);
   }, [loading]);
 
+  // DevTools: atlas-dev-scan event — kick the scan animation without
+  // needing a real scoreMeCoach call. Runs the scan-line for ~3.5s.
+  useEffect(() => {
+    const handler = () => {
+      setScanPass((p) => p + 1);
+      let pass = 1;
+      const id = window.setInterval(() => {
+        pass += 1;
+        setScanPass(pass);
+        if (pass >= 2) window.clearInterval(id);
+      }, 1500);
+      window.setTimeout(() => window.clearInterval(id), 4000);
+    };
+    window.addEventListener("atlas-dev-scan", handler);
+    return () => window.removeEventListener("atlas-dev-scan", handler);
+  }, []);
+
+  // DevTools: atlas_dev_modal_state="results" — when the panel opens Score Me,
+  // pre-populate a sample result so admins can preview the rubric UI.
+  useEffect(() => {
+    if (!open) return;
+    let state: string | null = null;
+    try { state = sessionStorage.getItem("atlas_dev_modal_state"); } catch {}
+    if (state !== "results") return;
+    setDraft(
+      "PerformCare will develop a process within the Call Center to identify Youth involved with DCP&P and refer calls to appropriate staff. We will obtain CSOC approval prior to implementation and maintain documentation of all referrals.",
+    );
+    setResult({
+      overall_score: 7,
+      iris_verdict:
+        "Solid draft with a clear process — strengthen the measurable outcomes and explicit DCP&P coordination.",
+      what_lands: [
+        "Direct response to the question prompt.",
+        "Names the CSOC approval gate.",
+        "Reads in a recognizable PerformCare voice.",
+      ],
+      what_needs_work: [
+        "No measurable volume or cycle-time target.",
+        "DCP&P liaison role is unnamed.",
+        "Escalation SLA is implicit, not stated.",
+      ],
+      the_one_fix:
+        "Name the DCP&P liaison role and add a measurable referral SLA (e.g. 'within 1 business day').",
+      opportunities: [
+        "Cite the latest NJ DCF guidance for credibility.",
+        "Tie the process to the YouthLink case rate.",
+      ],
+      compliance_flags: [],
+    } as ScoreMeResult);
+    try { sessionStorage.removeItem("atlas_dev_modal_state"); } catch {}
+  }, [open]);
+
 
   useEffect(() => {
     if (!open) {

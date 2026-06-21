@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { refreshIrisAllForMission } from "@/lib/iris-refresh-all-for-mission.functions";
 import { seedMissionIntelligence } from "@/lib/iris-seed-mission-intelligence.functions";
 import { getIrisPipelineStatus, getIrisWiringSnapshot } from "@/lib/iris-health.functions";
+import { useDevSim } from "@/hooks/useDevSim";
 import { backfillSignalEmbeddings } from "@/lib/embeddings-backfill.functions";
 import {
   RefreshCw,
@@ -100,8 +101,29 @@ function HealthDashboard() {
     refetchInterval: 30_000,
   });
 
+  const sim = useDevSim();
   const w = wiring.data?.counts;
-  const jobs = status.data?.jobs ?? [];
+  const realJobs = status.data?.jobs ?? [];
+  // DevTools: pipeline_error sim — overlay a synthetic failed cron run so
+  // admins can preview the "failed" treatment without breaking real pg_cron.
+  const jobs = sim.pipelineError
+    ? [
+        {
+          jobid: "sim-failed",
+          jobname: "iris_nightly_pipeline (SIM)",
+          schedule: "0 6 * * *",
+          runs: [
+            {
+              status: "failed",
+              start_time: new Date().toISOString(),
+              end_time: new Date().toISOString(),
+              return_message: "SIM: connection reset by peer (atlas_sim_pipeline_error)",
+            },
+          ],
+        },
+        ...realJobs,
+      ]
+    : realJobs;
 
   const pipelineTone = (s?: string) => {
     const x = (s ?? "").toLowerCase();

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyAccess, canAccessMission } from "@/lib/access.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { useDevSim } from "@/hooks/useDevSim";
 
 // Track session readiness so we never fire authenticated server fns
 // without an Authorization header (which 500s as "Unauthorized").
@@ -54,10 +55,18 @@ export function useIsAdmin() {
 export function useMissionAccess(missionId: string | undefined) {
   const fn = useServerFn(canAccessMission);
   const hasSession = useHasSession();
+  const sim = useDevSim();
   return useQuery({
     queryKey: ["mission-access", missionId],
     enabled: !!missionId && hasSession === true,
     queryFn: () => fn({ data: { missionId: missionId! } }),
     staleTime: 60_000,
+    // DevTools role simulator — visual-only. RLS/server fns still run as the
+    // real user; we just overlay the simulated role onto the returned shape
+    // so role-gated UI re-renders as that role.
+    select: (data: any) => {
+      if (!sim.simulatedRole || !data) return data;
+      return { ...data, isAdmin: false, role: sim.simulatedRole, allowed: true };
+    },
   });
 }
