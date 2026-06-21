@@ -455,7 +455,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
       const ms = ((e as CustomEvent).detail?.ms as number | undefined) ?? 5000;
       const qid = expandedRef.current ?? questionsRef.current[0]?.id;
       if (!qid) return;
-      devLoadingTargetRef.current = qid;
+      // (kept simple — no per-target bookkeeping needed)
       setAutoBriefing((prev) => new Set(prev).add(qid));
       window.setTimeout(() => {
         setAutoBriefing((prev) => {
