@@ -141,7 +141,7 @@ export function MissionHealthSummaryCard({ missionId }: { missionId: string }) {
           <UrgentRow
             tone="red"
             icon={<AlertTriangle size={14} />}
-            text={`${s.at_risk} question${s.at_risk === 1 ? "" : "s"} need${s.at_risk === 1 ? "s" : ""} immediate attention`}
+            text={`${s.at_risk} question${s.at_risk === 1 ? "" : "s"} flagged — follow up`}
             missionId={missionId}
           />
         ) : s.watch > 0 ? (
