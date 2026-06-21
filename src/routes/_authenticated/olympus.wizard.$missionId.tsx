@@ -14,6 +14,7 @@ import { Step7Team } from "@/components/mission-wizard-v3/Step7Team";
 import { Step8Journey } from "@/components/mission-wizard-v3/Step8Journey";
 import { Step8Review } from "@/components/mission-wizard-v3/Step8Review";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useDevSim } from "@/hooks/useDevSim";
 
 type WizardMission = { id: string; name: string; status: string | null; lastStep: number };
 
