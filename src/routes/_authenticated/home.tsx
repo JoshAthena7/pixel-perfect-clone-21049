@@ -24,10 +24,10 @@ function HomeRoute() {
 
   if (data && !data.usedFallback && data.assignedCount === 1 && data.missions[0]) {
     // eslint-disable-next-line no-console
-    console.warn("[ATLAS-NAV] /home → /missions/$id/briefing (single assignment)");
+    console.warn("[ATLAS-NAV] /home → /missions/$id/flight-deck (single assignment)");
     return (
       <Navigate
-        to="/missions/$missionId/briefing"
+        to="/missions/$missionId/flight-deck"
         params={{ missionId: data.missions[0].id }}
         replace
       />
