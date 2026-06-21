@@ -102,8 +102,9 @@ function fmtUtc(
 /* ───────────────── Page ───────────────── */
 function BriefingPage() {
   const { missionId } = Route.useParams();
+  const sim = useDevSim();
 
-  const { data: mission } = useQuery({
+  const { data: missionReal } = useQuery({
     queryKey: ["briefing-mission", missionId],
     queryFn: async () => {
       const { data } = await supabase
@@ -116,10 +117,35 @@ function BriefingPage() {
       return data;
     },
   });
+  // DevTools sim: empty-mission / empty-briefing strip strategic fields so
+  // the briefing room renders the post-create zero state.
+  const mission = React.useMemo(() => {
+    if (!missionReal) return missionReal;
+    if (!sim.emptyMission && !sim.emptyBriefing) return missionReal;
+    return {
+      ...missionReal,
+      why_it_matters: null,
+      why_win: null,
+      today_focus: null,
+      how_we_win: null,
+      mission_journey: null,
+      watch_items: null,
+      leadership_broadcast: null,
+      leadership_broadcast_author: null,
+    } as typeof missionReal;
+  }, [missionReal, sim.emptyMission, sim.emptyBriefing]);
   const { data: access } = useMissionAccess(missionId);
-  const canEditBroadcast = !!(access?.isAdmin || access?.role === "founder" || access?.role === "pm");
+  const canEditBroadcast =
+    !sim.readonly && !!(access?.isAdmin || access?.role === "founder" || access?.role === "pm");
 
-  return (
+  if (sim.accessDenied) {
+    return (
+      <div style={{ background: NAVY, color: TEXT, minHeight: "100vh" }}>
+        <NotAvailable kind="mission" />
+      </div>
+    );
+  }
+
     <>
       <style>{`
         @keyframes pulse-ring {
