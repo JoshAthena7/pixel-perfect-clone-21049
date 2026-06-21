@@ -71,6 +71,10 @@ export function OracleTab({ missionId }: { missionId: string }) {
     () => (signals as any[]).filter((s) => ["approved", "pushed"].includes(s.status)).length,
     [signals]
   );
+  const pendingReviewCount = useMemo(
+    () => (signals as any[]).filter((s) => s.status === "needs_review" || s.status === "pending_review").length,
+    [signals]
+  );
 
   if (roleResolving) {
     return (
@@ -99,6 +103,20 @@ export function OracleTab({ missionId }: { missionId: string }) {
         <JumpNav active={activeSection} />
 
         <div className="flex items-center justify-end gap-2 mb-3">
+          {pendingReviewCount > 0 && (
+            <button
+              onClick={() => document.getElementById("oracle-review-queue")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              className="inline-flex items-center text-[13px] font-medium rounded transition-colors"
+              style={{
+                height: 36,
+                padding: "0 14px",
+                background: "rgba(196,154,43,0.9)",
+                color: "#0D1B3E",
+              }}
+            >
+              Review {pendingReviewCount} signal{pendingReviewCount === 1 ? "" : "s"} →
+            </button>
+          )}
           <RequestChangeButton
             surface="oracle:intelligence"
             missionId={missionId}
@@ -112,7 +130,9 @@ export function OracleTab({ missionId }: { missionId: string }) {
           signals={signals as any[]}
         />
 
-        <KeySignals signals={signals as any[]} />
+        <div id="oracle-review-queue">
+          <KeySignals signals={signals as any[]} />
+        </div>
 
         <StakeholderIntel missionId={missionId} signals={signals as any[]} />
 

@@ -484,8 +484,8 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
             <span className="text-white/45"> of </span>
             <span className="text-white/90 font-medium">{d.stats.totalQuestions ?? 0}</span>
             <span className="text-white/45"> finalized · </span>
-            <span className={(d.stats.atRiskCount ?? 0) > 0 ? "text-red-300 font-medium" : "text-white/70"}>
-              {d.stats.atRiskCount ?? 0} at risk
+            <span className={(d.stats.atRiskCount ?? 0) > 0 ? "text-red-300 font-medium" : "text-white/55"}>
+              {d.stats.atRiskCount ?? 0} {(d.stats.atRiskCount ?? 0) > 0 ? "at risk" : "flagged"}
             </span>
             <span className="text-white/45"> · </span>
             <span className="text-white/70">{d.writers.length} writers</span>
@@ -516,6 +516,36 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
           <MomentumScorePill missionId={missionId} />
         </div>
       </div>
+
+      {/* Context-sensitive primary action bar (FIVE-3 P2) */}
+      {(() => {
+        const totalAssigned = (d.writers ?? []).reduce((s: number, w: any) => s + (w.questionCount ?? 0), 0);
+        const finalizedPct = totalQuestions > 0 ? d.pipeline.ready / totalQuestions : 1;
+        let action: { text: string; target: string } | null = null;
+        if (sosCount > 0) {
+          action = { text: `${sosCount} writer${sosCount > 1 ? "s" : ""} need help — review alerts →`, target: "atc-alerts-col" };
+        } else if (totalAssigned === 0 && totalQuestions > 0) {
+          action = { text: "Assign questions to writers to get started →", target: "atc-team-col" };
+        } else if (daysToDeadline != null && daysToDeadline <= 5 && daysToDeadline >= 0 && finalizedPct < 0.8) {
+          action = { text: `${daysToDeadline} days left — ${d.pipeline.ready} of ${totalQuestions} finalized →`, target: "atc-team-col" };
+        }
+        if (!action) return null;
+        return (
+          <button
+            onClick={() => document.getElementById(action!.target)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            className="shrink-0 w-full flex items-center text-left text-[12px] hover:bg-white/[0.02] transition-colors"
+            style={{
+              height: 44,
+              padding: "0 16px",
+              background: "rgba(196,154,43,0.06)",
+              borderLeft: "3px solid rgba(196,154,43,0.6)",
+              color: "rgba(196,154,43,0.95)",
+            }}
+          >
+            {action.text}
+          </button>
+        );
+      })()}
 
       {readOnly && <ClosedMissionBanner />}
 
@@ -613,13 +643,13 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
 
       {/* Columns — single-column stack on mobile, three columns on desktop */}
       <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
-        <div className="w-full md:w-[26%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden border-b md:border-b-0 md:border-r border-white/[0.06]">
+        <div id="atc-team-col" className="w-full md:w-[26%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden border-b md:border-b-0 md:border-r border-white/[0.06]">
           {teamColumn}
         </div>
         <div className="w-full md:w-[44%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden border-b md:border-b-0 md:border-r border-white/[0.06]">
           {radarColumn}
         </div>
-        <div className="w-full md:w-[30%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden">
+        <div id="atc-alerts-col" className="w-full md:w-[30%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden">
           {alertsColumn}
         </div>
       </div>
