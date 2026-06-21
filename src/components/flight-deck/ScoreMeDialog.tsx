@@ -72,6 +72,47 @@ export function ScoreMeDialog({
     return () => window.clearInterval(id);
   }, [loading]);
 
+  // DevTools: atlas-dev-scan event — kick the scan animation without
+  // needing a real scoreMeCoach call. Runs the scan-line for ~3.5s.
+  useEffect(() => {
+    const handler = () => {
+      setScanPass((p) => p + 1);
+      let pass = 1;
+      const id = window.setInterval(() => {
+        pass += 1;
+        setScanPass(pass);
+        if (pass >= 2) window.clearInterval(id);
+      }, 1500);
+      window.setTimeout(() => window.clearInterval(id), 4000);
+    };
+    window.addEventListener("atlas-dev-scan", handler);
+    return () => window.removeEventListener("atlas-dev-scan", handler);
+  }, []);
+
+  // DevTools: atlas_dev_modal_state="results" — when the panel opens Score Me,
+  // pre-populate a sample result so admins can preview the rubric UI.
+  useEffect(() => {
+    if (!open) return;
+    let state: string | null = null;
+    try { state = sessionStorage.getItem("atlas_dev_modal_state"); } catch {}
+    if (state !== "results") return;
+    setDraft(
+      "PerformCare will develop a process within the Call Center to identify Youth involved with DCP&P and refer calls to appropriate staff. We will obtain CSOC approval prior to implementation and maintain documentation of all referrals.",
+    );
+    setResult({
+      score: 7,
+      summary: "Solid draft with a clear process — strengthen the measurable outcomes and explicit DCP&P coordination steps.",
+      rubric: [
+        { criterion: "Responsiveness", score: 8, note: "Directly addresses the question." },
+        { criterion: "Measurable outcomes", score: 5, note: "Add specific volume / cycle-time targets." },
+        { criterion: "Coordination clarity", score: 7, note: "Name the DCP&P liaison role." },
+      ],
+      authenticity: { score: 8, note: "Reads like a real PerformCare voice." },
+      gaps: ["Define escalation SLA", "Cite NJ DCF guidance"],
+    } as unknown as ScoreMeResult);
+    try { sessionStorage.removeItem("atlas_dev_modal_state"); } catch {}
+  }, [open]);
+
 
   useEffect(() => {
     if (!open) {
