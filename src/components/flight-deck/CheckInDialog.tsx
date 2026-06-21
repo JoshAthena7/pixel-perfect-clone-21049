@@ -38,7 +38,14 @@ export function CheckInDialog({ open, onOpenChange, missionId, questionId, quest
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    if (!open) { setStatus("on_track"); setNote(""); setConfidence("medium"); setNextStatus(""); setSending(false); }
+    if (!open) { setStatus("on_track"); setNote(""); setConfidence("medium"); setNextStatus(""); setSending(false); return; }
+    // DevTools: atlas_dev_modal_state — "blocked" | "sme" pre-selects the
+    // corresponding status so admins can preview that variant of the dialog.
+    let state: string | null = null;
+    try { state = sessionStorage.getItem("atlas_dev_modal_state"); } catch {}
+    if (state === "blocked") setStatus("blocked");
+    else if (state === "sme") setStatus("need_sme");
+    if (state) { try { sessionStorage.removeItem("atlas_dev_modal_state"); } catch {} }
   }, [open]);
 
   async function submit() {
