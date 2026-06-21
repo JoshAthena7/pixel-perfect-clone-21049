@@ -321,6 +321,7 @@ export function DevToolsPanel() {
       else if (modal === "evaluator_sim") sessionStorage.setItem(MODAL_STATE_KEY, "evaluator");
       else sessionStorage.removeItem(MODAL_STATE_KEY);
     } catch {}
+    notifyDevSimChange();
 
     if ((needFlightDeck && !onFlightDeck) || (needWarRoom && !onWarRoom)) {
       const url = resolveUrl(s.destinationUrl, missionId);
