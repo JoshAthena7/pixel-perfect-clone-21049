@@ -186,7 +186,14 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
       setUserId(u.id);
       const { data: p } = await supabase
         .from("profiles").select("display_name").eq("id", u.id).maybeSingle();
-      setFirstName((p?.display_name ?? u.email ?? "").split(" ")[0].split("@")[0]);
+      const raw = (p?.display_name ?? u.email ?? "").trim();
+      const first = raw.split(" ")[0].split("@")[0];
+      setFirstName(first);
+      const parts = raw.split(/\s+/).filter(Boolean);
+      const initials = parts.length >= 2
+        ? `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
+        : (first.slice(0, 2) || "U").toUpperCase();
+      setUserInitials(initials);
     })();
   }, []);
 
