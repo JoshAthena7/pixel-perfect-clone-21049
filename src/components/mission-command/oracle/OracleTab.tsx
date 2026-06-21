@@ -71,6 +71,10 @@ export function OracleTab({ missionId }: { missionId: string }) {
     () => (signals as any[]).filter((s) => ["approved", "pushed"].includes(s.status)).length,
     [signals]
   );
+  const pendingReviewCount = useMemo(
+    () => (signals as any[]).filter((s) => s.status === "needs_review" || s.status === "pending_review").length,
+    [signals]
+  );
 
   if (roleResolving) {
     return (
