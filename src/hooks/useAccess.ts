@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyAccess, canAccessMission } from "@/lib/access.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { useDevSim } from "@/hooks/useDevSim";
 
 // Track session readiness so we never fire authenticated server fns
 // without an Authorization header (which 500s as "Unauthorized").
