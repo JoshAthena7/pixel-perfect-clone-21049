@@ -44,7 +44,8 @@ function AdminMissionDetail() {
   const [cascaded, setCascaded] = useState(false);
   const journeySaverRef = useRef<null | (() => Promise<void>)>(null);
 
-  const { data: mission } = useQuery({
+  const sim = useDevSim();
+  const { data: missionReal } = useQuery({
     queryKey: ["admin-mission", missionId],
     queryFn: async (): Promise<Mission | null> => {
       const { data } = await supabase
@@ -55,6 +56,24 @@ function AdminMissionDetail() {
       return data as Mission | null;
     },
   });
+  // DevTools: atlas_sim_mission_setup — strip nullable setup fields so the
+  // Mission Setup tab renders the post-create empty state.
+  const mission = sim.missionSetup && missionReal
+    ? ({
+        ...missionReal,
+        client_name: null,
+        submission_deadline: null,
+        contract_value: null,
+        agency_name: null,
+        state: null,
+        primary_contact_name: null,
+        primary_contact_email: null,
+        procurement_type: null,
+        program_type: null,
+        blast_off_at: null,
+        iris_disclaimer: null,
+      } as Mission)
+    : missionReal;
 
   useEffect(() => {
     if (mission) {
