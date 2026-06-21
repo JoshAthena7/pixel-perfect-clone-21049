@@ -666,6 +666,8 @@ Use ONLY the mission context provided. If you don't have specific data on someth
               messages={messages}
               waitingFirstToken={waitingFirstToken && streaming}
               researchLoader={mode === "research" && streaming ? RESEARCH_LOADER_MESSAGES[researchPhase] : null}
+              missionSummary={iris.mission_summary}
+              onRetry={(history) => { void streamReply(history); }}
               onBack={clearConversation}
               onNavigate={navigateTo}
               onOpenInThread={(draft) => {
@@ -681,6 +683,7 @@ Use ONLY the mission context provided. If you don't have specific data on someth
                 }
               }}
             />
+
           )}
         </div>
 
