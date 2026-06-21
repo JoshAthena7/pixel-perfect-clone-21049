@@ -18,7 +18,7 @@ function MissionsRoute() {
 
   if (data?.isAdmin) return <MissionsListPage />;
   if (data && !data.usedFallback && data.assignedCount === 1 && data.missions[0]) {
-    return <Navigate to="/missions/$missionId/briefing" params={{ missionId: data.missions[0].id }} replace />;
+    return <Navigate to="/missions/$missionId/flight-deck" params={{ missionId: data.missions[0].id }} replace />;
   }
 
   return (
