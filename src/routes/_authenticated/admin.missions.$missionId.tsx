@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Save, Search, Plus, X, AlertCircle, GripVertical, Trash2, FileText, Shield, BookOpen, HeartPulse, Send, Users, ClipboardCheck, Route as RouteIcon, FileDown, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useDevSim } from "@/hooks/useDevSim";
 
 export const Route = createFileRoute("/_authenticated/admin/missions/$missionId")({
   component: AdminMissionDetail,
