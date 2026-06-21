@@ -61,7 +61,7 @@ function MissionsRoute() {
 function WriterMissionCardLink({ mission }: { mission: WriterMissionCard }) {
   return (
     <Link
-      to="/missions/$missionId/briefing"
+      to="/missions/$missionId/flight-deck"
       params={{ missionId: mission.id }}
       className="group rounded-lg px-4 py-4 transition-colors"
       style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)" }}
