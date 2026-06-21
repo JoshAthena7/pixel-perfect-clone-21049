@@ -52,7 +52,7 @@ export const Route = createFileRoute("/api/chat/iris")({
         let missionCtx = "(no active mission)";
         let userRoleLine = "";
         if (body.missionId) {
-          const [m, ws, sg, feed, comps, evol, atRisk] = await Promise.all([
+          const [m, ws, sg, feed, comps, evol, atRisk, sigs, allQs] = await Promise.all([
             userClient.from("missions").select("name,client_name,state,agency_name,program_type,blast_off_at").eq("id", body.missionId).maybeSingle(),
             userClient.from("mission_win_strategy").select("central_claim,north_star_message,win_themes,discriminators").eq("mission_id", body.missionId).maybeSingle(),
             userClient.from("mission_style_guide").select("voice_and_tone,political_sensitivities,cultural_sensitivities").eq("mission_id", body.missionId).maybeSingle(),
@@ -60,13 +60,27 @@ export const Route = createFileRoute("/api/chat/iris")({
             userClient.from("competitor_profiles").select("organization_name,competitor_type").eq("mission_id", body.missionId),
             userClient.from("procurement_evolution_records").select("iris_signals").eq("mission_id", body.missionId).maybeSingle(),
             userClient.from("questions").select("question_number,status").eq("mission_id", body.missionId).in("status", ["at_risk", "blocked", "overdue"]),
+            userClient.from("oracle_signals").select("id", { count: "exact", head: true }).eq("mission_id", body.missionId).in("status", ["approved", "pushed"]),
+            userClient.from("questions").select("status").eq("mission_id", body.missionId),
           ]);
           const tm = await userClient.from("mission_team_members").select("mission_role").eq("mission_id", body.missionId).eq("member_id", user.id).maybeSingle();
           const mm = m.data as { name?: string; client_name?: string; state?: string; agency_name?: string; program_type?: string; blast_off_at?: string | null } | null;
           const wt = Array.isArray(ws.data?.win_themes) ? (ws.data?.win_themes as unknown[]).map((x) => typeof x === "string" ? x : (x as { theme?: string; title?: string })?.theme ?? "").filter(Boolean) : [];
           const risks = (atRisk.data ?? []).map((q) => (q as { question_number: string | null; status: string }).question_number).filter(Boolean);
+          // Computed mission identity for the stamp.
+          const fullName = mm?.name ?? "Unknown Mission";
+          const shortCode = (fullName.split(/[-—:]/)[0] ?? fullName).trim().slice(0, 24) || "Mission";
+          const stateCode = (mm?.state ?? "—").toString().slice(0, 6).toUpperCase();
+          const days = mm?.blast_off_at ? Math.ceil((new Date(mm.blast_off_at).getTime() - Date.now()) / 86_400_000) : null;
+          const qsAll = (allQs.data ?? []) as Array<{ status: string | null }>;
+          const totalQ = qsAll.length;
+          const finalQ = qsAll.filter((q) => q.status === "finalized" || q.status === "submitted").length;
+          const sigCount = sigs.count ?? 0;
           missionCtx = [
-            `Mission: ${mm?.name ?? "?"} | Client: ${mm?.client_name ?? "?"} | State: ${mm?.state ?? "?"} | Agency: ${mm?.agency_name ?? "?"} | Program: ${mm?.program_type ?? "?"}`,
+            `Mission: ${fullName} | Short code: ${shortCode} | Client: ${mm?.client_name ?? "?"} | State: ${stateCode} | Agency: ${mm?.agency_name ?? "?"} | Program: ${mm?.program_type ?? "?"}`,
+            `Submission: ${mm?.blast_off_at ?? "(not set)"} (${days ?? "?"} days remaining)`,
+            `ORACLE intelligence: ${sigCount} approved signals available`,
+            `Progress: ${finalQ} of ${totalQ} questions finalized`,
             `Win Strategy — Central Claim: ${ws.data?.central_claim ?? "?"}`,
             `North Star: ${ws.data?.north_star_message ?? "?"}`,
             `Win Themes: ${wt.join(" | ") || "(none)"}`,
@@ -76,6 +90,7 @@ export const Route = createFileRoute("/api/chat/iris")({
             `At-risk questions: ${risks.length} (${risks.slice(0, 8).join(", ")})`,
             `Procurement Evolution: ${evol.data?.iris_signals ?? "(none)"}`,
             `Recent intelligence:\n${(feed.data ?? []).map((i) => `- ${(i as { headline: string }).headline}: ${(i as { iris_assessment: string | null }).iris_assessment ?? ""}`).join("\n") || "(none)"}`,
+            `MISSION_STAMP: ${shortCode} · ${days ?? "?"}d to submission · ${finalQ} finalized · ${sigCount} ORACLE signals`,
           ].join("\n");
           userRoleLine = `User mission role: ${(tm.data as { mission_role: string | null } | null)?.mission_role ?? "(none)"}`;
         }
@@ -88,9 +103,15 @@ export const Route = createFileRoute("/api/chat/iris")({
           body.questionId ? `Active question: ${body.questionNumber ?? ""} — ${body.questionText ?? ""}` : "",
         ].filter(Boolean).join("\n");
 
-        const systemPrompt = `You are IRIS — the AI co-pilot for the ATLAS platform, built by Athena Strategy Group. You are a Medicaid procurement intelligence expert with deep knowledge of this specific mission.
+        const systemPrompt = `You are IRIS — the AI intelligence analyst for the ATLAS platform, built by Athena Strategy Group. You are a Medicaid procurement intelligence expert assigned to ONE specific mission.
 
-Personality: Confident but never arrogant. Direct — give specific answers, not hedged ones. Strategic — connect dots others miss. Speak plainly, like a trusted colleague. Occasionally push back when the user is missing something important. Never say "As an AI" or "I cannot" — either answer or explain what context you need. Keep responses concise — never more than 200 words unless asked for a draft.
+CRITICAL GROUNDING RULES — read before answering:
+1. You ONLY discuss the mission described in "Mission context" below. NEVER reference other missions, other states, or other procurements. If "Mission context" says "(no active mission)", tell the user to open a mission first and STOP — do not invent one.
+2. NEVER invent dates, deadlines, agency names, client names, RFP numbers, or evaluation criteria. If a fact is not in the context block, say "I don't have that data — check [where in ATLAS]".
+3. ATLAS is NOT a writing tool. Writers draft their actual responses in their client environments (Word, SharePoint, Loopio). In ATLAS you brief them, give intel, surface risks, and help them coordinate. NEVER tell a user to "write their draft here", "compose in this panel", or imply ATLAS is where the final response is authored.
+4. If "Mission context" contains a line starting with "MISSION_STAMP:", you MUST end your response with that exact stamp on its own final line, prefixed with two newlines. Do not modify the stamp text. If no MISSION_STAMP is provided, do not invent one.
+
+Personality: Confident but never arrogant. Direct — give specific answers, not hedged ones. Strategic — connect dots others miss. Speak plainly, like a trusted colleague. Occasionally push back when the user is missing something important. Never say "As an AI" or "I cannot" — either answer or explain what context you need. Keep responses concise — never more than 200 words unless asked for a long-form brief.
 
 Mission context:
 ${missionCtx}
@@ -99,17 +120,18 @@ Current user context:
 ${userContextLine}
 
 Instructions:
-- When drafting content: use the Style Guide voice. Check sensitivities. Connect to Win Themes.
-- When asked about the mission: be specific — use the real data above, not generic statements.
-- When asked about risks: be honest. Name what's at risk.
-- When asked what to work on: prioritize by due dates, health status, and days to submission.
-- When asked about research: reference specific items from the recent intelligence above.
-- Never make up facts about the client, state, or procurement. If you don't have it, say so and suggest where to find it.`;
+- When asked about the mission: use the real data above, not generic statements.
+- When asked about risks: be honest. Name what's at risk by question number.
+- When asked what to work on: prioritize by days to submission and at-risk status.
+- When asked about intel: reference specific items from "Recent intelligence" above. If empty, say there is no new intel.
+- When asked to "draft", "write", or "compose": offer a strategic outline, talking points, or proof points the writer can take to their client document. Do NOT produce a final response body and do NOT imply ATLAS is the place to author it.
+- Never make up facts about the client, state, or procurement. If you don't have it, say so.`;
 
         const messages = [
           { role: "system", content: systemPrompt },
           ...body.messages,
         ];
+
 
         const upstream = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",

@@ -19,21 +19,20 @@ import {
   ChevronRight,
   X,
   Send,
-  Users,
   FileText,
-  AlertTriangle,
   Copy,
   ExternalLink,
   Globe,
   Plus,
 } from "lucide-react";
+
 import { OracleIntakeModal } from "@/components/oracle/OracleIntakeModal";
 import { useServerFn } from "@tanstack/react-start";
 import { askIrisWithSources } from "@/lib/iris/perplexity.functions";
 import ReactMarkdown from "react-markdown";
 import { IrisMark } from "@/components/iris/IrisMark";
 import { ReadAloudToggle } from "@/components/iris/ReadAloudToggle";
-import { useIris, getPageLabel } from "@/components/iris/IrisContext";
+import { useIris, getPageLabel, type IrisMissionSummary } from "@/components/iris/IrisContext";
 
 const IRIS = "#A78BFA";
 const IRIS_BORDER = "rgba(127,119,221,0.3)";
@@ -76,7 +75,10 @@ type Msg = {
   text: string;
   at: number;
   card?: CardKind;
+  isError?: boolean;
+  retryHistory?: Msg[];
 };
+
 
 const STATE_KEY = "atlas_iris_panel_state";
 
@@ -206,19 +208,13 @@ export function AskIrisPanel() {
 
   const pageLabel = useMemo(() => getPageLabel(iris.current_page), [iris.current_page]);
 
-  const contextLine = useMemo(() => {
-    if (iris.current_question_id) {
-      return `Question ${iris.current_question_number ?? ""} — ${iris.current_section_name ?? "section"}`;
-    }
-    if (iris.current_page.startsWith("/my-work")) return "My Work";
-    if (iris.current_page.startsWith("/portfolio")) return "Portfolio view";
-    if (iris.current_page.includes("tab=oracle")) return "Intelligence";
-    return pageLabel;
-  }, [iris, pageLabel]);
 
-  const placeholder = iris.current_question_id
-    ? `Ask IRIS about question ${iris.current_question_number ?? ""}...`
-    : "Ask IRIS anything about this mission...";
+  const placeholder = mode === "research"
+    ? "Ask for a full strategic analysis from cited live sources..."
+    : iris.current_question_id
+      ? `Ask about question ${iris.current_question_number ?? ""} — status, intel, risks, evaluator strategy...`
+      : "Ask about mission status, intel, risks, or evaluator strategy...";
+
 
   // ---------- Send / stream ----------
   const send = async (raw: string) => {
@@ -325,11 +321,26 @@ export function AskIrisPanel() {
     setWaitingFirstToken(true);
     const assistantId = crypto.randomUUID();
     setMessages((m) => [...m, { id: assistantId, role: "assistant", text: "", at: Date.now() }]);
+
+    // 15-second hard timeout — if no first token arrives, abort and offer retry.
+    const controller = new AbortController();
+    let firstTokenSeen = false;
+    const timeoutId = window.setTimeout(() => {
+      if (!firstTokenSeen) controller.abort();
+    }, 15_000);
+
+    const showRetryable = (text: string) => {
+      setMessages((m) => m.map((mm) => mm.id === assistantId
+        ? { ...mm, text, isError: true, retryHistory: history }
+        : mm));
+    };
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const last = history.filter((h) => h.role !== "system").slice(-10).map((h) => ({ role: h.role, content: h.text }));
       const res = await fetch("/api/chat/iris", {
         method: "POST",
+        signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
           ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
@@ -346,8 +357,8 @@ export function AskIrisPanel() {
         }),
       });
       if (!res.ok || !res.body) {
-        const errTxt = await res.text();
-        setMessages((m) => m.map((mm) => mm.id === assistantId ? { ...mm, text: errTxt || "IRIS couldn't respond. Try again." } : mm));
+        const errTxt = await res.text().catch(() => "");
+        showRetryable(errTxt || "⚡ IRIS couldn't respond. The intelligence pipeline may be catching up.");
         return;
       }
       const reader = res.body.getReader();
@@ -357,20 +368,42 @@ export function AskIrisPanel() {
         const { value, done } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
-        if (waitingFirstToken) setWaitingFirstToken(false);
+        if (!firstTokenSeen && chunk.length > 0) {
+          firstTokenSeen = true;
+          window.clearTimeout(timeoutId);
+          setWaitingFirstToken(false);
+        }
         acc += chunk;
         setMessages((m) => m.map((mm) => mm.id === assistantId ? { ...mm, text: acc } : mm));
       }
-      if (!acc) {
-        setMessages((m) => m.map((mm) => mm.id === assistantId ? { ...mm, text: "Response interrupted. Ask again?" } : mm));
+      if (!acc.trim()) {
+        showRetryable("⚡ IRIS returned an empty response. This can happen when the intelligence pipeline is catching up.");
+        return;
+      }
+      // Append mission stamp if model omitted it.
+      const ms = iris.mission_summary;
+      if (ms) {
+        const stampPattern = new RegExp(`${ms.shortCode.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}.*ORACLE signals`);
+        if (!stampPattern.test(acc)) {
+          const stamp = `${ms.shortCode} · ${ms.daysToSubmission ?? "?"}d to submission · ${ms.finalizedQuestions} finalized · ${ms.approvedSignals} ORACLE signals`;
+          setMessages((m) => m.map((mm) => mm.id === assistantId ? { ...mm, text: `${acc}\n\n${stamp}` } : mm));
+        }
       }
     } catch (e) {
-      setMessages((m) => m.map((mm) => mm.id === assistantId ? { ...mm, text: `Response interrupted. ${(e as Error).message}. Ask again?` } : mm));
+      const err = e as Error;
+      if (err.name === "AbortError") {
+        showRetryable("⚡ IRIS is taking longer than usual.");
+      } else {
+        showRetryable(`⚡ IRIS hit an error: ${err.message}`);
+      }
     } finally {
+      window.clearTimeout(timeoutId);
       setStreaming(false);
       setWaitingFirstToken(false);
     }
   };
+
+
 
   const runRisks = async (text: string) => {
     setMessages((m) => [...m, { id: crypto.randomUUID(), role: "user", text, at: Date.now() }]);
@@ -497,22 +530,23 @@ export function AskIrisPanel() {
   };
 
   // ---------- Quick action handlers ----------
-  const onFindSme = () => {
-    const ctx = iris.current_question_number ? `for question ${iris.current_question_number}` : "";
-    send(`I need subject matter expertise ${ctx}. Who in the Athena collective can help?`);
-  };
-  const onBriefMe = () => send("Give me my daily brief.");
-  const onDraftForMe = () => {
-    if (!iris.current_question_id) {
-      toast.info("Open a question first, then ask IRIS to draft a response.");
-      return;
-    }
-    send(`Draft a response for question ${iris.current_question_number ?? ""} — ${iris.current_question_text ?? ""}`);
-  };
-  const onGetHelp = () => {
-    const ctx = iris.current_question_number ? `on question ${iris.current_question_number}` : "";
-    send(`I'm stuck ${ctx}. What should I focus on to move forward?`);
-  };
+  // Brief me: structured prompt that forbids hallucination and forces real mission data.
+  const onBriefMe = () => send(
+    `Give me my mission brief for right now.
+
+Format:
+1. ONE sentence on where we are (days remaining, questions finalized vs total).
+2. The most urgent action needed today — be specific (question number, what's blocked, what needs leadership attention).
+3. Any new ORACLE intelligence from the last 48 hours that changes our strategy.
+4. One thing I should tell the team today.
+
+Use ONLY the mission context provided. If you don't have specific data on something, say "not available" — do not invent it.`,
+  );
+  // Intel update: only summarize what's actually in approved signals.
+  const onIntelUpdate = () => send(
+    `What new intelligence has ORACLE surfaced in the last 48 hours that is relevant to this mission? Summarize ONLY what's in the approved signals listed in my mission context — do not add general knowledge. If there is nothing new, say so plainly.`,
+  );
+
 
   const clearConversation = () => {
     if (messages.length > 3) {
@@ -559,13 +593,39 @@ export function AskIrisPanel() {
         className="fixed top-[64px] right-0 bottom-0 z-40 flex flex-col w-full md:w-[420px] shadow-2xl"
         style={{ background: PANEL_BG, borderLeft: `1px solid ${IRIS_BORDER}` }}
       >
-        {/* Header */}
+        {/* Header — always shows mission identity, never a URL path */}
         <div className="h-16 px-4 flex items-center justify-between" style={{ borderBottom: `1px solid rgba(127,119,221,0.2)` }}>
           <div className="flex items-center gap-2 min-w-0">
             <IrisMark className="h-6 w-6 shrink-0" />
-            <div className="min-w-0">
-              <div className="text-white text-[16px] font-medium leading-tight">IRIS</div>
-              <div className="text-[12px] text-white/55 truncate">{contextLine}</div>
+            <div className="min-w-0 flex flex-col">
+              <div className="flex items-baseline gap-2">
+                <span className="text-white text-[15px] font-medium leading-none">IRIS</span>
+                <span className="text-[10px] uppercase tracking-wider text-white/35 leading-none">Intelligence Analyst</span>
+              </div>
+              {iris.mission_summary ? (
+                <div className="mt-1 text-[11px] font-mono text-white/65 truncate">
+                  <span className="text-white/80">{iris.mission_summary.shortCode}</span>
+                  <span className="text-white/30"> · </span>
+                  <span>{iris.mission_summary.stateCode}</span>
+                  <span className="text-white/30"> · </span>
+                  <span
+                    style={{
+                      color: iris.mission_summary.daysToSubmission !== null && iris.mission_summary.daysToSubmission <= 7
+                        ? "rgba(248,113,113,0.85)" : "rgba(255,255,255,0.55)",
+                    }}
+                  >
+                    {iris.mission_summary.daysToSubmission !== null
+                      ? `${iris.mission_summary.daysToSubmission}d to submission`
+                      : "submission date not set"}
+                  </span>
+                  <span className="text-white/30"> · </span>
+                  <span>{iris.mission_summary.approvedSignals} signals</span>
+                </div>
+              ) : (
+                <div className="mt-1 text-[11px] text-white/45 truncate">
+                  {iris.current_mission_id ? "Loading mission…" : `Viewing: ${pageLabel}`}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -579,23 +639,25 @@ export function AskIrisPanel() {
           </div>
         </div>
 
+
+
         {/* Content */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3">
           {messages.length === 0 ? (
             <HomeState
               greeting={greeting ?? "How can I help with this mission?"}
               onPostUpdate={() => setUpdateOpen(true)}
-              onFindSme={onFindSme}
               onBriefMe={onBriefMe}
-              onDraftForMe={onDraftForMe}
-              onGetHelp={onGetHelp}
-              onSos={() => setSosOpen(true)}
+              onIntelUpdate={onIntelUpdate}
             />
           ) : (
+
             <ConversationState
               messages={messages}
               waitingFirstToken={waitingFirstToken && streaming}
               researchLoader={mode === "research" && streaming ? RESEARCH_LOADER_MESSAGES[researchPhase] : null}
+              missionSummary={iris.mission_summary}
+              onRetry={(history) => { void streamReply(history); }}
               onBack={clearConversation}
               onNavigate={navigateTo}
               onOpenInThread={(draft) => {
@@ -611,6 +673,7 @@ export function AskIrisPanel() {
                 }
               }}
             />
+
           )}
         </div>
 
@@ -649,40 +712,44 @@ export function AskIrisPanel() {
             </button>
           </div>
 
-          {/* Mode toggle pills */}
+          {/* Mode toggle pills — Fast cites approved signals; Deep is full strategic synthesis with live sources */}
           <div className="flex items-center gap-1.5 mt-2">
             <button
               type="button"
               onClick={() => setMode("quick")}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[12px] font-medium transition"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-medium transition"
               style={{
-                background: mode === "quick" ? "rgba(127,119,221,0.18)" : "rgba(255,255,255,0.04)",
-                border: mode === "quick" ? `0.5px solid ${IRIS_BORDER}` : "0.5px solid rgba(255,255,255,0.08)",
-                color: mode === "quick" ? "white" : "rgba(255,255,255,0.55)",
+                background: mode === "quick" ? "rgba(196,154,43,0.16)" : "rgba(255,255,255,0.04)",
+                border: mode === "quick" ? `1px solid ${GOLD}` : "0.5px solid rgba(255,255,255,0.08)",
+                color: mode === "quick" ? GOLD : "rgba(255,255,255,0.55)",
+                boxShadow: mode === "quick" ? `0 0 0 1px ${GOLD}33` : "none",
               }}
-              title="Fast answers from IRIS (no live web search)"
+              title="Fast — cites approved ORACLE signals. <3s. Use when you want a quick grounded answer."
             >
-              <span aria-hidden>⚡</span> Quick
+              <span aria-hidden>⚡</span> Fast
             </button>
+            <span className="text-white/20 text-[12px]">|</span>
             <button
               type="button"
               onClick={() => setMode("research")}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[12px] font-medium transition"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-medium transition"
               style={{
-                background: mode === "research" ? "rgba(196,154,43,0.18)" : "rgba(255,255,255,0.04)",
-                border: mode === "research" ? `0.5px solid ${GOLD}66` : "0.5px solid rgba(255,255,255,0.08)",
+                background: mode === "research" ? "rgba(196,154,43,0.16)" : "rgba(255,255,255,0.04)",
+                border: mode === "research" ? `1px solid ${GOLD}` : "0.5px solid rgba(255,255,255,0.08)",
                 color: mode === "research" ? GOLD : "rgba(255,255,255,0.55)",
+                boxShadow: mode === "research" ? `0 0 0 1px ${GOLD}33` : "none",
               }}
-              title="Searches live sources including CMS, KFF, MACPAC, and state Medicaid sites. Returns cited answers."
+              title="Deep — full strategic analysis with live cited sources from CMS, KFF, MACPAC, state Medicaid sites. 5–10s."
             >
-              <span aria-hidden>🔍</span> Research
+              <span aria-hidden>🔍</span> Deep
             </button>
             <div className="ml-auto text-[11px] text-white/35">
               {mode === "research"
-                ? "Cited live web intelligence · 3–8s"
-                : "Shift+Enter for newline · ` to toggle"}
+                ? "Cited live web · 5–10s"
+                : "Cites approved signals · <3s"}
             </div>
           </div>
+
           {iris.current_mission_id && (
             <div className="mt-1.5 flex items-center justify-end">
               <button
@@ -747,11 +814,8 @@ function staticGreeting(iris: ReturnType<typeof useIris>): string {
 function HomeState(props: {
   greeting: string;
   onPostUpdate: () => void;
-  onFindSme: () => void;
   onBriefMe: () => void;
-  onDraftForMe: () => void;
-  onGetHelp: () => void;
-  onSos: () => void;
+  onIntelUpdate: () => void;
 }) {
   return (
     <div className="space-y-4">
@@ -765,12 +829,12 @@ function HomeState(props: {
       <div>
         <div className="text-[12px] text-white/45 mb-2">What do you need?</div>
         <div className="flex flex-col gap-2">
-          <ActionCard icon={<FileText className="h-3.5 w-3.5" />} label="Brief me" sub="Today's intel summary" onClick={props.onBriefMe} />
-          <ActionCard icon={<Users className="h-3.5 w-3.5" />} label="Find an SME" sub="Get expert help fast" onClick={props.onFindSme} />
-          <ActionCard icon={<AlertTriangle className="h-3.5 w-3.5" />} label="SOS" sub="Critically blocked" onClick={props.onSos} danger />
+          <ActionCard icon={<FileText className="h-3.5 w-3.5" />} label="Brief me" sub="Today's mission status" onClick={props.onBriefMe} />
+          <ActionCard icon={<Globe className="h-3.5 w-3.5" />} label="Intel update" sub="New signals since yesterday" onClick={props.onIntelUpdate} />
         </div>
       </div>
     </div>
+
   );
 }
 
@@ -796,6 +860,8 @@ function ConversationState(props: {
   messages: Msg[];
   waitingFirstToken: boolean;
   researchLoader: string | null;
+  missionSummary: IrisMissionSummary | null;
+  onRetry: (history: Msg[]) => void;
   onBack: () => void;
   onNavigate: (href: string) => void;
   onOpenInThread: (draft: string) => void;
@@ -804,7 +870,14 @@ function ConversationState(props: {
     <div className="space-y-3">
       <button onClick={props.onBack} className="text-[12px] text-white/50 hover:text-white">↩ Start over</button>
       {props.messages.map((m) => (
-        <MessageRow key={m.id} m={m} onNavigate={props.onNavigate} onOpenInThread={props.onOpenInThread} />
+        <MessageRow
+          key={m.id}
+          m={m}
+          missionSummary={props.missionSummary}
+          onRetry={props.onRetry}
+          onNavigate={props.onNavigate}
+          onOpenInThread={props.onOpenInThread}
+        />
       ))}
       {props.researchLoader && (
         <div
@@ -826,7 +899,31 @@ function ConversationState(props: {
   );
 }
 
-function MessageRow({ m, onNavigate, onOpenInThread }: { m: Msg; onNavigate: (h: string) => void; onOpenInThread: (d: string) => void }) {
+function GroundingFooter({ summary }: { summary: IrisMissionSummary | null }) {
+  if (!summary) return null;
+  const sigs = summary.approvedSignals;
+  const dotColor = sigs > 5 ? "rgba(74,222,128,0.75)" : sigs > 0 ? "rgba(251,191,36,0.75)" : "rgba(248,113,113,0.75)";
+  const label = sigs > 0 ? `Grounded in ${sigs} approved signal${sigs === 1 ? "" : "s"}` : "No approved ORACLE signals — general knowledge";
+  return (
+    <div
+      className="mt-2 pt-1.5 flex items-center gap-1.5 text-[9px] font-mono"
+      style={{ borderTop: "1px solid rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.35)" }}
+    >
+      <span style={{ color: dotColor }}>◈</span>
+      <span>{label}</span>
+      <span style={{ color: "rgba(255,255,255,0.15)" }}>·</span>
+      <span>{summary.shortCode} · {summary.daysToSubmission ?? "?"}d remaining</span>
+    </div>
+  );
+}
+
+function MessageRow({ m, missionSummary, onRetry, onNavigate, onOpenInThread }: {
+  m: Msg;
+  missionSummary: IrisMissionSummary | null;
+  onRetry: (history: Msg[]) => void;
+  onNavigate: (h: string) => void;
+  onOpenInThread: (d: string) => void;
+}) {
   if (m.role === "system") {
     return (
       <div className="text-center text-[12px] text-white/40 py-1">{m.text}</div>
@@ -842,10 +939,12 @@ function MessageRow({ m, onNavigate, onOpenInThread }: { m: Msg; onNavigate: (h:
       </div>
     );
   }
+  const borderColor = m.isError ? "rgba(248,113,113,0.35)" : "rgba(127,119,221,0.15)";
+  const bg = m.isError ? "rgba(248,113,113,0.06)" : "rgba(127,119,221,0.08)";
   return (
     <div className="flex gap-2">
       <IrisMark className="h-3 w-3 mt-2 shrink-0" />
-      <div className="max-w-[85%] text-white text-[14px]" style={{ background: "rgba(127,119,221,0.08)", border: "0.5px solid rgba(127,119,221,0.15)", borderRadius: "0 10px 10px 10px", padding: "10px 14px" }}>
+      <div className="max-w-[85%] text-white text-[14px]" style={{ background: bg, border: `0.5px solid ${borderColor}`, borderRadius: "0 10px 10px 10px", padding: "10px 14px" }}>
         <div className="prose prose-invert prose-sm max-w-none leading-relaxed">
           <ReactMarkdown>{m.text || " "}</ReactMarkdown>
         </div>
@@ -854,11 +953,22 @@ function MessageRow({ m, onNavigate, onOpenInThread }: { m: Msg; onNavigate: (h:
         {m.card?.kind === "risks" && <RiskCardView card={m.card} onNavigate={onNavigate} />}
         {m.card?.kind === "intel" && <IntelCardView card={m.card} onNavigate={onNavigate} />}
         {m.card?.kind === "sources" && <SourcesCardView card={m.card} />}
+        {m.isError && m.retryHistory && (
+          <button
+            onClick={() => onRetry(m.retryHistory!)}
+            className="mt-2 text-[12px] px-2 py-1 rounded inline-flex items-center gap-1"
+            style={{ background: "rgba(248,113,113,0.15)", border: "0.5px solid rgba(248,113,113,0.4)", color: "rgba(255,200,200,0.95)" }}
+          >
+            Try again →
+          </button>
+        )}
+        {!m.isError && m.text && <GroundingFooter summary={missionSummary} />}
         <div className="text-[11px] text-white/35 mt-1">{fmtTime(m.at)}</div>
       </div>
     </div>
   );
 }
+
 
 function DraftCardView({ card, onOpenInThread }: { card: Extract<CardKind, { kind: "draft" }>; onOpenInThread: (d: string) => void }) {
   return (
