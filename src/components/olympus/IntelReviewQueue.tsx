@@ -8,6 +8,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
+import { AtlasSkeleton } from "@/components/ui/AtlasSkeleton";
+
 type Status = "all" | "needs_review" | "approved" | "pushed" | "dismissed" | "errors";
 type Signal = {
   id: string;
@@ -165,9 +167,10 @@ export function IntelReviewQueue({
       {/* Card list */}
       <div className="divide-y divide-white/5">
         {q.isLoading ? (
-          <div className="text-[12px] text-white/40 py-4">Loading…</div>
+          <SignalQueueSkeleton />
         ) : signals.length === 0 ? (
           <EmptyForStatus status={status} />
+
         ) : (
           signals.map((s) => (
             <Card
