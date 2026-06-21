@@ -379,3 +379,23 @@ function EmptyForStatus({ status }: { status: Status }) {
   };
   return <div className="text-[12px] text-white/40 py-8 text-center">{messages[status]}</div>;
 }
+
+function SignalQueueSkeleton() {
+  return (
+    <div className="divide-y divide-white/5">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="py-3 px-1 flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <AtlasSkeleton width={56} height={14} borderRadius={3} />
+            <AtlasSkeleton width={80} height={12} borderRadius={3} />
+            <div className="flex-1" />
+            <AtlasSkeleton width={64} height={12} borderRadius={3} />
+          </div>
+          <AtlasSkeleton width="72%" height={14} borderRadius={3} />
+          <AtlasSkeleton width="92%" height={11} borderRadius={3} />
+          <AtlasSkeleton width="60%" height={11} borderRadius={3} />
+        </div>
+      ))}
+    </div>
+  );
+}
