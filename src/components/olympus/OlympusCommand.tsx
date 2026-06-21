@@ -330,11 +330,13 @@ function OracleLeftColumn({
   const countQ = useQuery({
     queryKey: ["oracle-approved-count", missionId],
     queryFn: async () => {
+      // Count approved/pushed signals for this mission OR shared platform/state tier.
+      // Hides the "ORACLE is empty" guide whenever ≥10 usable signals exist.
       const { count } = await supabase
         .from("oracle_signals")
         .select("id", { count: "exact", head: true })
-        .eq("mission_id", missionId)
-        .in("status", ["approved", "pushed"]);
+        .in("status", ["approved", "pushed"])
+        .or(`mission_id.eq.${missionId},tier.in.(platform,state)`);
       return count ?? 0;
     },
     staleTime: 30_000,
