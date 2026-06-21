@@ -866,6 +866,8 @@ function ConversationState(props: {
   messages: Msg[];
   waitingFirstToken: boolean;
   researchLoader: string | null;
+  missionSummary: IrisMissionSummary | null;
+  onRetry: (history: Msg[]) => void;
   onBack: () => void;
   onNavigate: (href: string) => void;
   onOpenInThread: (draft: string) => void;
@@ -874,7 +876,14 @@ function ConversationState(props: {
     <div className="space-y-3">
       <button onClick={props.onBack} className="text-[12px] text-white/50 hover:text-white">↩ Start over</button>
       {props.messages.map((m) => (
-        <MessageRow key={m.id} m={m} onNavigate={props.onNavigate} onOpenInThread={props.onOpenInThread} />
+        <MessageRow
+          key={m.id}
+          m={m}
+          missionSummary={props.missionSummary}
+          onRetry={props.onRetry}
+          onNavigate={props.onNavigate}
+          onOpenInThread={props.onOpenInThread}
+        />
       ))}
       {props.researchLoader && (
         <div
@@ -896,7 +905,31 @@ function ConversationState(props: {
   );
 }
 
-function MessageRow({ m, onNavigate, onOpenInThread }: { m: Msg; onNavigate: (h: string) => void; onOpenInThread: (d: string) => void }) {
+function GroundingFooter({ summary }: { summary: IrisMissionSummary | null }) {
+  if (!summary) return null;
+  const sigs = summary.approvedSignals;
+  const dotColor = sigs > 5 ? "rgba(74,222,128,0.75)" : sigs > 0 ? "rgba(251,191,36,0.75)" : "rgba(248,113,113,0.75)";
+  const label = sigs > 0 ? `Grounded in ${sigs} approved signal${sigs === 1 ? "" : "s"}` : "No approved ORACLE signals — general knowledge";
+  return (
+    <div
+      className="mt-2 pt-1.5 flex items-center gap-1.5 text-[9px] font-mono"
+      style={{ borderTop: "1px solid rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.35)" }}
+    >
+      <span style={{ color: dotColor }}>◈</span>
+      <span>{label}</span>
+      <span style={{ color: "rgba(255,255,255,0.15)" }}>·</span>
+      <span>{summary.shortCode} · {summary.daysToSubmission ?? "?"}d remaining</span>
+    </div>
+  );
+}
+
+function MessageRow({ m, missionSummary, onRetry, onNavigate, onOpenInThread }: {
+  m: Msg;
+  missionSummary: IrisMissionSummary | null;
+  onRetry: (history: Msg[]) => void;
+  onNavigate: (h: string) => void;
+  onOpenInThread: (d: string) => void;
+}) {
   if (m.role === "system") {
     return (
       <div className="text-center text-[12px] text-white/40 py-1">{m.text}</div>
@@ -912,10 +945,12 @@ function MessageRow({ m, onNavigate, onOpenInThread }: { m: Msg; onNavigate: (h:
       </div>
     );
   }
+  const borderColor = m.isError ? "rgba(248,113,113,0.35)" : "rgba(127,119,221,0.15)";
+  const bg = m.isError ? "rgba(248,113,113,0.06)" : "rgba(127,119,221,0.08)";
   return (
     <div className="flex gap-2">
       <IrisMark className="h-3 w-3 mt-2 shrink-0" />
-      <div className="max-w-[85%] text-white text-[14px]" style={{ background: "rgba(127,119,221,0.08)", border: "0.5px solid rgba(127,119,221,0.15)", borderRadius: "0 10px 10px 10px", padding: "10px 14px" }}>
+      <div className="max-w-[85%] text-white text-[14px]" style={{ background: bg, border: `0.5px solid ${borderColor}`, borderRadius: "0 10px 10px 10px", padding: "10px 14px" }}>
         <div className="prose prose-invert prose-sm max-w-none leading-relaxed">
           <ReactMarkdown>{m.text || " "}</ReactMarkdown>
         </div>
@@ -924,11 +959,22 @@ function MessageRow({ m, onNavigate, onOpenInThread }: { m: Msg; onNavigate: (h:
         {m.card?.kind === "risks" && <RiskCardView card={m.card} onNavigate={onNavigate} />}
         {m.card?.kind === "intel" && <IntelCardView card={m.card} onNavigate={onNavigate} />}
         {m.card?.kind === "sources" && <SourcesCardView card={m.card} />}
+        {m.isError && m.retryHistory && (
+          <button
+            onClick={() => onRetry(m.retryHistory!)}
+            className="mt-2 text-[12px] px-2 py-1 rounded inline-flex items-center gap-1"
+            style={{ background: "rgba(248,113,113,0.15)", border: "0.5px solid rgba(248,113,113,0.4)", color: "rgba(255,200,200,0.95)" }}
+          >
+            Try again →
+          </button>
+        )}
+        {!m.isError && m.text && <GroundingFooter summary={missionSummary} />}
         <div className="text-[11px] text-white/35 mt-1">{fmtTime(m.at)}</div>
       </div>
     </div>
   );
 }
+
 
 function DraftCardView({ card, onOpenInThread }: { card: Extract<CardKind, { kind: "draft" }>; onOpenInThread: (d: string) => void }) {
   return (
