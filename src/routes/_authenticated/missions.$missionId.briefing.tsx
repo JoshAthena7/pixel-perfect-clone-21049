@@ -42,6 +42,8 @@ import { OpenNotesWidget } from "@/components/war-room/OpenNotesWidget";
 import { useMissionAccess } from "@/hooks/useAccess";
 import { useServerFn } from "@tanstack/react-start";
 import { getEvaluatorPriorities, generateEvaluatorPriorities } from "@/lib/evaluator-priorities.functions";
+import { useDevSim } from "@/hooks/useDevSim";
+import { NotAvailable } from "@/components/access/NotAvailable";
 
 export const Route = createFileRoute("/_authenticated/missions/$missionId/briefing")({
   component: BriefingPage,
