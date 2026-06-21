@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SplashScreen } from "@/components/splash/SplashScreen";
 import { triggerIrisBolt } from "@/lib/iris-bolt";
+import { notifyDevSimChange } from "@/hooks/useDevSim";
 
 const SUPABASE_URL =
   (import.meta as any).env?.VITE_SUPABASE_URL ?? "https://hqtmulghixcirvamdcol.supabase.co";
