@@ -208,15 +208,6 @@ export function AskIrisPanel() {
 
   const pageLabel = useMemo(() => getPageLabel(iris.current_page), [iris.current_page]);
 
-  const contextLine = useMemo(() => {
-    if (iris.current_question_id) {
-      return `Question ${iris.current_question_number ?? ""} — ${iris.current_section_name ?? "section"}`;
-    }
-    if (iris.current_page.startsWith("/my-work")) return "My Work";
-    if (iris.current_page.startsWith("/portfolio")) return "Portfolio view";
-    if (iris.current_page.includes("tab=oracle")) return "Intelligence";
-    return pageLabel;
-  }, [iris, pageLabel]);
 
   const placeholder = mode === "research"
     ? "Ask for a full strategic analysis from cited live sources..."
