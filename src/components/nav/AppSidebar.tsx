@@ -295,13 +295,28 @@ function NavRow({
           active
             ? {
                 background: "rgba(201,168,76,0.10)",
-                borderLeft: "2px solid #c9a84c",
                 paddingLeft: "calc(0.625rem - 2px)",
               }
             : undefined
         }
         title={collapsed ? label : undefined}
       >
+        {active && (
+          <span
+            aria-hidden
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 4,
+              bottom: 4,
+              width: 2,
+              background: "#c9a84c",
+              borderRadius: 2,
+              transformOrigin: "center",
+              animation: "atlas-nav-indicator-in 180ms cubic-bezier(0.25, 0, 0, 1)",
+            }}
+          />
+        )}
         {content}
       </Link>
     </li>
