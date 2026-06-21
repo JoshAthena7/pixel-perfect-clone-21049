@@ -566,27 +566,37 @@ function IrisBriefCard({ missionId, mission }: { missionId: string; mission: any
       </div>
 
       {!open && (
-        <p
-          className="mt-3"
-          style={{
-            fontSize: 13,
-            color: "rgba(255,255,255,0.55)",
-            lineHeight: 1.5,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {preview}
-        </p>
+        isFetching && !brief ? (
+          <div className="mt-3">
+            <AtlasSkeleton width="62%" height={13} />
+          </div>
+        ) : (
+          <p
+            className="mt-3"
+            style={{
+              fontSize: 13,
+              color: "rgba(255,255,255,0.55)",
+              lineHeight: 1.5,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {preview}
+          </p>
+        )
       )}
 
       {open && (
-        <div className="mt-5 flex flex-col gap-5">
-          <TodaysFocusCard missionId={missionId} mission={mission} bare />
-          <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
-          <IrisGuidanceCard mission={mission} bare />
-        </div>
+        isFetching && !brief ? (
+          <IrisBriefSkeleton />
+        ) : (
+          <div className="mt-5 flex flex-col gap-5">
+            <TodaysFocusCard missionId={missionId} mission={mission} bare />
+            <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+            <IrisGuidanceCard mission={mission} bare />
+          </div>
+        )
       )}
     </section>
   );
