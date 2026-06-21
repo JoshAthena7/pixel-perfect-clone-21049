@@ -64,7 +64,8 @@ function WizardPage() {
     },
   });
 
-  const step = search.step ?? mission?.lastStep ?? 1;
+  const sim = useDevSim();
+  const step = sim.wizardStep ?? search.step ?? mission?.lastStep ?? 1;
   const [visited, setVisited] = useState<number[]>([step]);
 
   useEffect(() => {
