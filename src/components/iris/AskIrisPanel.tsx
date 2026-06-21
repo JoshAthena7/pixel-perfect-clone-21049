@@ -500,22 +500,23 @@ export function AskIrisPanel() {
   };
 
   // ---------- Quick action handlers ----------
-  const onFindSme = () => {
-    const ctx = iris.current_question_number ? `for question ${iris.current_question_number}` : "";
-    send(`I need subject matter expertise ${ctx}. Who in the Athena collective can help?`);
-  };
-  const onBriefMe = () => send("Give me my daily brief.");
-  const onDraftForMe = () => {
-    if (!iris.current_question_id) {
-      toast.info("Open a question first, then ask IRIS to draft a response.");
-      return;
-    }
-    send(`Draft a response for question ${iris.current_question_number ?? ""} — ${iris.current_question_text ?? ""}`);
-  };
-  const onGetHelp = () => {
-    const ctx = iris.current_question_number ? `on question ${iris.current_question_number}` : "";
-    send(`I'm stuck ${ctx}. What should I focus on to move forward?`);
-  };
+  // Brief me: structured prompt that forbids hallucination and forces real mission data.
+  const onBriefMe = () => send(
+    `Give me my mission brief for right now.
+
+Format:
+1. ONE sentence on where we are (days remaining, questions finalized vs total).
+2. The most urgent action needed today — be specific (question number, what's blocked, what needs leadership attention).
+3. Any new ORACLE intelligence from the last 48 hours that changes our strategy.
+4. One thing I should tell the team today.
+
+Use ONLY the mission context provided. If you don't have specific data on something, say "not available" — do not invent it.`,
+  );
+  // Intel update: only summarize what's actually in approved signals.
+  const onIntelUpdate = () => send(
+    `What new intelligence has ORACLE surfaced in the last 48 hours that is relevant to this mission? Summarize ONLY what's in the approved signals listed in my mission context — do not add general knowledge. If there is nothing new, say so plainly.`,
+  );
+
 
   const clearConversation = () => {
     if (messages.length > 3) {
