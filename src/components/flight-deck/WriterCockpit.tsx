@@ -148,27 +148,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   const [stickyNotesFor, setStickyNotesFor] = useState<Q | null>(null);
   const [autoBriefing, setAutoBriefing] = useState<Set<string>>(new Set());
   const sim = useDevSim();
-
-  // DevTools: atlas-dev-iris-loading dispatch — flash the "IRIS is briefing
-  // you…" sweep on the currently expanded question (or the first one).
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const ms = ((e as CustomEvent).detail?.ms as number | undefined) ?? 5000;
-      const qid = expanded ?? questions[0]?.id;
-      if (!qid) return;
-      setAutoBriefing((prev) => new Set(prev).add(qid));
-      window.setTimeout(() => {
-        setAutoBriefing((prev) => {
-          const next = new Set(prev);
-          next.delete(qid);
-          return next;
-        });
-      }, ms);
-    };
-    window.addEventListener("atlas-dev-iris-loading", handler);
-    return () => window.removeEventListener("atlas-dev-iris-loading", handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expanded, questions]);
+  const devLoadingTargetRef = useRef<string | null>(null);
 
   const navigate = useNavigate();
   const { isAdmin } = useIsAdmin();
