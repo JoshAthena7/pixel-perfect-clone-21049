@@ -484,8 +484,8 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
             <span className="text-white/45"> of </span>
             <span className="text-white/90 font-medium">{d.stats.totalQuestions ?? 0}</span>
             <span className="text-white/45"> finalized · </span>
-            <span className={(d.stats.atRiskCount ?? 0) > 0 ? "text-red-300 font-medium" : "text-white/70"}>
-              {d.stats.atRiskCount ?? 0} at risk
+            <span className={(d.stats.atRiskCount ?? 0) > 0 ? "text-red-300 font-medium" : "text-white/55"}>
+              {d.stats.atRiskCount ?? 0} {(d.stats.atRiskCount ?? 0) > 0 ? "at risk" : "flagged"}
             </span>
             <span className="text-white/45"> · </span>
             <span className="text-white/70">{d.writers.length} writers</span>
