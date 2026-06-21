@@ -181,6 +181,15 @@ function OracleCanvasSlot({ missionId }: { missionId: string }) {
 /* ───────────────── 1. Hero ───────────────── */
 function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
   const navigate = useNavigate();
+  const { data: access } = useMissionAccess(missionId);
+  const role = (access?.role ?? "").toLowerCase();
+  const isManager =
+    !!access?.isAdmin ||
+    ["engagement_lead", "project_manager", "lead", "lead_writer", "founder", "pm"].includes(role);
+  const ctaLabel = isManager ? "Go to Mission Control →" : "Go to My Questions →";
+  const ctaTarget = isManager
+    ? ("/missions/$missionId/war-room" as const)
+    : ("/missions/$missionId/flight-deck" as const);
   const subDate = mission?.submission_deadline ? new Date(mission.submission_deadline) : null;
   const daysRemaining = subDate
     ? Math.max(0, Math.ceil((subDate.getTime() - Date.now()) / 86400000))
@@ -316,20 +325,21 @@ function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
             />
           </div>
           <button
-            onClick={() => navigate({ to: "/missions/$missionId/flight-deck", params: { missionId } })}
-            className="mt-6 w-full flex items-center justify-center gap-2 rounded-xl py-4 transition-all"
+            onClick={() => navigate({ to: ctaTarget, params: { missionId } })}
+            className="mt-6 w-full flex items-center justify-center gap-2 rounded transition-all"
             style={{
-              background: `linear-gradient(135deg, ${GOLD} 0%, ${GOLD_SOFT} 100%)`,
-              color: NAVY,
-              fontWeight: 800,
-              fontSize: 15,
-              letterSpacing: "0.08em",
-              boxShadow: `0 8px 24px ${GOLD}55`,
+              background: "rgba(196,154,43,0.9)",
+              color: "#ffffff",
+              fontWeight: 600,
+              fontSize: 14,
+              height: 44,
+              borderRadius: 4,
+              boxShadow: `0 8px 24px ${GOLD}44`,
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(196,154,43,1)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(196,154,43,0.9)")}
           >
-            <Plane size={18} /> ENTER FLIGHT DECK
+            <Plane size={16} /> {ctaLabel}
           </button>
         </div>
       </div>
