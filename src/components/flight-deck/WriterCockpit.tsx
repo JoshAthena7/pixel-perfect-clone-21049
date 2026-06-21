@@ -141,13 +141,41 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   const [briefOpenFor, setBriefOpenFor] = useState<Q | null>(null);
   const [scoreMeFor, setScoreMeFor] = useState<Q | null>(null);
   const [pulseOpen, setPulseOpen] = useState(false);
+  const [teamPulseOpen, setTeamPulseOpen] = useState(false);
   const [checkInFor, setCheckInFor] = useState<Q | null>(null);
   const [stickyNotesFor, setStickyNotesFor] = useState<Q | null>(null);
   const [autoBriefing, setAutoBriefing] = useState<Set<string>>(new Set());
-  
+
+  const navigate = useNavigate();
+  const { isAdmin } = useIsAdmin();
   const updateStatus = useServerFn(updateProgressStatus);
   const triggerLineOfSight = useServerFn(buildLineOfSight);
   const autoGenerateBrief = useServerFn(generateIrisBrief);
+
+  // Engagement Lead lookup for empty-state messaging.
+  const { data: engagementLead } = useQuery({
+    queryKey: ["mission-engagement-lead", missionId],
+    enabled: !!missionId,
+    queryFn: async () => {
+      const { data: mtm } = await supabase
+        .from("mission_team_members")
+        .select("member_id, mission_role")
+        .eq("mission_id", missionId)
+        .in("mission_role", ["engagement_lead", "Engagement Lead", "ENGAGEMENT_LEAD"]);
+      const memberId = mtm?.[0]?.member_id;
+      if (!memberId) return null;
+      const { data: atm } = await supabase
+        .from("atlas_team_members")
+        .select("first_name, last_name, email, avatar_url")
+        .eq("id", memberId)
+        .maybeSingle();
+      if (!atm) return null;
+      const fullName = [atm.first_name, atm.last_name].filter(Boolean).join(" ").trim() || atm.email || "Your Lead";
+      const first = (atm.first_name || atm.email || "Lead").split(/[\s@]/)[0];
+      const initials = `${(atm.first_name?.[0] ?? "").toUpperCase()}${(atm.last_name?.[0] ?? "").toUpperCase()}`.trim() || (atm.email?.[0] ?? "L").toUpperCase();
+      return { displayName: fullName, firstName: first, initials, email: atm.email as string | null, avatarUrl: atm.avatar_url as string | null };
+    },
+  });
 
   useEffect(() => {
     (async () => {
