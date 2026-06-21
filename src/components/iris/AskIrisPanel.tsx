@@ -76,7 +76,10 @@ type Msg = {
   text: string;
   at: number;
   card?: CardKind;
+  isError?: boolean;
+  retryHistory?: Msg[];
 };
+
 
 const STATE_KEY = "atlas_iris_panel_state";
 
