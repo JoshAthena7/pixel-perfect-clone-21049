@@ -54,10 +54,18 @@ export function useIsAdmin() {
 export function useMissionAccess(missionId: string | undefined) {
   const fn = useServerFn(canAccessMission);
   const hasSession = useHasSession();
+  const sim = useDevSim();
   return useQuery({
     queryKey: ["mission-access", missionId],
     enabled: !!missionId && hasSession === true,
     queryFn: () => fn({ data: { missionId: missionId! } }),
     staleTime: 60_000,
+    // DevTools role simulator — visual-only. RLS/server fns still run as the
+    // real user; we just overlay the simulated role onto the returned shape
+    // so role-gated UI re-renders as that role.
+    select: (data: any) => {
+      if (!sim.simulatedRole || !data) return data;
+      return { ...data, isAdmin: false, role: sim.simulatedRole, allowed: true };
+    },
   });
 }
