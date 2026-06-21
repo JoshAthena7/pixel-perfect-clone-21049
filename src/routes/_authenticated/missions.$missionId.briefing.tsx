@@ -2,6 +2,7 @@ import * as React from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { AtlasSkeleton } from "@/components/ui/AtlasSkeleton";
 import {
   Calendar,
   Clock,
@@ -566,29 +567,70 @@ function IrisBriefCard({ missionId, mission }: { missionId: string; mission: any
       </div>
 
       {!open && (
-        <p
-          className="mt-3"
-          style={{
-            fontSize: 13,
-            color: "rgba(255,255,255,0.55)",
-            lineHeight: 1.5,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {preview}
-        </p>
+        isFetching && !brief ? (
+          <div className="mt-3">
+            <AtlasSkeleton width="62%" height={13} />
+          </div>
+        ) : (
+          <p
+            className="mt-3"
+            style={{
+              fontSize: 13,
+              color: "rgba(255,255,255,0.55)",
+              lineHeight: 1.5,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {preview}
+          </p>
+        )
       )}
 
       {open && (
-        <div className="mt-5 flex flex-col gap-5">
-          <TodaysFocusCard missionId={missionId} mission={mission} bare />
-          <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
-          <IrisGuidanceCard mission={mission} bare />
-        </div>
+        isFetching && !brief ? (
+          <IrisBriefSkeleton />
+        ) : (
+          <div className="mt-5 flex flex-col gap-5">
+            <TodaysFocusCard missionId={missionId} mission={mission} bare />
+            <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+            <IrisGuidanceCard mission={mission} bare />
+          </div>
+        )
       )}
     </section>
+  );
+}
+
+function IrisBriefSkeleton() {
+  return (
+    <div className="mt-5 flex flex-col gap-5" aria-label="IRIS Brief loading">
+      {/* Today's Focus block */}
+      <div className="flex flex-col gap-2.5">
+        <AtlasSkeleton width={120} height={11} />
+        <AtlasSkeleton width="94%" height={13} />
+        <AtlasSkeleton width="88%" height={13} />
+        <AtlasSkeleton width="72%" height={13} />
+      </div>
+      <div style={{ height: 1, background: "rgba(255,255,255,0.08)" }} />
+      {/* IRIS Guidance bullets */}
+      <div className="flex flex-col gap-2.5">
+        <AtlasSkeleton width={140} height={11} />
+        <div className="flex items-start gap-2">
+          <AtlasSkeleton width={6} height={6} borderRadius={3} style={{ marginTop: 5 }} />
+          <AtlasSkeleton width="86%" height={12} />
+        </div>
+        <div className="flex items-start gap-2">
+          <AtlasSkeleton width={6} height={6} borderRadius={3} style={{ marginTop: 5 }} />
+          <AtlasSkeleton width="78%" height={12} />
+        </div>
+        <div className="flex items-start gap-2">
+          <AtlasSkeleton width={6} height={6} borderRadius={3} style={{ marginTop: 5 }} />
+          <AtlasSkeleton width="64%" height={12} />
+        </div>
+      </div>
+    </div>
   );
 }
 
