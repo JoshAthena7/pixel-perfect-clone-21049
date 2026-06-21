@@ -1022,6 +1022,16 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                     <div style={{ fontSize: 10, fontWeight: 700, color: GOLD, letterSpacing: "0.1em", marginBottom: 4 }}>⚡ IRIS DECODED INTENT</div>
                     <div style={{ fontSize: 12, fontStyle: "italic", color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>{q.iris_decoded_intent}</div>
                   </div>
+                ) : autoBriefing.has(q.id) || q.iris_brief_status === "generating" ? (
+                  <div style={{ background: "rgba(196,154,43,0.04)", padding: 16, borderRadius: 4 }}>
+                    <div style={{ fontSize: 11, color: GOLD, fontWeight: 600, marginBottom: 8 }}>⚡ IRIS is briefing you…</div>
+                    <div style={{ height: 2, background: "rgba(255,255,255,0.05)", overflow: "hidden", borderRadius: 2, marginBottom: 8 }}>
+                      <div style={{ width: "40%", height: "100%", background: "rgba(196,154,43,0.6)", animation: "iris-sweep 1.5s ease-in-out infinite" }} />
+                    </div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)" }}>
+                      Reading ORACLE signals · Analyzing question requirements
+                    </div>
+                  </div>
                 ) : !q.iris_brief ? (
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontStyle: "italic" }}>
                     IRIS has not decoded the intent yet.
