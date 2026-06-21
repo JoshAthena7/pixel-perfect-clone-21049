@@ -476,6 +476,8 @@ export function DevToolsPanel() {
       const keys = Object.keys(sessionStorage).filter((k) => k.startsWith("atlas_"));
       keys.forEach((k) => sessionStorage.removeItem(k));
     } catch {}
+    setActiveRole("Admin");
+    notifyDevSimChange();
     toast.success("All session flags cleared.");
   };
 
@@ -492,11 +494,11 @@ export function DevToolsPanel() {
       else sessionStorage.setItem(ROLE_KEY, role);
     } catch {}
     setActiveRole(role);
+    notifyDevSimChange();
     if (role === "Admin") {
-      toast.success("Reset to Admin. Reloading…");
-      setTimeout(() => window.location.reload(), 400);
+      toast.success("Reset to Admin — UI restored.");
     } else {
-      toast.success(`Now previewing as ${role}. Refresh to see role-specific UI.`);
+      toast.success(`Now previewing as ${role}. Role-gated UI updates live.`);
     }
   };
 
