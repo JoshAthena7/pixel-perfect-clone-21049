@@ -141,9 +141,11 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
   const [pulseOpen, setPulseOpen] = useState(false);
   const [checkInFor, setCheckInFor] = useState<Q | null>(null);
   const [stickyNotesFor, setStickyNotesFor] = useState<Q | null>(null);
+  const [autoBriefing, setAutoBriefing] = useState<Set<string>>(new Set());
   
   const updateStatus = useServerFn(updateProgressStatus);
   const triggerLineOfSight = useServerFn(buildLineOfSight);
+  const autoGenerateBrief = useServerFn(generateIrisBrief);
 
   useEffect(() => {
     (async () => {
