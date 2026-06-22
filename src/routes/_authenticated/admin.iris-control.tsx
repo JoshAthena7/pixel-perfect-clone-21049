@@ -557,3 +557,63 @@ function BackfillEmbeddingsPanel() {
     </div>
   );
 }
+
+function MorningBriefsPanel() {
+  const runFn = useServerFn(generateMorningBriefs);
+  const lastFn = useServerFn(getLastMorningBriefAt);
+
+  const last = useQuery({
+    queryKey: ["iris-control-morning-briefs-last"],
+    queryFn: () => lastFn(),
+    refetchInterval: 60_000,
+  });
+
+  const mutation = useMutation({
+    mutationFn: () => runFn(),
+    onSuccess: (res) => {
+      toast.success(
+        `Morning briefs generated — ${res.succeeded}/${res.processed} mission(s)`,
+      );
+      last.refetch();
+    },
+    onError: (e: Error) => toast.error(`Morning briefs failed: ${e.message}`),
+  });
+
+  const lastAt = last.data?.last_generated_at ?? null;
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-[14px] font-medium flex items-center gap-2">
+            <Sun className="h-4 w-4 text-amber-400" /> Morning briefs
+          </h2>
+          <p className="mt-1 text-[12px] text-muted-foreground max-w-xl">
+            Generates a 3-bullet morning brief for every active mission and posts it
+            to admin notifications (atlas_notifications · type=morning_brief). Runs
+            automatically each morning via pg_cron; this button forces a run now.
+          </p>
+          <div className="mt-2 text-[12px] font-mono text-muted-foreground">
+            Last generated: {lastAt ? `${fmtAgo(lastAt)} (${new Date(lastAt).toLocaleString()})` : "never"}
+          </div>
+        </div>
+        <Button
+          onClick={() => mutation.mutate()}
+          disabled={mutation.isPending}
+          variant="outline"
+          className="shrink-0 border-amber-500/40 text-amber-300 hover:bg-amber-500/10"
+        >
+          {mutation.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating…
+            </>
+          ) : (
+            <>
+              <Sun className="mr-2 h-4 w-4" /> Generate morning briefs now
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+}
