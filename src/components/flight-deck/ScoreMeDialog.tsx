@@ -260,7 +260,37 @@ export function ScoreMeDialog({
     }
   };
 
-  const handleAgain = () => setResult(null);
+  const handleAgain = () => { setResult(null); setEvaluator(null); };
+
+  const handleEvaluatorPreview = async () => {
+    if (!missionId || !questionId) return;
+    if (draft.trim().length < 20) {
+      toast.error("Paste a draft first.");
+      return;
+    }
+    setEvaluatorLoading(true);
+    try {
+      const r = await evaluatorRun({ data: { missionId, questionId, draftText: draft } });
+      setEvaluator(r);
+      // Refresh history to show the new entry.
+      try {
+        const { data: rows } = await supabase
+          .from("score_me_history")
+          .select("score, created_at")
+          .eq("mission_id", missionId)
+          .eq("question_id", questionId)
+          .order("created_at", { ascending: true })
+          .limit(10);
+        if (Array.isArray(rows)) {
+          setHistory(rows.map((r2: any) => ({ score: Number(r2.score), created_at: String(r2.created_at) })));
+        }
+      } catch { /* non-blocking */ }
+    } catch (e: any) {
+      toast.error("Evaluator preview failed", { description: e?.message ?? String(e) });
+    } finally {
+      setEvaluatorLoading(false);
+    }
+  };
 
   const handleGetOpening = async () => {
     if (!missionId || !questionId) {
