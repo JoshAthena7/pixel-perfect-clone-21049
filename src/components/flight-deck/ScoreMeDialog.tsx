@@ -134,6 +134,9 @@ export function ScoreMeDialog({
     if (!open) {
       setDraft("");
       setResult(null);
+      setEvaluator(null);
+      setEvaluatorLoading(false);
+      setHistory([]);
       setLoading(false);
       setPosting(false);
       setContextStatus("idle");
