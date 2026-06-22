@@ -5062,6 +5062,50 @@ export type Database = {
           },
         ]
       }
+      iris_conversation_context: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string | null
+          message_count: number
+          mission_id: string
+          recent_topics: Json | null
+          summary: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          message_count?: number
+          mission_id: string
+          recent_topics?: Json | null
+          summary?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          message_count?: number
+          mission_id?: string
+          recent_topics?: Json | null
+          summary?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iris_conversation_context_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       iris_corrections: {
         Row: {
           correct_text: string
@@ -6731,8 +6775,10 @@ export type Database = {
           elevenlabs_use_speaker_boost: boolean
           elevenlabs_voice_id: string
           evaluator_lens: string
+          evaluator_name: string | null
           evaluator_persona_name: string
           evaluator_priorities: string[]
+          known_competitors: Json | null
           language_audit_enabled: boolean
           mission_id: string
           person_first_pairs: Json
@@ -6740,6 +6786,7 @@ export type Database = {
           personality_tone: number
           state_terminology: Json
           updated_at: string
+          win_theme_keywords: string[] | null
         }
         Insert: {
           brief_citation_density?: string
@@ -6756,8 +6803,10 @@ export type Database = {
           elevenlabs_use_speaker_boost?: boolean
           elevenlabs_voice_id?: string
           evaluator_lens?: string
+          evaluator_name?: string | null
           evaluator_persona_name?: string
           evaluator_priorities?: string[]
+          known_competitors?: Json | null
           language_audit_enabled?: boolean
           mission_id: string
           person_first_pairs?: Json
@@ -6765,6 +6814,7 @@ export type Database = {
           personality_tone?: number
           state_terminology?: Json
           updated_at?: string
+          win_theme_keywords?: string[] | null
         }
         Update: {
           brief_citation_density?: string
@@ -6781,8 +6831,10 @@ export type Database = {
           elevenlabs_use_speaker_boost?: boolean
           elevenlabs_voice_id?: string
           evaluator_lens?: string
+          evaluator_name?: string | null
           evaluator_persona_name?: string
           evaluator_priorities?: string[]
+          known_competitors?: Json | null
           language_audit_enabled?: boolean
           mission_id?: string
           person_first_pairs?: Json
@@ -6790,6 +6842,7 @@ export type Database = {
           personality_tone?: number
           state_terminology?: Json
           updated_at?: string
+          win_theme_keywords?: string[] | null
         }
         Relationships: [
           {
@@ -11909,6 +11962,7 @@ export type Database = {
           accepted_at: string | null
           assigned_at: string
           assignee_id: string
+          brief_content: Json | null
           brief_export_count: number
           brief_exported_at: string | null
           brief_opened_at: string | null
@@ -11936,6 +11990,7 @@ export type Database = {
           accepted_at?: string | null
           assigned_at?: string
           assignee_id: string
+          brief_content?: Json | null
           brief_export_count?: number
           brief_exported_at?: string | null
           brief_opened_at?: string | null
@@ -11963,6 +12018,7 @@ export type Database = {
           accepted_at?: string | null
           assigned_at?: string
           assignee_id?: string
+          brief_content?: Json | null
           brief_export_count?: number
           brief_exported_at?: string | null
           brief_opened_at?: string | null
