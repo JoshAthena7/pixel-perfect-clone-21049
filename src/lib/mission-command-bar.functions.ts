@@ -259,10 +259,10 @@ export const getMissionCommandBar = createServerFn({ method: "POST" })
       if (msRow.owner_id) {
         const { data: prof } = await supabase
           .from("profiles")
-          .select("full_name, email")
+          .select("display_name, email")
           .eq("id", msRow.owner_id)
           .maybeSingle();
-        ownerName = (prof?.full_name as string) ?? (prof?.email as string) ?? null;
+        ownerName = (prof?.display_name as string) ?? (prof?.email as string) ?? null;
       }
       milestone = {
         title: msRow.title ?? msRow.milestone_type,
