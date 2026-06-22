@@ -182,6 +182,22 @@ export function ScoreMeDialog({
       } catch { /* non-blocking */ }
     })();
 
+    // Load prior Score Me history for this question (current user).
+    (async () => {
+      try {
+        const { data: rows } = await supabase
+          .from("score_me_history")
+          .select("score, created_at")
+          .eq("mission_id", missionId)
+          .eq("question_id", questionId)
+          .order("created_at", { ascending: true })
+          .limit(10);
+        if (!cancelled && Array.isArray(rows)) {
+          setHistory(rows.map((r: any) => ({ score: Number(r.score), created_at: String(r.created_at) })));
+        }
+      } catch { /* non-blocking */ }
+    })();
+
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, missionId, questionId]);
