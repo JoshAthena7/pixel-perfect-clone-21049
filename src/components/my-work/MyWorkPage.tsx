@@ -587,8 +587,24 @@ function AssignmentCard({
       }}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[14px] font-medium" style={{ color: GOLD }}>
+        <span className="text-[14px] font-medium flex items-center gap-1.5" style={{ color: GOLD }}>
           {data.question?.question_number ?? "—"}
+          {whisperCount > 0 && (
+            <span
+              title={`${whisperCount} unread Whisper${whisperCount === 1 ? "" : "s"}`}
+              className="whisper-pulse inline-flex items-center justify-center text-[11px] leading-none"
+              style={{
+                color: "#fde68a",
+                background: "rgba(196,154,43,0.18)",
+                border: "1px solid rgba(196,154,43,0.55)",
+                borderRadius: 999,
+                width: 18,
+                height: 18,
+              }}
+            >
+              ⚡
+            </span>
+          )}
         </span>
         <span
           className="text-[11px] font-medium"
