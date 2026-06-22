@@ -580,6 +580,8 @@ function MorningBriefsPanel() {
   });
 
   const lastAt = last.data?.last_generated_at ?? null;
+  const runResults = mutation.data?.results ?? [];
+  const runError = mutation.error as Error | null;
 
   return (
     <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
@@ -609,11 +611,74 @@ function MorningBriefsPanel() {
             </>
           ) : (
             <>
-              <Sun className="mr-2 h-4 w-4" /> Generate morning briefs now
+              <Sun className="mr-2 h-4 w-4" /> Generate now
             </>
           )}
         </Button>
       </div>
+
+      {mutation.isPending && (
+        <div className="mt-4 flex items-center gap-2 text-[12px] text-amber-300">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          Generating briefs across every active mission… this can take ~30s.
+        </div>
+      )}
+
+      {runError && (
+        <div className="mt-4 flex items-start gap-2 rounded-md border border-red-500/30 bg-red-500/5 px-3 py-2 text-[12px] text-red-300">
+          <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <div className="font-medium">Generation failed</div>
+            <div className="font-mono">{runError.message}</div>
+          </div>
+        </div>
+      )}
+
+      {mutation.data && (
+        <div className="mt-4 rounded-md border border-white/10 bg-black/30">
+          <div className="flex items-center justify-between border-b border-white/5 px-3 py-2 text-[12px]">
+            <span className="font-medium">
+              Last run — {new Date(mutation.data.generated_at).toLocaleTimeString()}
+            </span>
+            <span
+              className={
+                mutation.data.succeeded === mutation.data.processed
+                  ? "text-emerald-400"
+                  : mutation.data.succeeded === 0
+                  ? "text-red-400"
+                  : "text-amber-400"
+              }
+            >
+              {mutation.data.succeeded}/{mutation.data.processed} succeeded
+            </span>
+          </div>
+          {runResults.length === 0 ? (
+            <div className="px-3 py-2 text-[12px] text-muted-foreground">
+              No active missions to brief.
+            </div>
+          ) : (
+            <ul className="max-h-56 divide-y divide-white/5 overflow-y-auto">
+              {runResults.map((r) => (
+                <li key={r.mission_id} className="flex items-start gap-2 px-3 py-1.5 text-[12px]">
+                  {r.status === "ok" ? (
+                    <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                  ) : (
+                    <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-400" />
+                  )}
+                  <span className="font-mono text-muted-foreground">
+                    {r.mission_id.slice(0, 8)}…
+                  </span>
+                  <span className={r.status === "ok" ? "text-emerald-300" : "text-red-300"}>
+                    {r.status}
+                  </span>
+                  {r.error && <span className="text-red-300/80 truncate">— {r.error}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 }
+
