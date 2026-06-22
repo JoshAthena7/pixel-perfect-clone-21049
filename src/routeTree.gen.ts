@@ -73,6 +73,7 @@ import { Route as ApiPublicHooksMonitorResearchFeedsRouteImport } from './routes
 import { Route as ApiPublicHooksMonitorCustomFeedsRouteImport } from './routes/api/public/hooks/monitor-custom-feeds'
 import { Route as ApiPublicHooksMonitorCmsFeedsRouteImport } from './routes/api/public/hooks/monitor-cms-feeds'
 import { Route as ApiPublicHooksMissionClosedRouteImport } from './routes/api/public/hooks/mission-closed'
+import { Route as ApiPublicHooksIrisMorningBriefsRouteImport } from './routes/api/public/hooks/iris-morning-briefs'
 import { Route as ApiPublicHooksIrisMonitorRouteImport } from './routes/api/public/hooks/iris-monitor'
 import { Route as ApiPublicHooksIrisDailyMonitorRouteImport } from './routes/api/public/hooks/iris-daily-monitor'
 import { Route as ApiPublicHooksIrisAcademicSweepRouteImport } from './routes/api/public/hooks/iris-academic-sweep'
@@ -464,6 +465,12 @@ const ApiPublicHooksMissionClosedRoute =
     path: '/api/public/hooks/mission-closed',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksIrisMorningBriefsRoute =
+  ApiPublicHooksIrisMorningBriefsRouteImport.update({
+    id: '/api/public/hooks/iris-morning-briefs',
+    path: '/api/public/hooks/iris-morning-briefs',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksIrisMonitorRoute =
   ApiPublicHooksIrisMonitorRouteImport.update({
     id: '/api/public/hooks/iris-monitor',
@@ -739,6 +746,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/iris-academic-sweep': typeof ApiPublicHooksIrisAcademicSweepRoute
   '/api/public/hooks/iris-daily-monitor': typeof ApiPublicHooksIrisDailyMonitorRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
+  '/api/public/hooks/iris-morning-briefs': typeof ApiPublicHooksIrisMorningBriefsRoute
   '/api/public/hooks/mission-closed': typeof ApiPublicHooksMissionClosedRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
   '/api/public/hooks/monitor-custom-feeds': typeof ApiPublicHooksMonitorCustomFeedsRoute
@@ -833,6 +841,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/iris-academic-sweep': typeof ApiPublicHooksIrisAcademicSweepRoute
   '/api/public/hooks/iris-daily-monitor': typeof ApiPublicHooksIrisDailyMonitorRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
+  '/api/public/hooks/iris-morning-briefs': typeof ApiPublicHooksIrisMorningBriefsRoute
   '/api/public/hooks/mission-closed': typeof ApiPublicHooksMissionClosedRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
   '/api/public/hooks/monitor-custom-feeds': typeof ApiPublicHooksMonitorCustomFeedsRoute
@@ -933,6 +942,7 @@ export interface FileRoutesById {
   '/api/public/hooks/iris-academic-sweep': typeof ApiPublicHooksIrisAcademicSweepRoute
   '/api/public/hooks/iris-daily-monitor': typeof ApiPublicHooksIrisDailyMonitorRoute
   '/api/public/hooks/iris-monitor': typeof ApiPublicHooksIrisMonitorRoute
+  '/api/public/hooks/iris-morning-briefs': typeof ApiPublicHooksIrisMorningBriefsRoute
   '/api/public/hooks/mission-closed': typeof ApiPublicHooksMissionClosedRoute
   '/api/public/hooks/monitor-cms-feeds': typeof ApiPublicHooksMonitorCmsFeedsRoute
   '/api/public/hooks/monitor-custom-feeds': typeof ApiPublicHooksMonitorCustomFeedsRoute
@@ -1032,6 +1042,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/iris-academic-sweep'
     | '/api/public/hooks/iris-daily-monitor'
     | '/api/public/hooks/iris-monitor'
+    | '/api/public/hooks/iris-morning-briefs'
     | '/api/public/hooks/mission-closed'
     | '/api/public/hooks/monitor-cms-feeds'
     | '/api/public/hooks/monitor-custom-feeds'
@@ -1126,6 +1137,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/iris-academic-sweep'
     | '/api/public/hooks/iris-daily-monitor'
     | '/api/public/hooks/iris-monitor'
+    | '/api/public/hooks/iris-morning-briefs'
     | '/api/public/hooks/mission-closed'
     | '/api/public/hooks/monitor-cms-feeds'
     | '/api/public/hooks/monitor-custom-feeds'
@@ -1225,6 +1237,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/iris-academic-sweep'
     | '/api/public/hooks/iris-daily-monitor'
     | '/api/public/hooks/iris-monitor'
+    | '/api/public/hooks/iris-morning-briefs'
     | '/api/public/hooks/mission-closed'
     | '/api/public/hooks/monitor-cms-feeds'
     | '/api/public/hooks/monitor-custom-feeds'
@@ -1265,6 +1278,7 @@ export interface RootRouteChildren {
   ApiPublicHooksIrisAcademicSweepRoute: typeof ApiPublicHooksIrisAcademicSweepRoute
   ApiPublicHooksIrisDailyMonitorRoute: typeof ApiPublicHooksIrisDailyMonitorRoute
   ApiPublicHooksIrisMonitorRoute: typeof ApiPublicHooksIrisMonitorRoute
+  ApiPublicHooksIrisMorningBriefsRoute: typeof ApiPublicHooksIrisMorningBriefsRoute
   ApiPublicHooksMissionClosedRoute: typeof ApiPublicHooksMissionClosedRoute
   ApiPublicHooksMonitorCmsFeedsRoute: typeof ApiPublicHooksMonitorCmsFeedsRoute
   ApiPublicHooksMonitorCustomFeedsRoute: typeof ApiPublicHooksMonitorCustomFeedsRoute
@@ -1730,6 +1744,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/hooks/mission-closed'
       fullPath: '/api/public/hooks/mission-closed'
       preLoaderRoute: typeof ApiPublicHooksMissionClosedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/iris-morning-briefs': {
+      id: '/api/public/hooks/iris-morning-briefs'
+      path: '/api/public/hooks/iris-morning-briefs'
+      fullPath: '/api/public/hooks/iris-morning-briefs'
+      preLoaderRoute: typeof ApiPublicHooksIrisMorningBriefsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/iris-monitor': {
@@ -2207,6 +2228,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksIrisAcademicSweepRoute: ApiPublicHooksIrisAcademicSweepRoute,
   ApiPublicHooksIrisDailyMonitorRoute: ApiPublicHooksIrisDailyMonitorRoute,
   ApiPublicHooksIrisMonitorRoute: ApiPublicHooksIrisMonitorRoute,
+  ApiPublicHooksIrisMorningBriefsRoute: ApiPublicHooksIrisMorningBriefsRoute,
   ApiPublicHooksMissionClosedRoute: ApiPublicHooksMissionClosedRoute,
   ApiPublicHooksMonitorCmsFeedsRoute: ApiPublicHooksMonitorCmsFeedsRoute,
   ApiPublicHooksMonitorCustomFeedsRoute: ApiPublicHooksMonitorCustomFeedsRoute,
