@@ -738,7 +738,62 @@ export function ScoreMeDialog({
                 />
               )}
 
-              <div className="flex items-center gap-2 pt-1">
+              {/* Evaluator Preview output */}
+              {evaluator && (
+                <div
+                  className="rounded-lg px-3 py-3 space-y-2.5"
+                  style={{
+                    background: "rgba(196,154,43,0.06)",
+                    border: `1px solid ${GOLD}`,
+                  }}
+                >
+                  <div className="flex items-baseline justify-between gap-2">
+                    <div style={{ fontSize: 9, color: GOLD, letterSpacing: "0.12em", fontWeight: 700 }}>
+                      EVALUATOR PREVIEW · {evaluator.evaluator_name.toUpperCase()}
+                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: scoreColor(evaluator.score) }}>
+                      {evaluator.score.toFixed(1)}<span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>/10</span>
+                    </div>
+                  </div>
+                  <div className="italic text-white/90" style={{ fontSize: 12, lineHeight: 1.5 }}>
+                    “{evaluator.evaluator_signal}”
+                  </div>
+                  {evaluator.what_works.length > 0 && (
+                    <ResultCard
+                      bg="rgba(111,207,151,0.06)"
+                      border="rgba(111,207,151,0.22)"
+                      label="WHAT WORKS"
+                      labelColor="#6fcf97"
+                      items={evaluator.what_works}
+                      dotColor="#6fcf97"
+                    />
+                  )}
+                  {evaluator.what_concerns.length > 0 && (
+                    <ResultCard
+                      bg="rgba(240,128,128,0.06)"
+                      border="rgba(240,128,128,0.24)"
+                      label="WHAT CONCERNS"
+                      labelColor="#f08080"
+                      items={evaluator.what_concerns}
+                      dotColor="#f08080"
+                    />
+                  )}
+                  <div
+                    className="rounded px-2.5 py-2"
+                    style={{ background: "rgba(196,154,43,0.10)", border: "1px solid rgba(196,154,43,0.35)" }}
+                  >
+                    <div style={{ fontSize: 9, color: GOLD, letterSpacing: "0.12em", fontWeight: 700 }}>FIX</div>
+                    <div className="text-white mt-0.5" style={{ fontSize: 12.5, lineHeight: 1.5 }}>
+                      {evaluator.fix}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
+                    Revise in your writing environment. ATLAS briefs the draft — it doesn't author it.
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 pt-1 flex-wrap">
                 <Button
                   size="sm"
                   variant="outline"
@@ -747,6 +802,16 @@ export function ScoreMeDialog({
                 >
                   <RefreshCcw size={12} className="mr-1" />
                   Score again
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleEvaluatorPreview}
+                  disabled={evaluatorLoading}
+                  style={{ height: 28, fontSize: 11, borderColor: GOLD, color: GOLD }}
+                >
+                  <Eye size={12} className="mr-1" />
+                  {evaluatorLoading ? "Evaluator reading…" : evaluator ? "Re-run Evaluator Preview" : "Evaluator Preview"}
                 </Button>
                 <Button
                   size="sm"
