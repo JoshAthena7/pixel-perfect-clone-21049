@@ -75,10 +75,12 @@ export const getMissionHealthSummary = createServerFn({ method: "POST" })
     const now = Date.now();
     const live = (rows ?? []).filter((r: any) => !r.is_withdrawn);
     const counts = { healthy: 0, watch: 0, at_risk: 0, unstarted: 0, unscored: 0 };
+    let assigned = 0;
     for (const r of live) {
       const s = (r as any).health_status as string | null;
       const p = progressByQ[(r as any).id];
       const isAssigned = !!p?.assignee_id;
+      if (isAssigned) assigned++;
       const hasProblemFlag = p?.acceptance_status === "need_help" || p?.acceptance_status === "need_sme";
       const stalled = isAssigned && p?.last_activity_at && (now - new Date(p.last_activity_at).getTime()) / 3600_000 > 48;
       if (s === "healthy") counts.healthy++;
@@ -92,7 +94,7 @@ export const getMissionHealthSummary = createServerFn({ method: "POST" })
         else counts.unstarted++;
       } else counts.unscored++;
     }
-    return { total: live.length, ...counts };
+    return { total: live.length, assigned, ...counts };
   });
 
 
