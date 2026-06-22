@@ -51,8 +51,10 @@ export const Route = createFileRoute("/api/chat/iris")({
         // Build mission context (best-effort; missing context still streams).
         let missionCtx = "(no active mission)";
         let userRoleLine = "";
+        let memoryCtx = "";
+        let conversationCtx = "";
         if (body.missionId) {
-          const [m, ws, sg, feed, comps, evol, atRisk, sigs, allQs] = await Promise.all([
+          const [m, ws, sg, feed, comps, evol, atRisk, sigs, allQs, irisCfg] = await Promise.all([
             userClient.from("missions").select("name,client_name,state,agency_name,program_type,blast_off_at").eq("id", body.missionId).maybeSingle(),
             userClient.from("mission_win_strategy").select("central_claim,north_star_message,win_themes,discriminators").eq("mission_id", body.missionId).maybeSingle(),
             userClient.from("mission_style_guide").select("voice_and_tone,political_sensitivities,cultural_sensitivities").eq("mission_id", body.missionId).maybeSingle(),
@@ -62,6 +64,7 @@ export const Route = createFileRoute("/api/chat/iris")({
             userClient.from("questions").select("question_number,status").eq("mission_id", body.missionId).in("status", ["at_risk", "blocked", "overdue"]),
             userClient.from("oracle_signals").select("id", { count: "exact", head: true }).eq("mission_id", body.missionId).in("status", ["approved", "pushed"]),
             userClient.from("questions").select("status").eq("mission_id", body.missionId),
+            userClient.from("mission_iris_config").select("evaluator_name,evaluator_persona_name,evaluator_lens,evaluator_priorities,win_theme_keywords,known_competitors").eq("mission_id", body.missionId).maybeSingle(),
           ]);
           const tm = await userClient.from("mission_team_members").select("mission_role").eq("mission_id", body.missionId).eq("member_id", user.id).maybeSingle();
           const mm = m.data as { name?: string; client_name?: string; state?: string; agency_name?: string; program_type?: string; blast_off_at?: string | null } | null;
@@ -76,6 +79,10 @@ export const Route = createFileRoute("/api/chat/iris")({
           const totalQ = qsAll.length;
           const finalQ = qsAll.filter((q) => q.status === "finalized" || q.status === "submitted").length;
           const sigCount = sigs.count ?? 0;
+          const cfg = irisCfg.data as { evaluator_name?: string | null; evaluator_persona_name?: string | null; evaluator_lens?: string | null; evaluator_priorities?: string[] | null; win_theme_keywords?: string[] | null; known_competitors?: unknown } | null;
+          const evaluatorName = cfg?.evaluator_name ?? cfg?.evaluator_persona_name ?? "the evaluation committee";
+          const winKw = (cfg?.win_theme_keywords ?? []).filter(Boolean);
+          const knownComps = Array.isArray(cfg?.known_competitors) ? cfg!.known_competitors as Array<Record<string, unknown>> : [];
           missionCtx = [
             `Mission: ${fullName} | Short code: ${shortCode} | Client: ${mm?.client_name ?? "?"} | State: ${stateCode} | Agency: ${mm?.agency_name ?? "?"} | Program: ${mm?.program_type ?? "?"}`,
             `Submission: ${mm?.blast_off_at ?? "(not set)"} (${days ?? "?"} days remaining)`,
@@ -84,15 +91,69 @@ export const Route = createFileRoute("/api/chat/iris")({
             `Win Strategy — Central Claim: ${ws.data?.central_claim ?? "?"}`,
             `North Star: ${ws.data?.north_star_message ?? "?"}`,
             `Win Themes: ${wt.join(" | ") || "(none)"}`,
+            `Win Theme Keywords: ${winKw.join(", ") || "(none)"}`,
             `Discriminators: ${ws.data?.discriminators ?? "?"}`,
             `Style — Voice: ${sg.data?.voice_and_tone ?? "?"} | Political: ${sg.data?.political_sensitivities ?? "?"} | Cultural: ${sg.data?.cultural_sensitivities ?? "?"}`,
+            `Evaluator persona: ${evaluatorName}${cfg?.evaluator_lens ? ` — lens: ${cfg.evaluator_lens}` : ""}${(cfg?.evaluator_priorities ?? []).length ? ` — priorities: ${(cfg!.evaluator_priorities ?? []).join(", ")}` : ""}`,
             `Active competitors: ${(comps.data ?? []).map((c) => `${(c as { organization_name: string }).organization_name} (${(c as { competitor_type: string }).competitor_type})`).join(", ") || "(none)"}`,
+            knownComps.length ? `Known competitors (config): ${knownComps.map((c) => (c.name ?? c.organization_name ?? "?")).join(", ")}` : "",
             `At-risk questions: ${risks.length} (${risks.slice(0, 8).join(", ")})`,
             `Procurement Evolution: ${evol.data?.iris_signals ?? "(none)"}`,
             `Recent intelligence:\n${(feed.data ?? []).map((i) => `- ${(i as { headline: string }).headline}: ${(i as { iris_assessment: string | null }).iris_assessment ?? ""}`).join("\n") || "(none)"}`,
             `MISSION_STAMP: ${shortCode} · ${days ?? "?"}d to submission · ${finalQ} finalized · ${sigCount} ORACLE signals`,
-          ].join("\n");
+          ].filter(Boolean).join("\n");
           userRoleLine = `User mission role: ${(tm.data as { mission_role: string | null } | null)?.mission_role ?? "(none)"}`;
+
+          // Institutional memory: Athena patterns relevant to this state.
+          if (mm?.state) {
+            const mem = await userClient
+              .from("atlas_institutional_memory")
+              .select("pattern_type,pattern_description,confidence_score")
+              .contains("applicable_states", [mm.state])
+              .eq("suppressed", false)
+              .gte("confidence_score", 0.6)
+              .order("confidence_score", { ascending: false })
+              .limit(5);
+            const rows = (mem.data ?? []) as Array<{ pattern_type: string; pattern_description: string; confidence_score: number }>;
+            if (rows.length) {
+              memoryCtx = `Institutional memory (Athena patterns for ${stateCode}):\n${rows.map((r) => `- [${r.pattern_type}] ${r.pattern_description}`).join("\n")}`;
+            }
+          }
+
+          // Cross-session conversation context for this (user, mission).
+          const ctxRow = await userClient
+            .from("iris_conversation_context")
+            .select("summary,recent_topics,message_count,last_message_at")
+            .eq("user_id", user.id).eq("mission_id", body.missionId).maybeSingle();
+          const ctx = ctxRow.data as { summary: string | null; recent_topics: unknown; message_count: number; last_message_at: string | null } | null;
+          if (ctx && (ctx.summary || ctx.message_count > 0)) {
+            const topics = Array.isArray(ctx.recent_topics)
+              ? (ctx.recent_topics as Array<{ topic?: string }>).map((t) => t?.topic).filter(Boolean).slice(0, 5)
+              : [];
+            conversationCtx = [
+              `Prior conversation with this user on this mission (${ctx.message_count} previous messages):`,
+              ctx.summary ? `Summary: ${ctx.summary}` : "",
+              topics.length ? `Recent topics: ${topics.join(" · ")}` : "",
+            ].filter(Boolean).join("\n");
+          }
+
+          // Fire-and-forget: record this user turn into conversation context.
+          const lastUserMsg = [...body.messages].reverse().find((mm2) => mm2.role === "user")?.content ?? "";
+          if (lastUserMsg) {
+            const topic = lastUserMsg.slice(0, 80);
+            const prevTopics = Array.isArray(ctx?.recent_topics)
+              ? (ctx!.recent_topics as Array<{ topic: string; at: string }>)
+              : [];
+            const nextTopics = [{ topic, at: new Date().toISOString() }, ...prevTopics].slice(0, 10);
+            void userClient.from("iris_conversation_context").upsert({
+              user_id: user.id,
+              mission_id: body.missionId,
+              recent_topics: nextTopics,
+              message_count: (ctx?.message_count ?? 0) + 1,
+              last_message_at: new Date().toISOString(),
+              summary: ctx?.summary ?? null,
+            }, { onConflict: "user_id,mission_id" });
+          }
         }
 
         const userContextLine = [
