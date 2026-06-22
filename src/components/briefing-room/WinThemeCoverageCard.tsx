@@ -54,7 +54,7 @@ export function WinThemeCoverageCard({ missionId }: { missionId: string }) {
           .maybeSingle(),
         supabase
           .from("oracle_signals")
-          .select("headline, iris_assessment")
+          .select("title, summary")
           .eq("mission_id", missionId)
           .in("status", ["approved", "pushed"])
           .limit(200),
