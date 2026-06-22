@@ -47,10 +47,14 @@ export function ScoreMeDialog({
   const post = useServerFn(postScoreMeToThread);
   const prefetch = useServerFn(prefetchScoreMeContext);
   const gapAnalysis = useServerFn(irisScoreGapAnalysis);
+  const evaluatorRun = useServerFn(irisEvaluatorPreview);
   const assistRun = useServerFn(runAssistTool);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ScoreMeResult | null>(null);
+  const [evaluator, setEvaluator] = useState<EvaluatorPreviewResult | null>(null);
+  const [evaluatorLoading, setEvaluatorLoading] = useState(false);
+  const [history, setHistory] = useState<{ score: number; created_at: string }[]>([]);
   const [posting, setPosting] = useState(false);
   const [contextStatus, setContextStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [stuckMode, setStuckMode] = useState(false);
