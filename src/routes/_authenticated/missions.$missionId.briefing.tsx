@@ -35,6 +35,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
+import { WinThemeCoverageCard } from "@/components/briefing-room/WinThemeCoverageCard";
 import { MissionHealthSummaryCard } from "@/components/mission-command/MissionHealthSummaryCard";
 import { MissionClock } from "@/components/briefing/MissionClock";
 import { OpenNotesWidget } from "@/components/war-room/OpenNotesWidget";
@@ -178,6 +179,7 @@ function BriefingPage() {
                 only={["winThemes"]}
                 winThemesCollapsed
               />
+              <WinThemeCoverageCard missionId={missionId} />
               <IrisBriefCard missionId={missionId} mission={mission} />
               <WatchItemsCard missionId={missionId} mission={mission} />
             </div>
