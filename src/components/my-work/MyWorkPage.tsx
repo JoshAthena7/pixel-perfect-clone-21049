@@ -19,6 +19,7 @@ import { ScoreDraftPanel } from "./ScoreDraftPanel";
 import { DailyIntelligenceBanner } from "./DailyIntelligenceBanner";
 
 import { listMyRecentScores } from "@/lib/v2-home.functions";
+import { countUnreadWhispers } from "@/lib/cockpit-intel.functions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -159,6 +160,22 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
       iris.setSection(selected.question.section_id, name);
     }
     setActiveMissionIdState(selected.mission_id);
+
+    // Log a question_view row so unread Whisper counts clear once viewed.
+    const q = selected.question;
+    (async () => {
+      try {
+        const { data: me } = await supabase.auth.getUser();
+        if (!me.user) return;
+        await supabase.from("question_views").insert({
+          mission_id: selected.mission_id,
+          question_id: q.id,
+          user_id: me.user.id,
+        } as never);
+      } catch {
+        // non-fatal
+      }
+    })();
   }, [selected, iris, data?.sections]);
 
   // Mission context for header dropdown.
@@ -203,7 +220,20 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
     },
   });
 
-  // ---- Render ----
+  // Unread Whisper counts per question — drives the pulsing ⚡ on cards.
+  const countWhispersFn = useServerFn(countUnreadWhispers);
+  const { data: whisperCounts } = useQuery({
+    queryKey: ["my-work-whispers", sorted.map((s) => s.question_id).join(",")],
+    enabled: sorted.length > 0,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const pairs = sorted
+        .filter((s) => s.question)
+        .map((s) => ({ missionId: s.mission_id, questionId: s.question_id }));
+      if (pairs.length === 0) return { counts: {} as Record<string, number> };
+      return await countWhispersFn({ data: { pairs } });
+    },
+  });
 
   if (isLoading) {
     return (
@@ -301,6 +331,7 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
                   key={a.id}
                   data={a}
                   active={selectedId === a.id}
+                  whisperCount={whisperCounts?.counts?.[a.question_id] ?? 0}
                   onClick={() => setSelectedId(a.id)}
                   onAccept={async () => {
                     const { error } = await supabase
@@ -506,11 +537,13 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
 function AssignmentCard({
   data,
   active,
+  whisperCount = 0,
   onClick,
   onAccept,
 }: {
   data: Assignment & { question: Question | null; sectionName: string };
   active: boolean;
+  whisperCount?: number;
   onClick: () => void;
   onAccept: () => void;
 }) {
@@ -570,8 +603,24 @@ function AssignmentCard({
       }}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[14px] font-medium" style={{ color: GOLD }}>
+        <span className="text-[14px] font-medium flex items-center gap-1.5" style={{ color: GOLD }}>
           {data.question?.question_number ?? "—"}
+          {whisperCount > 0 && (
+            <span
+              title={`${whisperCount} unread Whisper${whisperCount === 1 ? "" : "s"}`}
+              className="whisper-pulse inline-flex items-center justify-center text-[11px] leading-none"
+              style={{
+                color: "#fde68a",
+                background: "rgba(196,154,43,0.18)",
+                border: "1px solid rgba(196,154,43,0.55)",
+                borderRadius: 999,
+                width: 18,
+                height: 18,
+              }}
+            >
+              ⚡
+            </span>
+          )}
         </span>
         <span
           className="text-[11px] font-medium"

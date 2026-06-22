@@ -24,6 +24,8 @@ import { useDevSim } from "@/hooks/useDevSim";
 
 import { TeamPulseCard } from "@/components/atlas/TeamPulseCard";
 import { NarrativeBriefSection } from "@/components/flight-deck/NarrativeBriefSection";
+import { CockpitSignalSurface } from "@/components/flight-deck/CockpitSignalSurface";
+import { CompetitorAngleCollapsible } from "@/components/flight-deck/CompetitorAngleCollapsible";
 
 const BG = "#060f1a";
 const CARD = "#0a1828";
@@ -83,21 +85,21 @@ function getIrisActionPrompt(q: {
     return "Start here — generate or open your IRIS brief to understand what the evaluator wants.";
   }
   if (!q.brief_exported_at) {
-    return "Your brief is ready. Export it to your writing environment before you start drafting.";
+    return "Your brief is ready. Export it to your writing environment when you're ready to start.";
   }
   const simple = dbToSimple(q.progress_status);
   if (simple === "drafting" && !q.writer_confidence) {
-    return "Drafting is underway. Set your confidence so your lead knows how you're feeling about this one.";
+    return "Drafting is underway in your writing environment. Set your confidence so your lead knows how you're feeling about this one.";
   }
   if (simple === "drafting" && q.writer_confidence === "low") {
-    return "Low confidence flagged. Consider running Score Me on your draft or requesting SME support.";
+    return "Low confidence flagged. Run Score Me on your draft or request SME support.";
   }
   if (simple === "drafting" && q.writer_confidence === "high") {
     return "Looking strong. When your draft is complete, move to In Review so your lead can check it.";
   }
   if (simple === "in_review") return "In review with your lead. No action needed until feedback comes back.";
   if (simple === "finalized") return "Finalized ✓ — this question is complete.";
-  return "Open your IRIS brief, draft your response, and check in when done.";
+  return "Open your IRIS brief, export to your writing environment, and check in when done.";
 }
 
 type Q = {
@@ -989,6 +991,12 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
             {/* IRIS action prompt — deterministic, instant */}
             <IrisActionBand text={getIrisActionPrompt(q)} />
 
+            {/* Auto-surfaced ORACLE signals — no click required */}
+            <CockpitSignalSurface missionId={missionId} questionId={q.id} />
+
+            {/* Competitor angle — collapsed by default, AI fires on open */}
+            <CompetitorAngleCollapsible missionId={missionId} questionId={q.id} />
+
             {/* Question context strip */}
             <QuestionContextStrip q={q} />
 
@@ -1237,8 +1245,8 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                       ? <button onClick={() => handleOpenBrief(q)} style={btn(GOLD)}><FileText size={12}/> View Brief</button>
                       : <button onClick={() => handleOpenBrief(q)} style={btn(GOLD, true)}><Sparkles size={12}/> Open Brief</button>
                   )}
-                  {q.brief_exported_at && <button onClick={() => handleExportBrief(q)} style={btn("#6b7280")}><Download size={12}/> Re-export</button>}
-                  {!q.brief_exported_at && q.iris_brief && <button onClick={() => handleExportBrief(q)} style={btn("#6b7280")}><Download size={12}/> Export Brief</button>}
+                  {q.brief_exported_at && <button onClick={() => handleExportBrief(q)} style={btn("#6b7280")}><Download size={12}/> Re-export to my writing environment →</button>}
+                  {!q.brief_exported_at && q.iris_brief && <button onClick={() => handleExportBrief(q)} style={btn(GOLD, true)}><Download size={12}/> Export to my writing environment →</button>}
                   {q.iris_brief_status === "stale" && <span style={{ fontSize: 11, color: AMBER }}>⚠ Brief is stale — admin must regenerate</span>}
                 </div>
                 {q.iris_brief && <GroundingIndicator brief={q.iris_brief} />}
