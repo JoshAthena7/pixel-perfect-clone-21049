@@ -78,8 +78,8 @@ export function WinThemeCoverageCard({ missionId }: { missionId: string }) {
           return { title, keywords: Array.from(new Set([...themeTokens, ...matchingCfg.map(normalize)])) };
         });
 
-      const signals = (sigRes.data ?? []) as Array<{ headline: string; iris_assessment: string | null }>;
-      const haystacks = signals.map((s) => normalize(`${s.headline} ${s.iris_assessment ?? ""}`));
+      const signals = (sigRes.data ?? []) as Array<{ title: string | null; summary: string | null }>;
+      const haystacks = signals.map((s) => normalize(`${s.title ?? ""} ${s.summary ?? ""}`));
 
       const coverages = themes.map((th) => {
         const matched = haystacks.filter((h) =>
