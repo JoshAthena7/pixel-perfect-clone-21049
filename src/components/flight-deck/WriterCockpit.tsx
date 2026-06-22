@@ -24,6 +24,8 @@ import { useDevSim } from "@/hooks/useDevSim";
 
 import { TeamPulseCard } from "@/components/atlas/TeamPulseCard";
 import { NarrativeBriefSection } from "@/components/flight-deck/NarrativeBriefSection";
+import { CockpitSignalSurface } from "@/components/flight-deck/CockpitSignalSurface";
+import { CompetitorAngleCollapsible } from "@/components/flight-deck/CompetitorAngleCollapsible";
 
 const BG = "#060f1a";
 const CARD = "#0a1828";
