@@ -7491,6 +7491,47 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_phases: {
+        Row: {
+          created_at: string
+          id: string
+          mission_id: string
+          owner: string | null
+          phase_name: string
+          phase_order: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mission_id: string
+          owner?: string | null
+          phase_name: string
+          phase_order: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mission_id?: string
+          owner?: string | null
+          phase_name?: string
+          phase_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_phases_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mission_proof_points: {
         Row: {
           created_at: string
@@ -8963,6 +9004,9 @@ export type Database = {
           brief_status: string
           brief_version: number
           client_name: string | null
+          confidence_score: number | null
+          confidence_score_trend: number
+          confidence_score_updated_at: string | null
           contract_value: number | null
           created_at: string
           created_by: string | null
@@ -9022,6 +9066,9 @@ export type Database = {
           brief_status?: string
           brief_version?: number
           client_name?: string | null
+          confidence_score?: number | null
+          confidence_score_trend?: number
+          confidence_score_updated_at?: string | null
           contract_value?: number | null
           created_at?: string
           created_by?: string | null
@@ -9081,6 +9128,9 @@ export type Database = {
           brief_status?: string
           brief_version?: number
           client_name?: string | null
+          confidence_score?: number | null
+          confidence_score_trend?: number
+          confidence_score_updated_at?: string | null
           contract_value?: number | null
           created_at?: string
           created_by?: string | null
