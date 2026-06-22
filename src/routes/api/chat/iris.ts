@@ -177,7 +177,7 @@ Personality: Confident but never arrogant. Direct — give specific answers, not
 Mission context:
 ${missionCtx}
 
-Current user context:
+${memoryCtx ? memoryCtx + "\n\n" : ""}${conversationCtx ? conversationCtx + "\n\n" : ""}Current user context:
 ${userContextLine}
 
 Instructions:
