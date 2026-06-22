@@ -7867,6 +7867,96 @@ export type Database = {
           },
         ]
       }
+      mission_radar_signals: {
+        Row: {
+          body: string | null
+          category: string
+          confidence: number
+          created_at: string
+          decayed_at: string | null
+          deep_link: string | null
+          headline: string
+          id: string
+          impact: number
+          iris_rationale: string | null
+          mission_id: string
+          proximity: number
+          resolved_at: string | null
+          ring: string
+          score: number
+          severity: string
+          source_id: string | null
+          source_table: string | null
+          updated_at: string
+          urgency: number
+        }
+        Insert: {
+          body?: string | null
+          category: string
+          confidence?: number
+          created_at?: string
+          decayed_at?: string | null
+          deep_link?: string | null
+          headline: string
+          id?: string
+          impact?: number
+          iris_rationale?: string | null
+          mission_id: string
+          proximity?: number
+          resolved_at?: string | null
+          ring?: string
+          score?: number
+          severity?: string
+          source_id?: string | null
+          source_table?: string | null
+          updated_at?: string
+          urgency?: number
+        }
+        Update: {
+          body?: string | null
+          category?: string
+          confidence?: number
+          created_at?: string
+          decayed_at?: string | null
+          deep_link?: string | null
+          headline?: string
+          id?: string
+          impact?: number
+          iris_rationale?: string | null
+          mission_id?: string
+          proximity?: number
+          resolved_at?: string | null
+          ring?: string
+          score?: number
+          severity?: string
+          source_id?: string | null
+          source_table?: string | null
+          updated_at?: string
+          urgency?: number
+        }
+        Relationships: []
+      }
+      mission_radar_snapshots: {
+        Row: {
+          captured_at: string
+          id: string
+          mission_id: string
+          signals: Json
+        }
+        Insert: {
+          captured_at?: string
+          id?: string
+          mission_id: string
+          signals?: Json
+        }
+        Update: {
+          captured_at?: string
+          id?: string
+          mission_id?: string
+          signals?: Json
+        }
+        Relationships: []
+      }
       mission_readiness: {
         Row: {
           assignments_reviewed: boolean | null
