@@ -521,11 +521,13 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
 function AssignmentCard({
   data,
   active,
+  whisperCount = 0,
   onClick,
   onAccept,
 }: {
   data: Assignment & { question: Question | null; sectionName: string };
   active: boolean;
+  whisperCount?: number;
   onClick: () => void;
   onAccept: () => void;
 }) {
