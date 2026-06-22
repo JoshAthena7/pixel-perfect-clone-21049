@@ -624,6 +624,30 @@ export function ScoreMeDialog({
                 </div>
               </div>
 
+              {/* Score arc — prior scores for this question */}
+              {history.length > 0 && (
+                <div
+                  className="flex items-center gap-2 flex-wrap"
+                  style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}
+                >
+                  <span style={{ letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>
+                    SCORE ARC
+                  </span>
+                  {history.map((h, i) => (
+                    <span key={i} className="inline-flex items-center gap-2">
+                      <span style={{ color: scoreColor(h.score), fontWeight: 600 }}>
+                        {h.score.toFixed(1)}
+                      </span>
+                      {i < history.length - 1 && <span style={{ color: "rgba(255,255,255,0.3)" }}>→</span>}
+                    </span>
+                  ))}
+                  <span style={{ color: "rgba(255,255,255,0.3)" }}>→</span>
+                  <span style={{ color: scoreColor(result.overall_score), fontWeight: 700 }}>
+                    {result.overall_score.toFixed(1)} now
+                  </span>
+                </div>
+              )}
+
               {/* IRIS verdict */}
               <div
                 className="rounded-lg px-3 py-3 flex items-start gap-2"
