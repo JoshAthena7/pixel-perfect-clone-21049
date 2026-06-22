@@ -160,6 +160,21 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
       iris.setSection(selected.question.section_id, name);
     }
     setActiveMissionIdState(selected.mission_id);
+
+    // Log a question_view row so unread Whisper counts clear once viewed.
+    (async () => {
+      try {
+        const { data: me } = await supabase.auth.getUser();
+        if (!me.user) return;
+        await supabase.from("question_views").insert({
+          mission_id: selected.mission_id,
+          question_id: selected.question.id,
+          user_id: me.user.id,
+        } as never);
+      } catch {
+        // non-fatal
+      }
+    })();
   }, [selected, iris, data?.sections]);
 
   // Mission context for header dropdown.
