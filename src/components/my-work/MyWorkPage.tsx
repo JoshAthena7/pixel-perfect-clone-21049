@@ -20,7 +20,6 @@ import { DailyIntelligenceBanner } from "./DailyIntelligenceBanner";
 
 import { listMyRecentScores } from "@/lib/v2-home.functions";
 import { countUnreadWhispers } from "@/lib/cockpit-intel.functions";
-import { useServerFn as useServerFn2 } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
