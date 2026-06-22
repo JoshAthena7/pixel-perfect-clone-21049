@@ -9,6 +9,11 @@ import { getIrisPipelineStatus, getIrisWiringSnapshot } from "@/lib/iris-health.
 import { useDevSim } from "@/hooks/useDevSim";
 import { backfillSignalEmbeddings } from "@/lib/embeddings-backfill.functions";
 import {
+  generateMorningBriefs,
+  getLastMorningBriefAt,
+} from "@/lib/iris-morning-briefs.functions";
+import { Sun } from "lucide-react";
+import {
   RefreshCw,
   Loader2,
   CheckCircle2,
