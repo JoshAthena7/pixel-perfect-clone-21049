@@ -162,13 +162,14 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
     setActiveMissionIdState(selected.mission_id);
 
     // Log a question_view row so unread Whisper counts clear once viewed.
+    const q = selected.question;
     (async () => {
       try {
         const { data: me } = await supabase.auth.getUser();
         if (!me.user) return;
         await supabase.from("question_views").insert({
           mission_id: selected.mission_id,
-          question_id: selected.question.id,
+          question_id: q.id,
           user_id: me.user.id,
         } as never);
       } catch {
