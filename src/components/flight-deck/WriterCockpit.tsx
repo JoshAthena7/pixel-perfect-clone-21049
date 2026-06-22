@@ -991,6 +991,12 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
             {/* IRIS action prompt — deterministic, instant */}
             <IrisActionBand text={getIrisActionPrompt(q)} />
 
+            {/* Auto-surfaced ORACLE signals — no click required */}
+            <CockpitSignalSurface missionId={missionId} questionId={q.id} />
+
+            {/* Competitor angle — collapsed by default, AI fires on open */}
+            <CompetitorAngleCollapsible missionId={missionId} questionId={q.id} />
+
             {/* Question context strip */}
             <QuestionContextStrip q={q} />
 
