@@ -1245,8 +1245,8 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
                       ? <button onClick={() => handleOpenBrief(q)} style={btn(GOLD)}><FileText size={12}/> View Brief</button>
                       : <button onClick={() => handleOpenBrief(q)} style={btn(GOLD, true)}><Sparkles size={12}/> Open Brief</button>
                   )}
-                  {q.brief_exported_at && <button onClick={() => handleExportBrief(q)} style={btn("#6b7280")}><Download size={12}/> Re-export</button>}
-                  {!q.brief_exported_at && q.iris_brief && <button onClick={() => handleExportBrief(q)} style={btn("#6b7280")}><Download size={12}/> Export Brief</button>}
+                  {q.brief_exported_at && <button onClick={() => handleExportBrief(q)} style={btn("#6b7280")}><Download size={12}/> Re-export to my writing environment →</button>}
+                  {!q.brief_exported_at && q.iris_brief && <button onClick={() => handleExportBrief(q)} style={btn(GOLD, true)}><Download size={12}/> Export to my writing environment →</button>}
                   {q.iris_brief_status === "stale" && <span style={{ fontSize: 11, color: AMBER }}>⚠ Brief is stale — admin must regenerate</span>}
                 </div>
                 {q.iris_brief && <GroundingIndicator brief={q.iris_brief} />}
