@@ -40,19 +40,23 @@ export function MissionHealthSummaryCard({ missionId }: { missionId: string }) {
     staleTime: 5 * 60 * 1000,
   });
 
-  const s = data ?? { total: 0, healthy: 0, watch: 0, at_risk: 0, unstarted: 0, unscored: 0 };
+  const s = data ?? { total: 0, assigned: 0, healthy: 0, watch: 0, at_risk: 0, unstarted: 0, unscored: 0 };
+  const noAssignments = s.total > 0 && s.assigned === 0;
   const dotColor =
     s.at_risk > 0 ? "#ef4444" : s.watch > 0 ? "#f59e0b" : "#4ade80";
   const dotPulse = s.at_risk > 0;
   const pct = s.total > 0 ? Math.round((s.healthy / s.total) * 100) : 0;
 
-  const cells: Array<{ key: string; label: string; value: number; color: string; pulse?: boolean }> = [
+  const allCells: Array<{ key: string; label: string; value: number; color: string; pulse?: boolean }> = [
     { key: "healthy", label: "Healthy", value: s.healthy, color: "#4ade80" },
     { key: "watch", label: "Watch", value: s.watch, color: "#f59e0b" },
     { key: "at_risk", label: "At Risk", value: s.at_risk, color: "#ef4444", pulse: s.at_risk > 0 },
     { key: "unstarted", label: "Unstarted", value: s.unstarted, color: "#94a3b8" },
     { key: "unscored", label: "Unscored", value: s.unscored, color: "#64748b" },
-  ].filter((c) => c.value > 0);
+  ];
+  // Hide raw "Unstarted" tile when there are no assignments at all — the
+  // number is misleading on a fresh mission.
+  const cells = allCells.filter((c) => c.value > 0 && !(c.key === "unstarted" && noAssignments));
 
   return (
     <section style={glass}>
