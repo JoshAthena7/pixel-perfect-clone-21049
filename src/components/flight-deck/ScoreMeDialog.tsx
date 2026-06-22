@@ -11,6 +11,7 @@ import {
 } from "@/lib/score-me-coach.functions";
 import { prefetchScoreMeContext } from "@/lib/score-me-prefetch.functions";
 import { irisScoreGapAnalysis } from "@/lib/iris-score-gap-analysis.functions";
+import { irisEvaluatorPreview, type EvaluatorPreviewResult } from "@/lib/iris-evaluator-preview.functions";
 import { runAssistTool } from "@/lib/atlas-assist.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { triggerIrisBolt } from "@/lib/iris-bolt";
