@@ -204,7 +204,20 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
     },
   });
 
-  // ---- Render ----
+  // Unread Whisper counts per question — drives the pulsing ⚡ on cards.
+  const countWhispersFn = useServerFn(countUnreadWhispers);
+  const { data: whisperCounts } = useQuery({
+    queryKey: ["my-work-whispers", sorted.map((s) => s.question_id).join(",")],
+    enabled: sorted.length > 0,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const pairs = sorted
+        .filter((s) => s.question)
+        .map((s) => ({ missionId: s.mission_id, questionId: s.question_id }));
+      if (pairs.length === 0) return { counts: {} as Record<string, number> };
+      return await countWhispersFn({ data: { pairs } });
+    },
+  });
 
   if (isLoading) {
     return (
