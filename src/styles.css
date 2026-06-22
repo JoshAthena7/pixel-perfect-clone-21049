@@ -912,3 +912,10 @@ html[data-write-mode="on"] .studio-body > .studio-left { border-right: none !imp
 }
 .iris-ask-btn:hover .iris-ask-shimmer { opacity: 1; }
 @keyframes iris-spin { to { transform: rotate(360deg); } }
+
+/* Unread Whisper pulse for question cards (My Work / cockpit). */
+@keyframes whisper-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(196,154,43,0.45); transform: scale(1); }
+  50%      { box-shadow: 0 0 0 5px rgba(196,154,43,0); transform: scale(1.08); }
+}
+.whisper-pulse { animation: whisper-pulse 1.6s ease-in-out infinite; }
