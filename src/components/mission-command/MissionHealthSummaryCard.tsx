@@ -30,7 +30,7 @@ const cardLabel: React.CSSProperties = {
   fontWeight: 700,
 };
 
-type Summary = { total: number; healthy: number; watch: number; at_risk: number; unstarted: number; unscored: number };
+type Summary = { total: number; assigned: number; healthy: number; watch: number; at_risk: number; unstarted: number; unscored: number };
 
 export function MissionHealthSummaryCard({ missionId }: { missionId: string }) {
   const fetchSummary = useServerFn(getMissionHealthSummary);
