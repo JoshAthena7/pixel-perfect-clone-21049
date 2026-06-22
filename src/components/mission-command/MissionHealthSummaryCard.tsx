@@ -127,9 +127,12 @@ export function MissionHealthSummaryCard({ missionId }: { missionId: string }) {
           />
         </div>
         <div className="mt-2" style={{ fontSize: 12, color: META }}>
-          {s.at_risk === 0 && s.healthy === 0 && s.unstarted > 0 ? (
+          {noAssignments ? (
+            <>Assignments not yet made — questions will appear here once writers are assigned.</>
+          ) : s.at_risk === 0 && s.healthy === 0 && s.unstarted > 0 ? (
             <>
-              <span style={{ color: TEXT, fontWeight: 600 }}>{s.unstarted}</span> questions unstarted — assignments pending.
+              <span style={{ color: TEXT, fontWeight: 600 }}>{s.unstarted}</span> of{" "}
+              <span style={{ color: TEXT, fontWeight: 600 }}>{s.total}</span> unstarted — assignments pending.
             </>
           ) : (
             <>
@@ -141,7 +144,16 @@ export function MissionHealthSummaryCard({ missionId }: { missionId: string }) {
       </div>
 
       <div className="mt-4">
-        {s.at_risk > 0 ? (
+        {noAssignments ? (
+          <Link
+            to="/missions/$missionId/team"
+            params={{ missionId }}
+            className="inline-flex items-center gap-1 hover:underline"
+            style={{ fontSize: 12, color: GOLD, fontWeight: 600 }}
+          >
+            Assign writers <ArrowRight size={12} />
+          </Link>
+        ) : s.at_risk > 0 ? (
           <UrgentRow
             tone="red"
             icon={<AlertTriangle size={14} />}
