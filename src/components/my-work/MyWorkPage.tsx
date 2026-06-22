@@ -315,6 +315,7 @@ export function MyWorkPage({ onOpenIris, onPrefillIris }: Props) {
                   key={a.id}
                   data={a}
                   active={selectedId === a.id}
+                  whisperCount={whisperCounts?.counts?.[a.question_id] ?? 0}
                   onClick={() => setSelectedId(a.id)}
                   onAccept={async () => {
                     const { error } = await supabase
