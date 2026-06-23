@@ -882,7 +882,7 @@ function StatusDetail({ status, onRetry }: { status: ItemStatus; onRetry: (d: Mi
   if (status.kind === "processing") {
     return (
       <div style={{ fontSize: 9, color: GOLD, fontStyle: "italic", marginTop: 4 }}>
-        IRIS is reading this document...
+        IRIS is reading this document{status.progressLabel ? ` — ${status.progressLabel}` : ""}...
       </div>
     );
   }
