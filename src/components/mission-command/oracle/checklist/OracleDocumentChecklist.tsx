@@ -375,9 +375,10 @@ export function OracleDocumentChecklist({
     setAnalyzing(true);
     setResult(null);
     try {
-      const targets = docs.filter(
-        (d) => !d.processing_status || ["not_processed", "error", "pending"].includes(d.processing_status),
-      );
+      const targets = docs.filter((d) => {
+        const n = normalizeDocStatus(d).kind;
+        return n === "error" || n === "pending";
+      });
       if (targets.length === 0) {
         toast.message("All documents are already processed.");
         setAnalyzing(false);
@@ -407,10 +408,11 @@ export function OracleDocumentChecklist({
     }
   }
 
-  const allDocsProcessed = docs.length > 0 && docs.every((d) => d.processing_status === "complete");
-  const anyUnprocessed = docs.some(
-    (d) => !d.processing_status || ["not_processed", "error", "pending"].includes(d.processing_status),
-  );
+  const allDocsProcessed = docs.length > 0 && docs.every((d) => normalizeDocStatus(d).kind === "complete");
+  const anyUnprocessed = docs.some((d) => {
+    const k = normalizeDocStatus(d).kind;
+    return k === "error" || k === "pending";
+  });
 
   return (
     <div className="space-y-5">
