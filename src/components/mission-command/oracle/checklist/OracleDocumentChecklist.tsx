@@ -242,7 +242,7 @@ export function OracleDocumentChecklist({
         .from("mission_documents")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .insert(insertPayload as any)
-        .select("id, title, file_url, document_type, document_purpose, document_checklist_category, processing_status, processing_error_message, items_extracted")
+        .select("id, title, file_url, document_type, document_purpose, document_checklist_category, processing_status, processing_error_message, processing_error, items_extracted")
         .single();
       if (insErr) throw insErr;
 
