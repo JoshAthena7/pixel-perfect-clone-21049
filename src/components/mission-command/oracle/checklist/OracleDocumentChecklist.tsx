@@ -280,19 +280,28 @@ export function OracleDocumentChecklist({
     if (!doc.file_url) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const docs = supabase.from("mission_documents") as any;
+    const setError = (message: string) =>
+      docs
+        .update({
+          processing_status: "error",
+          processing_error_message: message,
+          processing_error: message,
+        })
+        .eq("id", doc.id);
     try {
-      await docs.update({ processing_status: "processing", processing_error_message: null }).eq("id", doc.id);
+      await docs
+        .update({
+          processing_status: "processing",
+          processing_error_message: null,
+          processing_error: null,
+        })
+        .eq("id", doc.id);
       const { data: blob } = await supabase.storage.from(BUCKET).download(doc.file_url);
       if (!blob) throw new Error("Could not download file from storage");
       const file = new File([blob], doc.file_url.split("/").pop() || doc.title || "doc", { type: blob.type });
       const text = (await extractTextFromBlob(file, file.name)).trim();
       if (text.length < 100) {
-        await docs
-          .update({
-            processing_status: "error",
-            processing_error_message: "Could not extract text — this may be an image-only PDF.",
-          })
-          .eq("id", doc.id);
+        await setError("Could not extract text — this may be an image-only PDF.");
         return;
       }
       const { data: { user } } = await supabase.auth.getUser();
@@ -310,37 +319,38 @@ export function OracleDocumentChecklist({
           user_id: user?.id ?? null,
         }),
       });
-      const json = (await res.json().catch(() => ({}))) as { ok?: boolean; items_extracted?: number; error?: string };
+      const json = (await res
+        .json()
+        .catch(() => ({}))) as { ok?: boolean; items_extracted?: number; error?: string };
+      if (!res.ok) {
+        await setError(json.error ?? `Processor returned HTTP ${res.status}`);
+        return;
+      }
       if (json.ok) {
         await docs
           .update({
             processing_status: "complete",
             items_extracted: json.items_extracted ?? 0,
             processing_error_message: null,
+            processing_error: null,
           })
           .eq("id", doc.id);
       } else {
-        await docs
-          .update({
-            processing_status: "error",
-            processing_error_message: json.error ?? "Processing failed",
-          })
-          .eq("id", doc.id);
+        await setError(json.error ?? "Processing failed");
       }
     } catch (e) {
-      await docs
-        .update({
-          processing_status: "error",
-          processing_error_message: e instanceof Error ? e.message : "Processing failed",
-        })
-        .eq("id", doc.id);
+      await setError(e instanceof Error ? e.message : "Processing failed");
     }
   }
 
 
   async function retry(doc: MissionDoc) {
     setDocs((cur) =>
-      cur.map((d) => (d.id === doc.id ? { ...d, processing_status: "processing", processing_error_message: null } : d)),
+      cur.map((d) =>
+        d.id === doc.id
+          ? { ...d, processing_status: "processing", processing_error_message: null, processing_error: null }
+          : d,
+      ),
     );
     await processOne(doc);
     void loadDocs();
