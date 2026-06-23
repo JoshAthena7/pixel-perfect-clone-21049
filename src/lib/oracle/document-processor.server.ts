@@ -409,8 +409,18 @@ export async function processDocument(input: ProcessInput): Promise<ProcessResul
         },
       }));
 
-      for (let i = 0; i < rows.length; i += 50) {
-        const slice = rows.slice(i, i + 50);
+      // Defensive: strip any generated/server-managed columns. `oracle_score`
+      // is a GENERATED ALWAYS column — including it (even as null) in the
+      // INSERT column list triggers a hard Postgres error.
+      const GENERATED_COLS = ["oracle_score", "id", "created_at", "updated_at"] as const;
+      const sanitized = rows.map((r) => {
+        const copy: Record<string, unknown> = { ...r };
+        for (const k of GENERATED_COLS) delete copy[k];
+        return copy;
+      });
+
+      for (let i = 0; i < sanitized.length; i += 50) {
+        const slice = sanitized.slice(i, i + 50);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error: insErr } = await client.from("oracle_signals").insert(slice as any);
         if (insErr) throw new Error(`oracle_signals insert failed: ${insErr.message}`);
