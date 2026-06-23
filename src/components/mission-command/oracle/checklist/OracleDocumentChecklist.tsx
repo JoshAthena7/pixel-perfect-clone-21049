@@ -922,6 +922,7 @@ function DocPillRow({
   onRetry: (d: MissionDoc) => void;
   onRemove: (d: MissionDoc) => void;
 }) {
+  const n = normalizeDocStatus(doc).kind;
   return (
     <div
       className="flex items-center gap-2 rounded px-2 py-1"
@@ -932,15 +933,15 @@ function DocPillRow({
         {doc.title}
       </div>
       <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)" }}>
-        {doc.processing_status === "complete"
+        {n === "complete"
           ? `✓ ${doc.items_extracted ?? 0}`
-          : doc.processing_status === "error"
+          : n === "error"
             ? "⚠ error"
-            : doc.processing_status === "processing"
+            : n === "processing"
               ? "⏳"
               : "•"}
       </div>
-      {doc.processing_status === "error" && (
+      {n === "error" && (
         <button type="button" onClick={() => onRetry(doc)} style={{ fontSize: 9, color: GOLD }}>
           retry
         </button>
