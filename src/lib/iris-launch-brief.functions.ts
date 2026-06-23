@@ -15,14 +15,14 @@ export const triggerLaunchBrief = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => Input.parse(data))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    // RLS on mission_team_members + missions ensures the caller only sees
-    // missions they have access to. If the row count is 0, treat as forbidden.
+    // Caller must be platform admin OR a member of the target mission. RLS
+    // alone is not enough here because we use the result to gate AI work.
     const [{ data: member }, { data: isAdmin }] = await Promise.all([
       supabase
         .from("mission_team_members")
         .select("mission_id")
         .eq("mission_id", data.missionId)
-        .eq("user_id", userId)
+        .eq("member_id", userId)
         .maybeSingle(),
       supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
     ]);
