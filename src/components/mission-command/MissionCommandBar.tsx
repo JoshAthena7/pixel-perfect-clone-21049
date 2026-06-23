@@ -68,6 +68,7 @@ export function MissionCommandBar({ missionId }: { missionId: string }) {
 
   // Realtime: new notifications for this mission
   useEffect(() => {
+    let pulseTimer: ReturnType<typeof setTimeout> | undefined;
     const channel = supabase
       .channel(`mcb-notifications-${missionId}`)
       .on(
@@ -77,12 +78,14 @@ export function MissionCommandBar({ missionId }: { missionId: string }) {
           if (payload.new?.metadata?.mission_id === missionId) {
             queryClient.invalidateQueries({ queryKey: ["mission-command-bar", missionId] });
             setPulse(true);
-            setTimeout(() => setPulse(false), 600);
+            if (pulseTimer) clearTimeout(pulseTimer);
+            pulseTimer = setTimeout(() => setPulse(false), 600);
           }
         },
       )
       .subscribe();
     return () => {
+      if (pulseTimer) clearTimeout(pulseTimer);
       supabase.removeChannel(channel);
     };
   }, [missionId, queryClient]);
