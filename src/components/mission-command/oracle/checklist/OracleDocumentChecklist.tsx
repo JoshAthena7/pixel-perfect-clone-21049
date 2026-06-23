@@ -982,8 +982,8 @@ function CoverageReport({
           const first = itemDocs[0];
           const status =
             !first ? "missing"
-            : first.processing_status === "complete" ? "complete"
-            : first.processing_status === "error" ? "error"
+            : normalizeDocStatus(first).kind === "complete" ? "complete"
+            : normalizeDocStatus(first).kind === "error" ? "error"
             : "processing";
           const icon = status === "complete" ? "✅" : status === "error" ? "❌" : status === "processing" ? "⏳" : "☐ ";
           const color =
