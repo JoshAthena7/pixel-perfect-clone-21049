@@ -117,7 +117,7 @@ export const generateMissionRadar = createServerFn({ method: "POST" })
           .eq("mission_id", missionId),
         supabase
           .from("mission_assumptions")
-          .select("id, assumption, confidence, status")
+          .select("id, assumption, confidence_score, status, risk_if_wrong")
           .eq("mission_id", missionId)
           .limit(20),
       ]);
