@@ -670,17 +670,20 @@ function ChecklistRow(props: RowProps) {
   const isMissing = docs.length === 0 && uploadingPct === undefined;
   const isUploading = uploadingPct !== undefined;
   const firstDoc = docs[0];
-  const status: ItemStatus = isUploading
-    ? { kind: "uploading", progress: uploadingPct! }
-    : isMissing
-      ? { kind: "missing" }
-      : firstDoc.processing_status === "complete"
-        ? { kind: "complete", doc: firstDoc }
-        : firstDoc.processing_status === "error"
-          ? { kind: "error", doc: firstDoc, message: firstDoc.processing_error_message ?? "Processing failed" }
-          : firstDoc.processing_status === "processing"
-            ? { kind: "processing", doc: firstDoc }
-            : { kind: "pending", doc: firstDoc };
+  let status: ItemStatus;
+  if (isUploading) {
+    status = { kind: "uploading", progress: uploadingPct! };
+  } else if (isMissing) {
+    status = { kind: "missing" };
+  } else {
+    const n = normalizeDocStatus(firstDoc);
+    if (n.kind === "complete") status = { kind: "complete", doc: firstDoc };
+    else if (n.kind === "error")
+      status = { kind: "error", doc: firstDoc, message: docErrorMessage(firstDoc) };
+    else if (n.kind === "processing")
+      status = { kind: "processing", doc: firstDoc, progressLabel: n.progressLabel };
+    else status = { kind: "pending", doc: firstDoc };
+  }
 
   const borderColor =
     isMissing && item.urgency === "critical"
