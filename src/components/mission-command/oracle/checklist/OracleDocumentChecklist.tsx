@@ -57,6 +57,7 @@ type MissionDoc = {
   document_checklist_category: string | null;
   processing_status: string | null;
   processing_error_message: string | null;
+  processing_error: string | null;
   items_extracted: number | null;
 };
 
@@ -64,9 +65,37 @@ type ItemStatus =
   | { kind: "missing" }
   | { kind: "uploading"; progress: number }
   | { kind: "pending"; doc: MissionDoc }
-  | { kind: "processing"; doc: MissionDoc }
+  | { kind: "processing"; doc: MissionDoc; progressLabel?: string }
   | { kind: "complete"; doc: MissionDoc }
   | { kind: "error"; doc: MissionDoc; message: string };
+
+/**
+ * Normalize the many `processing_status` values written by different
+ * pipeline stages into the 4 buckets the UI understands.
+ *  - "complete" / "processed"            → complete
+ *  - "processing" / "processing_chunk_*" → processing (with progress label)
+ *  - "error" / "failed"                  → error
+ *  - "pending" / null / anything else    → pending
+ */
+function normalizeDocStatus(doc: MissionDoc): {
+  kind: "complete" | "processing" | "error" | "pending";
+  progressLabel?: string;
+} {
+  const s = (doc.processing_status ?? "").toLowerCase();
+  if (s === "complete" || s === "processed") return { kind: "complete" };
+  if (s === "error" || s === "failed") return { kind: "error" };
+  if (s === "processing") return { kind: "processing" };
+  const chunkMatch = s.match(/^processing_chunk_(\d+)_of_(\d+)$/);
+  if (chunkMatch) {
+    return { kind: "processing", progressLabel: `Chunk ${chunkMatch[1]}/${chunkMatch[2]}` };
+  }
+  if (s.startsWith("processing")) return { kind: "processing" };
+  return { kind: "pending" };
+}
+
+function docErrorMessage(doc: MissionDoc): string {
+  return doc.processing_error_message ?? doc.processing_error ?? "Processing failed";
+}
 
 async function extractTextFromBlob(blob: Blob, fileName: string): Promise<string> {
   const lower = fileName.toLowerCase();
