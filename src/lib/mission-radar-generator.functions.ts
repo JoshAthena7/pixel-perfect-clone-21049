@@ -307,7 +307,7 @@ export const generateMissionRadar = createServerFn({ method: "POST" })
     try {
       await supabase
         .from("mission_radar_snapshots")
-        .insert({ mission_id: missionId, signals: rows as unknown as object });
+        .insert({ mission_id: missionId, signals: JSON.parse(JSON.stringify(rows)) });
     } catch (e) {
       console.warn("[radar-generator] snapshot failed", e);
     }
