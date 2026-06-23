@@ -525,7 +525,7 @@ export function OracleDocumentChecklist({
           docsByItem={docsByItem}
           totalSignals={result.items}
           onRetryFailed={() => {
-            const failed = docs.filter((d) => d.processing_status === "error");
+            const failed = docs.filter((d) => normalizeDocStatus(d).kind === "error");
             void Promise.all(failed.map((d) => retry(d)));
           }}
         />
