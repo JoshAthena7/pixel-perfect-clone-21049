@@ -247,7 +247,7 @@ export const generateMissionRadar = createServerFn({ method: "POST" })
 
     // ---------------- Assumptions → readiness (low confidence = risk to readiness) ----------------
     for (const a of assumptionsR.data ?? []) {
-      const conf = clamp01((a.confidence ?? 0.5) as number);
+      const conf = clamp01(((a.confidence_score ?? 50) as number) / 100);
       if (conf >= 0.7 || a.status === "validated") continue;
       drafts.push({
         category: "readiness",
