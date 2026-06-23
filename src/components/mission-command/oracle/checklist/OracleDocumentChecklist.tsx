@@ -1008,7 +1008,7 @@ function CoverageReport({
       <div style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", paddingTop: 8 }}>
         ORACLE now has <span style={{ color: GOLD, fontWeight: 600 }}>{totalSignals}</span> signal candidate{totalSignals === 1 ? "" : "s"} ready for review.
       </div>
-      {docs.some((d) => d.processing_status === "error") && (
+      {docs.some((d) => normalizeDocStatus(d).kind === "error") && (
         <button
           type="button"
           onClick={onRetryFailed}
