@@ -1,0 +1,1 @@
+UPDATE public.mission_documents SET processing_status='pending', processing_error=NULL, processing_error_message=NULL WHERE processing_status='error';
