@@ -136,7 +136,7 @@ export function OracleDocumentChecklist({
     const { data } = await supabase
       .from("mission_documents")
       .select(
-        "id, title, file_url, document_type, document_purpose, document_checklist_category, processing_status, processing_error_message, items_extracted",
+        "id, title, file_url, document_type, document_purpose, document_checklist_category, processing_status, processing_error_message, processing_error, items_extracted",
       )
       .eq("mission_id", missionId)
       .order("created_at", { ascending: true });
@@ -147,11 +147,13 @@ export function OracleDocumentChecklist({
     void loadDocs();
   }, [loadDocs]);
 
-  // Poll while any doc is pending/processing
+  // Poll while any doc is still being analyzed. Use the normalizer so the
+  // many "processing_chunk_N_of_M" intermediate statuses also count.
   useEffect(() => {
-    const inFlight = docs.some(
-      (d) => d.processing_status === "processing" || d.processing_status === "pending",
-    );
+    const inFlight = docs.some((d) => {
+      const n = normalizeDocStatus(d).kind;
+      return n === "processing" || n === "pending";
+    });
     if (!inFlight) return;
     const t = setInterval(() => {
       void loadDocs();
