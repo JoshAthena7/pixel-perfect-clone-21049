@@ -57,6 +57,7 @@ type MissionDoc = {
   document_checklist_category: string | null;
   processing_status: string | null;
   processing_error_message: string | null;
+  processing_error: string | null;
   items_extracted: number | null;
 };
 
@@ -64,9 +65,37 @@ type ItemStatus =
   | { kind: "missing" }
   | { kind: "uploading"; progress: number }
   | { kind: "pending"; doc: MissionDoc }
-  | { kind: "processing"; doc: MissionDoc }
+  | { kind: "processing"; doc: MissionDoc; progressLabel?: string }
   | { kind: "complete"; doc: MissionDoc }
   | { kind: "error"; doc: MissionDoc; message: string };
+
+/**
+ * Normalize the many `processing_status` values written by different
+ * pipeline stages into the 4 buckets the UI understands.
+ *  - "complete" / "processed"            → complete
+ *  - "processing" / "processing_chunk_*" → processing (with progress label)
+ *  - "error" / "failed"                  → error
+ *  - "pending" / null / anything else    → pending
+ */
+function normalizeDocStatus(doc: MissionDoc): {
+  kind: "complete" | "processing" | "error" | "pending";
+  progressLabel?: string;
+} {
+  const s = (doc.processing_status ?? "").toLowerCase();
+  if (s === "complete" || s === "processed") return { kind: "complete" };
+  if (s === "error" || s === "failed") return { kind: "error" };
+  if (s === "processing") return { kind: "processing" };
+  const chunkMatch = s.match(/^processing_chunk_(\d+)_of_(\d+)$/);
+  if (chunkMatch) {
+    return { kind: "processing", progressLabel: `Chunk ${chunkMatch[1]}/${chunkMatch[2]}` };
+  }
+  if (s.startsWith("processing")) return { kind: "processing" };
+  return { kind: "pending" };
+}
+
+function docErrorMessage(doc: MissionDoc): string {
+  return doc.processing_error_message ?? doc.processing_error ?? "Processing failed";
+}
 
 async function extractTextFromBlob(blob: Blob, fileName: string): Promise<string> {
   const lower = fileName.toLowerCase();
@@ -107,7 +136,7 @@ export function OracleDocumentChecklist({
     const { data } = await supabase
       .from("mission_documents")
       .select(
-        "id, title, file_url, document_type, document_purpose, document_checklist_category, processing_status, processing_error_message, items_extracted",
+        "id, title, file_url, document_type, document_purpose, document_checklist_category, processing_status, processing_error_message, processing_error, items_extracted",
       )
       .eq("mission_id", missionId)
       .order("created_at", { ascending: true });
@@ -118,11 +147,13 @@ export function OracleDocumentChecklist({
     void loadDocs();
   }, [loadDocs]);
 
-  // Poll while any doc is pending/processing
+  // Poll while any doc is still being analyzed. Use the normalizer so the
+  // many "processing_chunk_N_of_M" intermediate statuses also count.
   useEffect(() => {
-    const inFlight = docs.some(
-      (d) => d.processing_status === "processing" || d.processing_status === "pending",
-    );
+    const inFlight = docs.some((d) => {
+      const n = normalizeDocStatus(d).kind;
+      return n === "processing" || n === "pending";
+    });
     if (!inFlight) return;
     const t = setInterval(() => {
       void loadDocs();
@@ -211,7 +242,7 @@ export function OracleDocumentChecklist({
         .from("mission_documents")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .insert(insertPayload as any)
-        .select("id, title, file_url, document_type, document_purpose, document_checklist_category, processing_status, processing_error_message, items_extracted")
+        .select("id, title, file_url, document_type, document_purpose, document_checklist_category, processing_status, processing_error_message, processing_error, items_extracted")
         .single();
       if (insErr) throw insErr;
 
@@ -249,19 +280,28 @@ export function OracleDocumentChecklist({
     if (!doc.file_url) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const docs = supabase.from("mission_documents") as any;
+    const setError = (message: string) =>
+      docs
+        .update({
+          processing_status: "error",
+          processing_error_message: message,
+          processing_error: message,
+        })
+        .eq("id", doc.id);
     try {
-      await docs.update({ processing_status: "processing", processing_error_message: null }).eq("id", doc.id);
+      await docs
+        .update({
+          processing_status: "processing",
+          processing_error_message: null,
+          processing_error: null,
+        })
+        .eq("id", doc.id);
       const { data: blob } = await supabase.storage.from(BUCKET).download(doc.file_url);
       if (!blob) throw new Error("Could not download file from storage");
       const file = new File([blob], doc.file_url.split("/").pop() || doc.title || "doc", { type: blob.type });
       const text = (await extractTextFromBlob(file, file.name)).trim();
       if (text.length < 100) {
-        await docs
-          .update({
-            processing_status: "error",
-            processing_error_message: "Could not extract text — this may be an image-only PDF.",
-          })
-          .eq("id", doc.id);
+        await setError("Could not extract text — this may be an image-only PDF.");
         return;
       }
       const { data: { user } } = await supabase.auth.getUser();
@@ -279,37 +319,38 @@ export function OracleDocumentChecklist({
           user_id: user?.id ?? null,
         }),
       });
-      const json = (await res.json().catch(() => ({}))) as { ok?: boolean; items_extracted?: number; error?: string };
+      const json = (await res
+        .json()
+        .catch(() => ({}))) as { ok?: boolean; items_extracted?: number; error?: string };
+      if (!res.ok) {
+        await setError(json.error ?? `Processor returned HTTP ${res.status}`);
+        return;
+      }
       if (json.ok) {
         await docs
           .update({
             processing_status: "complete",
             items_extracted: json.items_extracted ?? 0,
             processing_error_message: null,
+            processing_error: null,
           })
           .eq("id", doc.id);
       } else {
-        await docs
-          .update({
-            processing_status: "error",
-            processing_error_message: json.error ?? "Processing failed",
-          })
-          .eq("id", doc.id);
+        await setError(json.error ?? "Processing failed");
       }
     } catch (e) {
-      await docs
-        .update({
-          processing_status: "error",
-          processing_error_message: e instanceof Error ? e.message : "Processing failed",
-        })
-        .eq("id", doc.id);
+      await setError(e instanceof Error ? e.message : "Processing failed");
     }
   }
 
 
   async function retry(doc: MissionDoc) {
     setDocs((cur) =>
-      cur.map((d) => (d.id === doc.id ? { ...d, processing_status: "processing", processing_error_message: null } : d)),
+      cur.map((d) =>
+        d.id === doc.id
+          ? { ...d, processing_status: "processing", processing_error_message: null, processing_error: null }
+          : d,
+      ),
     );
     await processOne(doc);
     void loadDocs();
@@ -334,9 +375,10 @@ export function OracleDocumentChecklist({
     setAnalyzing(true);
     setResult(null);
     try {
-      const targets = docs.filter(
-        (d) => !d.processing_status || ["not_processed", "error", "pending"].includes(d.processing_status),
-      );
+      const targets = docs.filter((d) => {
+        const n = normalizeDocStatus(d).kind;
+        return n === "error" || n === "pending";
+      });
       if (targets.length === 0) {
         toast.message("All documents are already processed.");
         setAnalyzing(false);
@@ -366,10 +408,11 @@ export function OracleDocumentChecklist({
     }
   }
 
-  const allDocsProcessed = docs.length > 0 && docs.every((d) => d.processing_status === "complete");
-  const anyUnprocessed = docs.some(
-    (d) => !d.processing_status || ["not_processed", "error", "pending"].includes(d.processing_status),
-  );
+  const allDocsProcessed = docs.length > 0 && docs.every((d) => normalizeDocStatus(d).kind === "complete");
+  const anyUnprocessed = docs.some((d) => {
+    const k = normalizeDocStatus(d).kind;
+    return k === "error" || k === "pending";
+  });
 
   return (
     <div className="space-y-5">
@@ -482,7 +525,7 @@ export function OracleDocumentChecklist({
           docsByItem={docsByItem}
           totalSignals={result.items}
           onRetryFailed={() => {
-            const failed = docs.filter((d) => d.processing_status === "error");
+            const failed = docs.filter((d) => normalizeDocStatus(d).kind === "error");
             void Promise.all(failed.map((d) => retry(d)));
           }}
         />
@@ -627,17 +670,20 @@ function ChecklistRow(props: RowProps) {
   const isMissing = docs.length === 0 && uploadingPct === undefined;
   const isUploading = uploadingPct !== undefined;
   const firstDoc = docs[0];
-  const status: ItemStatus = isUploading
-    ? { kind: "uploading", progress: uploadingPct! }
-    : isMissing
-      ? { kind: "missing" }
-      : firstDoc.processing_status === "complete"
-        ? { kind: "complete", doc: firstDoc }
-        : firstDoc.processing_status === "error"
-          ? { kind: "error", doc: firstDoc, message: firstDoc.processing_error_message ?? "Processing failed" }
-          : firstDoc.processing_status === "processing"
-            ? { kind: "processing", doc: firstDoc }
-            : { kind: "pending", doc: firstDoc };
+  let status: ItemStatus;
+  if (isUploading) {
+    status = { kind: "uploading", progress: uploadingPct! };
+  } else if (isMissing) {
+    status = { kind: "missing" };
+  } else {
+    const n = normalizeDocStatus(firstDoc);
+    if (n.kind === "complete") status = { kind: "complete", doc: firstDoc };
+    else if (n.kind === "error")
+      status = { kind: "error", doc: firstDoc, message: docErrorMessage(firstDoc) };
+    else if (n.kind === "processing")
+      status = { kind: "processing", doc: firstDoc, progressLabel: n.progressLabel };
+    else status = { kind: "pending", doc: firstDoc };
+  }
 
   const borderColor =
     isMissing && item.urgency === "critical"
@@ -836,7 +882,7 @@ function StatusDetail({ status, onRetry }: { status: ItemStatus; onRetry: (d: Mi
   if (status.kind === "processing") {
     return (
       <div style={{ fontSize: 9, color: GOLD, fontStyle: "italic", marginTop: 4 }}>
-        IRIS is reading this document...
+        IRIS is reading this document{status.progressLabel ? ` — ${status.progressLabel}` : ""}...
       </div>
     );
   }
@@ -876,6 +922,7 @@ function DocPillRow({
   onRetry: (d: MissionDoc) => void;
   onRemove: (d: MissionDoc) => void;
 }) {
+  const n = normalizeDocStatus(doc).kind;
   return (
     <div
       className="flex items-center gap-2 rounded px-2 py-1"
@@ -886,15 +933,15 @@ function DocPillRow({
         {doc.title}
       </div>
       <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)" }}>
-        {doc.processing_status === "complete"
+        {n === "complete"
           ? `✓ ${doc.items_extracted ?? 0}`
-          : doc.processing_status === "error"
+          : n === "error"
             ? "⚠ error"
-            : doc.processing_status === "processing"
+            : n === "processing"
               ? "⏳"
               : "•"}
       </div>
-      {doc.processing_status === "error" && (
+      {n === "error" && (
         <button type="button" onClick={() => onRetry(doc)} style={{ fontSize: 9, color: GOLD }}>
           retry
         </button>
@@ -935,8 +982,8 @@ function CoverageReport({
           const first = itemDocs[0];
           const status =
             !first ? "missing"
-            : first.processing_status === "complete" ? "complete"
-            : first.processing_status === "error" ? "error"
+            : normalizeDocStatus(first).kind === "complete" ? "complete"
+            : normalizeDocStatus(first).kind === "error" ? "error"
             : "processing";
           const icon = status === "complete" ? "✅" : status === "error" ? "❌" : status === "processing" ? "⏳" : "☐ ";
           const color =
@@ -961,7 +1008,7 @@ function CoverageReport({
       <div style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", paddingTop: 8 }}>
         ORACLE now has <span style={{ color: GOLD, fontWeight: 600 }}>{totalSignals}</span> signal candidate{totalSignals === 1 ? "" : "s"} ready for review.
       </div>
-      {docs.some((d) => d.processing_status === "error") && (
+      {docs.some((d) => normalizeDocStatus(d).kind === "error") && (
         <button
           type="button"
           onClick={onRetryFailed}

@@ -589,8 +589,17 @@ async function updateStatus(
   documentId: string,
   patch: Record<string, unknown>,
 ): Promise<void> {
+  // Keep `processing_error` and `processing_error_message` in lockstep — the
+  // schema has both columns and different consumers historically read one or
+  // the other. Mirror whichever one the caller set onto the other.
+  const mirrored: Record<string, unknown> = { ...patch };
+  if ("processing_error" in mirrored && !("processing_error_message" in mirrored)) {
+    mirrored.processing_error_message = mirrored.processing_error;
+  } else if ("processing_error_message" in mirrored && !("processing_error" in mirrored)) {
+    mirrored.processing_error = mirrored.processing_error_message;
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await client.from("mission_documents").update(patch as any).eq("id", documentId);
+  const { error } = await client.from("mission_documents").update(mirrored as any).eq("id", documentId);
   if (error) console.error("[oracle-document-processor] status update failed:", error.message);
 }
 
