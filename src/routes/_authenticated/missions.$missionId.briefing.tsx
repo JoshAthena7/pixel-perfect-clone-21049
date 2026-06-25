@@ -430,6 +430,22 @@ function StateMap({ stateCode }: { stateCode?: string | null }) {
   );
 }
 
+function ComplianceHealthLine({ missionId }: { missionId: string }) {
+  const { data } = useMissionComplianceStats(missionId);
+  if (!data || data.total === 0) return null;
+  return (
+    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
+      Contract compliance: {data.verified}/{data.total} verified
+      {data.conflicts > 0 && (
+        <span style={{ color: "rgba(248,113,113,0.7)", marginLeft: 8 }}>
+          · {data.conflicts} conflict{data.conflicts > 1 ? "s" : ""} flagged
+        </span>
+      )}
+    </div>
+  );
+}
+
+
 /* ───────────────── 2a. Today's Focus ───────────────── */
 function TodaysFocusCard({ missionId, mission, bare = false }: { missionId: string; mission?: any; bare?: boolean }) {
   const { data: brief } = useQuery({
