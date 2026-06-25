@@ -110,6 +110,14 @@ export function selectExtractionTemplate(
     return TEMPLATES.response_outline;
   }
 
+  // Model Contract & Scope of Work — compliance obligation extraction.
+  if (documentType === "model_contract" || /\bmodel\s*contract\b|state\s*contract/.test(titleLower)) {
+    return TEMPLATES.model_contract;
+  }
+  if (documentType === "scope_of_work" || /\bscope\s*of\s*work\b|\bsow\b|statement\s*of\s*work/.test(titleLower)) {
+    return TEMPLATES.scope_of_work;
+  }
+
   // Primary RFP always uses Template 1 regardless of hint.
   if (documentType === "primary_rfp") return TEMPLATES.primary_rfp;
 
