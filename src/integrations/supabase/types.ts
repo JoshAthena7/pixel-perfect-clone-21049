@@ -12300,6 +12300,88 @@ export type Database = {
           },
         ]
       }
+      question_response_outlines: {
+        Row: {
+          confidence: number | null
+          content_guidance: string | null
+          created_at: string
+          created_by: string | null
+          document_id: string | null
+          format_notes: string | null
+          id: string
+          mission_id: string
+          parsed_at: string | null
+          prohibited_elements: string[] | null
+          question_id: string | null
+          required_elements: string[] | null
+          section_headers: string[] | null
+          source_text: string | null
+          total_word_limit: number | null
+          updated_at: string
+          word_allocation: Json | null
+        }
+        Insert: {
+          confidence?: number | null
+          content_guidance?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id?: string | null
+          format_notes?: string | null
+          id?: string
+          mission_id: string
+          parsed_at?: string | null
+          prohibited_elements?: string[] | null
+          question_id?: string | null
+          required_elements?: string[] | null
+          section_headers?: string[] | null
+          source_text?: string | null
+          total_word_limit?: number | null
+          updated_at?: string
+          word_allocation?: Json | null
+        }
+        Update: {
+          confidence?: number | null
+          content_guidance?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id?: string | null
+          format_notes?: string | null
+          id?: string
+          mission_id?: string
+          parsed_at?: string | null
+          prohibited_elements?: string[] | null
+          question_id?: string | null
+          required_elements?: string[] | null
+          section_headers?: string[] | null
+          source_text?: string | null
+          total_word_limit?: number | null
+          updated_at?: string
+          word_allocation?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_response_outlines_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "mission_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_response_outlines_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_response_outlines_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       question_scores: {
         Row: {
           id: string
