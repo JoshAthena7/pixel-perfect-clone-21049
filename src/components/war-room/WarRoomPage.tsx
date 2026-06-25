@@ -10,6 +10,7 @@ import {
 import { generateIrisBrief } from "@/lib/iris-brief-generator.functions";
 import { MissionRadar } from "./MissionRadar";
 import { IrisAlertsPanel } from "./IrisAlertsPanel";
+import { ComplianceDashboard, useMissionComplianceStats } from "./ComplianceDashboard";
 import { NudgeModal, type NudgeTarget } from "./NudgeModal";
 import { WriterDrawer, type WriterDrawerTarget } from "./WriterDrawer";
 import {
