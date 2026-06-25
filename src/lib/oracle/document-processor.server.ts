@@ -814,3 +814,188 @@ ${text}`;
     return [];
   }
 }
+
+// ============================================================
+// Response Outline parser — client-provided per-question structure
+// ============================================================
+
+type OutlineSection = {
+  question_number: string | null;
+  section_headers: string[];
+  content_guidance: string | null;
+  word_allocation: Record<string, number>;
+  total_word_limit: number | null;
+  format_notes: string | null;
+  required_elements: string[];
+  prohibited_elements: string[];
+  source_text: string | null;
+  confidence: number;
+};
+
+async function parseResponseOutline(
+  apiKey: string,
+  client: typeof supabaseAdmin,
+  input: { missionId: string; documentId: string; outlineText: string },
+): Promise<number> {
+  // Pull all questions for matching
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: questions } = await (client as any)
+    .from("mission_questions")
+    .select("id, question_number, question_text, section_title")
+    .eq("mission_id", input.missionId)
+    .order("question_number");
+
+  const qList = (questions ?? []) as Array<{
+    id: string;
+    question_number: string | null;
+    question_text: string | null;
+    section_title: string | null;
+  }>;
+
+  const questionRefBlock = qList.length
+    ? qList
+        .slice(0, 30)
+        .map(
+          (q) =>
+            `Q${q.question_number ?? "?"}: ${(q.question_text ?? "").substring(0, 100)}`,
+        )
+        .join("\n")
+    : "(no questions yet loaded for this mission — return question_number as null for general guidance)";
+
+  const system =
+    "You are a precise document parser. You read client-provided response outlines and extract per-question writing structure. Return ONLY valid JSON — no markdown fences, no prose.";
+
+  const user = `You are parsing a client-provided RESPONSE OUTLINE document. This document tells writers HOW to structure their answer to each question — section headers, content order, word allocations, required/prohibited elements.
+
+MISSION QUESTIONS (for matching question_number):
+${questionRefBlock}
+
+OUTLINE DOCUMENT TEXT (truncated):
+${input.outlineText.substring(0, 8000)}
+
+Parse the outline. Return JSON in this exact shape:
+{ "sections": [
+  {
+    "question_number": "4.10.3",          // null if guidance applies to all questions
+    "section_headers": ["string"],         // ordered list of subsection headers
+    "content_guidance": "string|null",     // approach guidance
+    "word_allocation": {"Section": 200},   // words per section if specified
+    "total_word_limit": 500,               // null if not specified
+    "format_notes": "string|null",         // formatting rules
+    "required_elements": ["string"],       // must include
+    "prohibited_elements": ["string"],     // must NOT include
+    "source_text": "string|null",          // relevant raw excerpt
+    "confidence": 0.85                     // 0.0-1.0
+  }
+] }
+Return { "sections": [] } if nothing structural is detectable.`;
+
+  let raw: string;
+  try {
+    raw = await callGateway(apiKey, system, user);
+  } catch (err) {
+    console.error("[response-outline-parser] gateway failed:", err);
+    throw err;
+  }
+
+  const cleaned = raw.replace(/^```(?:json)?\s*|\s*```$/g, "").trim();
+  let parsed: { sections?: unknown };
+  try {
+    parsed = JSON.parse(cleaned) as { sections?: unknown };
+  } catch (err) {
+    console.error("[response-outline-parser] JSON parse failed:", err, raw.slice(0, 300));
+    return 0;
+  }
+
+  const sections = Array.isArray(parsed.sections) ? (parsed.sections as unknown[]) : [];
+  const cleanSections: OutlineSection[] = sections
+    .filter((s): s is Record<string, unknown> => !!s && typeof s === "object")
+    .map((s) => ({
+      question_number: s.question_number == null ? null : String(s.question_number).trim() || null,
+      section_headers: Array.isArray(s.section_headers)
+        ? (s.section_headers as unknown[]).map((x) => String(x)).filter(Boolean)
+        : [],
+      content_guidance: s.content_guidance == null ? null : String(s.content_guidance).trim() || null,
+      word_allocation:
+        s.word_allocation && typeof s.word_allocation === "object"
+          ? Object.fromEntries(
+              Object.entries(s.word_allocation as Record<string, unknown>)
+                .map(([k, v]) => [k, Number(v) || 0])
+                .filter(([, v]) => (v as number) > 0),
+            )
+          : {},
+      total_word_limit:
+        s.total_word_limit == null
+          ? null
+          : Number.isFinite(Number(s.total_word_limit))
+            ? Number(s.total_word_limit)
+            : null,
+      format_notes: s.format_notes == null ? null : String(s.format_notes).trim() || null,
+      required_elements: Array.isArray(s.required_elements)
+        ? (s.required_elements as unknown[]).map((x) => String(x)).filter(Boolean)
+        : [],
+      prohibited_elements: Array.isArray(s.prohibited_elements)
+        ? (s.prohibited_elements as unknown[]).map((x) => String(x)).filter(Boolean)
+        : [],
+      source_text: s.source_text == null ? null : String(s.source_text).trim() || null,
+      confidence:
+        s.confidence == null
+          ? 0.7
+          : Math.max(0, Math.min(1, Number(s.confidence) || 0.7)),
+    }))
+    .filter(
+      (s) =>
+        s.section_headers.length > 0 ||
+        s.content_guidance ||
+        s.required_elements.length > 0 ||
+        s.prohibited_elements.length > 0 ||
+        s.total_word_limit != null,
+    );
+
+  if (cleanSections.length === 0) return 0;
+
+  // Clear previous outlines from this same document, then insert fresh
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (client as any)
+    .from("question_response_outlines")
+    .delete()
+    .eq("mission_id", input.missionId)
+    .eq("document_id", input.documentId);
+
+  const rows = cleanSections.map((s) => {
+    let questionId: string | null = null;
+    if (s.question_number) {
+      const match = qList.find(
+        (q) =>
+          q.question_number === s.question_number ||
+          (q.question_number && s.question_number && q.question_number.includes(s.question_number)) ||
+          (q.question_number && s.question_number && s.question_number.includes(q.question_number)),
+      );
+      questionId = match?.id ?? null;
+    }
+    return {
+      mission_id: input.missionId,
+      question_id: questionId,
+      document_id: input.documentId,
+      section_headers: s.section_headers,
+      content_guidance: s.content_guidance,
+      word_allocation: s.word_allocation,
+      total_word_limit: s.total_word_limit,
+      format_notes: s.format_notes,
+      required_elements: s.required_elements,
+      prohibited_elements: s.prohibited_elements,
+      source_text: s.source_text,
+      confidence: s.confidence,
+      parsed_at: new Date().toISOString(),
+    };
+  });
+
+  for (let i = 0; i < rows.length; i += 50) {
+    const slice = rows.slice(i, i + 50);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (client as any).from("question_response_outlines").insert(slice);
+    if (error) throw new Error(`question_response_outlines insert failed: ${error.message}`);
+  }
+
+  return rows.length;
+}
