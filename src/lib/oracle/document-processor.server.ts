@@ -266,6 +266,28 @@ Return JSON only.`,
     specialHandling: "response_outline",
     systemPrompt: "", // never called
   },
+  model_contract: {
+    id: "model_contract",
+    chunkStrategy: "standard",
+    relevanceFloor: 100,
+    defaultCategory: "regulatory_state",
+    defaultSubcategory: "contract_obligation",
+    defaultUrgency: "high",
+    defaultAuthority: "primary",
+    specialHandling: "compliance_extraction",
+    systemPrompt: "",
+  },
+  scope_of_work: {
+    id: "scope_of_work",
+    chunkStrategy: "standard",
+    relevanceFloor: 100,
+    defaultCategory: "regulatory_state",
+    defaultSubcategory: "sow_obligation",
+    defaultUrgency: "high",
+    defaultAuthority: "primary",
+    specialHandling: "compliance_extraction",
+    systemPrompt: "",
+  },
 };
 
 // ============================================================
