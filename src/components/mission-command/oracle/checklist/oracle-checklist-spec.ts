@@ -37,6 +37,32 @@ export const REQUIRED_DOCUMENTS: ChecklistItem[] = [
     accept: ".pdf,.docx,.doc",
   },
   {
+    id: "model_contract",
+    label: "State Model Contract",
+    description:
+      "The contract the winning bidder will sign. IRIS extracts service obligations, performance standards, reporting requirements, and legal constraints — then flags any question response that may conflict.",
+    why_it_matters:
+      "Responses that win the proposal but contradict the contract create legal risk. IRIS reads the contract so your team writes to win AND to perform.",
+    document_type: "model_contract",
+    document_purpose: "procurement",
+    checklist_category: "model_contract",
+    urgency: "critical",
+    accept: ".pdf,.docx,.doc",
+  },
+  {
+    id: "scope_of_work",
+    label: "Scope of Work",
+    description:
+      "The operational specification defining services, deliverables, timelines, and standards. IRIS maps each SOW obligation to the questions that must address it.",
+    why_it_matters:
+      "The SOW defines what you must do if you win. Writers need to know whether their planned response commits to something the SOW requires or prohibits.",
+    document_type: "scope_of_work",
+    document_purpose: "procurement",
+    checklist_category: "scope_of_work",
+    urgency: "critical",
+    accept: ".pdf,.docx,.doc",
+  },
+  {
     id: "addenda",
     label: "Addenda & Q&A Documents",
     description: "All amendments, addenda, and Q&A releases issued after the RFP.",
