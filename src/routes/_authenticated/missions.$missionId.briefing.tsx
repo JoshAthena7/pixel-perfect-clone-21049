@@ -329,6 +329,9 @@ function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
               </Link>
             </div>
 
+            <ComplianceHealthLine missionId={missionId} />
+
+
             <p className="mt-5 italic" style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 }}>
               "Preserving Trust. Advancing the Future."
             </p>
