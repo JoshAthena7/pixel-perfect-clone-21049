@@ -994,6 +994,9 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
             {/* Client-provided response outline — shown above IRIS brief when present */}
             <QuestionOutlineSlot missionId={missionId} questionId={q.id} questionNumber={q.question_number} />
 
+            {/* Contract & SOW compliance — auto-expands when conflicts exist */}
+            <ComplianceCheckPanel questionId={q.id} missionId={missionId} />
+
             {/* IRIS action prompt — deterministic, instant */}
             <IrisActionBand text={getIrisActionPrompt(q)} />
 
