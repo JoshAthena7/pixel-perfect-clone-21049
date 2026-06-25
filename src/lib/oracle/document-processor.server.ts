@@ -247,6 +247,17 @@ Return JSON only.`,
     specialHandling: "style_guide",
     systemPrompt: "", // never called
   },
+  response_outline: {
+    id: "response_outline",
+    chunkStrategy: "standard",
+    relevanceFloor: 100, // unused
+    defaultCategory: "client_content_map",
+    defaultSubcategory: null,
+    defaultUrgency: "normal",
+    defaultAuthority: "secondary",
+    specialHandling: "response_outline",
+    systemPrompt: "", // never called
+  },
 };
 
 // ============================================================
