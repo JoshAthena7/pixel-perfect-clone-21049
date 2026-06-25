@@ -1079,3 +1079,176 @@ Return { "sections": [] } if nothing structural is detectable.`;
 
   return rows.length;
 }
+
+// ============================================================
+// Compliance obligation extractor — Model Contract & Scope of Work
+// ============================================================
+
+async function extractComplianceObligations(
+  apiKey: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  client: any,
+  input: {
+    missionId: string;
+    documentId: string;
+    documentType: "model_contract" | "scope_of_work";
+    documentTitle: string;
+    documentText: string;
+  },
+): Promise<number> {
+  // Fetch mission questions for matching
+  const { data: questions } = await client
+    .from("mission_questions")
+    .select("id, question_number, question_text, section_id")
+    .eq("mission_id", input.missionId)
+    .order("question_number");
+
+  // Fetch section titles for context
+  const { data: sections } = await client
+    .from("mission_sections")
+    .select("id, name")
+    .eq("mission_id", input.missionId);
+  const sectionMap = new Map<string, string>(
+    ((sections ?? []) as Array<{ id: string; name: string | null }>).map((s) => [s.id, s.name ?? ""]),
+  );
+
+  const qList = (questions ?? []) as Array<{
+    id: string;
+    question_number: string | null;
+    question_text: string | null;
+    section_id: string | null;
+  }>;
+
+  const docLabel = input.documentType === "model_contract" ? "State Model Contract" : "Scope of Work";
+
+  const truncated = input.documentText.slice(0, 60_000);
+
+  const system = `You are a precise legal/contract analyzer extracting compliance obligations from a ${docLabel} for a Medicaid managed care procurement. Return ONLY valid JSON — no markdown, no prose.`;
+
+  const user = `${docLabel.toUpperCase()} TEXT:
+${truncated}
+
+The mission has ${qList.length} proposal questions. Match obligations to these questions when possible:
+${qList.slice(0, 60).map((q) => `Q${q.question_number}: ${(q.question_text ?? "").slice(0, 80)}`).join("\n")}
+
+Extract ALL compliance obligations from this document that proposal writers need to know. For each obligation, return an object:
+{
+  "obligation_text": "exact quote from document (max 400 chars)",
+  "obligation_summary": "plain-English: what the contractor must do or not do (max 250 chars)",
+  "obligation_type": "service_standard|reporting|performance|prohibition|timeline|staffing|financial|legal",
+  "section_reference": "Section X.X or Article X (if identifiable, else null)",
+  "relevant_question_numbers": ["4.10.3", "4.11.1"],
+  "applies_to_all": false,
+  "risk_level": "critical|high|medium|low",
+  "iris_flag": "likely_compliant|possible_conflict|requires_attention",
+  "iris_assessment": "one sentence: why writers should pay attention to this"
+}
+
+Risk level guidance:
+- critical: financial penalties, contract termination, legal liability
+- high: performance standards with measurement, reporting with deadlines
+- medium: operational requirements, staffing minimums
+- low: informational, preferred practices
+
+Return: { "obligations": [ ... ] }
+Cap at 40 obligations. Focus on the ones writers most need to know about.`;
+
+  let raw: string;
+  try {
+    raw = await callGateway(apiKey, system, user);
+  } catch (err) {
+    console.error("[compliance-extractor] gateway call failed:", err);
+    return 0;
+  }
+
+  const arr = parseJsonArray(raw); // handles { obligations: [...] } via fallback keys
+  // parseJsonArray looks for items/results/data/extracted; add "obligations" support manually
+  let obligations: unknown[] = arr;
+  if (obligations.length === 0) {
+    try {
+      const cleaned = raw.replace(/^```(?:json)?\s*|\s*```$/g, "").trim();
+      const parsed = JSON.parse(cleaned);
+      if (parsed && typeof parsed === "object" && Array.isArray((parsed as Record<string, unknown>).obligations)) {
+        obligations = (parsed as Record<string, unknown>).obligations as unknown[];
+      }
+    } catch {
+      /* noop */
+    }
+  }
+
+  if (!Array.isArray(obligations) || obligations.length === 0) {
+    console.warn("[compliance-extractor] no obligations parsed");
+    return 0;
+  }
+
+  // Clear prior obligations from this same document
+  await client
+    .from("compliance_obligations")
+    .delete()
+    .eq("mission_id", input.missionId)
+    .eq("document_id", input.documentId);
+
+  let inserted = 0;
+  for (const raw of obligations.slice(0, 60)) {
+    if (!raw || typeof raw !== "object") continue;
+    const ob = raw as Record<string, unknown>;
+    const obligation_text = String(ob.obligation_text ?? "").trim().slice(0, 2000);
+    if (!obligation_text) continue;
+
+    const relevantNums = Array.isArray(ob.relevant_question_numbers)
+      ? (ob.relevant_question_numbers as unknown[]).map((x) => String(x).trim()).filter(Boolean)
+      : [];
+    const appliesAll = Boolean(ob.applies_to_all);
+    const riskRaw = String(ob.risk_level ?? "medium").toLowerCase();
+    const risk = ["critical", "high", "medium", "low"].includes(riskRaw) ? riskRaw : "medium";
+
+    const { data: insertedRow, error: insErr } = await client
+      .from("compliance_obligations")
+      .insert({
+        mission_id: input.missionId,
+        document_id: input.documentId,
+        document_type: input.documentType,
+        obligation_text,
+        obligation_summary: ob.obligation_summary ? String(ob.obligation_summary).slice(0, 500) : null,
+        obligation_type: ob.obligation_type ? String(ob.obligation_type).slice(0, 50) : "service_standard",
+        section_reference: ob.section_reference ? String(ob.section_reference).slice(0, 120) : null,
+        relevant_question_numbers: relevantNums,
+        applies_to_all: appliesAll,
+        risk_level: risk,
+      })
+      .select("id")
+      .single();
+
+    if (insErr || !insertedRow) {
+      console.warn("[compliance-extractor] insert obligation failed:", insErr?.message);
+      continue;
+    }
+    inserted++;
+
+    // Match to questions and create pending checks
+    const matched = qList.filter(
+      (q) =>
+        appliesAll ||
+        (q.question_number && relevantNums.some((n) => q.question_number === n || q.question_number?.includes(n) || n.includes(q.question_number ?? ""))),
+    );
+
+    for (const q of matched) {
+      await client
+        .from("question_compliance_checks")
+        .upsert(
+          {
+            mission_id: input.missionId,
+            question_id: q.id,
+            obligation_id: (insertedRow as { id: string }).id,
+            verification_status: "pending",
+            iris_assessment: ob.iris_assessment ? String(ob.iris_assessment).slice(0, 500) : null,
+            iris_confidence: 0.8,
+            iris_flag: ob.iris_flag ? String(ob.iris_flag).slice(0, 50) : "requires_attention",
+          },
+          { onConflict: "question_id,obligation_id" },
+        );
+    }
+  }
+
+  return inserted;
+}
