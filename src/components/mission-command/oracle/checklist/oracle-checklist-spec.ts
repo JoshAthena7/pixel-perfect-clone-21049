@@ -239,6 +239,8 @@ export function getChecklistItemById(id: string): ChecklistItem | undefined {
 export function matchDocumentToChecklist(title: string | null | undefined): string | null {
   if (!title) return null;
   const t = title.toLowerCase();
+  if (/model\s*contract|state\s*contract|contract\s*(template|model)/.test(t)) return "model_contract";
+  if (/scope\s*of\s*work|\bsow\b|statement\s*of\s*work/.test(t)) return "scope_of_work";
   if (t.includes("addend") || t.includes("q&a") || t.includes("q and a") || t.includes("amendment")) return "addenda";
   if (t.includes("waiver") || t.includes("1115") || t.includes("1915")) return "waiver";
   if (t.includes("eqro") || t.includes("external quality") || t.includes("quality review")) return "eqro";
