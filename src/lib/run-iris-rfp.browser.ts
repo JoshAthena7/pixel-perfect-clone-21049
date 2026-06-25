@@ -113,7 +113,7 @@ export async function runIrisRfpExtraction(
 
   if (liveDocs.length === 0) {
     throw new Error(
-      "RFP text not available. No documents are attached to this mission — upload your RFP in Step 1 (Fuel IRIS) before running extraction.",
+      "RFP text not available. No documents are attached to this mission — upload your RFP in Step 1 (Upload documents) before running extraction.",
     );
   }
 
@@ -174,7 +174,7 @@ export async function runIrisRfpExtraction(
   const primaryRfpText = textParts.join("\n\n---\n\n").slice(0, 950_000);
   if (primaryRfpText.trim().length < 500) {
     throw new Error(
-      "RFP text not available. The uploaded documents have no extractable text — re-upload the primary RFP through Step 1 (Fuel IRIS) before running extraction.",
+      "RFP text not available. The uploaded documents have no extractable text — re-upload the primary RFP through Step 1 (Upload documents) before running extraction.",
     );
   }
 
