@@ -443,7 +443,7 @@ export function Step1Fuel({
   return (
     <div>
       <WizardStepHeading
-        title="Fuel IRIS."
+        title="Upload documents."
         subtitle="Upload everything. IRIS will read it all and pre-populate your entire mission setup."
       />
 
