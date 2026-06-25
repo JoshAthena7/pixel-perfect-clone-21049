@@ -614,18 +614,21 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         </div>
       )}
 
-      {/* Columns — single-column stack on mobile, three columns on desktop */}
+      {/* Two-column shell: Team+Radar stacked (60%) | IRIS Alerts (40%) */}
       <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
-        <div id="atc-team-col" className="w-full md:w-[26%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden border-b md:border-b-0 md:border-r border-white/[0.06]">
-          {teamColumn}
+        <div className="w-full md:w-[60%] min-h-[480px] md:min-h-0 md:h-full overflow-y-auto md:overflow-hidden border-b md:border-b-0 md:border-r border-white/[0.06] flex flex-col">
+          <div id="atc-team-col" className="flex-1 min-h-[280px] overflow-hidden border-b border-white/[0.06]">
+            {teamColumn}
+          </div>
+          <div className="flex-1 min-h-[280px] overflow-hidden">
+            {radarColumn}
+          </div>
         </div>
-        <div className="w-full md:w-[44%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden border-b md:border-b-0 md:border-r border-white/[0.06]">
-          {radarColumn}
-        </div>
-        <div id="atc-alerts-col" className="w-full md:w-[30%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden">
+        <div id="atc-alerts-col" className="w-full md:w-[40%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden">
           {alertsColumn}
         </div>
       </div>
+
 
       <NudgeModal
         open={!!nudgeTarget}
