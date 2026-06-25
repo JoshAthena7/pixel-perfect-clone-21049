@@ -36,6 +36,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
 import { WinThemeCoverageCard } from "@/components/briefing-room/WinThemeCoverageCard";
+import { OutlineStatusCard } from "@/components/briefing-room/OutlineStatusCard";
 import { MissionHealthSummaryCard } from "@/components/mission-command/MissionHealthSummaryCard";
 import { MissionClock } from "@/components/briefing/MissionClock";
 import { OpenNotesWidget } from "@/components/war-room/OpenNotesWidget";
@@ -199,6 +200,7 @@ function BriefingPage() {
                   <NorthStarCompactCard missionId={missionId} />
                   <EvaluatorLensCard missionId={missionId} />
                   <WinThemeCoverageCard missionId={missionId} />
+                  <OutlineStatusCard missionId={missionId} />
                   <CompactMissionJourneyCard missionId={missionId} mission={mission} />
                   <StrategicRisksCard missionId={missionId} />
                   <CompetitorsCard missionId={missionId} />

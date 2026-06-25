@@ -357,7 +357,8 @@ export type DocumentPurpose =
   | 'competitive_intel'
   | 'writing_standards'
   | 'client_strategy'
-  | 'reference';
+  | 'reference'
+  | 'response_outline';
 
 // Extended mission document type reflecting Phase 1b columns
 export type MissionDocumentPurpose = {

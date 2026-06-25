@@ -26,6 +26,8 @@ import { TeamPulseCard } from "@/components/atlas/TeamPulseCard";
 import { NarrativeBriefSection } from "@/components/flight-deck/NarrativeBriefSection";
 import { CockpitSignalSurface } from "@/components/flight-deck/CockpitSignalSurface";
 import { CompetitorAngleCollapsible } from "@/components/flight-deck/CompetitorAngleCollapsible";
+import { ResponseOutlineCard } from "@/components/flight-deck/ResponseOutlineCard";
+import { useQuestionOutline } from "@/hooks/useQuestionOutline";
 
 const BG = "#060f1a";
 const CARD = "#0a1828";
@@ -988,6 +990,9 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
 
         {open && (
           <div style={{ padding: "14px 16px 16px 16px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+            {/* Client-provided response outline — shown above IRIS brief when present */}
+            <QuestionOutlineSlot missionId={missionId} questionId={q.id} questionNumber={q.question_number} />
+
             {/* IRIS action prompt — deterministic, instant */}
             <IrisActionBand text={getIrisActionPrompt(q)} />
 
@@ -1771,6 +1776,31 @@ function LeadershipBroadcastBand({ missionId }: { missionId: string }) {
 }
 
 /* ───────── New UI bits ───────── */
+
+function QuestionOutlineSlot({
+  missionId,
+  questionId,
+  questionNumber,
+}: {
+  missionId: string;
+  questionId: string;
+  questionNumber?: string | null;
+}) {
+  const { isAdmin } = useIsAdmin();
+  const { outline, hasGlobalOutline, refetch } = useQuestionOutline(questionId, missionId);
+  if (!outline && !isAdmin) return null;
+  return (
+    <ResponseOutlineCard
+      outline={outline}
+      isGlobal={hasGlobalOutline}
+      missionId={missionId}
+      questionId={questionId}
+      questionNumber={questionNumber}
+      canEdit={isAdmin}
+      onSaved={refetch}
+    />
+  );
+}
 
 function IrisActionBand({ text }: { text: string }) {
   return (

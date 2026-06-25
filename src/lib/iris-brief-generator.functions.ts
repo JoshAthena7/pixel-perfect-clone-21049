@@ -279,6 +279,56 @@ export const generateIrisBrief = createServerFn({ method: "POST" })
         console.warn("[iris-brief] could not load mission_iris_config", e);
       }
 
+      // Fetch any client-provided response outline for this question
+      // (or fall back to a global mission-wide outline).
+      let outlineBlock = "";
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sb = supabase as any;
+        const { data: outlineRows } = await sb
+          .from("question_response_outlines")
+          .select(
+            "question_id, section_headers, content_guidance, word_allocation, total_word_limit, required_elements, prohibited_elements, format_notes",
+          )
+          .eq("mission_id", data.missionId)
+          .or(`question_id.eq.${data.questionId},question_id.is.null`)
+          .order("question_id", { ascending: false, nullsFirst: false })
+          .limit(1);
+        const outline = Array.isArray(outlineRows) && outlineRows.length > 0 ? outlineRows[0] : null;
+        if (outline) {
+          const lines = [
+            "",
+            "━━━ CLIENT RESPONSE STRUCTURE — THE CLIENT HAS SPECIFIED HOW THIS RESPONSE MUST BE ORGANIZED ━━━",
+          ];
+          if (Array.isArray(outline.section_headers) && outline.section_headers.length > 0) {
+            lines.push(`Required sections in order: ${outline.section_headers.join(" → ")}`);
+          }
+          if (outline.total_word_limit) lines.push(`Total word limit: ${outline.total_word_limit} words`);
+          if (outline.word_allocation && typeof outline.word_allocation === "object") {
+            const entries = Object.entries(outline.word_allocation as Record<string, unknown>);
+            if (entries.length) {
+              lines.push(
+                `Word allocation: ${entries.map(([k, v]) => `${k}=${v}w`).join(", ")}`,
+              );
+            }
+          }
+          if (outline.content_guidance) lines.push(`Approach: ${outline.content_guidance}`);
+          if (Array.isArray(outline.required_elements) && outline.required_elements.length > 0) {
+            lines.push(`Must include: ${outline.required_elements.join("; ")}`);
+          }
+          if (Array.isArray(outline.prohibited_elements) && outline.prohibited_elements.length > 0) {
+            lines.push(`Must NOT include: ${outline.prohibited_elements.join("; ")}`);
+          }
+          if (outline.format_notes) lines.push(`Format: ${outline.format_notes}`);
+          lines.push(
+            "Organize your 'recommended_approach' and 'iris_evidence' around the client's required sections. Respect the word allocation if provided.",
+          );
+          outlineBlock = lines.join("\n");
+        }
+      } catch (e) {
+        console.warn("[iris-brief] could not load response outline", e);
+      }
+
       const system = `You are IRIS, the intelligence co-pilot for Athena Strategy Group's ATLAS platform — Medicaid managed care procurement consulting.
 
 You are generating a pre-writing intelligence brief for a writer.
@@ -291,7 +341,7 @@ CONTENT RULES:
 - iris_evidence: industry-level proof points from public sources surfaced by ORACLE. Never invent statistics.
 - Never generate client-specific performance data, outcomes, or case studies.
 - client_proof_points_prompt instructs the writer to add their own organization's data.
-- No filler ("it is important to note"). Direct, briefing-officer voice.${languageBlock}`;
+- No filler ("it is important to note"). Direct, briefing-officer voice.${languageBlock}${outlineBlock}`;
 
       const userMsg = [
         `=== MISSION INTELLIGENCE ===`,

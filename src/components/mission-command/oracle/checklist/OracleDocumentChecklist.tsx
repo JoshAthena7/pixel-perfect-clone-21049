@@ -45,6 +45,7 @@ const PURPOSE_OPTIONS: { value: DocumentPurpose; label: string }[] = [
   { value: "competitive_intel", label: "Comp Intel" },
   { value: "writing_standards", label: "Writing Guide" },
   { value: "client_strategy", label: "Client Strategy" },
+  { value: "response_outline", label: "Response Outline" },
   { value: "reference", label: "Reference" },
 ];
 
