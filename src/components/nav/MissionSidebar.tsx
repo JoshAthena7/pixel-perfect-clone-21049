@@ -142,7 +142,7 @@ export function MissionSidebar({ missionId, email }: { missionId: string; email?
     if (it.id === "war-room") return canWarRoom;
     return true;
   });
-  const intel = useIntelSummary(missionId);
+  
 
   return (
     <aside
