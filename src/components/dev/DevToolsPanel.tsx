@@ -230,8 +230,11 @@ function dotColor(s: StatusDot): string {
 }
 
 export function DevToolsPanel() {
+  // Hide entirely in production / non-dev environments.
+  if (import.meta.env.MODE === "production" || !import.meta.env.DEV) return null;
   const isAdmin = useIsAdmin();
   const [open, setOpen] = useState(false);
+
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewName, setPreviewName] = useState<string>("");
   const [playSplash, setPlaySplash] = useState(false);
