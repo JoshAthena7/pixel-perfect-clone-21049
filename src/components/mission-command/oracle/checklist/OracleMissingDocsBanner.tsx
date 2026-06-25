@@ -75,12 +75,8 @@ export function OracleMissingDocsBanner({
       <div className="flex items-center gap-2 text-[12px] text-amber-200/90">
         <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
         <span>
-          <span className="font-medium text-amber-200">ORACLE is missing critical documents</span>{" "}
-          — IRIS briefs may be incomplete.{" "}
-          <span className="text-amber-200/70">
-            {missing.map((m) => m.label).slice(0, 2).join(" · ")}
-            {missing.length > 2 ? ` · +${missing.length - 2} more` : ""} not uploaded.
-          </span>
+          <span className="font-medium text-amber-200">{missing.length} documents missing</span>{" "}
+          — IRIS briefs are running on limited intel.
         </span>
         <button
           type="button"
@@ -88,7 +84,7 @@ export function OracleMissingDocsBanner({
           className="text-amber-300 hover:text-amber-200 underline ml-2"
           style={{ fontSize: 11 }}
         >
-          Upload now →
+          + Upload documents →
         </button>
       </div>
       <button
