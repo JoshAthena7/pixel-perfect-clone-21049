@@ -348,7 +348,51 @@ export async function processDocument(input: ProcessInput): Promise<ProcessResul
     }
   }
 
-  // ---------- Standard signal extraction ----------
+  // ---------- Special case: response outline ----------
+  if (template.specialHandling === "response_outline") {
+    try {
+      const sectionsParsed = await parseResponseOutline(apiKey, client, {
+        missionId: input.missionId,
+        documentId: input.documentId,
+        outlineText: fullText,
+      });
+      await updateStatus(client, input.documentId, {
+        processing_status: "processed",
+        processed_at: new Date().toISOString(),
+        items_extracted: sectionsParsed,
+        processing_error: null,
+      });
+      if (input.userId) {
+        await client.from("mission_assist_events").insert({
+          mission_id: input.missionId,
+          user_id: input.userId,
+          event_type: "oracle_intel_added",
+          metadata: {
+            summary: `Parsed "${input.documentTitle}" — ${sectionsParsed} outline sections written to question cockpits`,
+            document_id: input.documentId,
+            document_title: input.documentTitle,
+            items_extracted: sectionsParsed,
+            ingestion_source: "response_outline_parser",
+          },
+        });
+      }
+      return {
+        items_extracted: sectionsParsed,
+        chunks_processed: 1,
+        toc_entries: 0,
+        template_id: template.id,
+        note: `Response outline parsed: ${sectionsParsed} sections surfaced in question cockpits.`,
+      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      await updateStatus(client, input.documentId, {
+        processing_status: "error",
+        processing_error: msg.slice(0, 1000),
+      });
+      throw err;
+    }
+  }
+
   const allItems: ExtractedItem[] = [];
   let chunksProcessed = 0;
   let tocEntries: Array<{ section_number: string; section_title: string; page_number: number | null }> = [];
