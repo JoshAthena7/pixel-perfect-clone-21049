@@ -96,15 +96,10 @@ export function useMissionPulse(missionId: string) {
           .from("mission_assist_events")
           .select("*")
           .eq("mission_id", missionId)
-          .in("event_type", [
-            "brief_exported",
-            "check_in",
-            "sticky_note_posted",
-            "sos_raised",
-            "status_updated",
-          ])
+          .in("event_type", ["brief_exported", "sos_raised"])
           .order("created_at", { ascending: false })
           .limit(25),
+
         supabase
           .from("oracle_signals")
           .select("id, title, category, relevance_score, updated_at, created_at")
