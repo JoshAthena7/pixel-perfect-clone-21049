@@ -28,6 +28,7 @@ import { CockpitSignalSurface } from "@/components/flight-deck/CockpitSignalSurf
 import { CompetitorAngleCollapsible } from "@/components/flight-deck/CompetitorAngleCollapsible";
 import { ResponseOutlineCard } from "@/components/flight-deck/ResponseOutlineCard";
 import { useQuestionOutline } from "@/hooks/useQuestionOutline";
+import { ComplianceCheckPanel } from "@/components/cockpit/ComplianceCheckPanel";
 
 const BG = "#060f1a";
 const CARD = "#0a1828";
