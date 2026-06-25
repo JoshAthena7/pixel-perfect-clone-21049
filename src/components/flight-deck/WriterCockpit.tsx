@@ -1786,7 +1786,7 @@ function QuestionOutlineSlot({
   questionId: string;
   questionNumber?: string | null;
 }) {
-  const isAdmin = useIsAdmin();
+  const { isAdmin } = useIsAdmin();
   const { outline, hasGlobalOutline, refetch } = useQuestionOutline(questionId, missionId);
   if (!outline && !isAdmin) return null;
   return (
