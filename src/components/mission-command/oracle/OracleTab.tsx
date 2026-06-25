@@ -78,8 +78,11 @@ export function OracleTab({ missionId }: { missionId: string }) {
 
   if (roleResolving) {
     return (
-      <div className="py-12 text-center" style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
-        Loading…
+      <div className="space-y-3 py-6">
+        <div className="h-[280px] rounded animate-pulse" style={{ background: "rgba(255,255,255,0.04)" }} />
+        <div className="h-[40px] rounded animate-pulse" style={{ background: "rgba(255,255,255,0.04)" }} />
+        <div className="h-[40px] rounded animate-pulse" style={{ background: "rgba(255,255,255,0.04)" }} />
+        <div className="h-[40px] rounded animate-pulse" style={{ background: "rgba(255,255,255,0.04)" }} />
       </div>
     );
   }
