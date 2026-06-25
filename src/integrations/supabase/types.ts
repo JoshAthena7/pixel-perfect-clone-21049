@@ -2830,6 +2830,69 @@ export type Database = {
         }
         Relationships: []
       }
+      compliance_obligations: {
+        Row: {
+          applies_to_all: boolean | null
+          created_at: string
+          document_id: string | null
+          document_type: string
+          id: string
+          mission_id: string
+          obligation_summary: string | null
+          obligation_text: string
+          obligation_type: string | null
+          relevant_question_numbers: string[] | null
+          risk_level: string | null
+          section_reference: string | null
+          updated_at: string
+        }
+        Insert: {
+          applies_to_all?: boolean | null
+          created_at?: string
+          document_id?: string | null
+          document_type: string
+          id?: string
+          mission_id: string
+          obligation_summary?: string | null
+          obligation_text: string
+          obligation_type?: string | null
+          relevant_question_numbers?: string[] | null
+          risk_level?: string | null
+          section_reference?: string | null
+          updated_at?: string
+        }
+        Update: {
+          applies_to_all?: boolean | null
+          created_at?: string
+          document_id?: string | null
+          document_type?: string
+          id?: string
+          mission_id?: string
+          obligation_summary?: string | null
+          obligation_text?: string
+          obligation_type?: string | null
+          relevant_question_numbers?: string[] | null
+          risk_level?: string | null
+          section_reference?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_obligations_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "mission_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_obligations_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_requirements: {
         Row: {
           created_at: string
@@ -11560,6 +11623,90 @@ export type Database = {
           {
             foreignKeyName: "question_collaboration_resolved_by_fkey"
             columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      question_compliance_checks: {
+        Row: {
+          created_at: string
+          id: string
+          iris_assessment: string | null
+          iris_confidence: number | null
+          iris_flag: string | null
+          mission_id: string
+          obligation_id: string
+          question_id: string
+          updated_at: string
+          verification_note: string | null
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          iris_assessment?: string | null
+          iris_confidence?: number | null
+          iris_flag?: string | null
+          mission_id: string
+          obligation_id: string
+          question_id: string
+          updated_at?: string
+          verification_note?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          iris_assessment?: string | null
+          iris_confidence?: number | null
+          iris_flag?: string | null
+          mission_id?: string
+          obligation_id?: string
+          question_id?: string
+          updated_at?: string
+          verification_note?: string | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_compliance_checks_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_compliance_checks_obligation_id_fkey"
+            columns: ["obligation_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_obligations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_compliance_checks_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "mission_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_compliance_checks_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_compliance_checks_verified_by_fkey"
+            columns: ["verified_by"]
             isOneToOne: false
             referencedRelation: "profiles_directory"
             referencedColumns: ["id"]
