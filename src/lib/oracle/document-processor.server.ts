@@ -105,6 +105,11 @@ export function selectExtractionTemplate(
     return TEMPLATES.style_guide;
   }
 
+  // Response outline — client-provided structure for how to answer each question.
+  if (hint === "response_outline" || /response\s*outline|response\s*structure|response\s*template/.test(titleLower)) {
+    return TEMPLATES.response_outline;
+  }
+
   // Primary RFP always uses Template 1 regardless of hint.
   if (documentType === "primary_rfp") return TEMPLATES.primary_rfp;
 
