@@ -67,7 +67,7 @@ type ExtractionTemplate = {
   defaultAuthority: string;
   relevanceFloor: number;
   // null = treat as oracle_signal extraction. Other = special-case storage.
-  specialHandling?: "style_guide" | "response_outline" | null;
+  specialHandling?: "style_guide" | "response_outline" | "compliance_extraction" | null;
 };
 
 export type ProcessInput = {
