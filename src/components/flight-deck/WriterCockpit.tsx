@@ -990,6 +990,9 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
 
         {open && (
           <div style={{ padding: "14px 16px 16px 16px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+            {/* Client-provided response outline — shown above IRIS brief when present */}
+            <QuestionOutlineSlot missionId={missionId} questionId={q.id} questionNumber={q.question_number} />
+
             {/* IRIS action prompt — deterministic, instant */}
             <IrisActionBand text={getIrisActionPrompt(q)} />
 
