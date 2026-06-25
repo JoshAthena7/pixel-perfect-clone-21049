@@ -42,32 +42,6 @@ function formatAssistEvent(event: any, missionId: string): PulseEvent | null {
         to: "/missions/$missionId/flight-deck",
         params: { missionId },
       };
-    case "check_in": {
-      const blocked = meta.status === "blocked";
-      const needSme = meta.status === "need_sme";
-      const statusSuffix = blocked ? " — Blocked" : needSme ? " — Needs SME" : " — On Track";
-      return {
-        id: baseId,
-        icon: blocked || needSme ? "⚠" : "●",
-        text: `Check-in on ${qNum}${statusSuffix}`,
-        time: event.created_at,
-        href: `/missions/${missionId}/war-room`,
-        iconColor: blocked || needSme ? "rgba(251,191,36,0.9)" : "rgba(255,255,255,0.5)",
-        to: "/missions/$missionId/war-room",
-        params: { missionId },
-      };
-    }
-    case "sticky_note_posted":
-      return {
-        id: baseId,
-        icon: "📌",
-        text: `Note on ${qNum}${meta.content_preview ? ': "' + String(meta.content_preview).substring(0, 45) + '…"' : ""}`,
-        time: event.created_at,
-        href: `/missions/${missionId}/war-room`,
-        iconColor: "rgba(255,255,255,0.5)",
-        to: "/missions/$missionId/war-room",
-        params: { missionId },
-      };
     case "sos_raised":
       return {
         id: baseId,
@@ -79,21 +53,11 @@ function formatAssistEvent(event: any, missionId: string): PulseEvent | null {
         to: "/missions/$missionId/war-room",
         params: { missionId },
       };
-    case "status_updated":
-      return {
-        id: baseId,
-        icon: "●",
-        text: `${qNum} moved to ${meta.to || "new status"}`,
-        time: event.created_at,
-        href: `/missions/${missionId}/flight-deck`,
-        iconColor: "rgba(255,255,255,0.4)",
-        to: "/missions/$missionId/flight-deck",
-        params: { missionId },
-      };
     default:
       return null;
   }
 }
+
 
 function formatSignalEvent(signal: any, missionId: string): PulseEvent {
   const title = signal.title || "Untitled signal";
