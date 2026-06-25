@@ -1777,6 +1777,31 @@ function LeadershipBroadcastBand({ missionId }: { missionId: string }) {
 
 /* ───────── New UI bits ───────── */
 
+function QuestionOutlineSlot({
+  missionId,
+  questionId,
+  questionNumber,
+}: {
+  missionId: string;
+  questionId: string;
+  questionNumber?: string | null;
+}) {
+  const isAdmin = useIsAdmin();
+  const { outline, hasGlobalOutline, refetch } = useQuestionOutline(questionId, missionId);
+  if (!outline && !isAdmin) return null;
+  return (
+    <ResponseOutlineCard
+      outline={outline}
+      isGlobal={hasGlobalOutline}
+      missionId={missionId}
+      questionId={questionId}
+      questionNumber={questionNumber}
+      canEdit={isAdmin}
+      onSaved={refetch}
+    />
+  );
+}
+
 function IrisActionBand({ text }: { text: string }) {
   return (
     <div
