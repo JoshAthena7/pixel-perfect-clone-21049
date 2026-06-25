@@ -187,7 +187,7 @@ export function HealthColumn({
       {/* Retained for compile compatibility — not rendered. */}
       {false && missionId && (
         <>
-          <CoverageList data={coverageQ.data} loading={coverageQ.isLoading} missionId={missionId} />
+          <CoverageList data={coverageQ.data} loading={coverageQ.isLoading} missionId={missionId as string} />
           <CoverageSummary q={coverageQ.data} />
           <UsageBars data={usageQ.data} />
           <TopIntel data={topQ.data} onSwitchToReview={onSwitchToReview} />
