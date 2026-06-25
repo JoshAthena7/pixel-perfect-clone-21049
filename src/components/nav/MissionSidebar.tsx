@@ -202,36 +202,11 @@ export function MissionSidebar({ missionId, email }: { missionId: string; email?
         })}
       </nav>
 
-      <div className="mx-3 my-3" style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
-
-
-      <div className="px-4 pb-3">
-        <div
-          className="mb-2"
-          style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em", fontWeight: 600 }}
-        >
-          INTEL
-        </div>
-        <ul className="space-y-1.5" style={{ fontSize: 11, color: "rgba(255,255,255,0.6)" }}>
-          <SummaryRow label="Completeness" value={`${intel.completeness}%`} />
-          <SummaryRow label="Feed" value={String(intel.events)} />
-          <SummaryRow label="People" value={String(intel.people)} />
-          <SummaryRow label="Orgs" value={String(intel.orgs)} />
-        </ul>
-      </div>
-
     </aside>
   );
 }
 
-function SummaryRow({ label, value }: { label: string; value: string }) {
-  return (
-    <li className="flex items-center justify-between">
-      <span style={{ color: "rgba(255,255,255,0.5)" }}>{label}</span>
-      <span style={{ color: "white", fontWeight: 600 }}>{value}</span>
-    </li>
-  );
-}
+
 
 /* -------------------- Mission Switcher -------------------- */
 function MissionSwitcher({ missionId }: { missionId: string }) {
