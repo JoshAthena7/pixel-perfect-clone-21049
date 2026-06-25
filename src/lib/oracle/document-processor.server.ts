@@ -67,7 +67,7 @@ type ExtractionTemplate = {
   defaultAuthority: string;
   relevanceFloor: number;
   // null = treat as oracle_signal extraction. Other = special-case storage.
-  specialHandling?: "style_guide" | "response_outline" | null;
+  specialHandling?: "style_guide" | "response_outline" | "compliance_extraction" | null;
 };
 
 export type ProcessInput = {
@@ -108,6 +108,14 @@ export function selectExtractionTemplate(
   // Response outline — client-provided structure for how to answer each question.
   if (hint === "response_outline" || /response\s*outline|response\s*structure|response\s*template/.test(titleLower)) {
     return TEMPLATES.response_outline;
+  }
+
+  // Model Contract & Scope of Work — compliance obligation extraction.
+  if (documentType === "model_contract" || /\bmodel\s*contract\b|state\s*contract/.test(titleLower)) {
+    return TEMPLATES.model_contract;
+  }
+  if (documentType === "scope_of_work" || /\bscope\s*of\s*work\b|\bsow\b|statement\s*of\s*work/.test(titleLower)) {
+    return TEMPLATES.scope_of_work;
   }
 
   // Primary RFP always uses Template 1 regardless of hint.
@@ -258,6 +266,28 @@ Return JSON only.`,
     specialHandling: "response_outline",
     systemPrompt: "", // never called
   },
+  model_contract: {
+    id: "model_contract",
+    chunkStrategy: "standard",
+    relevanceFloor: 100,
+    defaultCategory: "regulatory_state",
+    defaultSubcategory: "contract_obligation",
+    defaultUrgency: "high",
+    defaultAuthority: "primary",
+    specialHandling: "compliance_extraction",
+    systemPrompt: "",
+  },
+  scope_of_work: {
+    id: "scope_of_work",
+    chunkStrategy: "standard",
+    relevanceFloor: 100,
+    defaultCategory: "regulatory_state",
+    defaultSubcategory: "sow_obligation",
+    defaultUrgency: "high",
+    defaultAuthority: "primary",
+    specialHandling: "compliance_extraction",
+    systemPrompt: "",
+  },
 };
 
 // ============================================================
@@ -392,6 +422,56 @@ export async function processDocument(input: ProcessInput): Promise<ProcessResul
       throw err;
     }
   }
+
+  // ---------- Special case: compliance extraction (Model Contract / SOW) ----------
+  if (template.specialHandling === "compliance_extraction") {
+    try {
+      const docType: "model_contract" | "scope_of_work" =
+        template.id === "model_contract" ? "model_contract" : "scope_of_work";
+      const obligationsCount = await extractComplianceObligations(apiKey, client, {
+        missionId: input.missionId,
+        documentId: input.documentId,
+        documentType: docType,
+        documentTitle: input.documentTitle,
+        documentText: fullText,
+      });
+      await updateStatus(client, input.documentId, {
+        processing_status: "processed",
+        processed_at: new Date().toISOString(),
+        items_extracted: obligationsCount,
+        processing_error: null,
+      });
+      if (input.userId) {
+        await client.from("mission_assist_events").insert({
+          mission_id: input.missionId,
+          user_id: input.userId,
+          event_type: "oracle_intel_added",
+          metadata: {
+            summary: `Extracted ${obligationsCount} compliance obligations from "${input.documentTitle}"`,
+            document_id: input.documentId,
+            document_title: input.documentTitle,
+            items_extracted: obligationsCount,
+            ingestion_source: "compliance_extractor",
+          },
+        });
+      }
+      return {
+        items_extracted: obligationsCount,
+        chunks_processed: 1,
+        toc_entries: 0,
+        template_id: template.id,
+        note: `Compliance extraction: ${obligationsCount} obligations surfaced.`,
+      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      await updateStatus(client, input.documentId, {
+        processing_status: "error",
+        processing_error: msg.slice(0, 1000),
+      });
+      throw err;
+    }
+  }
+
 
   const allItems: ExtractedItem[] = [];
   let chunksProcessed = 0;
@@ -998,4 +1078,177 @@ Return { "sections": [] } if nothing structural is detectable.`;
   }
 
   return rows.length;
+}
+
+// ============================================================
+// Compliance obligation extractor — Model Contract & Scope of Work
+// ============================================================
+
+async function extractComplianceObligations(
+  apiKey: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  client: any,
+  input: {
+    missionId: string;
+    documentId: string;
+    documentType: "model_contract" | "scope_of_work";
+    documentTitle: string;
+    documentText: string;
+  },
+): Promise<number> {
+  // Fetch mission questions for matching
+  const { data: questions } = await client
+    .from("mission_questions")
+    .select("id, question_number, question_text, section_id")
+    .eq("mission_id", input.missionId)
+    .order("question_number");
+
+  // Fetch section titles for context
+  const { data: sections } = await client
+    .from("mission_sections")
+    .select("id, name")
+    .eq("mission_id", input.missionId);
+  const sectionMap = new Map<string, string>(
+    ((sections ?? []) as Array<{ id: string; name: string | null }>).map((s) => [s.id, s.name ?? ""]),
+  );
+
+  const qList = (questions ?? []) as Array<{
+    id: string;
+    question_number: string | null;
+    question_text: string | null;
+    section_id: string | null;
+  }>;
+
+  const docLabel = input.documentType === "model_contract" ? "State Model Contract" : "Scope of Work";
+
+  const truncated = input.documentText.slice(0, 60_000);
+
+  const system = `You are a precise legal/contract analyzer extracting compliance obligations from a ${docLabel} for a Medicaid managed care procurement. Return ONLY valid JSON — no markdown, no prose.`;
+
+  const user = `${docLabel.toUpperCase()} TEXT:
+${truncated}
+
+The mission has ${qList.length} proposal questions. Match obligations to these questions when possible:
+${qList.slice(0, 60).map((q) => `Q${q.question_number}: ${(q.question_text ?? "").slice(0, 80)}`).join("\n")}
+
+Extract ALL compliance obligations from this document that proposal writers need to know. For each obligation, return an object:
+{
+  "obligation_text": "exact quote from document (max 400 chars)",
+  "obligation_summary": "plain-English: what the contractor must do or not do (max 250 chars)",
+  "obligation_type": "service_standard|reporting|performance|prohibition|timeline|staffing|financial|legal",
+  "section_reference": "Section X.X or Article X (if identifiable, else null)",
+  "relevant_question_numbers": ["4.10.3", "4.11.1"],
+  "applies_to_all": false,
+  "risk_level": "critical|high|medium|low",
+  "iris_flag": "likely_compliant|possible_conflict|requires_attention",
+  "iris_assessment": "one sentence: why writers should pay attention to this"
+}
+
+Risk level guidance:
+- critical: financial penalties, contract termination, legal liability
+- high: performance standards with measurement, reporting with deadlines
+- medium: operational requirements, staffing minimums
+- low: informational, preferred practices
+
+Return: { "obligations": [ ... ] }
+Cap at 40 obligations. Focus on the ones writers most need to know about.`;
+
+  let raw: string;
+  try {
+    raw = await callGateway(apiKey, system, user);
+  } catch (err) {
+    console.error("[compliance-extractor] gateway call failed:", err);
+    return 0;
+  }
+
+  const arr = parseJsonArray(raw); // handles { obligations: [...] } via fallback keys
+  // parseJsonArray looks for items/results/data/extracted; add "obligations" support manually
+  let obligations: unknown[] = arr;
+  if (obligations.length === 0) {
+    try {
+      const cleaned = raw.replace(/^```(?:json)?\s*|\s*```$/g, "").trim();
+      const parsed = JSON.parse(cleaned);
+      if (parsed && typeof parsed === "object" && Array.isArray((parsed as Record<string, unknown>).obligations)) {
+        obligations = (parsed as Record<string, unknown>).obligations as unknown[];
+      }
+    } catch {
+      /* noop */
+    }
+  }
+
+  if (!Array.isArray(obligations) || obligations.length === 0) {
+    console.warn("[compliance-extractor] no obligations parsed");
+    return 0;
+  }
+
+  // Clear prior obligations from this same document
+  await client
+    .from("compliance_obligations")
+    .delete()
+    .eq("mission_id", input.missionId)
+    .eq("document_id", input.documentId);
+
+  let inserted = 0;
+  for (const raw of obligations.slice(0, 60)) {
+    if (!raw || typeof raw !== "object") continue;
+    const ob = raw as Record<string, unknown>;
+    const obligation_text = String(ob.obligation_text ?? "").trim().slice(0, 2000);
+    if (!obligation_text) continue;
+
+    const relevantNums = Array.isArray(ob.relevant_question_numbers)
+      ? (ob.relevant_question_numbers as unknown[]).map((x) => String(x).trim()).filter(Boolean)
+      : [];
+    const appliesAll = Boolean(ob.applies_to_all);
+    const riskRaw = String(ob.risk_level ?? "medium").toLowerCase();
+    const risk = ["critical", "high", "medium", "low"].includes(riskRaw) ? riskRaw : "medium";
+
+    const { data: insertedRow, error: insErr } = await client
+      .from("compliance_obligations")
+      .insert({
+        mission_id: input.missionId,
+        document_id: input.documentId,
+        document_type: input.documentType,
+        obligation_text,
+        obligation_summary: ob.obligation_summary ? String(ob.obligation_summary).slice(0, 500) : null,
+        obligation_type: ob.obligation_type ? String(ob.obligation_type).slice(0, 50) : "service_standard",
+        section_reference: ob.section_reference ? String(ob.section_reference).slice(0, 120) : null,
+        relevant_question_numbers: relevantNums,
+        applies_to_all: appliesAll,
+        risk_level: risk,
+      })
+      .select("id")
+      .single();
+
+    if (insErr || !insertedRow) {
+      console.warn("[compliance-extractor] insert obligation failed:", insErr?.message);
+      continue;
+    }
+    inserted++;
+
+    // Match to questions and create pending checks
+    const matched = qList.filter(
+      (q) =>
+        appliesAll ||
+        (q.question_number && relevantNums.some((n) => q.question_number === n || q.question_number?.includes(n) || n.includes(q.question_number ?? ""))),
+    );
+
+    for (const q of matched) {
+      await client
+        .from("question_compliance_checks")
+        .upsert(
+          {
+            mission_id: input.missionId,
+            question_id: q.id,
+            obligation_id: (insertedRow as { id: string }).id,
+            verification_status: "pending",
+            iris_assessment: ob.iris_assessment ? String(ob.iris_assessment).slice(0, 500) : null,
+            iris_confidence: 0.8,
+            iris_flag: ob.iris_flag ? String(ob.iris_flag).slice(0, 50) : "requires_attention",
+          },
+          { onConflict: "question_id,obligation_id" },
+        );
+    }
+  }
+
+  return inserted;
 }

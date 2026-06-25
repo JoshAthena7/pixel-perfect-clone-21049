@@ -329,6 +329,48 @@ export const generateIrisBrief = createServerFn({ method: "POST" })
         console.warn("[iris-brief] could not load response outline", e);
       }
 
+      // Fetch unresolved compliance obligations for this question
+      let complianceBlock = "";
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sb = supabase as any;
+        const { data: oblRows } = await sb
+          .from("question_compliance_checks")
+          .select(
+            "verification_status, compliance_obligations(obligation_summary, obligation_type, risk_level, document_type, section_reference)",
+          )
+          .eq("question_id", data.questionId)
+          .in("verification_status", ["pending", "conflict"]);
+        const obs = (oblRows ?? []) as Array<{
+          verification_status: string;
+          compliance_obligations: {
+            obligation_summary: string | null;
+            obligation_type: string | null;
+            risk_level: string | null;
+            document_type: string | null;
+            section_reference: string | null;
+          } | null;
+        }>;
+        if (obs.length > 0) {
+          const lines = [
+            "",
+            "━━━ CONTRACT & SOW OBLIGATIONS FOR THIS QUESTION (writer must address these) ━━━",
+            ...obs.slice(0, 20).map((o) => {
+              const ob = o.compliance_obligations;
+              const docLabel = ob?.document_type === "model_contract" ? "Contract" : "SOW";
+              const sec = ob?.section_reference ? ` ${ob.section_reference}` : "";
+              return `- [${docLabel}${sec}] ${ob?.obligation_summary ?? "—"} (${ob?.risk_level ?? "medium"} risk)`;
+            }),
+            "",
+            "In your 'Watch out for' guidance: flag any obligation above that the proposed win strategy might conflict with.",
+            "In your 'How we win this' guidance: note how the response approach aligns with the contract/SOW requirements.",
+          ];
+          complianceBlock = lines.join("\n");
+        }
+      } catch (e) {
+        console.warn("[iris-brief] could not load compliance obligations", e);
+      }
+
       const system = `You are IRIS, the intelligence co-pilot for Athena Strategy Group's ATLAS platform — Medicaid managed care procurement consulting.
 
 You are generating a pre-writing intelligence brief for a writer.
@@ -341,7 +383,7 @@ CONTENT RULES:
 - iris_evidence: industry-level proof points from public sources surfaced by ORACLE. Never invent statistics.
 - Never generate client-specific performance data, outcomes, or case studies.
 - client_proof_points_prompt instructs the writer to add their own organization's data.
-- No filler ("it is important to note"). Direct, briefing-officer voice.${languageBlock}${outlineBlock}`;
+- No filler ("it is important to note"). Direct, briefing-officer voice.${languageBlock}${outlineBlock}${complianceBlock}`;
 
       const userMsg = [
         `=== MISSION INTELLIGENCE ===`,

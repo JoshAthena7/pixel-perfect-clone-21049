@@ -28,6 +28,8 @@ import { CockpitSignalSurface } from "@/components/flight-deck/CockpitSignalSurf
 import { CompetitorAngleCollapsible } from "@/components/flight-deck/CompetitorAngleCollapsible";
 import { ResponseOutlineCard } from "@/components/flight-deck/ResponseOutlineCard";
 import { useQuestionOutline } from "@/hooks/useQuestionOutline";
+import { ComplianceCheckPanel } from "@/components/cockpit/ComplianceCheckPanel";
+import { QuestionComplianceIndicator } from "@/components/cockpit/QuestionComplianceIndicator";
 
 const BG = "#060f1a";
 const CARD = "#0a1828";
@@ -967,6 +969,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
             {q.iris_brief_status === "pending" && <Chip color="#9ca3af">Pending</Chip>}
             {fbList.length > 0 && <Chip color={AMBER}>⚠ {fbList.length} feedback item{fbList.length === 1 ? "" : "s"}</Chip>}
             <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
+              <QuestionComplianceIndicator questionId={q.id} />
               <Dot color={healthColor(q.health_status)} pulse={q.health_status === "at_risk"} />
             </span>
           </div>
@@ -992,6 +995,9 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
           <div style={{ padding: "14px 16px 16px 16px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
             {/* Client-provided response outline — shown above IRIS brief when present */}
             <QuestionOutlineSlot missionId={missionId} questionId={q.id} questionNumber={q.question_number} />
+
+            {/* Contract & SOW compliance — auto-expands when conflicts exist */}
+            <ComplianceCheckPanel questionId={q.id} missionId={missionId} />
 
             {/* IRIS action prompt — deterministic, instant */}
             <IrisActionBand text={getIrisActionPrompt(q)} />

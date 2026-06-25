@@ -37,6 +37,7 @@ import { toast } from "sonner";
 import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
 import { WinThemeCoverageCard } from "@/components/briefing-room/WinThemeCoverageCard";
 import { OutlineStatusCard } from "@/components/briefing-room/OutlineStatusCard";
+import { useMissionComplianceStats } from "@/components/war-room/ComplianceDashboard";
 import { MissionHealthSummaryCard } from "@/components/mission-command/MissionHealthSummaryCard";
 import { MissionClock } from "@/components/briefing/MissionClock";
 import { OpenNotesWidget } from "@/components/war-room/OpenNotesWidget";
@@ -328,6 +329,9 @@ function HeroCard({ missionId, mission }: { missionId: string; mission: any }) {
               </Link>
             </div>
 
+            <ComplianceHealthLine missionId={missionId} />
+
+
             <p className="mt-5 italic" style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 }}>
               "Preserving Trust. Advancing the Future."
             </p>
@@ -425,6 +429,22 @@ function StateMap({ stateCode }: { stateCode?: string | null }) {
     </svg>
   );
 }
+
+function ComplianceHealthLine({ missionId }: { missionId: string }) {
+  const { data } = useMissionComplianceStats(missionId);
+  if (!data || data.total === 0) return null;
+  return (
+    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
+      Contract compliance: {data.verified}/{data.total} verified
+      {data.conflicts > 0 && (
+        <span style={{ color: "rgba(248,113,113,0.7)", marginLeft: 8 }}>
+          · {data.conflicts} conflict{data.conflicts > 1 ? "s" : ""} flagged
+        </span>
+      )}
+    </div>
+  );
+}
+
 
 /* ───────────────── 2a. Today's Focus ───────────────── */
 function TodaysFocusCard({ missionId, mission, bare = false }: { missionId: string; mission?: any; bare?: boolean }) {
