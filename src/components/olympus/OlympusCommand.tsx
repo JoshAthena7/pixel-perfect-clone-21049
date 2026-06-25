@@ -4,15 +4,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { runOracleStage } from "@/lib/oracle-pipeline.functions";
 import { toast } from "sonner";
-import { Loader2, Zap, Plus, ArrowRight } from "lucide-react";
+import { Loader2, Plus, ArrowRight, RefreshCw } from "lucide-react";
 import { TaxonomyBrowser } from "./TaxonomyBrowser";
 import { IntelReviewQueue } from "./IntelReviewQueue";
 import { SourcesPanel } from "./SourcesPanel";
 import { HealthColumn } from "./HealthColumn";
-import {
-  FeedAtlasDrawer,
-  type FeedAtlasTab,
-} from "@/components/mission-command/oracle/FeedAtlasDrawer";
+import { IntelSetupWizard } from "@/components/intel-setup/IntelSetupWizard";
 import { OracleMissingDocsBanner } from "@/components/mission-command/oracle/checklist/OracleMissingDocsBanner";
 
 
