@@ -185,7 +185,7 @@ export function HealthColumn({
         <PipelineStats data={healthQ.data} onSourcesClick={onSwitchToSources} />
       </Panel>
       {/* Retained for compile compatibility — not rendered. */}
-      {false && (
+      {false && missionId && (
         <>
           <CoverageList data={coverageQ.data} loading={coverageQ.isLoading} missionId={missionId} />
           <CoverageSummary q={coverageQ.data} />
@@ -194,6 +194,7 @@ export function HealthColumn({
           <RecentlyApprovedList items={recentlyApprovedQ.data ?? []} />
         </>
       )}
+
     </div>
   );
 }
