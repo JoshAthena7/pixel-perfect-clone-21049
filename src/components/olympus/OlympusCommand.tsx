@@ -219,43 +219,54 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
       )}
 
 
-      {/* 3-column shell */}
-      <div className="grid" style={{ gridTemplateColumns: "24% 48% 28%", height: "calc(100vh - 48px)" }}>
-        <Column
-          title={
-            <div className="flex items-center gap-3">
+      {/* 2-panel shell — queue (65%) + pipeline health (35%) */}
+      <div className="grid" style={{ gridTemplateColumns: "65% 35%", height: "calc(100vh - 48px)" }}>
+        <Column title="INTEL REVIEW QUEUE" dataAttr="review">
+          <IntelReviewQueue missionId={missionId} taxonomyNodeId={selectedNodeId} />
+          {/* Taxonomy & Sources — collapsed by default, below the queue header */}
+          <details style={{ marginTop: 12 }}>
+            <summary
+              style={{
+                cursor: "pointer",
+                fontSize: 11,
+                color: "rgba(255,255,255,0.5)",
+                padding: "8px 4px",
+                listStyle: "none",
+              }}
+            >
+              ⚙ Taxonomy &amp; Sources
+            </summary>
+            <div className="mt-2 flex gap-3">
               <button
                 onClick={() => setLeftTab("taxonomy")}
-                className={leftTab === "taxonomy" ? "text-white/90" : "text-white/40 hover:text-white/70"}
+                className={leftTab === "taxonomy" ? "text-white/90 text-[11px]" : "text-white/40 text-[11px] hover:text-white/70"}
               >
                 TAXONOMY
               </button>
               <button
                 onClick={() => setLeftTab("sources")}
-                className={leftTab === "sources" ? "text-white/90" : "text-white/40 hover:text-white/70"}
+                className={leftTab === "sources" ? "text-white/90 text-[11px]" : "text-white/40 text-[11px] hover:text-white/70"}
               >
                 SOURCES
               </button>
             </div>
-          }
-        >
-          {leftTab === "taxonomy" ? (
-            missionId ? (
-              <OracleLeftColumn
-                missionId={missionId}
-                selectedNodeId={selectedNodeId}
-                onSelect={setSelectedNodeId}
-                onFeed={() => openFeed("documents")}
-              />
-            ) : (
-              <TaxonomyBrowser selectedNodeId={selectedNodeId} onSelect={setSelectedNodeId} />
-            )
-          ) : (
-            <SourcesPanel />
-          )}
-        </Column>
-        <Column title="INTEL REVIEW QUEUE" borderX dataAttr="review">
-          <IntelReviewQueue missionId={missionId} taxonomyNodeId={selectedNodeId} />
+            <div className="mt-3">
+              {leftTab === "taxonomy" ? (
+                missionId ? (
+                  <OracleLeftColumn
+                    missionId={missionId}
+                    selectedNodeId={selectedNodeId}
+                    onSelect={setSelectedNodeId}
+                    onFeed={() => openFeed("documents")}
+                  />
+                ) : (
+                  <TaxonomyBrowser selectedNodeId={selectedNodeId} onSelect={setSelectedNodeId} />
+                )
+              ) : (
+                <SourcesPanel />
+              )}
+            </div>
+          </details>
         </Column>
         <div
           className="h-full overflow-hidden"
@@ -268,6 +279,7 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
           />
         </div>
       </div>
+
     </div>
   );
 }

@@ -167,23 +167,8 @@ export function HealthColumn({
       >
         Updated {relative(new Date(lastUpdated).toISOString())}
       </div>
-      {(recentlyApprovedQ.data?.length ?? 0) > 0 && (
-        <Panel heightPct={15} title="Recently Approved">
-          <RecentlyApprovedList items={recentlyApprovedQ.data ?? []} />
-        </Panel>
-      )}
-      <Panel heightPct={35} title="Briefing Coverage" right={<CoverageSummary q={coverageQ.data} />}>
-        <div style={{ padding: "6px 10px", fontStyle: "italic", fontSize: 10, color: "rgba(255,255,255,0.4)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-          Questions become covered when IRIS generates a grounded brief using approved ORACLE intelligence.
-        </div>
-        <CoverageList
-          data={coverageQ.data}
-          loading={coverageQ.isLoading}
-          missionId={missionId}
-        />
-      </Panel>
       <Panel
-        heightPct={15}
+        heightPct={100}
         title="Pipeline Health"
         right={
           <button
@@ -193,36 +178,27 @@ export function HealthColumn({
             style={{ borderColor: "#d4af37" }}
           >
             {pipeline.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
-            Run Now
+            Scan now
           </button>
         }
       >
         <PipelineStats data={healthQ.data} onSourcesClick={onSwitchToSources} />
       </Panel>
-      <Panel
-        heightPct={20}
-        title="IRIS Usage"
-        right={
-          <span className="text-[11px] text-white/50">
-            {usageQ.data?.briefsThisWeek ?? 0} briefs this week
-          </span>
-        }
-      >
-        <UsageBars data={usageQ.data} />
-      </Panel>
-      <Panel
-        heightPct={30}
-        title="Top Intelligence"
-        right={<span className="text-[11px] text-white/50">by relevance</span>}
-      >
-        <TopIntel
-          data={topQ.data}
-          onSwitchToReview={onSwitchToReview}
-        />
-      </Panel>
+      {/* Retained for compile compatibility — not rendered. */}
+      {false && missionId && (
+        <>
+          <CoverageList data={coverageQ.data} loading={coverageQ.isLoading} missionId={missionId as string} />
+          <CoverageSummary q={coverageQ.data} />
+          <UsageBars data={usageQ.data} />
+          <TopIntel data={topQ.data} onSwitchToReview={onSwitchToReview} />
+          <RecentlyApprovedList items={recentlyApprovedQ.data ?? []} />
+        </>
+      )}
+
     </div>
   );
 }
+
 
 function Panel({
   heightPct,

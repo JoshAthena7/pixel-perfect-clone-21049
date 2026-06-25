@@ -13,10 +13,11 @@ import { IrisAlertsPanel } from "./IrisAlertsPanel";
 import { NudgeModal, type NudgeTarget } from "./NudgeModal";
 import { WriterDrawer, type WriterDrawerTarget } from "./WriterDrawer";
 import {
-  AtcOrientationOverlay, ClosedMissionBanner,
+  ClosedMissionBanner,
   TeamPulseSkeleton, TeamPulseEmpty, TeamPulseNoAssignmentsBanner,
   RadarSkeleton, AlertsSkeleton,
 } from "./AtcEmptyStates";
+
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -414,41 +415,13 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
   mergedIntel.sort((a, b) => new Date(b.ts ?? 0).getTime() - new Date(a.ts ?? 0).getTime());
 
   const alertsColumn = (
-    <ColumnShell header={`IRIS · ${alertCount} PINNED`}>
+    <ColumnShell header="IRIS ALERTS">
       <div className="flex flex-col h-full">
-        {/* Pinned: SOS + IRIS alerts */}
-        <div style={{ flex: "0 1 auto", maxHeight: "55%", minHeight: 0 }} className="flex flex-col border-b border-white/[0.06]">
-          <IrisAlertsPanel missionId={missionId} bare onCountChange={setAlertCount} missionTooNew={missionTooNew} />
-        </div>
-        {/* Unified intel stream — no tabs */}
-        <div style={{ flex: "1 1 auto", minHeight: 0 }} className="flex flex-col">
-          <div className="px-3 py-1.5 text-[11px] font-medium text-white/40 bg-[#050d18] border-b border-white/[0.06]">
-            Intel Stream
-          </div>
-          <div className="flex-1 overflow-y-auto p-3">
-            {mergedIntel.length === 0 ? (
-              <Empty>IRIS has been quiet. Everything looks stable.</Empty>
-            ) : (
-              <ul className="space-y-2">
-                {mergedIntel.map((item) => (
-                  <li key={item.id} className="flex items-start gap-2 text-[12px]">
-                    <span className="shrink-0">{digestIcon(item.kind)}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-white/90 line-clamp-2">{item.title}</div>
-                      {item.summary && <div className="text-white/45 text-[12px] line-clamp-2">{item.summary}</div>}
-                      <div className="text-[11px] text-white/35 mt-0.5" style={{ fontFamily: "'Courier New', monospace" }}>
-                        {item.source && <span className="mr-1.5">{item.source}</span>}· {relTime(item.ts)}
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
+        <IrisAlertsPanel missionId={missionId} bare onCountChange={setAlertCount} missionTooNew={missionTooNew} />
       </div>
     </ColumnShell>
   );
+
 
   return (
     <div className="flex flex-col h-screen text-white" style={{ background: "#070f1c", ...SCANLINE_BG }}>
@@ -641,18 +614,21 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         </div>
       )}
 
-      {/* Columns — single-column stack on mobile, three columns on desktop */}
+      {/* Two-column shell: Team+Radar stacked (60%) | IRIS Alerts (40%) */}
       <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
-        <div id="atc-team-col" className="w-full md:w-[26%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden border-b md:border-b-0 md:border-r border-white/[0.06]">
-          {teamColumn}
+        <div className="w-full md:w-[60%] min-h-[480px] md:min-h-0 md:h-full overflow-y-auto md:overflow-hidden border-b md:border-b-0 md:border-r border-white/[0.06] flex flex-col">
+          <div id="atc-team-col" className="flex-1 min-h-[280px] overflow-hidden border-b border-white/[0.06]">
+            {teamColumn}
+          </div>
+          <div className="flex-1 min-h-[280px] overflow-hidden">
+            {radarColumn}
+          </div>
         </div>
-        <div className="w-full md:w-[44%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden border-b md:border-b-0 md:border-r border-white/[0.06]">
-          {radarColumn}
-        </div>
-        <div id="atc-alerts-col" className="w-full md:w-[30%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden">
+        <div id="atc-alerts-col" className="w-full md:w-[40%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden">
           {alertsColumn}
         </div>
       </div>
+
 
       <NudgeModal
         open={!!nudgeTarget}
@@ -691,7 +667,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         }}
       />
 
-      <AtcOrientationOverlay missionId={missionId} />
+      
     </div>
   );
 }
