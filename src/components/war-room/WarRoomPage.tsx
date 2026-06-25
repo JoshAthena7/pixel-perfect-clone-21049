@@ -615,14 +615,19 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         </div>
       )}
 
-      {/* Two-column shell: Team+Radar stacked (60%) | IRIS Alerts (40%) */}
+      {/* Two-column shell: Team+Radar+Compliance stacked (60%) | IRIS Alerts (40%) */}
       <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
         <div className="w-full md:w-[60%] min-h-[480px] md:min-h-0 md:h-full overflow-y-auto md:overflow-hidden border-b md:border-b-0 md:border-r border-white/[0.06] flex flex-col">
-          <div id="atc-team-col" className="flex-1 min-h-[280px] overflow-hidden border-b border-white/[0.06]">
+          <div id="atc-team-col" className="flex-1 min-h-[240px] overflow-hidden border-b border-white/[0.06]">
             {teamColumn}
           </div>
-          <div className="flex-1 min-h-[280px] overflow-hidden">
+          <div className="flex-1 min-h-[240px] overflow-hidden border-b border-white/[0.06]">
             {radarColumn}
+          </div>
+          <div id="atc-compliance-col" className="flex-1 min-h-[200px] overflow-hidden">
+            <ColumnShell header="Compliance" headerAccent={<ComplianceHeaderBadge missionId={missionId} />}>
+              <ComplianceDashboard missionId={missionId} />
+            </ColumnShell>
           </div>
         </div>
         <div id="atc-alerts-col" className="w-full md:w-[40%] min-h-[480px] md:min-h-0 md:h-full overflow-visible md:overflow-hidden">
