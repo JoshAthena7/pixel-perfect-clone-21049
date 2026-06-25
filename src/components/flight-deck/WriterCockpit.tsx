@@ -29,6 +29,7 @@ import { CompetitorAngleCollapsible } from "@/components/flight-deck/CompetitorA
 import { ResponseOutlineCard } from "@/components/flight-deck/ResponseOutlineCard";
 import { useQuestionOutline } from "@/hooks/useQuestionOutline";
 import { ComplianceCheckPanel } from "@/components/cockpit/ComplianceCheckPanel";
+import { QuestionComplianceIndicator } from "@/components/cockpit/QuestionComplianceIndicator";
 
 const BG = "#060f1a";
 const CARD = "#0a1828";
