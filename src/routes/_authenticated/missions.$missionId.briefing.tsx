@@ -200,6 +200,7 @@ function BriefingPage() {
                   <NorthStarCompactCard missionId={missionId} />
                   <EvaluatorLensCard missionId={missionId} />
                   <WinThemeCoverageCard missionId={missionId} />
+                  <OutlineStatusCard missionId={missionId} />
                   <CompactMissionJourneyCard missionId={missionId} mission={mission} />
                   <StrategicRisksCard missionId={missionId} />
                   <CompetitorsCard missionId={missionId} />
