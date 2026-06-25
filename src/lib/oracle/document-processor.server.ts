@@ -138,6 +138,7 @@ function normalizeHint(raw: string | null | undefined): string | null {
   if (s === "writing guide" || s === "writing_standards" || s === "style guide") return "writing_standards";
   if (s === "client strategy" || s === "client_strategy") return "client_strategy";
   if (s === "reference") return "reference";
+  if (s === "response outline" || s === "response_outline") return "response_outline";
   return null;
 }
 
