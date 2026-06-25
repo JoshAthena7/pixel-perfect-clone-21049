@@ -423,6 +423,56 @@ export async function processDocument(input: ProcessInput): Promise<ProcessResul
     }
   }
 
+  // ---------- Special case: compliance extraction (Model Contract / SOW) ----------
+  if (template.specialHandling === "compliance_extraction") {
+    try {
+      const docType: "model_contract" | "scope_of_work" =
+        template.id === "model_contract" ? "model_contract" : "scope_of_work";
+      const obligationsCount = await extractComplianceObligations(apiKey, client, {
+        missionId: input.missionId,
+        documentId: input.documentId,
+        documentType: docType,
+        documentTitle: input.documentTitle,
+        documentText: fullText,
+      });
+      await updateStatus(client, input.documentId, {
+        processing_status: "processed",
+        processed_at: new Date().toISOString(),
+        items_extracted: obligationsCount,
+        processing_error: null,
+      });
+      if (input.userId) {
+        await client.from("mission_assist_events").insert({
+          mission_id: input.missionId,
+          user_id: input.userId,
+          event_type: "oracle_intel_added",
+          metadata: {
+            summary: `Extracted ${obligationsCount} compliance obligations from "${input.documentTitle}"`,
+            document_id: input.documentId,
+            document_title: input.documentTitle,
+            items_extracted: obligationsCount,
+            ingestion_source: "compliance_extractor",
+          },
+        });
+      }
+      return {
+        items_extracted: obligationsCount,
+        chunks_processed: 1,
+        toc_entries: 0,
+        template_id: template.id,
+        note: `Compliance extraction: ${obligationsCount} obligations surfaced.`,
+      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      await updateStatus(client, input.documentId, {
+        processing_status: "error",
+        processing_error: msg.slice(0, 1000),
+      });
+      throw err;
+    }
+  }
+
+
   const allItems: ExtractedItem[] = [];
   let chunksProcessed = 0;
   let tocEntries: Array<{ section_number: string; section_title: string; page_number: number | null }> = [];
