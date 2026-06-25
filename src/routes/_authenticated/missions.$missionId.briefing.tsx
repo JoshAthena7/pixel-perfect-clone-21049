@@ -169,30 +169,46 @@ function BriefingPage() {
               alignItems: "start",
             }}
           >
-            {/* LEFT COLUMN — strategic content */}
+            {/* LEFT COLUMN — primary content (default visible) */}
             <div className="flex flex-col gap-6 min-w-0">
-              <NorthStarCompactCard missionId={missionId} />
-              <EvaluatorLensCard missionId={missionId} />
+              <IrisBriefCard missionId={missionId} mission={mission} />
               <OracleCanvas
                 missionId={missionId}
                 canEdit={canEditBroadcast}
                 only={["winThemes"]}
                 winThemesCollapsed
               />
-              <WinThemeCoverageCard missionId={missionId} />
-              <IrisBriefCard missionId={missionId} mission={mission} />
               <WatchItemsCard missionId={missionId} mission={mission} />
+
+              {/* Mission Details — collapsed by default */}
+              <details style={{ marginTop: 4 }}>
+                <summary
+                  style={{
+                    cursor: "pointer",
+                    fontSize: 10,
+                    letterSpacing: "0.08em",
+                    color: "rgba(255,255,255,0.45)",
+                    fontWeight: 600,
+                    padding: "6px 0",
+                    listStyle: "none",
+                  }}
+                >
+                  Mission Details ▾
+                </summary>
+                <div className="flex flex-col gap-6 mt-3">
+                  <NorthStarCompactCard missionId={missionId} />
+                  <EvaluatorLensCard missionId={missionId} />
+                  <WinThemeCoverageCard missionId={missionId} />
+                  <CompactMissionJourneyCard missionId={missionId} mission={mission} />
+                  <StrategicRisksCard missionId={missionId} />
+                  <CompetitorsCard missionId={missionId} />
+                </div>
+              </details>
             </div>
 
-            {/* RIGHT COLUMN — operational status */}
+            {/* RIGHT COLUMN — leadership context only */}
             <div className="flex flex-col gap-6 min-w-0">
-              <MissionHealthSummaryCard missionId={missionId} />
-              <CompactMissionJourneyCard missionId={missionId} mission={mission} />
-              <StrategicRisksCard missionId={missionId} />
-              <CompetitorsCard missionId={missionId} />
-              <WhatChangedCard missionId={missionId} />
               <MissionLeadersCard missionId={missionId} />
-              <OpenNotesWidget missionId={missionId} />
             </div>
           </div>
         </div>
@@ -200,9 +216,14 @@ function BriefingPage() {
       {/* Unused for now — kept so admin edit flows still compile */}
       {false && canEditBroadcast && <LeadershipBroadcastCard missionId={missionId} mission={mission} canEdit={canEditBroadcast} />}
       {false && <OracleCanvasSlot missionId={missionId} />}
+      {false && <MissionHealthSummaryCard missionId={missionId} />}
+      {false && <WhatChangedCard missionId={missionId} />}
+      {false && <OpenNotesWidget missionId={missionId} />}
+      {false && <TodaysFocusCard missionId={missionId} mission={mission} />}
     </>
   );
 }
+
 
 function OracleCanvasSlot({ missionId }: { missionId: string }) {
   const { data: access } = useMissionAccess(missionId);
