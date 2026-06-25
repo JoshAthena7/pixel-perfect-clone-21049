@@ -698,6 +698,26 @@ function ColumnShell({ header, headerAccent, children }: {
   );
 }
 
+function ComplianceHeaderBadge({ missionId }: { missionId: string }) {
+  const { data } = useMissionComplianceStats(missionId);
+  if (!data || data.total === 0) return null;
+  if (data.conflicts > 0) {
+    return (
+      <span style={{ fontSize: 10, color: "rgba(248,113,113,0.9)", fontWeight: 600 }}>
+        ⚠ {data.conflicts}
+      </span>
+    );
+  }
+  if (data.pending === 0) {
+    return <span style={{ fontSize: 10, color: "rgba(74,222,128,0.8)" }}>✓ all verified</span>;
+  }
+  return (
+    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>
+      {data.verified}/{data.total}
+    </span>
+  );
+}
+
 const ROLE_DISPLAY: Record<string, string> = {
   engagement_lead: "Engagement Lead",
   project_manager: "Project Manager",
