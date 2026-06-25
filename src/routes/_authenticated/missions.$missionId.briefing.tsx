@@ -37,6 +37,7 @@ import { toast } from "sonner";
 import { OracleCanvas } from "@/components/briefing-room/OracleCanvas";
 import { WinThemeCoverageCard } from "@/components/briefing-room/WinThemeCoverageCard";
 import { OutlineStatusCard } from "@/components/briefing-room/OutlineStatusCard";
+import { useMissionComplianceStats } from "@/components/war-room/ComplianceDashboard";
 import { MissionHealthSummaryCard } from "@/components/mission-command/MissionHealthSummaryCard";
 import { MissionClock } from "@/components/briefing/MissionClock";
 import { OpenNotesWidget } from "@/components/war-room/OpenNotesWidget";
