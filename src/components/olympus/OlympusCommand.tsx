@@ -411,7 +411,7 @@ function OracleEmptyGuide({ onFeed }: { onFeed: () => void }) {
         </div>
       </div>
       <ol className="space-y-4">
-        <GuideStep n={1} title="Feed ATLAS"
+        <GuideStep n={1} title="Upload documents"
           body="Upload your RFP and documents, or add a manual intelligence item. IRIS extracts the rest.">
           <button
             type="button"
@@ -419,7 +419,7 @@ function OracleEmptyGuide({ onFeed }: { onFeed: () => void }) {
             className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium"
             style={{ background: "#d4af37", color: "#070f1c" }}
           >
-            + Feed ATLAS <ArrowRight className="h-3 w-3" />
+            + Upload documents <ArrowRight className="h-3 w-3" />
           </button>
         </GuideStep>
         <GuideStep n={2} title="Review extracted items"
