@@ -57,10 +57,9 @@ export function IntelSetupWizard({
   const docsQ = useQuery({
     queryKey: ["intel-wizard-docs", missionId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("mission_documents")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .select("id,title,document_checklist_category,processing_status" as any)
+        .select("id,title,document_checklist_category,processing_status")
         .eq("mission_id", missionId);
       return (data ?? []) as Array<{
         id: string;
