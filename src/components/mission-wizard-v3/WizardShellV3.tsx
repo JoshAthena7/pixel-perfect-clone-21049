@@ -7,7 +7,7 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const WIZARD_STEPS = [
-  { n: 1, label: "Fuel IRIS" },
+  { n: 1, label: "Upload documents" },
   { n: 2, label: "State" },
   { n: 3, label: "Mission Basics" },
   { n: 4, label: "Strategy" },

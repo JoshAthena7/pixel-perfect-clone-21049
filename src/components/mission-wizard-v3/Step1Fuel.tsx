@@ -443,7 +443,7 @@ export function Step1Fuel({
   return (
     <div>
       <WizardStepHeading
-        title="Fuel IRIS."
+        title="Upload documents."
         subtitle="Upload everything. IRIS will read it all and pre-populate your entire mission setup."
       />
 
@@ -451,7 +451,7 @@ export function Step1Fuel({
         className="mt-1 mb-4 italic"
         style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}
       >
-        You can also add documents anytime via the ORACLE page — no need to re-run the wizard.
+        You can upload more documents anytime from Signal Review. Use the "+ Upload documents" button — it walks you through the same checklist.
       </p>
 
 

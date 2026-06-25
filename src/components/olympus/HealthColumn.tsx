@@ -141,7 +141,7 @@ export function HealthColumn({
             style={{ borderColor: "#d4af37" }}
           >
             {pipeline.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" style={{ color: "#d4af37" }} />}
-            Run Pipeline
+            Scan for new intel
           </button>
           <a
             href={`/missions/${missionId}/intelligence`}
@@ -174,11 +174,11 @@ export function HealthColumn({
           <button
             onClick={() => pipeline.mutate()}
             disabled={pipeline.isPending}
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded border text-[11px] text-white/90 hover:bg-white/5 disabled:opacity-50"
-            style={{ borderColor: "#d4af37" }}
+            className="inline-flex items-center gap-1 text-white/40 hover:text-white/70 disabled:opacity-50"
+            style={{ fontSize: 10 }}
           >
-            {pipeline.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
-            Scan now
+            {pipeline.isPending && <Loader2 className="h-2.5 w-2.5 animate-spin" />}
+            ↻ Run scan
           </button>
         }
       >

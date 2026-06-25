@@ -4,15 +4,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { runOracleStage } from "@/lib/oracle-pipeline.functions";
 import { toast } from "sonner";
-import { Loader2, Zap, Plus, ArrowRight } from "lucide-react";
+import { Loader2, Plus, ArrowRight, RefreshCw } from "lucide-react";
 import { TaxonomyBrowser } from "./TaxonomyBrowser";
 import { IntelReviewQueue } from "./IntelReviewQueue";
 import { SourcesPanel } from "./SourcesPanel";
 import { HealthColumn } from "./HealthColumn";
-import {
-  FeedAtlasDrawer,
-  type FeedAtlasTab,
-} from "@/components/mission-command/oracle/FeedAtlasDrawer";
+import { IntelSetupWizard } from "@/components/intel-setup/IntelSetupWizard";
 import { OracleMissingDocsBanner } from "@/components/mission-command/oracle/checklist/OracleMissingDocsBanner";
 
 
@@ -78,15 +75,18 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
   const [missionId, setMissionId] = useState<string | null>(initialMissionId ?? null);
   const [leftTab, setLeftTab] = useState<"taxonomy" | "sources">("taxonomy");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [feedOpen, setFeedOpen] = useState(false);
-  const [feedTab, setFeedTab] = useState<FeedAtlasTab>("documents");
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [guideDismissed, setGuideDismissed] = useState(false);
   const lastRunQ = useLastPipelineRun();
   const runStage = useServerFn(runOracleStage);
 
-  const openFeed = (tab: FeedAtlasTab = "documents") => {
-    setFeedTab(tab);
-    setFeedOpen(true);
-  };
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setGuideDismissed(window.localStorage.getItem("atlas_signal_review_guide_dismissed") === "1");
+    }
+  }, []);
+
+  const openWizard = () => setWizardOpen(true);
 
   // Pick default mission once loaded
   useEffect(() => {
@@ -108,10 +108,10 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
       }
     },
     onSuccess: () => {
-      toast.success("Pipeline run complete");
+      toast.success("Scan complete");
       lastRunQ.refetch();
     },
-    onError: (e: Error) => toast.error(e.message || "Pipeline failed"),
+    onError: (e: Error) => toast.error(e.message || "Scan failed"),
   });
 
   return (
@@ -123,79 +123,71 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
       >
         {/* LEFT zone */}
         <div className="flex items-center gap-3 shrink-0">
-          <span style={{ color: "#d4af37", fontSize: 13, fontWeight: 600 }}>
-            ◈ ORACLE
-          </span>
-          {selectedMission?.name && (
-            <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontFamily: "ui-monospace, monospace" }} title={selectedMission.name}>
-              {(selectedMission.name.split(/\s*-\s*/)[0] ?? "").slice(0, 14) || "—"}
-            </span>
-          )}
+          <span style={{ color: "#e5e7eb", fontSize: 14, fontWeight: 500 }}>Signal Review</span>
         </div>
 
         {/* CENTER zone — pipeline status */}
-        <div className="flex-1 flex items-center justify-center gap-3 text-[10px] text-white/55 min-w-0" style={{ fontFamily: "ui-monospace, monospace", letterSpacing: "0.06em" }}>
+        <div className="flex-1 flex items-center justify-center gap-2 text-[11px] text-white/55 min-w-0">
           {(() => {
             const last = lastRunQ.data ? new Date(lastRunQ.data).getTime() : null;
             const hrs = last ? (Date.now() - last) / 3600_000 : null;
-            const dot = hrs == null ? null : hrs < 4 ? { c: "#22c55e", text: "Pipeline active" } : hrs > 24 ? { c: "#fbbf24", text: "Pipeline stale" } : { c: "rgba(255,255,255,0.4)", text: "" };
+            const dot = hrs == null
+              ? { c: "rgba(255,255,255,0.3)", text: "Pipeline idle" }
+              : hrs < 4
+              ? { c: "#22c55e", text: "Pipeline active" }
+              : hrs > 24
+              ? { c: "#fbbf24", text: "Pipeline stale" }
+              : { c: "#22c55e", text: "Pipeline active" };
             return (
-              <>
-                {dot && dot.c && (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: 9999, background: dot.c, boxShadow: `0 0 6px ${dot.c}` }} />
-                    {dot.text}
-                  </span>
-                )}
-                <span>DEADLINE: <span className="text-white/80">{formatCountdown(selectedMission?.submission_deadline ?? null)}</span></span>
-                <span>·</span>
-                <span>LAST PIPELINE: <span className="text-white/80">{formatRelative(lastRunQ.data)}</span></span>
-              </>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 6, height: 6, borderRadius: 9999, background: dot.c, boxShadow: `0 0 6px ${dot.c}` }} />
+                {dot.text} · last run {formatRelative(lastRunQ.data)}
+              </span>
             );
           })()}
         </div>
 
         {/* RIGHT zone — mission switcher + actions */}
-        <div className="flex items-center gap-2 shrink-0 text-[11px] text-white/60">
-          <select
-            value={missionId ?? ""}
-            onChange={(e) => setMissionId(e.target.value)}
-            className="bg-transparent border border-white/10 rounded px-2 py-1 text-white/80 max-w-[180px]"
-          >
-            {missionsQ.data?.map((m) => (
-              <option key={m.id} value={m.id} className="bg-[#070f1c]">
-                {m.name}
-              </option>
-            ))}
-          </select>
+        <div className="flex flex-col items-end gap-0.5 shrink-0">
+          <div className="flex items-center gap-2 text-[11px] text-white/60">
+            <select
+              value={missionId ?? ""}
+              onChange={(e) => setMissionId(e.target.value)}
+              className="bg-transparent border border-white/10 rounded px-2 py-1 text-white/80 max-w-[160px]"
+            >
+              {missionsQ.data?.map((m) => (
+                <option key={m.id} value={m.id} className="bg-[#070f1c]">
+                  {m.name}
+                </option>
+              ))}
+            </select>
+            {missionId && (
+              <button
+                onClick={openWizard}
+                className="inline-flex items-center gap-1.5"
+                style={{
+                  background: "rgba(196,154,43,1)",
+                  color: "#000",
+                  fontWeight: 600,
+                  fontSize: 12,
+                  padding: "8px 16px",
+                  borderRadius: 4,
+                  height: 36,
+                }}
+              >
+                <Plus className="h-3.5 w-3.5" /> Upload documents
+              </button>
+            )}
+          </div>
           <button
             onClick={() => pipeline.mutate()}
             disabled={pipeline.isPending}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-white/15 text-white/80 hover:bg-white/5 disabled:opacity-50"
+            className="inline-flex items-center gap-1 text-white/45 hover:text-white/70 disabled:opacity-50"
+            style={{ fontSize: 10 }}
           >
-            {pipeline.isPending ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <Zap className="h-3 w-3" />
-            )}
-            Run Pipeline
+            {pipeline.isPending ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <RefreshCw className="h-2.5 w-2.5" />}
+            Scan for new intel
           </button>
-          {missionId && (
-            <button
-              onClick={() => openFeed("documents")}
-              className="inline-flex items-center gap-1.5"
-              style={{
-                background: "rgba(196,154,43,1)",
-                color: "#000",
-                fontWeight: 600,
-                fontSize: 11,
-                padding: "8px 16px",
-                borderRadius: 4,
-              }}
-            >
-              <Plus className="h-3 w-3" /> Feed ATLAS
-            </button>
-          )}
         </div>
       </div>
 
@@ -203,19 +195,52 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
         <>
           <OracleMissingDocsBanner
             missionId={missionId}
-            onOpenUpload={() => {
-              setFeedTab("documents");
-              setFeedOpen(true);
-            }}
+            onOpenUpload={openWizard}
           />
-          <FeedAtlasDrawer
-            open={feedOpen}
-            onOpenChange={setFeedOpen}
+          <IntelSetupWizard
+            open={wizardOpen}
+            onOpenChange={setWizardOpen}
             missionId={missionId}
-            activeTab={feedTab}
-            onTabChange={setFeedTab}
           />
         </>
+      )}
+
+      {!guideDismissed && (
+        <div className="px-4 pt-3">
+          <div
+            style={{
+              padding: "14px 18px",
+              background: "rgba(255,255,255,0.02)",
+              border: "1px solid rgba(255,255,255,0.07)",
+              borderRadius: 6,
+              display: "flex",
+              gap: 16,
+              alignItems: "flex-start",
+            }}
+          >
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", fontWeight: 500, marginBottom: 6 }}>
+                How intel gets into ATLAS
+              </div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
+                <strong style={{ color: "rgba(255,255,255,0.7)" }}>1. Upload documents</strong> — IRIS reads your RFP and other documents, then extracts intelligence automatically.<br />
+                <strong style={{ color: "rgba(255,255,255,0.7)" }}>2. Review signals</strong> — Approve what's accurate. Approved signals power every writer's brief.<br />
+                <strong style={{ color: "rgba(255,255,255,0.7)" }}>3. Scan for new intel</strong> — Optionally run a scan to find new signals from external sources.
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setGuideDismissed(true);
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem("atlas_signal_review_guide_dismissed", "1");
+                }
+              }}
+              style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", background: "none", border: "none", cursor: "pointer", flexShrink: 0 }}
+            >
+              Got it ×
+            </button>
+          </div>
+        </div>
       )}
 
 
@@ -257,7 +282,7 @@ export function OlympusCommand({ initialMissionId }: { initialMissionId?: string
                     missionId={missionId}
                     selectedNodeId={selectedNodeId}
                     onSelect={setSelectedNodeId}
-                    onFeed={() => openFeed("documents")}
+                    onFeed={openWizard}
                   />
                 ) : (
                   <TaxonomyBrowser selectedNodeId={selectedNodeId} onSelect={setSelectedNodeId} />
@@ -386,7 +411,7 @@ function OracleEmptyGuide({ onFeed }: { onFeed: () => void }) {
         </div>
       </div>
       <ol className="space-y-4">
-        <GuideStep n={1} title="Feed ATLAS"
+        <GuideStep n={1} title="Upload documents"
           body="Upload your RFP and documents, or add a manual intelligence item. IRIS extracts the rest.">
           <button
             type="button"
@@ -394,7 +419,7 @@ function OracleEmptyGuide({ onFeed }: { onFeed: () => void }) {
             className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium"
             style={{ background: "#d4af37", color: "#070f1c" }}
           >
-            + Feed ATLAS <ArrowRight className="h-3 w-3" />
+            + Upload documents <ArrowRight className="h-3 w-3" />
           </button>
         </GuideStep>
         <GuideStep n={2} title="Review extracted items"
