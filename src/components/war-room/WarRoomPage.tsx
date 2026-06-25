@@ -692,7 +692,7 @@ export function WarRoomPage({ missionId }: { missionId: string }) {
         }}
       />
 
-      <AtcOrientationOverlay missionId={missionId} />
+      
     </div>
   );
 }
