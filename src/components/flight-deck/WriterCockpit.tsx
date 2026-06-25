@@ -969,6 +969,7 @@ export function WriterCockpit({ missionId, missionName }: { missionId: string; m
             {q.iris_brief_status === "pending" && <Chip color="#9ca3af">Pending</Chip>}
             {fbList.length > 0 && <Chip color={AMBER}>⚠ {fbList.length} feedback item{fbList.length === 1 ? "" : "s"}</Chip>}
             <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
+              <QuestionComplianceIndicator questionId={q.id} />
               <Dot color={healthColor(q.health_status)} pulse={q.health_status === "at_risk"} />
             </span>
           </div>
