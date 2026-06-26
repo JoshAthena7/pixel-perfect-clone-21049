@@ -189,33 +189,22 @@ export function OracleDocumentChecklist({
       return;
     }
     setUploadingByItem((s) => ({ ...s, [item.id]: 10 }));
+    let stage = "starting upload";
     try {
       if (replaceDocId) {
+        stage = "removing the previous document";
         await supabase.from("mission_documents").delete().eq("id", replaceDocId);
       }
-      const path = `${missionId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9_.-]/g, "_")}`;
+      const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, "_").slice(-180);
+      const path = `${missionId}/${Date.now()}-${crypto.randomUUID()}-${safeName}`;
+      stage = "uploading the file";
       const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, { upsert: false });
       if (upErr) throw upErr;
       setUploadingByItem((s) => ({ ...s, [item.id]: 45 }));
 
-      let extractedText = "";
-      try {
-        extractedText = (await extractTextFromBlob(file, file.name)).trim();
-      } catch (e) {
-        console.warn("[OracleChecklist] extract failed", file.name, e);
-      }
-      const FIRST = 220_000;
-      const CHUNK = 220_000;
-      const MAX_TOTAL = 1_000_000;
-      const capped = extractedText.slice(0, MAX_TOTAL);
-      const head = capped.slice(0, FIRST);
-      const chunkMeta: Record<string, string> = {};
-      for (let i = FIRST, n = 2; i < capped.length; i += CHUNK, n++) {
-        chunkMeta[`text_chunk_${n}`] = capped.slice(i, i + CHUNK);
-      }
-
       const title = cleanTitle(file.name);
       const { data: userData } = await supabase.auth.getUser();
+      stage = "saving the document record";
       const insertPayload: Record<string, unknown> = {
         mission_id: missionId,
         document_type: item.document_type,
@@ -226,17 +215,14 @@ export function OracleDocumentChecklist({
         is_primary: item.checklist_category === "primary_rfp",
         processing_status: "pending",
         uploaded_by: userData.user?.id ?? null,
-        content_summary: head || null,
+        content_summary: null,
         metadata: {
-          full_text_length: extractedText.length,
-          persisted_text_length: capped.length,
           intelligence_tier: 1,
           upload_timestamp: new Date().toISOString(),
-          extraction_method: "browser_pdf_parse",
-          text_extraction_ok: extractedText.length > 500,
+          extraction_method: "deferred_browser_parse",
+          text_extraction_ok: null,
           uploaded_via: variant === "wizard" ? "wizard_step1" : "feed_atlas_drawer",
           checklist_item_id: item.id,
-          ...chunkMeta,
         },
       };
       const { data: doc, error: insErr } = await supabase
@@ -260,7 +246,7 @@ export function OracleDocumentChecklist({
         const { [item.id]: _, ...rest } = s;
         return rest;
       });
-      toast.error(e instanceof Error ? e.message : "Upload failed");
+      toast.error(e instanceof Error ? `Upload failed while ${stage}: ${e.message}` : `Upload failed while ${stage}`);
     }
   }
 
