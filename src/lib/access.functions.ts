@@ -32,11 +32,13 @@ export const canAccessMission = createServerFn({ method: "POST" })
       .maybeSingle();
     if (adminRow) return { allowed: true, isAdmin: true, role: "admin" as string | null };
 
+    const { data: userData } = await supabase.auth.getUser();
+    const email = userData.user?.email ?? "";
     const { data: memberRow } = await supabase
       .from("mission_team_members")
-      .select("mission_role")
-      .eq("member_id", userId)
+      .select("mission_role, atlas_team_members!inner(email)")
       .eq("mission_id", data.missionId)
+      .ilike("atlas_team_members.email", email)
       .maybeSingle();
 
     return {
@@ -51,10 +53,12 @@ export const getDefaultLandingMission = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
 
+    const { data: userData } = await supabase.auth.getUser();
+    const email = userData.user?.email ?? "";
     const { data: member } = await supabase
       .from("mission_team_members")
-      .select("mission_id")
-      .eq("member_id", userId)
+      .select("mission_id, atlas_team_members!inner(email)")
+      .ilike("atlas_team_members.email", email)
       .order("added_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -95,11 +99,13 @@ export const canPmAccessMission = createServerFn({ method: "POST" })
       .maybeSingle();
     if (adminRow) return { allowed: true, isAdmin: true, role: "admin" as string | null };
 
+    const { data: userData } = await supabase.auth.getUser();
+    const email = userData.user?.email ?? "";
     const { data: memberRow } = await supabase
       .from("mission_team_members")
-      .select("mission_role")
-      .eq("member_id", userId)
+      .select("mission_role, atlas_team_members!inner(email)")
       .eq("mission_id", data.missionId)
+      .ilike("atlas_team_members.email", email)
       .maybeSingle();
     const role = (memberRow?.mission_role as string | null) ?? null;
     const allowed =
