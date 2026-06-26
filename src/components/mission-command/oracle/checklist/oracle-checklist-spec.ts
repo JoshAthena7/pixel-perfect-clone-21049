@@ -33,7 +33,7 @@ export const REQUIRED_DOCUMENTS: ChecklistItem[] = [
     document_type: "rfp",
     document_purpose: "procurement",
     checklist_category: "primary_rfp",
-    urgency: "critical",
+    urgency: "high",
     accept: ".pdf,.docx,.doc",
   },
   {
