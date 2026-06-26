@@ -39,6 +39,9 @@ const BUCKET = "atlas-rfp-documents";
 const MAX_BYTES = 100 * 1024 * 1024;
 const PROCESSOR_URL = "/api/public/hooks/oracle-document-processor";
 const GOLD = "#C49A2B";
+const TEXT_HEAD_CHARS = 220_000;
+const TEXT_CHUNK_CHARS = 220_000;
+const MAX_PERSISTED_TEXT_CHARS = 1_000_000;
 
 const PURPOSE_OPTIONS: { value: DocumentPurpose; label: string }[] = [
   { value: "procurement", label: "Procurement" },
@@ -109,6 +112,15 @@ async function extractTextFromBlob(blob: Blob, fileName: string): Promise<string
 
 function cleanTitle(name: string): string {
   return name.replace(/\.[^.]+$/, "").replace(/_/g, " ").slice(0, 200);
+}
+
+function buildPersistedTextParts(extractedText: string): { head: string; chunkMeta: Record<string, string>; persistedLength: number } {
+  const capped = extractedText.slice(0, MAX_PERSISTED_TEXT_CHARS);
+  const chunkMeta: Record<string, string> = {};
+  for (let i = TEXT_HEAD_CHARS, n = 2; i < capped.length; i += TEXT_CHUNK_CHARS, n++) {
+    chunkMeta[`text_chunk_${n}`] = capped.slice(i, i + TEXT_CHUNK_CHARS);
+  }
+  return { head: capped.slice(0, TEXT_HEAD_CHARS), chunkMeta, persistedLength: capped.length };
 }
 
 export function OracleDocumentChecklist({
@@ -207,12 +219,11 @@ export function OracleDocumentChecklist({
       stage = "saving the document record";
       const insertPayload: Record<string, unknown> = {
         mission_id: missionId,
-        document_type: item.document_type,
+        document_type: item.checklist_category === "primary_rfp" ? "primary_rfp" : item.document_type,
         document_purpose: item.document_purpose,
         document_checklist_category: item.checklist_category,
         title,
         file_url: path,
-        is_primary: item.checklist_category === "primary_rfp",
         processing_status: "pending",
         uploaded_by: userData.user?.id ?? null,
         content_summary: null,
@@ -291,6 +302,19 @@ export function OracleDocumentChecklist({
         await setError("Could not extract text — this may be an image-only PDF.");
         return;
       }
+      const { head, chunkMeta, persistedLength } = buildPersistedTextParts(text);
+      await docs
+        .update({
+          content_summary: head || null,
+          metadata: {
+            ...chunkMeta,
+            full_text_length: text.length,
+            persisted_text_length: persistedLength,
+            extraction_method: "browser_pdf_parse",
+            text_extraction_ok: text.length > 500,
+          },
+        })
+        .eq("id", doc.id);
       const { data: { user } } = await supabase.auth.getUser();
       const res = await fetch(PROCESSOR_URL, {
         method: "POST",
