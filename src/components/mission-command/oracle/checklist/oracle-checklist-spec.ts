@@ -266,6 +266,7 @@ export function matchDocumentToChecklist(title: string | null | undefined): stri
   if (t.includes("legislat") || t.includes("advocacy")) return "legislative";
   if (t.includes("incumbent") || t.includes("audit")) return "incumbent_performance";
   if (t.includes("proposal") || /\bwin\b/.test(t) || /\bloss\b/.test(t) || t.includes("past response")) return "past_proposal";
+  if (/\brfi\b/.test(t) || t.includes("request for information")) return "rfi";
   if (t.includes("rfp") || t.includes("solicitation") || t.includes("rfq")) {
     if (/(20\d{2})/.test(t) && (t.includes("prior") || t.includes("previous") || t.includes("old"))) return "prior_rfp";
     return "primary_rfp";
