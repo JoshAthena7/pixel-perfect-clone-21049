@@ -37,6 +37,20 @@ export const REQUIRED_DOCUMENTS: ChecklistItem[] = [
     accept: ".pdf,.docx,.doc",
   },
   {
+    id: "rfi",
+    label: "RFI (Request for Information)",
+    description:
+      "Pre-solicitation RFI issued by the state to gather industry input. IRIS extracts the state's stated priorities, areas of uncertainty, and the questions they asked the market.",
+    why_it_matters:
+      "RFIs reveal what the state is thinking before the RFP locks. The questions they ask tell you what they care most about — gold for shaping win themes early.",
+    document_type: "reference",
+    document_purpose: "procurement",
+    checklist_category: "rfi",
+    urgency: "high",
+    accept: ".pdf,.docx,.doc",
+    multiple: true,
+  },
+  {
     id: "model_contract",
     label: "State Model Contract",
     description:
@@ -252,6 +266,7 @@ export function matchDocumentToChecklist(title: string | null | undefined): stri
   if (t.includes("legislat") || t.includes("advocacy")) return "legislative";
   if (t.includes("incumbent") || t.includes("audit")) return "incumbent_performance";
   if (t.includes("proposal") || /\bwin\b/.test(t) || /\bloss\b/.test(t) || t.includes("past response")) return "past_proposal";
+  if (/\brfi\b/.test(t) || t.includes("request for information")) return "rfi";
   if (t.includes("rfp") || t.includes("solicitation") || t.includes("rfq")) {
     if (/(20\d{2})/.test(t) && (t.includes("prior") || t.includes("previous") || t.includes("old"))) return "prior_rfp";
     return "primary_rfp";
