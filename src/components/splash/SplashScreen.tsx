@@ -354,6 +354,9 @@ export function SplashGate() {
     if (typeof window === "undefined") return;
     try {
       const force = new URLSearchParams(window.location.search).get("splash") === "1";
+      // Do not cover the app on normal loads. The old first-session splash ran
+      // for ~16s and made the app look like it was spinning instead of opening.
+      if (!force) return;
       if (!force && sessionStorage.getItem(SESSION_KEY)) return;
       sessionStorage.setItem(SESSION_KEY, "true");
       setShow(true);
