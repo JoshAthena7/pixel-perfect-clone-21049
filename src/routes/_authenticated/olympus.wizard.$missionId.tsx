@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
@@ -34,7 +34,7 @@ function WizardPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const { data: mission, isLoading } = useQuery({
+  const { data: mission, isError, error, isLoading } = useQuery({
     queryKey: ["wizard-mission", missionId],
     queryFn: async (): Promise<WizardMission | null> => {
       const [{ data, error }, { data: progressRows }] = await Promise.all([
@@ -113,10 +113,42 @@ function WizardPage() {
 
   const isLive = !!mission && !["setup", "draft"].includes((mission.status ?? "").toLowerCase());
 
-  if (isLoading || !mission) {
+  if (isLoading) {
     return (
       <WizardShellV3 missionId={missionId} step={step} visitedSteps={visited} onJump={go} isLive={false}>
         <Skeleton className="h-10 w-2/3 bg-white/10" />
+      </WizardShellV3>
+    );
+  }
+
+  if (isError || !mission) {
+    return (
+      <WizardShellV3 missionId={missionId} step={1} visitedSteps={[1]} onJump={go} isLive={false}>
+        <div className="rounded-md border border-red-400/25 bg-red-500/10 p-5">
+          <h1 className="text-[20px] font-medium text-white">Mission setup did not open</h1>
+          <p className="mt-2 text-[14px] leading-6 text-white/65">
+            {isError
+              ? error instanceof Error
+                ? error.message
+                : "The mission could not be loaded."
+              : "This mission could not be found or is not available to your account."}
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <button
+              onClick={() => qc.invalidateQueries({ queryKey: ["wizard-mission", missionId] })}
+              className="rounded-md px-4 py-2 text-[13px] font-medium"
+              style={{ background: "#C49A2B", color: "#0D1B3E" }}
+            >
+              Try again
+            </button>
+            <Link
+              to="/olympus/missions"
+              className="rounded-md border border-white/15 px-4 py-2 text-[13px] font-medium text-white/75 hover:text-white"
+            >
+              Back to missions
+            </Link>
+          </div>
+        </div>
       </WizardShellV3>
     );
   }
