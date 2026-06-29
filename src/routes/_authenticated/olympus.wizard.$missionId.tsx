@@ -123,7 +123,7 @@ function WizardPage() {
 
   if (isError || !mission) {
     return (
-      <WizardShellV3 missionId={missionId} step={1} visitedSteps={[1]} onJump={go} isLive={false}>
+      <WizardShellV3 missionId={missionId} step={1} visitedSteps={[1]} onJump={() => undefined} isLive={false}>
         <div className="rounded-md border border-red-400/25 bg-red-500/10 p-5">
           <h1 className="text-[20px] font-medium text-white">Mission setup did not open</h1>
           <p className="mt-2 text-[14px] leading-6 text-white/65">
