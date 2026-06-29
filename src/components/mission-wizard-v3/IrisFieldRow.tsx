@@ -163,19 +163,25 @@ export function IrisFieldRow({
     if (!extraction) return;
     setSaving(true);
     try {
-      await supabase
+      const { error } = await supabase
         .from("mission_iris_extractions")
         .update({
           confirmed_by_user: true,
           confirmed_at: new Date().toISOString(),
         })
         .eq("id", extraction.id);
+      if (error) throw error;
       const v = (extraction.user_override_value ?? extraction.extracted_value ?? "") as string;
       if (v) await propagateToMission(v);
       if (shouldSyncOracle(fieldKey)) {
         void syncOracleConfigFromExtractions(missionId);
       }
       onChange?.();
+      toast.success(`${label} confirmed.`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error(`[IrisFieldRow] confirm failed for ${fieldKey}:`, e);
+      toast.error(`Couldn't confirm ${label}: ${msg}`);
     } finally {
       setSaving(false);
     }
