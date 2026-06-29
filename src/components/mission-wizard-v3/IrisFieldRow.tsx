@@ -7,6 +7,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Check, Pencil, Sparkles, X } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -74,18 +75,19 @@ export function IrisFieldRow({
     try {
       let rowId = extraction?.id;
       if (!rowId) {
-        const { data: existing } = await supabase
+        const { data: existing, error: lookupErr } = await supabase
           .from("mission_iris_extractions")
           .select("id")
           .eq("mission_id", missionId)
           .eq("extracted_field", fieldKey)
           .limit(1)
           .maybeSingle();
+        if (lookupErr) throw lookupErr;
         rowId = existing?.id;
       }
 
       if (rowId) {
-        await supabase
+        const { error } = await supabase
           .from("mission_iris_extractions")
           .update({
             wizard_step: wizardStep,
@@ -95,8 +97,9 @@ export function IrisFieldRow({
             confirmed_at: new Date().toISOString(),
           })
           .eq("id", rowId);
+        if (error) throw error;
       } else {
-        await supabase.from("mission_iris_extractions").insert({
+        const { error } = await supabase.from("mission_iris_extractions").insert({
           mission_id: missionId,
           wizard_step: wizardStep,
           extracted_field: fieldKey,
@@ -106,6 +109,7 @@ export function IrisFieldRow({
           confirmed_by_user: true,
           confirmed_at: new Date().toISOString(),
         });
+        if (error) throw error;
       }
       lastSavedRef.current = value;
       await propagateToMission(value);
@@ -113,6 +117,11 @@ export function IrisFieldRow({
         void syncOracleConfigFromExtractions(missionId);
       }
       onChange?.();
+      if (closeEditor) toast.success("Saved.");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error(`[IrisFieldRow] save failed for ${fieldKey}:`, e);
+      toast.error(`Couldn't save ${label}: ${msg}`);
     } finally {
       setSaving(false);
       if (closeEditor) setEditing(false);
@@ -154,19 +163,25 @@ export function IrisFieldRow({
     if (!extraction) return;
     setSaving(true);
     try {
-      await supabase
+      const { error } = await supabase
         .from("mission_iris_extractions")
         .update({
           confirmed_by_user: true,
           confirmed_at: new Date().toISOString(),
         })
         .eq("id", extraction.id);
+      if (error) throw error;
       const v = (extraction.user_override_value ?? extraction.extracted_value ?? "") as string;
       if (v) await propagateToMission(v);
       if (shouldSyncOracle(fieldKey)) {
         void syncOracleConfigFromExtractions(missionId);
       }
       onChange?.();
+      toast.success(`${label} confirmed.`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error(`[IrisFieldRow] confirm failed for ${fieldKey}:`, e);
+      toast.error(`Couldn't confirm ${label}: ${msg}`);
     } finally {
       setSaving(false);
     }
